@@ -890,7 +890,7 @@ internal sealed partial class OverviewListView : IDisposable
     private void OpenEnhanceHomepage()
     {
         var own = _mods.FirstOrDefault(mod => mod.Guid == Plugin.PluginGuid);
-        Application.OpenURL(own?.SourceConfirmed == true ? ThunderstoreUpdateService.HomeUrl(own.SourceNamespace, own.SourceName) : "https://github.com/AiAe-156/Peak-ModConfigEnhance");
+        Application.OpenURL(own?.SourceConfirmed == true ? ThunderstoreUpdateService.HomeUrl(own.SourceNamespace, own.SourceName) : "https://github.com/AiAe-156/Peak-InGameModManager");
     }
     private void EditSource()
     {

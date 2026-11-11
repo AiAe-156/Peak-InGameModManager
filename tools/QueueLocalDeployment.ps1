@@ -119,7 +119,7 @@ Save-Json (Join-Path $work 'transaction.json') $plan
 $job = [ordered]@{
     Id=$id;Namespace='AiAeT';Package='ModConfigEnhance';DisplayName=('ModConfigEnhance · '+$manifest.version_number+' 安装')
     PackageRoot=$commandTarget;InstalledVersion=$installed.version_number;TargetVersion=$manifest.version_number;RunningVersion=$installed.version_number
-    Homepage='https://github.com/AiAe-156/Peak-ModConfigEnhance';State='queued';Message='本地构建安装，等游戏退出后提交。';Error=''
+    Homepage='https://github.com/AiAe-156/Peak-InGameModManager';State='queued';Message='本地构建安装，等游戏退出后提交。';Error=''
     CreatedUtc=[DateTime]::UtcNow.ToString('O');UpdatedUtc=[DateTime]::UtcNow.ToString('O');WorkDirectory=$work;BackupDirectory=$backup
     InstallMode='local-deployment';DownloadUrl='';ETag='';DownloadedBytes=0;TotalBytes=0;Progress=1;SourceProcessId=$gamePid
     Enabled=$true;AllowDowngrade=$false;RestoreParameters=$false;PluginGuids=@('com.aiae.modconfigenhance');AssemblyPaths=@((Join-Path $targetRoot 'ModConfigEnhance.dll'));LoadedAssemblyPaths=@();ConfigurationFiles=@($config)
