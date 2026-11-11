@@ -1,4 +1,8 @@
-# ModConfigEnhance 项目规则
+# 游戏内模组管理器（In-Game Mod Manager）项目规则
+
+> 2026-11-11 起工程在 `MODs/InGameModManager/`（本文件夹，git 仓库 `main`）。旧文件夹 `MODs/ModConfigEnhance/` 只读留档：里面的 `备份/`、`发布/` 与历史验证产物还在那里，不要再往旧文件夹写。
+> csproj 名、`DeployDir`、插件 GUID `com.aiae.modconfigenhance`、DLL 名、商店包名、`config/ModConfigEnhance/` 都暂未改，等 MCE / IGMM 拆分时先问用户再定。
+> 新的部署备份写到本文件夹的 `备份/`（不进 git），发布 ZIP 写到 `发布/`（不进 git）。
 
 先读上级 `../AGENTS.md`。保留现有用户改动，不用 git reset 回退整工程。版本流水在 `CHANGELOG.md`；各专项验证记录在 `验证/<专项>/`，部署真源在对应 `deployment_*/result.json`。
 
