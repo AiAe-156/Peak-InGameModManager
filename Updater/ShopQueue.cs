@@ -183,7 +183,7 @@ internal sealed partial class ShopQueue
             }
             if(reuse){if(previous!.Files.Any(f=>Packages.IsAssembly(f.Path)&&!f.Path.EndsWith(".dll",StringComparison.OrdinalIgnoreCase)))throw new IOException("Required dependency is disabled: "+entry.Key);previous.Reuse=true;t.Packages.Add(previous);continue;}
             if(previous!=null)t.PreviousPackages.Add(previous);
-            if(ManagerIdentity.IsManagerPackage(entry.Key)&&!reuse)t.Blockers.Add("MCE must use its existing self-update flow.");
+            if(ManagerIdentity.IsManagerPackage(entry.Key)&&!reuse)t.Blockers.Add("The manager must use its existing self-update flow.");
             t.Packages.Add(new ShopPackage{Key=entry.Key,Version=reuse?installed!.Version:entry.Value.Version,Url=entry.Value.DownloadUrl,Dependencies=entry.Value.Dependencies.ToList(),Reuse=reuse,InstalledAsDependency=entry.Key!=Key(t.Request)&&(installed?.InstalledAsDependency??true),Files=reuse?installed!.Files:new(),PluginGuids=reuse?installed!.PluginGuids:new()});
         }
         if(t.Packages.Concat(t.PreviousPackages).Any(IsCorePackage))RequireComplete(t);

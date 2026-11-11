@@ -32,7 +32,13 @@ internal static class ManagerIdentity
 
     /// <summary>是不是管理器本身（新旧完整版都算；简化版 MCE 与旧完整版同 GUID，按 GUID 无法区分，一并当作管理器保护）。</summary>
     internal static bool IsManagerGuid(string? guid) => Same(guid, Guid) || Same(guid, LegacyGuid);
-    internal static bool IsManagerPackage(string? key) => Same(key, PackageKey) || Same(key, LegacyPackageKey);
+    /// <summary>
+    /// 商店里的「本管理器自身」：只认新包键。复查 #14：旧包键 <c>AiAeT-ModConfigEnhance</c> 现在是简化版 MCE 的商店包，
+    /// 是一个普通模组，可以在 IGMM 的商店里装、更新、卸载（同装时概览会提醒）。
+    /// 依赖展开时仍跳过旧包键（<see cref="IsManagerDependency"/>）：旧整合包把它列为依赖，本管理器已经接替它，不该再拉一份 MCE 进来。
+    /// </summary>
+    internal static bool IsManagerPackage(string? key) => Same(key, PackageKey);
+    internal static bool IsManagerDependency(string? key) => Same(key, PackageKey) || Same(key, LegacyPackageKey);
     internal static bool IsManagerAssembly(string? name) => Same(name, AssemblyName) || Same(name, LegacyAssemblyName);
     internal static bool IsManagerDll(string? fileName) => Same(fileName, DllName) || Same(fileName, LegacyAssemblyName + ".dll");
     internal static bool IsManagerConfigFile(string? fileName) => Same(fileName, ConfigFileName) || Same(fileName, LegacyConfigFileName);
@@ -46,9 +52,21 @@ internal static class ManagerIdentity
     internal const string RuntimeDirectory = "IGMM";
     internal const string LegacyRuntimeDirectory = "MCE";
     internal static bool IsRuntimeDirectory(string? name) => Same(name, RuntimeDirectory) || Same(name, LegacyRuntimeDirectory);
-    /// <summary><c>BepInEx\IGMM</c>。</summary>
-    internal static string Runtime(string bepInExRoot) => Path.Combine(bepInExRoot, RuntimeDirectory);
-    internal static string Runtime(string bepInExRoot, params string[] parts) => Path.Combine(new[] { bepInExRoot, RuntimeDirectory }.Concat(parts).ToArray());
+    /// <summary>
+    /// <c>BepInEx\IGMM</c>。复查 #1：**旧在新不在时返回旧目录**（与 <see cref="MceDirectories"/> 同一个回退规则）。
+    /// 改名被推迟或失败时，同一次启动里后面的代码（写锁、队列、整合包库）继续用 <c>BepInEx\MCE</c> 里的真实数据，
+    /// 不会先建出一个空的 <c>BepInEx\IGMM</c>，否则下次启动改名看到目标已在就不做了，旧数据被永久孤立。
+    /// 插件与助手共用这一份判断，两边永远看到同一个位置。
+    /// </summary>
+    internal static string Runtime(string bepInExRoot)
+    {
+        string target = Path.Combine(bepInExRoot, RuntimeDirectory), legacy = Path.Combine(bepInExRoot, LegacyRuntimeDirectory);
+        try { return !Directory.Exists(target) && Directory.Exists(legacy) ? legacy : target; }
+        catch { return target; }
+    }
+    internal static string Runtime(string bepInExRoot, params string[] parts) => Path.Combine(new[] { Runtime(bepInExRoot) }.Concat(parts).ToArray());
+    /// <summary>新位置，不看旧目录在不在：只给迁移本身用。</summary>
+    internal static string RuntimeTarget(string bepInExRoot) => Path.Combine(bepInExRoot, RuntimeDirectory);
     internal static string LegacyRuntime(string bepInExRoot) => Path.Combine(bepInExRoot, LegacyRuntimeDirectory);
     /// <summary>相对 BepInEx 的路径以运行目录开头（新旧都认），如 <c>IGMM/…</c>、<c>MCE/…</c>。</summary>
     internal static bool UnderRuntime(string relative)

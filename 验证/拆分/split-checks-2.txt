@@ -1,0 +1,42 @@
+[A] copied 9818 files, retargeted 255 json
+PASS [A] cfg copied
+PASS [A] new cfg byte-identical to old cfg
+  skipped: C:\Users\AiAe\AppData\Local\Temp\igmm-split-2d9bafa0\BepInEx\config\ModConfigEnhance\exports: old pack exports are not copied; move them yourself if needed (left in place on purpose)
+  skipped: C:\Users\AiAe\AppData\Local\Temp\igmm-split-2d9bafa0\BepInEx\config\ModConfigEnhance\output\packs: old pack exports are not copied; move them yourself if needed (left in place on purpose)
+  copied 279, rewritten 868, skipped 2
+PASS [A] personal data copied to config/InGameModManager
+PASS [A] old config/ModConfigEnhance left byte-identical for ModConfig Enhance
+PASS [A] every non-excluded file arrived (278); missing 0
+PASS [A] non-JSON files copied byte-identical
+PASS [A] old pack exports (output/packs, exports) not copied
+PASS [A] marker written in data/
+PASS [A] no JSON under the new folder still points at config/ModConfigEnhance
+PASS [A] BepInEx/MCE renamed to BepInEx/IGMM
+PASS [A] every runtime file kept after rename (8390)
+PASS [A] queue/history JSON no longer point at BepInEx/MCE
+PASS [A] queue.json WorkDirectory now under BepInEx/IGMM
+PASS [A] stale MCE-Recovery entry set aside
+PASS [A] signing identity copied, original kept
+PASS [A] pack index keeps MCEPack folder names (\MCE boundary)
+PASS [A] second run does nothing
+PASS [B] existing new folder: missing files filled in, existing files never overwritten
+PASS [C] worker busy: data copied, runtime folder left for next launch
+PASS [C] next launch renames the runtime folder
+PASS [D] rewrites \\, / and end-of-string forms; leaves MCEPack alone
+PASS [E] existing new cfg is never overwritten
+PASS [F] while the rename is deferred Runtime() falls back to BepInEx/MCE
+PASS [F] no empty BepInEx/IGMM is created before the rename
+PASS [F] next launch renames and keeps the data
+PASS [G] both folders: missing items merged, existing new files kept, conflicting old copy left in place
+PASS [H] a locked file: others copied, no completion marker
+PASS [H] next launch copies the missing file and marks done
+PASS [I] composite key ending in | rewritten
+PASS [I] runtime path stored in personal data rewritten too
+PASS [I] \uXXXX-escaped root rewritten
+PASS [I] rewrite to-do removed when complete
+PASS [I] interrupted rewrite resumes on next launch
+PASS [J] pending pack switch plans under .transactions rewritten
+PASS [J] .view-cache left untouched
+  aliases of live BepInEx: F:\Games\Steam\steamapps\common\PEAK\BepInEx | F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx
+PASS [K] both Steam and SteamLibrary spellings recognised for the live install
+ALL PASS

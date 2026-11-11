@@ -16,7 +16,7 @@ internal static class WorkerTargetProtocol
     internal static string ValidateTargetContent(string content, int requiredProtocol = WorkerProtocol.Current)
     {
         Files.RejectLinks(content, content);
-        var candidates = Files.Inventory(content).Keys.Where(p => p.Replace('\\', '/').StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) && Path.GetFileName(p).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)).ToList();
+        var candidates = Files.Inventory(content).Keys.Where(p => p.Replace('\\', '/').StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) && ManagerIdentity.IsManagerDll(Path.GetFileName(p))).ToList();
         if (candidates.Count != 1) throw new IOException("Target must contain exactly one MCE host with protocol2 metadata and its complete Tools/Updater release; legacy targets cannot be auto-repaired.");
         string host = Files.Child(content, candidates[0]);
         using var module = ModuleDefinition.ReadModule(host, new ReaderParameters { ReadSymbols = false });

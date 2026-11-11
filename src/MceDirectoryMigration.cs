@@ -51,7 +51,9 @@ internal static class MceDirectoryMigration
         try
         {
             // 超长等原因留在原处的文件会让旧目录一直在、每次启动都走到这里：沿用第一次的备份目录、已备份的文件不重复复制，备份不会越堆越多
-            string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "layout-backups");
+            // 1.0.0 复查 #11：按个人数据目录名分子目录。改名后的运行目录里还有旧 config\ModConfigEnhance 在 2.5.4 时留下的备份，
+            // 新根 config\InGameModManager 的整理若沿用它，同名文件会被当成「已备份」跳过
+            string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "layout-backups", Path.GetFileName(root.TrimEnd('\\', '/')));
             string? first = Directory.Exists(backups) ? Directory.GetDirectories(backups).OrderBy(d => d, StringComparer.Ordinal).FirstOrDefault() : null;
             report.Backup = first ?? Path.Combine(backups, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
             foreach (var (oldName, _) in pending) Copy(Path.Combine(root, oldName), Path.Combine(report.Backup, oldName), report);

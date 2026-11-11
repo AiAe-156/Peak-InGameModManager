@@ -106,7 +106,7 @@ internal static partial class PackPublisher
 
     private static void ValidatePublicationProtocol(string content)
     {
-        var hosts = OverviewRepository.SafeFiles(content).Where(p => Path.GetFileName(p).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)).ToList();
+        var hosts = OverviewRepository.SafeFiles(content).Where(p => ModConfigEnhance.Updating.ManagerIdentity.IsManagerDll(Path.GetFileName(p))).ToList();
         if (hosts.Count != 1) throw new IOException("完整发布必须包含唯一 MCE protocol2 宿主。");
         using var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(hosts[0]);
         var metadata = assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute"

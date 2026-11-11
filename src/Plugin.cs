@@ -161,8 +161,9 @@ public class Plugin : BaseUnityPlugin
         try
         {
             string bep = BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/');
-            bool busy = WorkerRunning() || LegacyWorkerRunning(bep) || Updating.UpdateWriteMarker.IsActive(bep)
-                || System.IO.File.Exists(System.IO.Path.Combine(Updating.ManagerIdentity.LegacyRuntime(bep), "updating.lock"));
+            // 复查 #6：改名前 ManagerIdentity.Runtime 回退到旧目录，UpdateWriteMarker.IsActive 查的就是旧的 updating.lock，
+            // 并按 pid 与时效清掉崩溃留下的陈旧标记；不再单看文件在不在（陈旧锁会让改名永远推迟）
+            bool busy = WorkerRunning() || LegacyWorkerRunning(bep) || Updating.UpdateWriteMarker.IsActive(bep);
             var result = ManagerSplitMigration.Run(bep, BepInEx.Paths.ConfigPath, System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), busy);
             result.Skipped.InsertRange(0, report.Skipped);
             if (report.Config || result.Data || result.Runtime || result.Signing || result.Skipped.Count > 0 || result.Note.Length > 0)

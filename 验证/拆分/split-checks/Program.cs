@@ -121,8 +121,10 @@ string liveBepFull = Path.GetFullPath(liveBep).TrimEnd('\\');
     string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
     Write(Path.Combine(config, "ModConfigEnhance", "language", "zh-cn.txt"), "OLD=旧");
     Write(Path.Combine(config, "InGameModManager", "language", "zh-cn.txt"), "NEW=新");
+    Write(Path.Combine(config, "ModConfigEnhance", "profiles", "p.json"), "{}");
     var r = ManagerSplitMigration.Run(bep, config, "", busy: false);
-    Check(!r.Data && File.ReadAllText(Path.Combine(config, "InGameModManager", "language", "zh-cn.txt")) == "NEW=新", "[B] existing new folder is never overwritten");
+    // 复查 #2：新目录已在（别的代码先建了它）也要补齐；已有的文件绝不覆盖
+    Check(r.Data && File.ReadAllText(Path.Combine(config, "InGameModManager", "language", "zh-cn.txt")) == "NEW=新" && File.Exists(Path.Combine(config, "InGameModManager", "profiles", "p.json")), "[B] existing new folder: missing files filled in, existing files never overwritten");
     try { Directory.Delete(home, true); } catch { }
 }
 
@@ -157,6 +159,89 @@ string liveBepFull = Path.GetFullPath(liveBep).TrimEnd('\\');
     var r = new ManagerSplitMigration.Report();
     Check(!ManagerSplitMigration.CopyConfig(config, r) && File.ReadAllText(Path.Combine(config, "com.aiae.ingamemodmanager.cfg")) == "mine", "[E] existing new cfg is never overwritten");
     try { Directory.Delete(home, true); } catch { }
+}
+
+// ── F：复查 #1 运行目录推迟后，同次启动的代码不会建出空的新目录；下次照样改名 ──
+{
+    string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    Write(Path.Combine(bep, "MCE", "queue.json"), "{\"q\":1}");
+    ManagerSplitMigration.Run(bep, config, "", busy: true);
+    Check(ManagerIdentity.Runtime(bep).EndsWith("MCE") && ManagerIdentity.Runtime(bep, "worker.lock").StartsWith(Path.Combine(bep, "MCE")), "[F] while the rename is deferred Runtime() falls back to BepInEx/MCE");
+    Directory.CreateDirectory(ManagerIdentity.Runtime(bep));   // 模拟写锁、队列等在 Runtime() 下建目录
+    Check(!Directory.Exists(Path.Combine(bep, "IGMM")), "[F] no empty BepInEx/IGMM is created before the rename");
+    var r = ManagerSplitMigration.Run(bep, config, "", busy: false);
+    Check(r.Runtime && File.ReadAllText(Path.Combine(bep, "IGMM", "queue.json")) == "{\"q\":1}" && !Directory.Exists(Path.Combine(bep, "MCE")), "[F] next launch renames and keeps the data");
+    try { Directory.Delete(home, true); } catch { }
+}
+
+// ── G：两边都在（旧版又写出 BepInEx\MCE）→ 逐个并入，新目录已有的不覆盖 ──
+{
+    string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    Write(Path.Combine(bep, "IGMM", "queue.json"), "new");
+    Write(Path.Combine(bep, "MCE", "queue.json"), "old");
+    Write(Path.Combine(bep, "MCE", "packs", "index.json"), "{}");
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    Check(File.ReadAllText(Path.Combine(bep, "IGMM", "queue.json")) == "new" && File.Exists(Path.Combine(bep, "IGMM", "packs", "index.json")) && File.ReadAllText(Path.Combine(bep, "MCE", "queue.json")) == "old", "[G] both folders: missing items merged, existing new files kept, conflicting old copy left in place");
+    try { Directory.Delete(home, true); } catch { }
+}
+
+// ── H：复查 #2 单个文件复制失败 → 不写完成标记，其余照复制；下次补上 ──
+{
+    string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    Write(Path.Combine(config, "ModConfigEnhance", "language", "zh-cn.txt"), "A=甲");
+    string locked = Path.Combine(config, "ModConfigEnhance", "profiles", "locked.json");
+    Write(locked, "{}");
+    using (var hold = new FileStream(locked, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+    {
+        var r = ManagerSplitMigration.Run(bep, config, "", busy: false);
+        Check(!r.Data && File.Exists(Path.Combine(config, "InGameModManager", "language", "zh-cn.txt")) && !File.Exists(Path.Combine(config, "InGameModManager", "data", ManagerSplitMigration.MarkerName)), "[H] a locked file: others copied, no completion marker");
+    }
+    var r2 = ManagerSplitMigration.Run(bep, config, "", busy: false);
+    Check(r2.Data && File.Exists(Path.Combine(config, "InGameModManager", "profiles", "locked.json")) && File.Exists(Path.Combine(config, "InGameModManager", "data", ManagerSplitMigration.MarkerName)), "[H] next launch copies the missing file and marks done");
+    try { Directory.Delete(home, true); } catch { }
+}
+
+// ── I：复查 #4 / #8 / #9：| 结尾、\uXXXX 转义、交叉引用（个人数据里的运行目录路径）、改写中断后重跑 ──
+{
+    string top = Home(), home = Path.Combine(top, "中文 & 目录"), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    string oldData = Path.Combine(config, "ModConfigEnhance"), oldRuntime = Path.Combine(bep, "MCE");
+    string newData = Path.Combine(config, "InGameModManager"), newRuntime = Path.Combine(bep, "IGMM");
+    string Esc(string s) => s.Replace("\\", "\\\\");
+    string U(string s) { var sb = new System.Text.StringBuilder(); foreach (char c in s) sb.Append(c > 127 || c == '&' ? "\\u" + ((int)c).ToString("X4") : c.ToString()); return sb.ToString(); }
+    Write(Path.Combine(oldData, "data", "runtime", "sources.json"), "{\"" + Esc(oldData) + "|" + Esc(oldRuntime) + "\\\\packs\\\\x|\":1}");
+    Write(Path.Combine(oldRuntime, "queue.json"), "{\"w\":\"" + U(Esc(oldRuntime)) + "\\\\jobs\\\\1\"}");
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    string src = File.ReadAllText(Path.Combine(newData, "data", "runtime", "sources.json"));
+    string q = File.ReadAllText(Path.Combine(newRuntime, "queue.json"));
+    Check(!src.Contains(Esc(oldData) + "|") && src.Contains(Esc(newData) + "|"), "[I] composite key ending in | rewritten");
+    Check(!src.Contains(Esc(oldRuntime) + "\\\\packs") && src.Contains(Esc(newRuntime) + "\\\\packs"), "[I] runtime path stored in personal data rewritten too");
+    Check(!q.Contains(U(Esc(oldRuntime))) && q.Contains(U(Esc(newRuntime))), "[I] \\uXXXX-escaped root rewritten");
+    Check(!File.Exists(Path.Combine(newRuntime, ManagerSplitMigration.PendingRewriteName)) && !File.Exists(Path.Combine(newData, ManagerSplitMigration.PendingRewriteName)), "[I] rewrite to-do removed when complete");
+    // 模拟上次改写中途被杀：待办还在、有一处没改
+    File.WriteAllText(Path.Combine(newRuntime, ManagerSplitMigration.PendingRewriteName), Path.GetFullPath(oldRuntime) + "|" + Path.GetFullPath(newRuntime));
+    File.WriteAllText(Path.Combine(newRuntime, "late.json"), "{\"w\":\"" + Esc(oldRuntime) + "\\\\shop\"}");
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    Check(File.ReadAllText(Path.Combine(newRuntime, "late.json")).Contains(Esc(newRuntime) + "\\\\shop"), "[I] interrupted rewrite resumes on next launch");
+    try { Directory.Delete(top, true); } catch { }
+}
+
+// ── J：复查 #7 .transactions 下的切包计划会改写，.view-cache 不动 ──
+{
+    string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    string oldRuntime = Path.Combine(bep, "MCE");
+    Write(Path.Combine(oldRuntime, "packs", ".transactions", "t1", "switch.json"), "{\"b\":\"" + oldRuntime.Replace("\\", "\\\\") + "\\\\packs\"}");
+    Write(Path.Combine(oldRuntime, "packs", ".view-cache", "v.json"), "{\"b\":\"" + oldRuntime.Replace("\\", "\\\\") + "\"}");
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    Check(File.ReadAllText(Path.Combine(bep, "IGMM", "packs", ".transactions", "t1", "switch.json")).Contains("IGMM"), "[J] pending pack switch plans under .transactions rewritten");
+    Check(File.ReadAllText(Path.Combine(bep, "IGMM", "packs", ".view-cache", "v.json")).Contains("\\\\MCE\""), "[J] .view-cache left untouched");
+    try { Directory.Delete(home, true); } catch { }
+}
+
+// ── K：复查 #5 junction 两种写法（本机 F:\Games\Steam → SteamLibrary 才测得到）──
+{
+    var aliases = ManagerSplitMigration.PhysicalAliases(liveBep);
+    Console.WriteLine("  aliases of live BepInEx: " + string.Join(" | ", aliases));
+    Check(aliases.Count >= 2 && aliases.Any(a => a.Contains("SteamLibrary")) && aliases.Any(a => a.Contains("\\Steam\\")), "[K] both Steam and SteamLibrary spellings recognised for the live install");
 }
 
 Console.WriteLine(failed == 0 ? "ALL PASS" : failed + " FAILED");

@@ -56,6 +56,7 @@ $ErrorActionPreference='Stop'
 $script:root=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('ROOT_BASE64'))
 $script:gameRoot=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('GAMEDIR_BASE64'))
 $script:mceHome=Join-Path $script:root 'IGMM'
+if(!(Test-Path -LiteralPath $script:mceHome) -and (Test-Path -LiteralPath (Join-Path $script:root 'MCE'))){$script:mceHome=Join-Path $script:root 'MCE'}
 function Assert-NoLink([string]$path) {
  $p=[IO.Path]::GetFullPath($path)
  $boundary=[IO.Path]::GetDirectoryName($script:root)
