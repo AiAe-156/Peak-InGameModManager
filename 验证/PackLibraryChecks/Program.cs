@@ -129,8 +129,8 @@ Files.Save(switching.TaskPath, new PackTask { Id = Guid.NewGuid().ToString("N"),
 using (var worker = new QueueWorker(switching.Root))
 {
     var command = new UpdateCommand { Id = Guid.NewGuid().ToString("N"), Action = "add", Job = new UpdateJob { Id = Guid.NewGuid().ToString("N") } };
-    Files.Save(Path.Combine(switching.Root, "MCE", "commands", "check.json"), command); worker.ProcessCommands();
-    Check(worker.Current.Jobs.Count == 0 && worker.Current.Error.Length == 0 && File.Exists(Path.Combine(switching.Root, "MCE", "commands", "check.json")), "pending switch defers update commands instead of rejecting them");
+    Files.Save(Path.Combine(switching.Root, "IGMM", "commands", "check.json"), command); worker.ProcessCommands();
+    Check(worker.Current.Jobs.Count == 0 && worker.Current.Error.Length == 0 && File.Exists(Path.Combine(switching.Root, "IGMM", "commands", "check.json")), "pending switch defers update commands instead of rejecting them");
 }
 // Native enable/disable renames remain owned by their original pack.
 var currentTask = Files.Read<PackTask>(switching.TaskPath); currentTask.State = "completed"; Files.Save(switching.TaskPath, currentTask);
@@ -312,7 +312,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
     var restart = new UpdateSnapshot { Jobs = { new UpdateJob { Id = restartId, DisplayName = "已装好待核对", State = UpdateStates.PendingRestart } } };
     var unfinalized = new UpdateSnapshot { Jobs = { new UpdateJob { Id = Guid.NewGuid().ToString("N"), DisplayName = "未定稿的并行候选", State = UpdateStates.PendingRestart } } };
     try { queue.Handle(new PackRequest { Operation = "preview-switch", PackId = bId, HostPlugins = hosts, SourceProcessId = 0 }, unfinalized); Check(false, "a pending-restart update without a finalized transaction must block"); } catch (IOException) { checks++; }
-    Files.Save(Path.Combine(switching.Root, "MCE", "jobs", restartId, "transaction.json"), new Transaction { JobId = restartId, Phase = "installed" });
+    Files.Save(Path.Combine(switching.Root, "IGMM", "jobs", restartId, "transaction.json"), new Transaction { JobId = restartId, Phase = "installed" });
     queue.Handle(new PackRequest { Operation = "preview-switch", PackId = bId, HostPlugins = hosts, SourceProcessId = 0 }, restart);
     Check(Files.Read<PackTask>(switching.TaskPath).State == "requested", "a pending-restart update with a finalized (installed) transaction does not block previewing a switch");
     string requestedTask = File.ReadAllText(switching.TaskPath);
@@ -450,7 +450,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
     Plugin(consentSource, "plugins/Own/own.dll", "consent.own", "1.0.0"); Write(consentSource, "manifest.json", "{\"dependencies\":[\"Team-A-1.0.0\"]}");
     var consentRequest = new PackRequest { Operation = "preview-import", Source = consentSource };
     var waiting = await PackImports.Preview(consentStorage, consentRequest, new(), consentStore);
-    string downloads = Path.Combine(consentStorage.Root, "MCE", "downloads");
+    string downloads = Path.Combine(consentStorage.Root, "IGMM", "downloads");
     Check(waiting.State == "preview" && waiting.PendingDownloads.Count == 2 && waiting.PendingDownloads.All(d => d.Url.StartsWith("https://fixture.test/")), "a store pack preview lists every dependency waiting for consent");
     Check(consentStore.ZipDownloads == 0, "preview downloads zero ZIPs without consent");
     Check(!Directory.Exists(downloads) || Directory.GetFiles(downloads).Length == 0, "preview leaves the download cache empty");
@@ -498,7 +498,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
 {
     var langStorage = new PackStorage(Root("snapshot-language")); string langRoot = langStorage.Root;
     Write(langRoot, "plugins/Host/host.txt", "fixed"); Plugin(langRoot, "plugins/Feature/feature.dll", "lang.feature", "1.0.0"); Write(langRoot, "config/feature.cfg", "value=1");
-    string live = "config/ModConfigEnhance/language/";
+    string live = "config/InGameModManager/language/";
     Write(langRoot, live + "zh-cn.txt", "// display: 简体\nMCE_SEARCH=搜索"); Write(langRoot, live + "zh-cn_补翻_20261010.txt", "MCE_EXTRA=补"); Write(langRoot, live + "en-us.txt", "MCE_SEARCH=Search");
     Write(langRoot, live + "_private.txt", "secret"); Write(langRoot, live + "notes.md", "not a dictionary");
     var langHosts = new List<PackHostPlugin> { new() { Guid = "com.aiae.modconfigenhance", Version = "2.0.0" } };
@@ -511,21 +511,21 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
     langOne.Request.Operation = "confirm-adopt"; PackTransactions.SaveTemporary(langStorage, langOne);
     var langPack = langStorage.Read().Packs.Single(); string workspaceLanguage = Path.Combine(langStorage.Workspace(langPack.Id), "language");
     Check(Directory.GetFiles(workspaceLanguage).Select(f => Path.GetFileName(f)).OrderBy(n => n, StringComparer.Ordinal).SequenceEqual(new[] { "en-us.txt", "zh-cn.txt", "zh-cn_补翻_20261010.txt" }), "the snapshot workspace holds exactly the personal dictionaries, minus private and non-txt files");
-    Check(File.ReadAllText(Path.Combine(workspaceLanguage, "zh-cn.txt")) == File.ReadAllText(Path.Combine(langRoot, "config/ModConfigEnhance/language/zh-cn.txt")), "dictionary bytes are copied unchanged");
+    Check(File.ReadAllText(Path.Combine(workspaceLanguage, "zh-cn.txt")) == File.ReadAllText(Path.Combine(langRoot, "config/InGameModManager/language/zh-cn.txt")), "dictionary bytes are copied unchanged");
     Check(langPack.Language == "zh-cn" && langPack.Report!.Languages.Select(l => l.Key).OrderBy(k => k).SequenceEqual(new[] { "en-us", "zh-cn" }), "the saved pack records the chosen group and its language report");
     Check(PackTransactions.ScanLanguages(langStorage, langPack).Select(l => l.Key).OrderBy(k => k).SequenceEqual(new[] { "en-us", "zh-cn" }) && PackTransactions.LanguageRoots(langStorage, langPack).Any(r => Files.Compare.Equals(Path.GetFullPath(r), Path.GetFullPath(workspaceLanguage))), "stored packs rediscover their languages from the workspace");
-    Check(langPack.Files.All(f => !f.Path.Contains("language") && !f.Path.StartsWith("workspace")) && !Directory.Exists(Path.Combine(langStorage.Content(langPack), "config", "ModConfigEnhance")), "dictionaries stay outside the plugin inventory and signed content");
+    Check(langPack.Files.All(f => !f.Path.Contains("language") && !f.Path.StartsWith("workspace")) && !Directory.Exists(Path.Combine(langStorage.Content(langPack), "config", "InGameModManager")), "dictionaries stay outside the plugin inventory and signed content");
     langStorage.Validate(langPack); checks++;
     // A later snapshot must not inherit dictionaries the player removed, and the manual "Language file" choice beats the game language.
-    File.Delete(Path.Combine(langRoot, "config/ModConfigEnhance/language/zh-cn_补翻_20261010.txt"));
-    Write(langRoot, "config/com.aiae.modconfigenhance.cfg", "[3. State]\nLanguage file = en-us\n");
+    File.Delete(Path.Combine(langRoot, "config/InGameModManager/language/zh-cn_补翻_20261010.txt"));
+    Write(langRoot, "config/com.aiae.ingamemodmanager.cfg", "[3. State]\nLanguage file = en-us\n");
     var langTwo = LangPreview("语言快照二", "zh-cn");
     Check(langTwo.Proposed.Language == "en-us", "the player's selected language file wins over the game language");
     langTwo.Request.Operation = "confirm-adopt"; PackTransactions.SaveTemporary(langStorage, langTwo);
     var langSecond = langStorage.Read().Packs.Single(p => p.Id != langPack.Id); string secondWorkspace = Path.Combine(langStorage.Workspace(langSecond.Id), "language");
     Check(Directory.GetFiles(secondWorkspace).Select(f => Path.GetFileName(f)).OrderBy(n => n, StringComparer.Ordinal).SequenceEqual(new[] { "en-us.txt", "zh-cn.txt" }) && langSecond.Language == "en-us", "a later snapshot captures the current dictionaries only");
     Check(Directory.GetFiles(workspaceLanguage).Length == 3 && langStorage.Read().ActivePackId == langPack.Id, "the earlier snapshot workspace is untouched and the active pack is unchanged");
-    Check(File.ReadAllText(Path.Combine(langRoot, "config/ModConfigEnhance/language/zh-cn.txt")).Contains("搜索"), "saving never alters the live dictionaries");
+    Check(File.ReadAllText(Path.Combine(langRoot, "config/InGameModManager/language/zh-cn.txt")).Contains("搜索"), "saving never alters the live dictionaries");
 }
 
 // ---- Maintenance: temporary fixtures only; every plan is previewed, then re-validated at execution.
@@ -558,7 +558,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
     Reject(() => Execute(activeMod), "executing a blocked current-pack mod removal is refused");
     Check(mStorage.Read().Packs.Any(p => p.Id == current.Id) && File.Exists(Path.Combine(mStorage.Content(current), "plugins/Cur/cur.dll")), "refused current-pack operations leave the pack untouched");
     // Cache whitelist.
-    string downloadsDir = Path.Combine(mStorage.Root, "MCE", "downloads"), viewDir = Path.Combine(mStorage.Home, ".view-cache"), transDir = Path.Combine(mStorage.Home, ".transactions");
+    string downloadsDir = Path.Combine(mStorage.Root, "IGMM", "downloads"), viewDir = Path.Combine(mStorage.Home, ".view-cache"), transDir = Path.Combine(mStorage.Home, ".transactions");
     foreach (string name in new[] { "a.zip", "b.part", "c.tmp", "keep.txt", "sub/inner.zip" }) Write(downloadsDir, name, "download " + name);
     foreach (string name in new[] { "a.json", "sub/b.tmp", "c.bin", "keep.dat" }) Write(viewDir, name, "view " + name);
     string finished = Guid.NewGuid().ToString("N"), rolled = Guid.NewGuid().ToString("N"), unfinished = Guid.NewGuid().ToString("N"), bare = Guid.NewGuid().ToString("N");
@@ -647,26 +647,26 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
 // UI-to-worker maintenance protocol preserves the preview/execute boundary.
 {
     var managed = new PackStorage(Root("maintenance-queue"));
-    Directory.CreateDirectory(Path.Combine(managed.Root, "MCE", "downloads"));
-    File.WriteAllText(Path.Combine(managed.Root, "MCE", "downloads", "test.zip"), "cache");
+    Directory.CreateDirectory(Path.Combine(managed.Root, "IGMM", "downloads"));
+    File.WriteAllText(Path.Combine(managed.Root, "IGMM", "downloads", "test.zip"), "cache");
     var queue = new PackQueue(managed.Root);
     queue.Handle(new PackRequest { Operation = "maintenance-preview", Maintenance = new MaintenanceRequest { Operation = MaintenanceOperations.CleanCache, Scopes = new() { MaintenanceScopes.Downloads } } }, new());
     var task = Files.Read<PackTask>(managed.TaskPath);
     Check(task.State == "maintenance-preview" && task.Maintenance?.CanExecute == true, "maintenance UI receives an executable preview without deleting files");
-    Check(File.Exists(Path.Combine(managed.Root, "MCE", "downloads", "test.zip")), "preview leaves downloads in place");
+    Check(File.Exists(Path.Combine(managed.Root, "IGMM", "downloads", "test.zip")), "preview leaves downloads in place");
     queue.Handle(new PackRequest { Operation = "maintenance-execute", Maintenance = new MaintenanceRequest { Operation = MaintenanceOperations.CleanCache, PreviewId = task.Maintenance!.Id, Scopes = new() { MaintenanceScopes.Downloads } } }, new());
-    Check(Files.Read<PackTask>(managed.TaskPath).State == "completed" && !File.Exists(Path.Combine(managed.Root, "MCE", "downloads", "test.zip")), "confirmed maintenance executes and reports completion");
+    Check(Files.Read<PackTask>(managed.TaskPath).State == "completed" && !File.Exists(Path.Combine(managed.Root, "IGMM", "downloads", "test.zip")), "confirmed maintenance executes and reports completion");
 }
 // Storage-browser item buttons must only remove the exact selected project, not the whole category.
 {
     var one = new PackStorage(Root("selected-cleanup"));
-    string downloads = Path.Combine(one.Root, "MCE", "downloads"); Directory.CreateDirectory(downloads);
+    string downloads = Path.Combine(one.Root, "IGMM", "downloads"); Directory.CreateDirectory(downloads);
     File.WriteAllText(Path.Combine(downloads, "one.zip"), "one"); File.WriteAllText(Path.Combine(downloads, "two.zip"), "two");
-    var request = new MaintenanceRequest { Operation = MaintenanceOperations.CleanCache, Scopes = new() { MaintenanceScopes.Downloads }, SelectedPaths = new() { "MCE/downloads/one.zip" } };
+    var request = new MaintenanceRequest { Operation = MaintenanceOperations.CleanCache, Scopes = new() { MaintenanceScopes.Downloads }, SelectedPaths = new() { "IGMM/downloads/one.zip" } };
     var selectedPreview = PackMaintenance.Preview(one, request);
     Check(selectedPreview.Items.Count == 1 && selectedPreview.TotalFiles == 1 && selectedPreview.Items[0].Path.EndsWith("one.zip"), "storage item preview includes only the selected download");
     request.PreviewId = selectedPreview.Id;
-    Reject(() => PackMaintenance.Execute(one, new MaintenanceRequest { Operation = request.Operation, PreviewId = selectedPreview.Id, Scopes = request.Scopes, SelectedPaths = new() { "MCE/downloads/two.zip" } }), "confirmation cannot swap selected cleanup project");
+    Reject(() => PackMaintenance.Execute(one, new MaintenanceRequest { Operation = request.Operation, PreviewId = selectedPreview.Id, Scopes = request.Scopes, SelectedPaths = new() { "IGMM/downloads/two.zip" } }), "confirmation cannot swap selected cleanup project");
     PackMaintenance.Execute(one, request);
     Check(!File.Exists(Path.Combine(downloads, "one.zip")) && File.Exists(Path.Combine(downloads, "two.zip")), "deleting one project preserves its sibling");
     var escaped = PackMaintenance.Preview(one, new MaintenanceRequest { Operation = request.Operation, Scopes = request.Scopes, SelectedPaths = new() { "../core/BepInEx.dll" } });
@@ -675,7 +675,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
 // Whole-category cleanup is an explicit plan, not an arbitrary root selection.
 {
     var category = new PackStorage(Root("whole-category-cleanup"));
-    string downloads = Path.Combine(category.Root, "MCE", "downloads"); Directory.CreateDirectory(downloads);
+    string downloads = Path.Combine(category.Root, "IGMM", "downloads"); Directory.CreateDirectory(downloads);
     File.WriteAllText(Path.Combine(downloads, "one.zip"), "one"); File.WriteAllText(Path.Combine(downloads, "two.zip"), "two"); File.WriteAllText(Path.Combine(downloads, "keep.txt"), "keep");
     var request = new MaintenanceRequest { Operation = MaintenanceOperations.CleanCache, Scopes = new() { MaintenanceScopes.Downloads }, WholeCategory = true };
     var categoryPreview = PackMaintenance.Preview(category, request);
@@ -684,7 +684,7 @@ if (Environment.GetEnvironmentVariable("MCE_PROBE_ZIP") is { Length: > 0 } probe
     Reject(() => PackMaintenance.Execute(category, new MaintenanceRequest { Operation = request.Operation, PreviewId = categoryPreview.Id, Scopes = request.Scopes }), "category confirmation cannot change to item mode");
     PackMaintenance.Execute(category, request);
     Check(Directory.GetFiles(downloads).Select(Path.GetFileName).SequenceEqual(new[] { "keep.txt" }), "category cleanup preserves non-cache content");
-    Reject(() => PackMaintenance.Preview(category, new MaintenanceRequest { Operation = request.Operation, WholeCategory = true, Scopes = request.Scopes, SelectedPaths = new() { "MCE/downloads" } }), "category mode rejects root-path injection");
+    Reject(() => PackMaintenance.Preview(category, new MaintenanceRequest { Operation = request.Operation, WholeCategory = true, Scopes = request.Scopes, SelectedPaths = new() { "IGMM/downloads" } }), "category mode rejects root-path injection");
 }
 // Direct switch keeps the explicit saved baseline but automatically restores the unsaved runtime on return.
 {

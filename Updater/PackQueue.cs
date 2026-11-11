@@ -27,7 +27,7 @@ internal sealed class PackQueue
     internal bool Watching => Read()?.State is "requested" or "waiting-exit" or "switching" or "recovery-required";
     internal bool UpdateBlocksEnvironment(UpdateJob job)
     {
-        string path = Path.Combine(storage.Root, "MCE", "jobs", job.Id, "transaction.json");
+        string path = ManagerIdentity.Runtime(storage.Root, "jobs", job.Id, "transaction.json");
         var plan = File.Exists(path) ? Files.Read<Transaction>(path) : null;
         string? phase = plan?.Phase;
         if (plan?.RollbackRequested == true || job.RollbackRequested || phase != null && PackageRules.HasUnfinishedWrites(phase)) return true;

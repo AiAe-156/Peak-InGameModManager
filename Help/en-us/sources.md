@@ -67,6 +67,6 @@ Install, update, uninstall, local import and folder organization are all run by 
 - Several tasks that do not conflict are prepared in parallel; ones that need the same files wait their turn — **your request is never refused**.
 - r2modman and Thunderstore Mod Manager profile layouts are supported and found automatically; the manager's version records are updated after a successful commit (on next launch if the manager is running).
 
-The helper and its data live in `BepInEx/MCE/`; queues, caches and backups are excluded automatically when you publish a modpack.
+The helper and its data live in `BepInEx/IGMM/`; queues, caches and backups are excluded automatically when you publish a modpack.
 
 Related: [Modpack upgrades](packs#upgrade) · [Export and publish](export) · [FAQ](faq)

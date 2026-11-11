@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><LangVersion>12</LangVersion><ImplicitUsings>disable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" />
+    <Compile Include="../../../src/ManagerSplitMigration.cs" Link="ManagerSplitMigration.cs" />
+  </ItemGroup>
+</Project>

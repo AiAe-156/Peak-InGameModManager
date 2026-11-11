@@ -538,6 +538,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         if (_intro && _author && _document != null) _document.ActivateEditor();
         MaybeOfferSmartGrouping();
         MaybeWarnXUnity(); // 2.5.0：智能分组弹窗在前，它开着就留到下次进入
+        MaybeWarnLegacyMce(); // 1.0.0 拆分：简化版 MCE 同时启用时提醒一次
     }
     public override void OnPageExit()
     {

@@ -13,7 +13,7 @@ namespace ModConfigEnhance.Overview;
 
 internal static partial class PackPublisher
 {
-    internal const string EnvironmentFile = "MCEEnvironment.json";
+    internal const string EnvironmentFile = ModConfigEnhance.Updating.ManagerIdentity.EnvironmentFile;
     // Local now means a self-contained BepInEx environment. Data/store formats stay legacy.
     private static Dictionary<string, string> EnvironmentPlan(PublishRequest request, IReadOnlyList<OverviewMod> mods, OverviewProfile defaults)
     {
@@ -110,14 +110,14 @@ internal static partial class PackPublisher
         if (hosts.Count != 1) throw new IOException("完整发布必须包含唯一 MCE protocol2 宿主。");
         using var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(hosts[0]);
         var metadata = assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute"
-            && a.ConstructorArguments.Count == 2 && a.ConstructorArguments[0].Value?.ToString() == "MCE.WorkerProtocol");
+            && a.ConstructorArguments.Count == 2 && a.ConstructorArguments[0].Value?.ToString() is "IGMM.WorkerProtocol" or "MCE.WorkerProtocol");
         if (metadata == null || metadata.ConstructorArguments[1].Value?.ToString() != "2") throw new IOException("目标 MCE 未声明 worker protocol2；产品版本不能代替管理协议。");
         WorkerProtocol.ValidateTools(Path.Combine(Path.GetDirectoryName(hosts[0])!, "Tools", "Updater"));
     }
     private static ShopLedger PublicationLedger(List<PackFile> files, PublishRequest request, OverviewProfile defaults, IReadOnlyList<OverviewMod> mods)
     {
         string path = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
-            : Path.Combine(Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
+            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
         if (!File.Exists(path))
         {
             if (PackLibrary.Active != null && PackEnvironmentPolicy.IsComplete(PackLibrary.Active)) throw new IOException("当前完整环境的 workspace 组件记录缺失；不能借 saved 状态发布。");
@@ -186,7 +186,7 @@ internal static partial class PackPublisher
                 CopyFile(OverviewProfileAssets.CheckedPath(Paths.ConfigPath, relative), OverviewProfileAssets.CheckedPath(Path.Combine(work, "BepInEx", "config"), relative), true);
             }
             ProjectConfig(Path.Combine(work, "BepInEx", "config"), defaults.config);
-            PublicationDrafts.Apply(request, work, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/MCEPack/");
+            PublicationDrafts.Apply(request, work, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
             WriteEnvironmentDescription(work, request, defaults, mods);
             return OverviewRepository.SafeFiles(Path.Combine(work, "BepInEx")).Select(f => "BepInEx/" + Relative(Path.Combine(work, "BepInEx"), f).Replace((char)92, (char)47)).ToList();
         }

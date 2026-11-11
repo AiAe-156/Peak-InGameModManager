@@ -25,7 +25,7 @@ void Post(string root, QueueWorker worker, UpdateCommand command)
 {
     if (command.Id.Length == 0) command.Id = Guid.NewGuid().ToString("N");
     command.SchemaVersion = 2; command.MinimumWorkerProtocol = WorkerProtocol.Current;
-    Files.Save(Path.Combine(root, "MCE", "commands", Guid.NewGuid().ToString("N") + ".json"), command); worker.ProcessCommands();
+    Files.Save(Path.Combine(root, "IGMM", "commands", Guid.NewGuid().ToString("N") + ".json"), command); worker.ProcessCommands();
 }
 async Task Drive(QueueWorker worker, int rounds = 6, int sleepMs = 1200)
 {
@@ -65,7 +65,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     Check("S1 安装后 stage 已清理", !Directory.Exists(Path.Combine(result.WorkDirectory, "new")) && !File.Exists(Path.Combine(result.WorkDirectory, "new.zip")));
     var plugins = InstallMetadata.Read(root, Path.Combine(package, "Foo.dll"));
     Check("S2 枚举软依赖可解析（原 Cecil bug）", plugins.Count == 1 && plugins[0].Dependencies.Count == 1 && plugins[0].Dependencies[0].Guid == "team.other" && plugins[0].Dependencies[0].Soft, string.Join(",", plugins.SelectMany(p => p.Dependencies).Select(d => d.Guid + ":" + d.Soft)));
-    var persisted = Files.Read<UpdateSnapshot>(Path.Combine(root, "MCE", "queue.json"));
+    var persisted = Files.Read<UpdateSnapshot>(Path.Combine(root, "IGMM", "queue.json"));
     Check("S11 queue.json 任务不再携带 LoadedAssemblyPaths", persisted.Jobs.All(j => j.LoadedAssemblyPaths.Count == 0) && persisted.LoadedAssemblyPaths.Count == 1);
     Post(root, worker, new UpdateCommand { Action = "rollback", JobId = job.Id });
     await Drive(worker);
@@ -179,7 +179,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
 {
     var (root, core) = NewRoot("s12");
     using var worker = new QueueWorker(root);
-    string mce = Path.Combine(root, "MCE");
+    string mce = Path.Combine(root, "IGMM");
     string orphanJob = Path.Combine(mce, "jobs", Guid.NewGuid().ToString("N")), orphanBackup = Path.Combine(mce, "backups", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(Path.Combine(orphanJob, "new")); File.WriteAllText(Path.Combine(orphanJob, "new", "x.txt"), "x"); Directory.CreateDirectory(orphanBackup); File.WriteAllText(Path.Combine(orphanBackup, "y.bak"), "y");
     Directory.SetLastWriteTimeUtc(orphanJob, DateTime.UtcNow.AddDays(-20)); Directory.SetLastWriteTimeUtc(orphanBackup, DateTime.UtcNow.AddDays(-20));
@@ -215,10 +215,10 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     string shopId = Guid.NewGuid().ToString("N");
     string localZip = Path.Combine(home, "s14", "Other.zip"); File.WriteAllBytes(localZip, PackageZip("Other", "1.0.0", Fixtures.Plugin(core, "Other", "team.other", "Other", "1.0.0")));
     Post(root, worker, new UpdateCommand { Id = shopId, Action = "local-import", LocalImport = new LocalImportRequest { Operation = "preview", SourcePath = localZip, PackageFolder = "Other" } });
-    string commands = Path.Combine(root, "MCE", "commands"), rejections = Path.Combine(root, "MCE", "command-rejections");
+    string commands = Path.Combine(root, "IGMM", "commands"), rejections = Path.Combine(root, "IGMM", "command-rejections");
     Check("S14 更新进行中的本地导入预览被延后而不是拒绝", Directory.GetFiles(commands).Length == 1 && (!Directory.Exists(rejections) || Directory.GetFiles(rejections).Length == 0));
     await Drive(worker); worker.ProcessCommands();
-    Check("S14 更新完成后延后的命令被处理", Directory.GetFiles(commands).Length == 0 && File.Exists(Path.Combine(root, "MCE", "command-receipts", shopId + ".json")));
+    Check("S14 更新完成后延后的命令被处理", Directory.GetFiles(commands).Length == 0 && File.Exists(Path.Combine(root, "IGMM", "command-receipts", shopId + ".json")));
 }
 
 // S15: a store preview-install inside update-batch becomes a queue job (the Core component route).
@@ -240,7 +240,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     string package = Installed(root, "Team-Foo", "Foo", "1.0.0", Fixtures.Plugin(core, "Foo", "team.foo", "Foo", "1.0.0"), "Foo.dll");
     store.Add("Team", "Foo", "1.1.0", PackageZip("Foo", "1.1.0", Fixtures.Plugin(core, "Foo", "team.foo", "Foo", "1.1.0")));
     using var worker = new QueueWorker(root);
-    string mce = Path.Combine(root, "MCE");
+    string mce = Path.Combine(root, "IGMM");
     var old = Job("Team", "Foo", package, "1.0.0", "1.1.0", "team.foo");
     Post(root, worker, new UpdateCommand { Action = "add", Job = old });
     Result(worker, old).State = UpdateStates.Failed; Result(worker, old).Error = "legacy failure";
@@ -307,10 +307,10 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     string zip = Path.Combine(home, "s23", "Imported.zip"); File.WriteAllBytes(zip, PackageZip("Imported", "1.2.0", Fixtures.Plugin(core, "Imported", "team.imported", "Imported", "1.2.0")));
     using var worker = new QueueWorker(root);
     Post(root, worker, new UpdateCommand { Action = "local-import", LocalImport = new LocalImportRequest { Operation = "preview", SourcePath = zip, PackageFolder = "Imported" } });
-    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S23 本地导入预览就绪且无阻断", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + string.Join(" | ", preview.Blockers));
     Post(root, worker, new UpdateCommand { Action = "local-import", LocalImport = new LocalImportRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken } });
-    var handoff = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var handoff = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     var job = worker.Current.Jobs.FirstOrDefault(j => j.LocalSource.Length > 0);
     Check("S23 确认后转为本地源任务，预览任务标记完成", handoff.State == "completed" && job != null && job.Install && job.Package == "Imported", handoff.State + " jobs=" + worker.Current.Jobs.Count);
     await Drive(worker);
@@ -322,9 +322,9 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     var (root, core) = NewRoot("s24");
     string unowned = Installed(root, "[功能]别人的包-ManualMod", "ManualMod", "1.0.0", Fixtures.Plugin(core, "ManualMod", "manual.mod", "ManualMod", "1.0.0"), "ManualMod.dll");
     using var worker = new QueueWorker(root);
-    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
     PostLayout(new LayoutQueueRequest { Mode = InstallationLayoutMode.GroupOnly, Groups = new() { new LayoutQueueGroup { Id = "tools", Name = "Tools" } }, Mods = new() { new LayoutQueueMod { Guid = "manual.mod", GroupId = "tools" } } });
-    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S25 未登记为管理器安装的文件夹也可整理", preview.State == "ready" && preview.Blockers.Count == 0 && preview.Desired.Count > 0, preview.State + " " + string.Join(" | ", preview.Blockers) + " " + string.Join(" | ", preview.Details));
     Check("S25 预览给出分组目标路径（无现成目录时直接用分组名）", preview.Desired.All(p => p.Path.StartsWith("plugins/Tools/", StringComparison.OrdinalIgnoreCase)), preview.Desired.First().Path);
     string movedRoot = Path.Combine(root, Path.GetDirectoryName(preview.Desired.First().Path)!.Replace('/', Path.DirectorySeparatorChar));
@@ -466,14 +466,14 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     string loose = Installed(root, "1拓展模组/[功能]Qux-Qux", "Qux", "1.0.0", Fixtures.Plugin(core, "Qux", "team.qux", "Qux", "1.0.0"), "Qux.dll");
     string tool = Installed(root, "Baz-Baz", "Baz", "1.0.0", Fixtures.Plugin(core, "Baz", "team.baz", "Baz", "1.0.0"), "Baz.dll");
     using var worker = new QueueWorker(root);
-    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
     PostLayout(new LayoutQueueRequest
     {
         Mode = InstallationLayoutMode.GroupOnly,
         Groups = new() { new LayoutQueueGroup { Id = "folder-extension", Name = "1拓展模组" }, new LayoutQueueGroup { Id = "tools", Name = "Tools" } },
         Mods = new() { new LayoutQueueMod { Guid = "team.foo", GroupId = "folder-extension" }, new LayoutQueueMod { Guid = "team.bar", GroupId = "folder-extension" }, new LayoutQueueMod { Guid = "team.baz", GroupId = "tools" } }
     });
-    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S31 分类目录被识别为分组目录", preview.Details.Any(d => d.Contains("分组目录") && d.Contains("1拓展模组")), string.Join(" | ", preview.Details));
     Check("S31 已就位的包不动", preview.Details.Any(d => d.Contains("位置已符合") && d.Contains("[功能]Foo-Foo")), string.Join(" | ", preview.Details));
     Check("S31 散包搬进现有分类目录而非哈希目录", preview.Desired.Any(p => p.Path.StartsWith("plugins/1拓展模组/Bar-Bar/", StringComparison.OrdinalIgnoreCase)) && !preview.Desired.Any(p => p.Path.Contains("--")), string.Join(" | ", preview.Desired.Select(p => p.Path)));
@@ -519,8 +519,8 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     var (root, core) = NewRoot("s33"); var store = new FakeStore(); ShopQueue.TestHandler = store;
     string a = Installed(root, "Foo-Foo", "Foo", "1.0.0", Fixtures.Plugin(core, "Foo", "team.foo", "Foo", "1.0.0"), "Foo.dll");
     using var launch = System.Diagnostics.Process.GetCurrentProcess();
-    void PostLayout(QueueWorker w, LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); w.ProcessCommands(); }
-    ShopTask Task() => Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    void PostLayout(QueueWorker w, LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); w.ProcessCommands(); }
+    ShopTask Task() => Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     using (var worker = new QueueWorker(root))
     {
         PostLayout(worker, new LayoutQueueRequest { Mode = InstallationLayoutMode.GroupOnly, SourceProcessId = launch.Id,
@@ -542,7 +542,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
         Check("S34 下载记录耗时与字节", updated.DownloadSeconds > 0 && updated.DownloadTransferredBytes > 0 && updated.DownloadTransferredBytes <= updated.TotalBytes, updated.State + " s=" + updated.DownloadSeconds + " b=" + updated.DownloadTransferredBytes + "/" + updated.TotalBytes);
         PostLayout(worker, new LayoutQueueRequest { Operation = "cancel", PreviewId = preview.Id });
         Check("S33 有更新等待退出时取消仍立即生效", Task().State == "cancelled" && Directory.Exists(a), Task().State + " · " + updated.State);
-        Check("S33 取消后命令收件箱清空", Directory.GetFiles(Path.Combine(root, "MCE", "commands"), "*.json").Length == 0);
+        Check("S33 取消后命令收件箱清空", Directory.GetFiles(Path.Combine(root, "IGMM", "commands"), "*.json").Length == 0);
         Files.RunningProbe = _ => false;
     }
     using (var worker = new QueueWorker(root))
@@ -565,9 +565,9 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     var (root, core) = NewRoot("s35"); var store = new FakeStore(); ShopQueue.TestHandler = store;
     string a = Installed(root, "Foo-Foo", "Foo", "1.0.0", Fixtures.Plugin(core, "Foo", "team.foo", "Foo", "1.0.0"), "Foo.dll");
     using var launch = System.Diagnostics.Process.GetCurrentProcess();
-    string taskFile = Path.Combine(root, "MCE", "shop", "task.json");
+    string taskFile = Path.Combine(root, "IGMM", "shop", "task.json");
     ShopTask Task() => Files.Read<ShopTask>(taskFile);
-    void Send(QueueWorker w, UpdateCommand command) { command.Id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", command.Id + ".json"), command); w.ProcessCommands(); }
+    void Send(QueueWorker w, UpdateCommand command) { command.Id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", command.Id + ".json"), command); w.ProcessCommands(); }
     LayoutQueueRequest Preview() => new() { Mode = InstallationLayoutMode.GroupOnly, SourceProcessId = launch.Id,
         Groups = new() { new LayoutQueueGroup { Id = "tools", Name = "Tools" } }, Mods = new() { new LayoutQueueMod { Guid = "team.foo", GroupId = "tools" } } };
     using (var worker = new QueueWorker(root))
@@ -586,7 +586,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
         Check("S35 更新处于等待退出", Result(worker, update).State == UpdateStates.WaitingExit, Result(worker, update).State);
         Send(worker, new UpdateCommand { Action = "shop-dismiss", JobId = preview.Id });
         Check("S35 就绪预览清除＝先关闭再标记（有更新等待也立即生效）", Task().Id == preview.Id && Task().State == "cancelled" && Task().Dismissed && Directory.Exists(a), Task().State + " dismissed=" + Task().Dismissed);
-        Check("S35 清除后命令收件箱清空", Directory.GetFiles(Path.Combine(root, "MCE", "commands"), "*.json").Length == 0);
+        Check("S35 清除后命令收件箱清空", Directory.GetFiles(Path.Combine(root, "IGMM", "commands"), "*.json").Length == 0);
         Files.RunningProbe = _ => false;
         await Drive(worker);
         // A cancelled (stopped) preview: "clear finished" marks it as well.
@@ -618,11 +618,11 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     File.WriteAllText(Path.Combine(nested, "manifest.json"), Fixtures.Manifest("Nested", "1.0.0"));
     string a = Installed(root, "0核心&基础模组/Alpha-Alpha", "Alpha", "1.0.0", Fixtures.Plugin(core, "Alpha", "team.alpha", "Alpha", "1.0.0"), "Alpha.dll");
     string b = Installed(root, "0核心&基础模组/Beta-Beta", "Beta", "1.0.0", Fixtures.Plugin(core, "Beta", "team.beta", "Beta", "1.0.0"), "Beta.dll");
-    string manager = Installed(root, "Manager-MCE", "MCE", "1.0.0", Fixtures.Plugin(core, "MCE", "com.aiae.modconfigenhance", "MCE", "1.0.0"), "MCE.dll");
+    string manager = Installed(root, "Manager-MCE", "IGMM", "1.0.0", Fixtures.Plugin(core, "IGMM", "com.aiae.modconfigenhance", "IGMM", "1.0.0"), "MCE.dll");
     string doubled = Installed(root, "Doubled-Doubled", "Doubled", "1.0.0", Fixtures.Plugin(core, "Doubled", "team.doubled", "Doubled", "1.0.0"), "Doubled.dll");
     File.Copy(Path.Combine(doubled, "Doubled.dll"), Path.Combine(doubled, "Doubled.dll.old"));
     using var worker = new QueueWorker(root);
-    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
     PostLayout(new LayoutQueueRequest
     {
         Mode = InstallationLayoutMode.GroupOnly,
@@ -630,16 +630,16 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
         Mods = new() { new LayoutQueueMod { Guid = "team.alpha", GroupId = "core" }, new LayoutQueueMod { Guid = "team.beta", GroupId = "core" },
             new LayoutQueueMod { Guid = "com.aiae.modconfigenhance", GroupId = "core" }, new LayoutQueueMod { Guid = "team.nested", GroupId = "tools" }, new LayoutQueueMod { Guid = "team.doubled", GroupId = "tools" } }
     });
-    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S36 预览就绪无阻断", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + preview.Error + " " + string.Join(" | ", preview.Blockers));
     Check("S36 改名的分类目录按包的分组识别", preview.Details.Any(d => d.Contains("分组目录") && d.Contains("0核心&基础模组")) && preview.Tree.Any(n => n.Folder == "Alpha-Alpha" && n.Disposition == InstallationLayoutDisposition.Unchanged), string.Join(" | ", preview.Details));
     Check("S36 管理器目录参与整理并标记", preview.Tree.Any(n => n.Manager && n.Disposition == InstallationLayoutDisposition.Move && n.Group == "0核心&基础模组"), string.Join(" | ", preview.Tree.Select(n => n.Folder + ":" + n.Disposition + ":" + n.Reasons)));
     Check("S36 .dll 与 .dll.old 同目录不再跳过", preview.Tree.Any(n => n.Folder == "Doubled-Doubled" && n.Disposition == InstallationLayoutDisposition.Move && n.Notes.Contains("DuplicatePluginId")), string.Join(" | ", preview.Tree.Select(n => n.Folder + ":" + n.Disposition + ":" + n.Reasons)));
-    var plan = LayoutPlanner.Read(Path.Combine(root, "MCE", "shop", "tasks", preview.Id))!;
+    var plan = LayoutPlanner.Read(Path.Combine(root, "IGMM", "shop", "tasks", preview.Id))!;
     Check("S36 管理器目录最后移动", plan.Moves.Count == 4 && plan.Moves.Skip(2).All(m => preview.Tree.Any(t => t.Manager && t.OriginalPath == m.From)) && plan.Moves.Take(2).All(m => preview.Tree.Any(t => !t.Manager && t.OriginalPath == m.From)), string.Join(" | ", plan.Moves.Select(m => m.From)));
     PostLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken });
     var job = worker.Current.Jobs.SingleOrDefault(j => j.Layout);
-    Check("S36 子目录里有 DLL 的包可以确认（原先确认即失败）", job != null && File.Exists(Path.Combine(root, "MCE", "shop", "task.json")) && Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).State == "completed", job == null ? "no job · " + Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).Error : job.State);
+    Check("S36 子目录里有 DLL 的包可以确认（原先确认即失败）", job != null && File.Exists(Path.Combine(root, "IGMM", "shop", "task.json")) && Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json")).State == "completed", job == null ? "no job · " + Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json")).Error : job.State);
     if (job != null)
     {
         await Drive(worker);
@@ -670,14 +670,14 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     Package("Wrap/Inner-Inner", "Inner", "team.inner", "Inner.dll");
     Directory.CreateDirectory(P("empty-left"));
     using var worker = new QueueWorker(root);
-    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
     var groups = new List<LayoutQueueGroup> { new() { Id = "core", Name = "0基础模组" }, new() { Id = "play", Name = "3玩法模组" }, new() { Id = "tc", Name = "地形", ParentId = "play" }, new() { Id = "lib", Name = "依赖模组" } };
     LayoutQueueRow R(string guid, string group, string rel) => new() { Guids = { guid }, GroupId = group, PackageRoot = P(rel), Loaded = false, Version = "1.0.0" };
     PostLayout(new LayoutQueueRequest { Groups = groups, UngroupedFolder = "未分组", Rows = new() {
         R("team.a", "core", "0核心&基础模组/A-A"), R("team.b", "core", "0核心&基础模组/B-B"), R("team.tc", "tc", "TC"), R("team.ub", "lib", "TC/Snosz-UBImGui"), R("team.inner", "", "Wrap/Inner-Inner") } });
-    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S37 预览就绪", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + preview.Error + " " + string.Join(" | ", preview.Blockers));
-    var plan = LayoutPlanner.Read(Path.Combine(root, "MCE", "shop", "tasks", preview.Id))!;
+    var plan = LayoutPlanner.Read(Path.Combine(root, "IGMM", "shop", "tasks", preview.Id))!;
     string Moves() => string.Join(" | ", plan.Moves.Select(m => m.From + "→" + m.To));
     Check("S37 分类文件夹改名为分组名", plan.Moves.Any(m => m.From == "plugins/0核心&基础模组" && m.To == "plugins/0基础模组"), Moves());
     Check("S37 嵌套分组成为文件夹层级", plan.Moves.Any(m => m.From == "plugins/TC" && m.To == "plugins/3玩法模组/地形/TC"), Moves());
@@ -688,7 +688,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
         string.Join(",", preview.Tree.Where(n => n.Kind == LayoutNodeKind.Empty).Select(n => n.OriginalPath)));
     PostLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken });
     var job = worker.Current.Jobs.SingleOrDefault(j => j.Layout);
-    Check("S37 确认生成整理任务", job != null, Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).Error);
+    Check("S37 确认生成整理任务", job != null, Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json")).Error);
     if (job != null)
     {
         await Drive(worker);
@@ -722,17 +722,17 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     try
     {
         using var worker = new QueueWorker(root);
-        void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+        void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "IGMM", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
         PostLayout(new LayoutQueueRequest { Groups = new() { new() { Id = "play", Name = "3玩法模组" } }, UngroupedFolder = "未分组",
             Rows = new() { new() { Guids = { "team.a" }, GroupId = "play", PackageRoot = P("A-A"), Version = "1.0.0" } } });
-        var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+        var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
         Check("S38 预览列出空文件夹，不含会被移入模组的分组文件夹", preview.Tree.Where(n => n.Kind == LayoutNodeKind.Empty).Select(n => n.OriginalPath).OrderBy(x => x).SequenceEqual(new[] { "plugins/empty-one", "plugins/empty-two", "plugins/refill" }),
             string.Join(",", preview.Tree.Where(n => n.Kind == LayoutNodeKind.Empty).Select(n => n.OriginalPath)));
         // empty-two is not ticked; plugins/A-A is not an empty folder and must be ignored even if a request names it.
         PostLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken, RecycleEmpty = new() { "plugins/empty-one", "plugins/refill", "plugins/A-A" } });
         File.WriteAllText(Path.Combine(P("refill"), "note.dll"), "x");   // became non-empty after the preview
         var job = worker.Current.Jobs.SingleOrDefault(j => j.Layout);
-        Check("S38 确认生成整理任务", job != null, Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).Error);
+        Check("S38 确认生成整理任务", job != null, Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json")).Error);
         Check("S38 移动之前不放回收站", recycled.Count == 0 && Directory.Exists(P("empty-one")));
         if (job != null)
         {

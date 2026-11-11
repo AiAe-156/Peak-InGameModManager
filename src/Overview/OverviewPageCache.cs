@@ -48,8 +48,8 @@ internal static class OverviewPageCache
         if (_started) return; _started = true; _reliable = true;
         _plugins = FullRoot(Paths.BepInExRootPath);
         _config = FullRoot(Paths.ConfigPath);
-        _data = FullRoot(Path.Combine(Paths.ConfigPath, "ModConfigEnhance"));
-        _packIndex = Path.GetFullPath(Path.Combine(Paths.BepInExRootPath, "MCE", "packs", "index.json"));
+        _data = FullRoot(Path.Combine(Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory));
+        _packIndex = Path.GetFullPath(ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "packs", "index.json"));
         _appliedPath = Path.Combine(Updating.MceDirectories.Runtime(_data), "applied-profile.json");
         _legacyPath = Path.Combine(Updating.MceDirectories.Legacy(_data), "state.json");
         _informationPath = Path.Combine(_data, "pack-information.json");
@@ -98,7 +98,7 @@ internal static class OverviewPageCache
         if (full.StartsWith(_plugins, StringComparison.OrdinalIgnoreCase))
         {
             if (name.IndexOf(".dll", StringComparison.OrdinalIgnoreCase) >= 0 || name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || name.Equals("manifest.json.old", StringComparison.OrdinalIgnoreCase) || !Path.HasExtension(name)) Interlocked.Increment(ref _inventory);
-            if (full.Replace('\\', '/').IndexOf("/MCEPack/", StringComparison.OrdinalIgnoreCase) >= 0) Interlocked.Increment(ref _content);
+            if (ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder(full)) Interlocked.Increment(ref _content);
         }
     }
     private static long _nextExternalRefresh;

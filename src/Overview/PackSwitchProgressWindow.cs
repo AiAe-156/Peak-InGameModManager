@@ -16,7 +16,7 @@ internal static class PackSwitchProgressWindow
         if (Environment.OSVersion.Platform != PlatformID.Win32NT || !PackLibrary.ValidId(previewId)) return;
         // Prepare the complete immutable tools cache before the pack can remove its host files.
         string tools = OverviewUpdateQueue.PrepareWorkerTools();
-        string viewer = Path.Combine(tools, "MCE.Desktop.exe");
+        string viewer = Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.DesktopExecutable);
         WorkerProtocol.RejectLinks(Path.GetDirectoryName(BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/'))!, viewer);
         if (!File.Exists(viewer)) throw new IOException("MCE progress viewer is missing. Reinstall the complete Tools/Updater bundle; recovery remains available.");
         string root = BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/');

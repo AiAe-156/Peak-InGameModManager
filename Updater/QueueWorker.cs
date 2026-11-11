@@ -30,7 +30,7 @@ internal sealed partial class QueueWorker : IDisposable
     {
         WorkerTargetProtocol.Initialize();
         WorkerRecovery.ValidateIndex(root);
-        Files.ValidateRoot(root); this.root = root; home = Path.Combine(root, "MCE");
+        Files.ValidateRoot(root); this.root = root; home = ManagerIdentity.Runtime(root);
         Directory.CreateDirectory(home); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
         WorkerLog.Initialize(home);
         if (UpdateWriteMarker.IsActive(root)) WorkerLog.Warn("a previous write marker was still active at startup");

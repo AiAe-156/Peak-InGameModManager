@@ -13,10 +13,10 @@ internal sealed partial class ShopQueue
     readonly bool analysisOnly;
     readonly bool independent;
     internal static readonly object MetadataGate = new();
-    string Home => analysisHome ?? Path.Combine(storage.Root,"MCE","shop");
+    string Home => analysisHome ?? ManagerIdentity.Runtime(storage.Root,"shop");
     string TaskPath => Path.Combine(Home,"task.json");
     string LedgerPath => LedgerPathFor(storage.Read());
-    string LedgerPathFor(PackIndex index) => index.ActivePackId.Length>0 ? Path.Combine(storage.Workspace(index.ActivePackId),"shop-installed.json") : Path.Combine(storage.Root,"MCE","shop","installed-unmanaged.json");
+    string LedgerPathFor(PackIndex index) => index.ActivePackId.Length>0 ? Path.Combine(storage.Workspace(index.ActivePackId),"shop-installed.json") : ManagerIdentity.Runtime(storage.Root,"shop","installed-unmanaged.json");
     internal static HttpMessageHandler? TestHandler = null;
     internal static Action<string>? StepProbe = null;
     internal ShopQueue(string root, string? preparationHome = null, bool executeIndependent = false) { analysisHome=preparationHome; analysisOnly=preparationHome!=null && !executeIndependent; independent=executeIndependent; storage=new(root);Files.RejectLinks(Directory.GetParent(root)!.FullName,Home);var task=Read();if(task?.State is "downloading" or "resolving"){task.State="failed";task.Error="Preparation interrupted. Installed files were not changed; preview again.";Save(task);}else if(task!=null&&PackStorage.Id(task.Id)&&!File.Exists(Path.Combine(Work(task),"task.json")))Save(task); }
@@ -183,7 +183,7 @@ internal sealed partial class ShopQueue
             }
             if(reuse){if(previous!.Files.Any(f=>Packages.IsAssembly(f.Path)&&!f.Path.EndsWith(".dll",StringComparison.OrdinalIgnoreCase)))throw new IOException("Required dependency is disabled: "+entry.Key);previous.Reuse=true;t.Packages.Add(previous);continue;}
             if(previous!=null)t.PreviousPackages.Add(previous);
-            if(entry.Key=="AiAeT-ModConfigEnhance"&&!reuse)t.Blockers.Add("MCE must use its existing self-update flow.");
+            if(ManagerIdentity.IsManagerPackage(entry.Key)&&!reuse)t.Blockers.Add("MCE must use its existing self-update flow.");
             t.Packages.Add(new ShopPackage{Key=entry.Key,Version=reuse?installed!.Version:entry.Value.Version,Url=entry.Value.DownloadUrl,Dependencies=entry.Value.Dependencies.ToList(),Reuse=reuse,InstalledAsDependency=entry.Key!=Key(t.Request)&&(installed?.InstalledAsDependency??true),Files=reuse?installed!.Files:new(),PluginGuids=reuse?installed!.PluginGuids:new()});
         }
         if(t.Packages.Concat(t.PreviousPackages).Any(IsCorePackage))RequireComplete(t);
@@ -310,7 +310,7 @@ internal sealed partial class ShopQueue
         RequireContext(t);
         RequireComponentUninstall(Key(t.Request));
         var ledger=Ledger();t.LedgerRevision=ledger.Revision;var target=ledger.Packages.SingleOrDefault(p=>Files.Compare.Equals(p.Key,Key(t.Request)))??FindExternal(Key(t.Request),t.Request.Version,true)??throw new IOException("No verifiable package manifest and independent package ownership were found. No files were removed.");
-        if(ProtectedHost(target))throw new IOException("Required BepInEx/MCE management host cannot be uninstalled independently: "+target.Key);
+        if(ProtectedHost(target))throw new IOException("Required BepInEx/manager host cannot be uninstalled independently: "+target.Key);
         // Uninstall is bounded by explicit ownership/protection, not pack migration status.
         // Installing/replacing core content retains the complete-environment requirement.
         if(target.VerificationRequired){

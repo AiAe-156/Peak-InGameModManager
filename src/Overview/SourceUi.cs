@@ -133,7 +133,7 @@ internal static partial class SourceUi
             if(action=="uninstall"){
                 string reason=UninstallReason(mod.SourceKey);
                 if(reason.Length>0){ShowRelationships(repo, mods ?? new[] { mod }, mod);return;}
-                string ledgerPath=PackLibrary.Managed?System.IO.Path.Combine(PackLibrary.Workspace,"shop-installed.json"):System.IO.Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop","installed-unmanaged.json");
+                string ledgerPath=PackLibrary.Managed?System.IO.Path.Combine(PackLibrary.Workspace,"shop-installed.json"):ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath,"shop","installed-unmanaged.json");
                 var ledger=System.IO.File.Exists(ledgerPath)?Newtonsoft.Json.JsonConvert.DeserializeObject<ModConfigEnhance.Updating.ShopLedger>(System.IO.File.ReadAllText(ledgerPath)):null;
                 var owned=ledger?.Packages.FirstOrDefault(p=>p.PluginGuids.Contains(mod.Guid,StringComparer.OrdinalIgnoreCase));
                 if(owned==null&&mod.SourceConfirmed&&System.IO.Directory.Exists(mod.PackageRoot)&&!System.IO.Path.GetFullPath(mod.PackageRoot).TrimEnd('\\','/').Equals(System.IO.Path.GetFullPath(BepInEx.Paths.PluginPath).TrimEnd('\\','/'),StringComparison.OrdinalIgnoreCase)&&System.IO.File.Exists(System.IO.Path.Combine(mod.PackageRoot,"manifest.json"))&&Version.TryParse(mod.PackageVersion,out _))owned=new ModConfigEnhance.Updating.ShopPackage{Key=mod.SourceNamespace+"-"+mod.SourceName,Version=mod.PackageVersion};

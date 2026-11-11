@@ -27,13 +27,29 @@ namespace ModConfigEnhance;
 /// </summary>
 internal static partial class Loc
 {
-    internal const string KeyPrefix = "MCE_";
+    /// <summary>本管理器界面词条的键前缀（写语言文件、导出、LocalizedText 索引都用它）。旧文件里的 <c>MCE_</c> 读取时同样认，见 <see cref="TryStripTermPrefix"/>。</summary>
+    internal const string KeyPrefix = Updating.ManagerIdentity.TermPrefix;
+    internal const string LegacyKeyPrefix = Updating.ManagerIdentity.LegacyTermPrefix;
+
+    /// <summary>键以 IGMM_ 或旧的 MCE_ 开头 → 去掉前缀、转大写返回 true。</summary>
+    internal static bool TryStripTermPrefix(string key, out string id)
+    {
+        foreach (string prefix in new[] { KeyPrefix, LegacyKeyPrefix })
+        {
+            if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { id = key.Substring(prefix.Length).ToUpperInvariant(); return true; }
+        }
+
+        id = key;
+        return false;
+    }
+
+    internal static bool HasTermPrefix(string key) => TryStripTermPrefix(key, out _);
     internal const string FollowGame = "";
     internal const string ReadmeFile = "readme.md";
 
     private const string DisplayMarker = "// display:";
 
-    internal static string RootDirectory => Path.Combine(Paths.ConfigPath, "ModConfigEnhance");
+    internal static string RootDirectory => Path.Combine(Paths.ConfigPath, Updating.ManagerIdentity.ConfigDirectory);
     internal static string LanguageDirectory => Updating.MceDirectories.Language(RootDirectory);
     /// <summary>2.5.0：导出的待翻文本（原 export\，与整合包导出的 exports\ 分开）。</summary>
     internal static string ExportDirectory => Updating.MceDirectories.TranslationOutput(RootDirectory);
@@ -139,9 +155,9 @@ internal static partial class Loc
         new("NOTICE_REFRESHED", "Language folder rescanned: {0} language group(s).", "已重新扫描语言目录：{0} 个语言组。", "已重新掃描語言目錄：{0} 個語言組。"),
         // 悬停注释（说明面板显示；首行是标题，`…` 包住的部分用标题色强调）
         new("TIP_EXPORT_V2",
-            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
-            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
-            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
+            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\InGameModManager\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
+            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\InGameModManager\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
+            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\InGameModManager\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
         new("TIP_UNTRANSLATED_V2",
             "Untranslated\nExports only the entries the current language group doesn't cover yet: exact lines and `r:` regex rules both count as translated.\n\nOutput lands in `output\\translation\\`; fill it in, then use `Import additions` in the language row.",
             "补漏翻\n只导出当前语言组还没覆盖的原文条目：整句译文和 `r:` 正则规则命中的都算已翻。\n\n产物落在 `output\\translation\\`，填好后用语言行的`导入补翻`合进语言文件。",
@@ -161,9 +177,9 @@ internal static partial class Loc
         // 2.5.5：按钮改为直接打开翻译导出目录，含义变了，换 _V3 键（旧 _V2 进 RetiredTerms）。
         // 个人数据文件夹仍叫 config\ModConfigEnhance（内部目录名，拆分时再定），提示里如实写出。
         new("TIP_OPEN_DIR_V3",
-            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\` (the folder keeps its internal name).",
-            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（文件夹沿用内部名称）。",
-            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（資料夾沿用內部名稱）。"),
+            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\InGameModManager\\output\\translation\\` (the folder keeps its internal name).",
+            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\InGameModManager\\output\\translation\\`（文件夹沿用内部名称）。",
+            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\InGameModManager\\output\\translation\\`（資料夾沿用內部名稱）。"),
         new("TIP_SORT",
             "Sort\nSidebar mod order:\n\n`Default` (load order) / `Load reversed` / `Name` / `Name reversed`.",
             "排序\n侧栏模组行的排序方式：\n\n`默认`（加载顺序）/ `加载倒序` / `名称` / `名称倒序`。",
@@ -259,8 +275,8 @@ internal static partial class Loc
             "右上方面板显示悬停选项的说明、默认值与取值范围 / 可选项。需要树形侧栏。重启生效。",
             "右上方板面顯示懸停選項的說明、預設值與取值範圍 / 可選項。需要樹形側欄。重啟生效。"),
         new(Plugin.DescUiLocalization, Plugin.DescUiLocalization,
-            "本地化 ModConfig 界面与本模组按钮和提示。英文为原文，内置简体与繁体中文；config\\ModConfigEnhance\\language\\ 中的可选语言文件覆盖内置文字。在模组列表上方选择语言。此开关重启生效。",
-            "本地化 ModConfig 介面與本模組按鈕和提示。英文為原文，內建簡體與繁體中文；config\\ModConfigEnhance\\language\\ 中的選用語言檔案覆寫內建文字。在模組列表上方選擇語言。此開關重新啟動生效。"),
+            "本地化 ModConfig 界面与本模组按钮和提示。英文为原文，内置简体与繁体中文；config\\InGameModManager\\language\\ 中的可选语言文件覆盖内置文字。在模组列表上方选择语言。此开关重启生效。",
+            "本地化 ModConfig 介面與本模組按鈕和提示。英文為原文，內建簡體與繁體中文；config\\InGameModManager\\language\\ 中的選用語言檔案覆寫內建文字。在模組列表上方選擇語言。此開關重新啟動生效。"),
         new(Plugin.DescHideLocalizationButtons, Plugin.DescHideLocalizationButtons,
             "收起模组列表上方的导出与翻译工具两排按钮，只留语言下拉 + 刷新；列表上移，「导出」列同步隐藏，勾选状态保留。即时生效。",
             "收起模組列表上方的導出與翻譯工具兩排按鈕，只留語言下拉 + 重新整理；列表上移，「導出」欄同步隱藏，勾選狀態保留。即時生效。"),
@@ -578,9 +594,9 @@ internal static partial class Loc
                 continue;
             }
 
-            if (key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
+            if (TryStripTermPrefix(key, out string termId))
             {
-                key = key.Substring(KeyPrefix.Length).ToUpperInvariant();
+                key = termId;
             }
 
             bool incomingEffective = IsEffectiveTranslation(key, value, result.Code);

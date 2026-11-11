@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Reflection;
 
-[assembly: AssemblyMetadata("MCE.WorkerProtocol", "2")]
+[assembly: AssemblyMetadata("IGMM.WorkerProtocol", "2")]
 namespace ModConfigEnhance.Updating;
 
 /// <summary>Local release integrity and capability declaration, NOT a security signature.</summary>
@@ -30,7 +30,7 @@ public static class WorkerProtocol
             throw new IOException("An older worker instance is still running. Wait for it to exit before submitting resource operations; no command was published.");
     }
     public const string ManifestName = "worker-protocol.manifest";
-    public const string Executable = "MCE.UpdateWorker.exe";
+    public const string Executable = ManagerIdentity.WorkerExecutable;
     public static string Hash(string file) { using var sha = SHA256.Create(); using var input = File.OpenRead(file); return Hex(sha.ComputeHash(input)); }
     static string Hex(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
     static string Digest(string value) { using var sha = SHA256.Create(); return Hex(sha.ComputeHash(Encoding.UTF8.GetBytes(value))); }

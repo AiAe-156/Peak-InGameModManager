@@ -26,12 +26,12 @@ internal static class PackStorageBrowser
     internal static Task<List<StorageTreeNode>> Load(string bepRoot) => Task.Run(() => {
         var result = new List<StorageTreeNode>();
         foreach (var spec in new[] {
-            ("下载缓存", "MCE/downloads", MaintenanceScopes.Downloads),
-            ("详情缓存", "MCE/packs/.view-cache", MaintenanceScopes.ViewCache),
-            ("商店下载与操作备份", "MCE/shop/tasks", MaintenanceScopes.ShopTasks),
-            ("商店图标与文档缓存", "config/ModConfigEnhance/data/runtime/shop-resources", MaintenanceScopes.ShopResources),
-            ("切换恢复备份", "MCE/packs/.transactions", MaintenanceScopes.Transactions),
-            ("整合包回收区", "MCE/packs/.trash", MaintenanceScopes.PackTrash) })
+            ("下载缓存", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/downloads", MaintenanceScopes.Downloads),
+            ("详情缓存", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.view-cache", MaintenanceScopes.ViewCache),
+            ("商店下载与操作备份", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/shop/tasks", MaintenanceScopes.ShopTasks),
+            ("商店图标与文档缓存", "config/InGameModManager/data/runtime/shop-resources", MaintenanceScopes.ShopResources),
+            ("切换恢复备份", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.transactions", MaintenanceScopes.Transactions),
+            ("整合包回收区", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.trash", MaintenanceScopes.PackTrash) })
         {
             var root = new StorageTreeNode { Name = spec.Item1, Path = Path.Combine(bepRoot, spec.Item2), Scope = spec.Item3, Directory = true, Category = true };
             if (System.IO.Directory.Exists(root.Path))

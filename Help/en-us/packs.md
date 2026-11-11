@@ -34,7 +34,7 @@ Switching replaces files that are running, so the update helper finishes it **af
 
 If you have not used modpacks yet, before your first switch click **Save current setup as a temporary modpack** and give it a name. It copies a snapshot **immediately**, without quitting the game, so you can always switch back. Temporary modpacks are kept and never deleted automatically.
 
-The library is in `BepInEx/MCE/packs/`; each pack keeps its own personal profiles, final configs and mod versions.
+The library is in `BepInEx/IGMM/packs/`; each pack keeps its own personal profiles, final configs and mod versions.
 
 ## One environment, several profiles {#profiles}
 
@@ -48,7 +48,7 @@ After that you can use the author preset as it is, or duplicate it into a person
 
 ## Upgrades and personal changes {#upgrade}
 
-The author's originals live in the plugin folder's `MCEPack`. When you edit an author preset its original baseline is kept; save in place or as your own, and restore the original whenever you like.
+The author's originals live in the plugin folder's `IGMMPack`. When you edit an author preset its original baseline is kept; save in place or as your own, and restore the original whenever you like.
 
 When a modpack is upgraded, your personal configs are backed up and kept first, then mods and author data are updated. Changed author profiles or translations are marked with blue markers so you can compare and decide what to adopt. After an upgrade it is worth opening "Manage profiles…" to compare the new author profile with your current configuration.
 

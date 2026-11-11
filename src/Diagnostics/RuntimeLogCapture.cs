@@ -12,7 +12,7 @@ internal sealed class RuntimeLogCapture : ILogListener
     private static RuntimeLogCapture? _instance;
     private static readonly object Gate = new();
     private static MceLogChannel? _language;
-    private readonly MceLogChannel _runtime = MceLogApi.CreateChannel("com.aiae.modconfigenhance", "runtime-timestamped", "Runtime logs (timestamped)", 10000);
+    private readonly MceLogChannel _runtime = MceLogApi.CreateChannel(Plugin.PluginGuid, "runtime-timestamped", "Runtime logs (timestamped)", 10000);
     [ThreadStatic] private static bool _writing;
     internal static void Start()
     {
@@ -28,7 +28,7 @@ internal sealed class RuntimeLogCapture : ILogListener
     }
     internal static void LanguageDetail(string message)
     {
-        lock (Gate) { _language ??= MceLogApi.CreateChannel("com.aiae.modconfigenhance", "language-detail", "Language changes / 语言变更详情", 10000); _language.Write(new MceLogRecord { Level = MceLogLevel.Debug, Category = "Language", Message = message }); }
+        lock (Gate) { _language ??= MceLogApi.CreateChannel(Plugin.PluginGuid, "language-detail", "Language changes / 语言变更详情", 10000); _language.Write(new MceLogRecord { Level = MceLogLevel.Debug, Category = "Language", Message = message }); }
     }
     // File records have no emission identity. Text cannot distinguish history from
     // a later identical event. Original times live only in this Runtime channel.

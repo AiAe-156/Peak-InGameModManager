@@ -91,8 +91,8 @@ internal sealed partial class ShopQueue
                 if (entry.Path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new IOException("Executable files are not supported by local mod import: " + entry.Path);
                 if (entry.Path.StartsWith("core/", StringComparison.OrdinalIgnoreCase)) ApproveCoreFile(task, entry);
                 else if (!Safe(entry.Path, index)) throw new IOException("Unsupported or protected content: " + entry.Path);
-                if (Path.GetFileName(entry.Path).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)
-                    || package.PluginGuids.Contains("com.aiae.modconfigenhance", Files.Compare))
+                if (ManagerIdentity.IsManagerDll(Path.GetFileName(entry.Path))
+                    || package.PluginGuids.Any(ManagerIdentity.IsManagerGuid))
                     throw new IOException("Use the dedicated manager update flow.");
                 if (File.Exists(target)) task.Details.Add("Existing file will be backed up and replaced: " + entry.Path);
                 string staged = Files.Child(Path.Combine(Work(task), "content"), entry.Path);

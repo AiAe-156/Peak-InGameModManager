@@ -62,7 +62,7 @@ internal static class LayoutPlanner
                 // A folder people can read. The planner's hashed form stays as the fallback for a name that cannot be a folder.
                 StableOuterFolderName = owned?.LayoutOuterFolder ?? PreferredOuter(request.Mode, translated, name),
                 OwnershipComplete = true, FileInventoryComplete = true, IsCoreOrPatcher = false,
-                IsProtectedManager = discovered.Any(p => Files.Compare.Equals(p.Guid, "com.aiae.modconfigenhance")),
+                IsProtectedManager = discovered.Any(p => ManagerIdentity.IsManagerGuid(p.Guid)),
                 HasLinks = HasLinks(folder) ? LayoutFact.Yes : LayoutFact.No, IsLocked = LayoutFact.No, IsShared = LayoutFact.No
             };
             foreach (var plugin in discovered)

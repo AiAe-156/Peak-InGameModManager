@@ -40,7 +40,7 @@ internal sealed class PublishedPack
     internal static List<PublishedPack> Discover(string plugins)
     {
         var result = new List<PublishedPack>();
-        foreach (string file in OverviewRepository.SafeFiles(plugins).Where(p => Path.GetFileName(p) == "profiles.json" && Path.GetFileName(Path.GetDirectoryName(p)) == "MCEPack"))
+        foreach (string file in OverviewRepository.SafeFiles(plugins).Where(p => Path.GetFileName(p) == "profiles.json" && ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))))
         {
             if (ArchivePath(file, plugins)) continue;
             var pack = new PublishedPack { Root = Path.GetDirectoryName(file)! };
@@ -75,7 +75,7 @@ internal sealed class PublishedPack
         return relative.IndexOf("Demo/profile-format/", StringComparison.OrdinalIgnoreCase) >= 0 || relative.Split('/').Any(p => p == "验证" || p == "备份" || p.StartsWith("待安装", StringComparison.OrdinalIgnoreCase));
     }
     internal static string Read(string root, string relative) => File.ReadAllText(OverviewProfileAssets.CheckedPath(root, relative), Encoding.UTF8);
-    internal static string KeyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ModConfigEnhance", "signing", "author-key.json");
+    internal static string KeyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "signing", "author-key.json");
     internal static void Sign(string root, string? keyPath = null)
     {
         keyPath ??= KeyPath;

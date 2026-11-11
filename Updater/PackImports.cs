@@ -27,13 +27,13 @@ internal static class PackImports
         foreach (string demo in rawFiles.Where(IsDemo).ToList()) { File.Delete(Files.Child(raw, demo)); rawFiles.Remove(demo); }
         var single = rawFiles.Where(p => Path.GetFileName(p).Equals("profile.json", StringComparison.OrdinalIgnoreCase)).ToList();
         var releases = rawFiles.Where(p => Path.GetFileName(p).Equals("release.json", StringComparison.OrdinalIgnoreCase)
-            && Path.GetFileName(Path.GetDirectoryName(p))!.Equals("MCEPack", StringComparison.OrdinalIgnoreCase)).ToList();
+            && ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))).ToList();
         if (releases.Count > 1) throw new IOException("导入内容含多个整合包身份，请拆分后分别导入。");
         JsonObject? release = releases.Count == 0 ? null : JsonNode.Parse(File.ReadAllText(Files.Child(raw, releases[0])))?.AsObject();
         if (release?["schemaVersion"] is JsonNode schema && schema.GetValue<int>() != 1) throw new IOException("整合包资料版本不受支持。");
         string publication = release?["packId"]?.GetValue<string>() ?? "";
         task.SingleProfile = publication.Length == 0 && single.Count == 1 && rawFiles.All(p => !Packages.IsAssembly(p))
-            && !rawFiles.Any(p => Path.GetFileName(p).Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase));
+            && !rawFiles.Any(p => PackImportEnvironment.IsDescription(Path.GetFileName(p)));
         if (task.SingleProfile)
         {
             var index = storage.Read();
@@ -52,15 +52,15 @@ internal static class PackImports
         while (Directory.GetFiles(root).Length == 0 && Directory.GetDirectories(root).Length == 1)
         {
             string child = Directory.GetDirectories(root)[0];
-            if (new[] { "BepInEx", "plugins", "config", "patchers", "core", "monomod", "MCEPack" }.Contains(Path.GetFileName(child), Files.Compare)) break;
+            if (new[] { "BepInEx", "plugins", "config", "patchers", "core", "monomod", ManagerIdentity.PackFolder, ManagerIdentity.LegacyPackFolder }.Contains(Path.GetFileName(child), Files.Compare)) break;
             root = child;
         }
-        var descriptions = Files.Inventory(root).Keys.Where(p => Path.GetFileName(p).Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase)).ToList();
+        var descriptions = Files.Inventory(root).Keys.Where(p => PackImportEnvironment.IsDescription(Path.GetFileName(p))).ToList();
         if (descriptions.Count > 1) throw new IOException("存在多个独立环境描述。");
         PackImportEnvironment? environment = descriptions.Count == 0 ? null : PackImportEnvironment.Read(Files.Child(root, descriptions[0]));
         if (environment != null)
         {
-            if (!Files.Compare.Equals(descriptions[0], PackImportEnvironment.FileName)) throw new IOException("独立环境描述必须位于包根目录。");
+            if (!PackImportEnvironment.IsDescription(descriptions[0]) || descriptions[0].Contains('/') || descriptions[0].Contains('\\')) throw new IOException("独立环境描述必须位于包根目录。");
             task.Proposed.EnvironmentVersion = 2; task.Proposed.MinimumWorkerProtocol = 2;
             Files.Save(Path.Combine(task.StagingDirectory, PackImportEnvironment.FileName), environment);
         }
@@ -172,7 +172,7 @@ internal static class PackImports
                 visiting.Remove(key); done.Add(key); return;
             }
             if (!approvedSet.Contains(key + "|" + version + "|" + resolved.DownloadUrl)) throw new IOException("依赖清单与已同意的预览不一致，未下载：" + key + " " + version + "。请重新预览。");
-            string cache = Files.Child(Path.Combine(storage.Root, "MCE", "downloads"), value + ".zip"); Directory.CreateDirectory(Path.GetDirectoryName(cache)!);
+            string cache = Files.Child(ManagerIdentity.Runtime(storage.Root, "downloads"), value + ".zip"); Directory.CreateDirectory(Path.GetDirectoryName(cache)!);
             task.Message = "正在下载依赖：" + PackReportText.Pretty(key) + " " + version + "（已完成 " + done.Count + " 个）"; Files.Save(storage.TaskPath, task);
             await store.Download(resolved.DownloadUrl, cache, (_, _, _) => { }, CancellationToken.None);
             string extracted = Path.Combine(task.StagingDirectory, "dependencies", value);
@@ -263,7 +263,7 @@ internal static class PackImports
             }
         }
         var authorRoots = Files.Inventory(content).Keys.Where(p => Path.GetFileName(p).Equals("profiles.json", StringComparison.OrdinalIgnoreCase)
-            && Path.GetFileName(Path.GetDirectoryName(p))!.Equals("MCEPack", StringComparison.OrdinalIgnoreCase)).Select(p => Path.GetDirectoryName(p)!.Replace('\\', '/')).ToList();
+            && ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))).Select(p => Path.GetDirectoryName(p)!.Replace('\\', '/')).ToList();
         if (authorRoots.Count > 1) task.Proposed.Problems.Add("存在多份作者资料根目录。");
         task.Proposed.AuthorRoot = authorRoots.FirstOrDefault() ?? "";
         if (task.Proposed.AuthorRoot.Length > 0) PackSignature.Verify(Files.Child(content, task.Proposed.AuthorRoot));
@@ -543,7 +543,7 @@ internal static class PackImports
             {
                 // Root store metadata is not BepInEx payload; payload still has an exact descriptor.
                 if (relative.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || relative.Equals("icon.png", StringComparison.OrdinalIgnoreCase)) continue;
-                if (relative.Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase) || Packages.Documentation(relative) && !relative.Contains('/')) continue;
+                if (PackImportEnvironment.IsDescription(relative) || Packages.Documentation(relative) && !relative.Contains('/')) continue;
                 if (lower.StartsWith("bepinex/")) relative = relative[8..];
                 if (!PackStorage.ManagedPath(relative, pack) || relative.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".sh", StringComparison.OrdinalIgnoreCase))
                     throw new IOException("完整环境含越界或脚本内容：" + relative);
@@ -592,14 +592,18 @@ internal static class PackImports
         var removed = new HashSet<string>(Files.Compare);
         foreach (var plugin in plugins)
         {
-            var host = request.HostPlugins.FirstOrDefault(h => Files.Compare.Equals(h.Guid, plugin.Guid)); if (host == null) continue;
-            pack.Requirements.Add(new PackHostPlugin { Guid = plugin.Guid, Version = plugin.Version });
-            if (!Version.TryParse(host.Version, out var actual) || !Version.TryParse(plugin.Version, out var wanted) || actual < wanted)
+            var host = request.HostPlugins.FirstOrDefault(h => Files.Compare.Equals(h.Guid, plugin.Guid))
+                // 1.0.0 拆分：包里带的是旧版管理器（旧 GUID），本机是新管理器：同样视为宿主副本、不比版本
+                ?? (ManagerIdentity.IsManagerGuid(plugin.Guid) ? request.HostPlugins.FirstOrDefault(h => ManagerIdentity.IsManagerGuid(h.Guid)) : null);
+            if (host == null) continue;
+            bool managerSuccession = ManagerIdentity.IsManagerGuid(plugin.Guid) && !Files.Compare.Equals(host.Guid, plugin.Guid);
+            pack.Requirements.Add(new PackHostPlugin { Guid = managerSuccession ? host.Guid : plugin.Guid, Version = managerSuccession ? host.Version : plugin.Version });
+            if (!managerSuccession && (!Version.TryParse(host.Version, out var actual) || !Version.TryParse(plugin.Version, out var wanted) || actual < wanted))
                 pack.Problems.Add("宿主版本不足：" + plugin.Guid + " 要求 " + plugin.Version + "，本机 " + host.Version);
             string directory = Path.GetDirectoryName(plugin.File)!;
             for (var ancestor = new DirectoryInfo(directory); ancestor != null && Files.Within(Path.Combine(content, "plugins"), ancestor.FullName); ancestor = ancestor.Parent)
                 if (File.Exists(Path.Combine(ancestor.FullName, "manifest.json"))) { directory = ancestor.FullName; break; }
-            if (plugins.Any(p => Files.Within(directory, p.File) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
+            if (plugins.Any(p => Files.Within(directory, p.File) && !ManagerIdentity.IsManagerGuid(p.Guid) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
             { pack.Problems.Add("宿主与其他模组混放，文件归属需人工确认：" + directory); continue; }
             foreach (string path in inventory.Keys.Where(p => Files.Within(directory, Files.Child(content, p)))) removed.Add(path);
         }

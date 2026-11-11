@@ -6,7 +6,7 @@ namespace MCE.UpdateWorker;
 internal sealed partial class ShopQueue
 {
     static bool IsCorePackage(ShopPackage p)=>(Files.Compare.Equals(p.ClaimRoot,"core")||p.ClaimRoot.StartsWith("core/",StringComparison.OrdinalIgnoreCase))||p.Files.Any(f=>f.Path.StartsWith("core/",StringComparison.OrdinalIgnoreCase));
-    static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||Files.Compare.Equals(p.Key,"AiAeT-ModConfigEnhance")||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetFileName(f.Path).Equals("ModConfigEnhance.dll",StringComparison.OrdinalIgnoreCase))||p.PluginGuids.Contains("com.aiae.modconfigenhance",Files.Compare);
+    static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||ManagerIdentity.IsManagerPackage(p.Key)||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetFileName(f.Path).Equals("ModConfigEnhance.dll",StringComparison.OrdinalIgnoreCase))||p.PluginGuids.Contains("com.aiae.modconfigenhance",Files.Compare);
     void RequireContext(ShopTask t)
     {
         var index=storage.Read();

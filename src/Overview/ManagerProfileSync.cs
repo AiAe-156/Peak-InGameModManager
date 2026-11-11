@@ -24,7 +24,7 @@ internal static class ManagerProfileSync
     private const int BackupLimit = 20;
     private static bool _applied;
 
-    internal static string PendingPath => Path.Combine(Paths.BepInExRootPath, "MCE", "manager-sync.json");
+    internal static string PendingPath => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "manager-sync.json");
 
     /// <summary>Configured profile when that folder holds mods.yml, else the folder beside BepInEx when it is
     /// one (r2modman/Thunderstore keep mods.yml there), else empty for a plain local installation.</summary>
@@ -103,7 +103,7 @@ internal static class ManagerProfileSync
         }
         if (changed.Count == 0) { File.Delete(pending); return; }
         string output = string.Join(newline, lines) + (trailingNewline ? newline : "");
-        string backups = Path.Combine(Paths.BepInExRootPath, "MCE", "manager-sync-backups");
+        string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "manager-sync-backups");
         Directory.CreateDirectory(backups);
         File.WriteAllBytes(Path.Combine(backups, DateTime.Now.ToString("yyyyMMdd_HHmmss_fff") + "_mods.yml.before"), original);
         // The manager owns this file and reads it at start: a crash mid-write must leave the old bytes, never a truncated profile.

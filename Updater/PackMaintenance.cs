@@ -198,7 +198,7 @@ internal static class PackMaintenance
             if (!path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) || !PackStorage.ManagedPath(path)) Block(p, "scope", "只能删除 plugins 下的模组文件：" + path);
             else if (!owned.ContainsKey(path)) Block(p, "not-in-pack", "文件不在该整合包清单中：" + path);
             else if (!PackEnvironmentPolicy.IsComplete(pack) && HostOwned(index, path)) Block(p, "host-file", "这是固定宿主（MCE）的文件，不能删除：" + path);
-            else if (path.Contains("/MCEPack/", StringComparison.OrdinalIgnoreCase) || pack.AuthorRoot.Length > 0 && path.StartsWith(pack.AuthorRoot.Replace('\\', '/').TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))
+            else if (ManagerIdentity.ContainsPackFolder(path) || pack.AuthorRoot.Length > 0 && path.StartsWith(pack.AuthorRoot.Replace('\\', '/').TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))
                 Block(p, "author-data", "作者资料受签名保护，不能单独删除：" + path);
         }
         if (p.Blockers.Count > 0) return;
@@ -269,7 +269,7 @@ internal static class PackMaintenance
         var goneNames = gone.Select(f => f.Name).ToHashSet(Files.Compare);
         var provided = kept.SelectMany(f => f.Guids).Concat(PackEnvironmentPolicy.IsComplete(pack) ? Array.Empty<string>() : index.HostPlugins.Select(h => h.Guid)).ToHashSet(Files.Compare);
         var providedNames = kept.Select(f => f.Name).ToHashSet(Files.Compare);
-        foreach (var guid in gone.SelectMany(f => f.Guids)) if (PackEnvironmentPolicy.IsComplete(pack) ? Files.Compare.Equals(guid, "com.aiae.modconfigenhance") : index.HostPlugins.Any(h => Files.Compare.Equals(h.Guid, guid)))
+        foreach (var guid in gone.SelectMany(f => f.Guids)) if (PackEnvironmentPolicy.IsComplete(pack) ? ManagerIdentity.IsManagerGuid(guid) : index.HostPlugins.Any(h => Files.Compare.Equals(h.Guid, guid)))
             issues.Add(new MaintenanceIssue { Code = "host-file", Message = "要删除的插件是固定宿主：" + guid });
         foreach (var other in kept)
         {
@@ -321,12 +321,12 @@ internal static class PackMaintenance
         }
     }
 
-    internal static string DownloadsDirectory(PackStorage storage) => Path.Combine(storage.Root, "MCE", "downloads");
+    internal static string DownloadsDirectory(PackStorage storage) => ManagerIdentity.Runtime(storage.Root, "downloads");
     internal static string ViewCacheDirectory(PackStorage storage) => Path.Combine(storage.Home, ".view-cache");
     internal static string TransactionsDirectory(PackStorage storage) => Path.Combine(storage.Home, ".transactions");
     internal static string TrashDirectory(PackStorage storage) => Path.Combine(storage.Home, ".trash");
 
-    internal static string ShopTasksDirectory(PackStorage storage)=>Path.Combine(storage.Root,"MCE","shop","tasks");
+    internal static string ShopTasksDirectory(PackStorage storage)=>ManagerIdentity.Runtime(storage.Root,"shop","tasks");
     internal static string ShopResourcesDirectory(PackStorage storage)=>Path.Combine(MceDirectories.Runtime(MceDirectories.RootFromBepInEx(storage.Root)),"shop-resources");
     internal static bool CompletedShopTask(string directory,string name)
     {
@@ -342,7 +342,7 @@ internal static class PackMaintenance
         string root=ShopTasksDirectory(storage);if(!Directory.Exists(root))return;Files.RejectLinks(game,root);
         foreach(string directory in Directory.GetDirectories(root).OrderBy(s=>s,StringComparer.Ordinal)){
             string name=Path.GetFileName(directory);if(!PackStorage.Id(name)||!CompletedShopTask(directory,name)){plan.Preview.Warnings.Add("商店任务未完成或记录无效，已保留："+name);continue;}
-            string current=Path.Combine(storage.Root,"MCE","shop","task.json");if(File.Exists(current)){var task=Files.Read<ShopTask>(current);if(task.Id==name&&task.BlocksWrites){plan.Preview.Warnings.Add("商店任务仍被使用，已保留："+name);continue;}}
+            string current=ManagerIdentity.Runtime(storage.Root,"shop","task.json");if(File.Exists(current)){var task=Files.Read<ShopTask>(current);if(task.Id==name&&task.BlocksWrites){plan.Preview.Warnings.Add("商店任务仍被使用，已保留："+name);continue;}}
             var walk=Walk(game,directory);var item=new MaintenanceItem{Kind="directory",Scope=MaintenanceScopes.ShopTasks,Path=Relative(storage,directory),Bytes=walk.Sum(f=>f.Length),FileCount=walk.Count,Stamp=Digest(walk,"")};
             plan.Preview.Items.Add(item);plan.Targets.Add(new Target{Item=item,Absolute=directory});
         }
@@ -662,7 +662,7 @@ internal static class PackMaintenance
 
     static string MaintenanceDirectory(PackStorage storage)
     {
-        string directory = Path.Combine(storage.Root, "MCE", "maintenance");
+        string directory = ManagerIdentity.Runtime(storage.Root, "maintenance");
         Files.RejectLinks(Directory.GetParent(storage.Root)!.FullName, directory);
         return directory;
     }

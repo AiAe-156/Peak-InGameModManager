@@ -12,8 +12,8 @@ namespace ModConfigEnhance.Overview;
 
 internal static class PackLibrary
 {
-    internal static string Home => Path.Combine(Paths.BepInExRootPath, "MCE", "packs");
-    internal static string TaskPath => Path.Combine(Paths.BepInExRootPath, "MCE", "pack-task.json");
+    internal static string Home => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "packs");
+    internal static string TaskPath => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "pack-task.json");
     private static string _indexStamp = "", _taskStamp = "";
     private static PackIndex? _indexCache;
     private static PackTask? _taskCache;
@@ -51,7 +51,7 @@ internal static class PackLibrary
     {
         var index = Read(); if (index.ActivePackId.Length == 0) return null;
         return index.ActiveFiles.Where(f => Path.GetFileName(f.Path).Equals("profiles.json", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(Path.GetFileName(Path.GetDirectoryName(f.Path)), "MCEPack", StringComparison.OrdinalIgnoreCase))
+                && ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(f.Path))))
             .Select(f => OverviewProfileAssets.CheckedPath(Paths.BepInExRootPath, Path.GetDirectoryName(f.Path)!)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
     internal static PackTask? Task()

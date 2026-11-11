@@ -44,14 +44,14 @@ internal static class MceDirectoryMigration
         if (workerRunning?.Invoke() == true)
         {
             report.Deferred = true;
-            Plugin.Log.LogInfo("[目录] 更新助手正在运行，config\\ModConfigEnhance 的整理推迟到下次启动（期间继续使用原来的文件夹）。");
+            Plugin.Log.LogInfo("[目录] 更新助手正在运行，config\\InGameModManager 的整理推迟到下次启动（期间继续使用原来的文件夹）。");
             return report;
         }
 
         try
         {
             // 超长等原因留在原处的文件会让旧目录一直在、每次启动都走到这里：沿用第一次的备份目录、已备份的文件不重复复制，备份不会越堆越多
-            string backups = Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "layout-backups");
+            string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "layout-backups");
             string? first = Directory.Exists(backups) ? Directory.GetDirectories(backups).OrderBy(d => d, StringComparer.Ordinal).FirstOrDefault() : null;
             report.Backup = first ?? Path.Combine(backups, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
             foreach (var (oldName, _) in pending) Copy(Path.Combine(root, oldName), Path.Combine(report.Backup, oldName), report);
@@ -76,7 +76,7 @@ internal static class MceDirectoryMigration
             catch (Exception ex) { report.Skipped.Add(Relative(root, json) + "（改写路径）：" + ex.Message); }
         }
 
-        Plugin.Log.LogInfo($"[目录] 整理 config\\ModConfigEnhance：搬了 {report.Moved} 个文件（同名改留 {report.Renamed} 个），改写 {report.Rewritten} 处保存的路径；备份 {report.Backup}");
+        Plugin.Log.LogInfo($"[目录] 整理 config\\InGameModManager：搬了 {report.Moved} 个文件（同名改留 {report.Renamed} 个），改写 {report.Rewritten} 处保存的路径；备份 {report.Backup}");
         foreach (string skipped in report.Skipped.Take(20)) Plugin.Log.LogWarning("[目录] 没搬动，留在原处，下次启动再试：" + skipped);
         if (report.Skipped.Count > 20) Plugin.Log.LogWarning($"[目录] 另有 {report.Skipped.Count - 20} 项没搬动。");
         return report;
@@ -103,7 +103,7 @@ internal static class MceDirectoryMigration
         {
             string text;
             try { text = File.ReadAllText(file, Encoding.UTF8); } catch { continue; }
-            if (text.IndexOf("ModConfigEnhance", StringComparison.OrdinalIgnoreCase) >= 0) yield return file;
+            if (text.IndexOf(Updating.ManagerIdentity.ConfigDirectory, StringComparison.OrdinalIgnoreCase) >= 0) yield return file;
         }
     }
 

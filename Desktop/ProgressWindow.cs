@@ -28,7 +28,7 @@ internal sealed class ProgressWindow : Window
 
     internal ProgressWindow(string root, string tools, string id, string language)
     {
-        this.root = root; home = Path.Combine(root, "MCE"); this.tools = tools; expected = id; this.language = language;
+        this.root = root; home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root); this.tools = tools; expected = id; this.language = language;
         Title = T("In-Game Mod Manager · Modpack switch", "游戏内模组管理器 · 整合包切换", "遊戲內模組管理器 · 整合包切換");
         Width = 880; Height = 640; MinWidth = 720; MinHeight = 520;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -172,7 +172,7 @@ internal sealed class ProgressWindow : Window
     void Recovery()
     {
         if (MessageBox.Show(this, T("Open the recovery-only launcher? It lists existing unfinished transactions and asks for confirmation before recovery. It does not process the normal queue.", "打开仅恢复入口？它只列出既有未完成事务，恢复前还需明确确认，不处理正常命令队列。", "開啟僅復原入口？它只列出既有未完成交易，復原前仍需明確確認，不處理一般命令佇列。"), Title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
-        string script = Path.Combine(home, "MCE-Recovery.ps1"); Protocol.NoLinks(script);
+        string script = Path.Combine(home, ModConfigEnhance.Updating.ManagerIdentity.RecoveryScript); Protocol.NoLinks(script);
         if (!File.Exists(script)) throw new FileNotFoundException("Prepared recovery launcher not found.");
         string bootstrap = "& ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" + Convert.ToBase64String(Encoding.UTF8.GetBytes(script)) + "')))";
         string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "WindowsPowerShell", "v1.0", "powershell.exe");

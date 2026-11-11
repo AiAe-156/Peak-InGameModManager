@@ -12,7 +12,7 @@ internal static class ConfigurationPackageInventory
     internal static ShopInstalled.Snapshot Get(IReadOnlyList<OverviewMod> mods)
     {
         string context = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
-            : Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
+            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
         string key = context + "|" + OverviewPageCache.Inventory + "|" + ModSources.ChoiceRevision + "|" + string.Join(";", mods.Select(m =>
             m.Location + "|" + m.SourceConfirmed + "|" + m.SourceNamespace + "|" + m.SourceName + "|" + m.PackageVersion));
         if (_snapshot != null && key == _key) return _snapshot;

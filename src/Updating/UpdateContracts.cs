@@ -9,7 +9,7 @@ namespace ModConfigEnhance.Updating;
 /// <summary>Ordinary updates may follow a cached package, but never write loader/game/runtime data.</summary>
 public static class UpdateWritePolicy
 {
-    private static readonly string[] Reserved = { "core", "config", "patchers", "plugins", "MCE", "cache", "interop", "unhollowed", "monomod" };
+    private static readonly string[] Reserved = { "core", "config", "patchers", "plugins", ManagerIdentity.RuntimeDirectory, ManagerIdentity.LegacyRuntimeDirectory, "cache", "interop", "unhollowed", "monomod" };
     private static bool Within(string root, string path) => Path.GetFullPath(path).StartsWith(Path.GetFullPath(root).TrimEnd('\\', '/') + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     public static bool PackageRootAllowed(string root, string packageRoot)
     {
@@ -208,7 +208,7 @@ public sealed class InstallationWriteLease : IDisposable
         if (!Path.IsPathFullyQualified(root)) throw new IOException("Installation root must be an absolute path.");
         installationRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         gameBoundary = Path.GetDirectoryName(installationRoot) ?? throw new IOException("Installation root has no selected game boundary.");
-        string home = Path.Combine(installationRoot, "MCE");
+        string home = ManagerIdentity.Runtime(installationRoot);
         RejectLinks(home); Directory.CreateDirectory(home);
         string lockPath = Path.Combine(home, lockName); RejectLinks(lockPath);
         try { handle = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }

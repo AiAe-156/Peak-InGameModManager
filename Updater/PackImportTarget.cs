@@ -29,7 +29,7 @@ internal static class PackImportTarget
         foreach (var group in assemblies.GroupBy(a => a.Name, Files.Compare).Where(g => g.Count() > 1)) issues.Add("目标程序集同名冲突：" + group.Key);
         foreach (string name in new[] { "BepInEx", "BepInEx.Preloader", "0Harmony" })
             if (!assemblies.Any(a => a.Name == name && a.Path.Replace('\\', '/').StartsWith("core/", StringComparison.OrdinalIgnoreCase))) issues.Add("独立环境缺少 core 加载器/基础库：" + name);
-        if (!plugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) issues.Add("独立环境缺少启用的 MCE 宿主。");
+        if (!plugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) issues.Add("独立环境缺少启用的 MCE 宿主。");
         string managed = Path.Combine(Files.GameRootFor(storage.Root), "PEAK_Data", "Managed");
         foreach (var owner in assemblies)
         foreach (var reference in owner.References)

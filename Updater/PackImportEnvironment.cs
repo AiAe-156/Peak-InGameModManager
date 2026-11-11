@@ -6,7 +6,9 @@ namespace MCE.UpdateWorker;
 // Portable description is data, never a destination or a command. It is outside the payload.
 internal sealed class PackImportEnvironment
 {
-    internal const string FileName = "MCEEnvironment.json";
+    internal const string FileName = ManagerIdentity.EnvironmentFile;
+    /// <summary>1.0.0 拆分：旧版发布的完整环境用 MCEEnvironment.json，同样认（暂存时统一存成新名）。</summary>
+    internal static bool IsDescription(string name) => name.Equals(FileName, StringComparison.OrdinalIgnoreCase) || name.Equals(ManagerIdentity.LegacyEnvironmentFile, StringComparison.OrdinalIgnoreCase);
     public string AssemblyMode { get; set; } = "embedded";
     public List<PackStoreRoot> StorePackages { get; set; } = new();
     public int SchemaVersion { get; set; }

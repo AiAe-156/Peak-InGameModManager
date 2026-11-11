@@ -4,7 +4,7 @@ string root=Path.Combine(AppContext.BaseDirectory,"sandbox-"+Guid.NewGuid().ToSt
 BepInEx.Paths.BepInExRootPath=root;BepInEx.Paths.ConfigPath=Path.Combine(root,"config");BepInEx.Paths.PluginPath=Path.Combine(root,"plugins");
 Directory.CreateDirectory(BepInEx.Paths.ConfigPath);Directory.CreateDirectory(BepInEx.Paths.PluginPath);
 // Historical data is deliberately large relative to the four probed paths.
-for(int i=0;i<1000;i++){string dir=Path.Combine(root,"MCE","history",i.ToString());Directory.CreateDirectory(dir);File.WriteAllText(Path.Combine(dir,"log.txt"),"unrelated");}
+for(int i=0;i<1000;i++){string dir=Path.Combine(root,"IGMM","history",i.ToString());Directory.CreateDirectory(dir);File.WriteAllText(Path.Combine(dir,"log.txt"),"unrelated");}
 int checks=0;void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;}
 OverviewPageCache.Initialize();int revision=OverviewPageCache.Environment;
 // Warm tiered JIT and the allocation-counter API outside the measured interval.
@@ -15,7 +15,7 @@ for(int i=0;i<100000;i++)_=OverviewPageCache.Environment;
 long allocation=GC.GetAllocatedBytesForCurrentThread()-before;
 Check(allocation==0,"cached environment reads allocate nothing: "+allocation);
 Check(typeof(OverviewPageCache).GetFields(System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).All(f=>!f.FieldType.ToString().Contains("FileSystemWatcher")),"no watcher fields");
-string index=Path.Combine(root,"MCE","packs","index.json");Directory.CreateDirectory(Path.GetDirectoryName(index)!);File.WriteAllText(index,"{}");
+string index=Path.Combine(root,"IGMM","packs","index.json");Directory.CreateDirectory(Path.GetDirectoryName(index)!);File.WriteAllText(index,"{}");
 Thread.Sleep(2100);Check(OverviewPageCache.Environment>revision,"new pack index detected by fixed file stat");
 int content=OverviewPageCache.Content;OverviewPageCache.ConfigurationSaved();Check(OverviewPageCache.Content>content,"explicit config write invalidates content");
 int inventory=OverviewPageCache.Inventory;OverviewPageCache.OnPageEnter();Check(OverviewPageCache.Inventory>inventory,"page entry refreshes external inventory");

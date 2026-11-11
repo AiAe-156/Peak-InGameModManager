@@ -118,7 +118,7 @@ internal static class Protocol
                 files.Add(relative, Hash(file));
             }
         }
-        if (!files.ContainsKey("MCE.UpdateWorker.exe") || !files.ContainsKey("Mono.Cecil.LICENSE.txt")) throw new IOException("Incomplete worker cache.");
+        if (!files.ContainsKey(ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable) || !files.ContainsKey("Mono.Cecil.LICENSE.txt")) throw new IOException("Incomplete worker cache.");
         string manifest = Path.Combine(tools, "worker-protocol.manifest"); NoLinks(manifest);
         string[] lines = File.ReadAllLines(manifest);
         string payload = string.Join("\n", files.Select(p => p.Key + "|" + p.Value));
@@ -128,7 +128,7 @@ internal static class Protocol
     }
     internal static string Retry(string root, string tools, string expected, string expectedState)
     {
-        string home = Path.Combine(root, "MCE");
+        string home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root);
         ValidateTools(tools);
         var task = ReadTask(home); // Revalidate at click, not the last UI snapshot.
         if (task.Id != expected || task.State != expectedState || task.Request.Operation != "confirm-switch" || (task.State != "failed" && task.State != "recovery-required"))
@@ -144,7 +144,7 @@ internal static class Protocol
         // A startup failure does NOT remove a queued request: another worker may consume it.
         try
         {
-            using var worker = Process.Start(new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root " + Quote(root) + " --protocol 2")
+            using var worker = Process.Start(new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root " + Quote(root) + " --protocol 2")
             { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = tools });
             if (worker == null) throw new IOException("Worker did not start.");
         }

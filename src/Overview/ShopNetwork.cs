@@ -97,7 +97,7 @@ internal static class ShopNetwork
         // Unity Mono rejects assigning Proxy=null even before the first request.
         if (proxy != null) handler.Proxy = proxy;
         var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("ModConfigEnhance/2.0.0");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(ModConfigEnhance.Updating.ManagerIdentity.AssemblyName + "/" + Plugin.PluginVersion);
         Routes.Add(client, new Route { Proxy = proxy });
         Report("client mode=" + network.Mode);
         return client;

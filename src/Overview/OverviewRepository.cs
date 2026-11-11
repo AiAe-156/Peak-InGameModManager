@@ -52,7 +52,7 @@ internal sealed partial class OverviewRepository
         PackDirectory = _legacyRootDirectory;
         if (Directory.Exists(_plugins))
         {
-            var packs = SafeFiles(_plugins).Where(p => string.Equals(Path.GetFileName(Path.GetDirectoryName(p)), "MCEPack", StringComparison.OrdinalIgnoreCase)
+            var packs = SafeFiles(_plugins).Where(p => ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))
                 && new[] { "packinfo.cfg", "packinfo.json", "pack.json" }.Contains(Path.GetFileName(p).ToLowerInvariant())).OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
             foreach (string file in packs)
             {

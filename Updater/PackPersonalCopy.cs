@@ -43,7 +43,7 @@ internal static class PackPersonalCopy
         }
         var authors = original.Files.Where(f => Path.GetFileName(f.Path).Equals("release.json", StringComparison.OrdinalIgnoreCase))
             .Select(f => f.Path.Replace('\\', '/')[..f.Path.Replace('\\', '/').LastIndexOf('/')])
-            .Where(p => Path.GetFileName(p).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)
+            .Where(p => ManagerIdentity.IsPackFolder(Path.GetFileName(p))
                 || File.Exists(Files.Child(sourceContent, p + "/profiles.json")) || File.Exists(Files.Child(sourceContent, p + "/signature.json")))
             .Distinct(Files.Compare).ToList();
         if (original.AuthorRoot.Length > 0 && !authors.Contains(original.AuthorRoot, Files.Compare)) authors.Add(original.AuthorRoot);

@@ -9,7 +9,7 @@ internal static class ManagerProfileSync
 {
     internal const string FileName = "manager-sync.json";
     internal const int Limit = 512;
-    internal static string PathFor(string root) => Path.Combine(root, "MCE", FileName);
+    internal static string PathFor(string root) => ManagerIdentity.Runtime(root, FileName);
 
     internal static void Record(string root, UpdateJob job, Transaction plan, bool rollback)
     {

@@ -58,7 +58,7 @@ internal static class ShopInstalled
         var sources=confirmed.ToList();
         // One inventory walk per refresh, not per card. Stored packs and system directories are excluded.
         var roots=new List<(string path,string area)>{(System.IO.Path.Combine(root,"plugins"),"plugins"),(System.IO.Path.Combine(root,"core"),"core"),(System.IO.Path.Combine(root,"patchers"),"patchers")};
-        if(Directory.Exists(root))foreach(var dir in Directory.GetDirectories(root))if(!new[]{"plugins","core","patchers","config","MCE","cache","logs","monomod","interop","unhollowed"}.Contains(System.IO.Path.GetFileName(dir),StringComparer.OrdinalIgnoreCase))roots.Add((dir,"cache"));
+        if(Directory.Exists(root))foreach(var dir in Directory.GetDirectories(root))if(!new[]{"plugins","core","patchers","config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","monomod","interop","unhollowed"}.Contains(System.IO.Path.GetFileName(dir),StringComparer.OrdinalIgnoreCase))roots.Add((dir,"cache"));
         var all=roots.SelectMany(r=>Files(r.path,error=>snapshot.Failure=error).Select(f=>(file:System.IO.Path.GetFullPath(f),area:r.area))).ToList();
         var paths=new HashSet<string>(all.Select(f=>System.IO.Path.GetFullPath(f.file)),StringComparer.OrdinalIgnoreCase);
         var manifests=all.Where(f=>System.IO.Path.GetFileName(f.file).Equals("manifest.json",StringComparison.OrdinalIgnoreCase)).Select(f=>System.IO.Path.GetDirectoryName(f.file)!).ToList();

@@ -24,7 +24,7 @@ internal static class IntroductionFontRegistry
     private static readonly List<TMP_FontAsset> Fallbacks = new();
     private static int _users;
     /// <summary>1.2.4–1.2.5 global folder; still read so earlier imports keep working.</summary>
-    internal static string FontsDirectory => Path.Combine(BepInEx.Paths.ConfigPath, "ModConfigEnhance", "fonts");
+    internal static string FontsDirectory => Path.Combine(BepInEx.Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "fonts");
     /// <summary>The viewed scheme's own <c>fonts/</c> folder.</summary>
     private static string _packFontsDirectory = "";
     internal static string PackFontsDirectory

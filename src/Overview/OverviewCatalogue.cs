@@ -255,7 +255,7 @@ internal sealed partial class OverviewCatalogue
         var rows = new List<OverviewMod>();
         foreach (string directory in Directory.GetDirectories(Paths.BepInExRootPath))
         {
-            if (new[] { "plugins", "core", "config", "patchers", "monomod", "MCE", "cache", "logs" }.Contains(Path.GetFileName(directory), StringComparer.OrdinalIgnoreCase)) continue;
+            if (new[] { "plugins", "core", "config", "patchers", "monomod", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory, "cache", "logs" }.Contains(Path.GetFileName(directory), StringComparer.OrdinalIgnoreCase)) continue;
             foreach (string path in OverviewRepository.SafeFiles(directory).Where(PluginFileNames.IsAssembly))
             {
                 if (path.Substring(directory.Length).Replace('\\','/').Split('/').Any(p => p == "Demo" || p == "备份" || p == "验证" || p.StartsWith("待安装",StringComparison.OrdinalIgnoreCase))) continue;

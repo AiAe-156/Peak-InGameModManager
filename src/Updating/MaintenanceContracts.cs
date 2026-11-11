@@ -20,10 +20,10 @@ public static class MaintenanceOperations
 
 public static class MaintenanceScopes
 {
-    public const string Downloads = "downloads";       // BepInEx/MCE/downloads
-    public const string ViewCache = "view-cache";      // BepInEx/MCE/packs/.view-cache
-    public const string Transactions = "transactions"; // BepInEx/MCE/packs/.transactions/<id> whose switch plan is installed or rolled-back
-    public const string PackTrash = "pack-trash";      // BepInEx/MCE/packs/.trash/<id>; only used by purge-pack-trash
+    public const string Downloads = "downloads";       // BepInEx/IGMM/downloads
+    public const string ViewCache = "view-cache";      // BepInEx/IGMM/packs/.view-cache
+    public const string Transactions = "transactions"; // BepInEx/IGMM/packs/.transactions/<id> whose switch plan is installed or rolled-back
+    public const string PackTrash = "pack-trash";      // BepInEx/IGMM/packs/.trash/<id>; only used by purge-pack-trash
 
     public const string ShopTasks = "shop-tasks";
     public const string ShopResources = "shop-resources";

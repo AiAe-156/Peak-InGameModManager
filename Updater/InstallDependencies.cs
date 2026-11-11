@@ -16,7 +16,7 @@ internal static class InstallDependencies
             string key = at > 0 ? text.Substring(0, at) : "", version = at > 0 ? text.Substring(at + 1) : "";
             int split = key.IndexOf('-');
             if (at < 1 || split < 1 || InstallInventory.ParseVersion(version) == null) { warnings?.Add("依赖声明格式无法识别（已忽略）：" + text); continue; }
-            if (PackageRules.IsLoader(key) || key.Equals("AiAeT-ModConfigEnhance", StringComparison.OrdinalIgnoreCase)) continue;
+            if (PackageRules.IsLoader(key) || ManagerIdentity.IsManagerPackage(key)) continue;
             if (result.Any(r => Files.Compare.Equals(r.Key, key))) continue;
             result.Add(new DependencyRequirement(key, key.Substring(0, split), key.Substring(split + 1), version));
         }

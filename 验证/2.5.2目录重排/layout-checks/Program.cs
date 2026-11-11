@@ -21,7 +21,7 @@ string Hash(string path) { using var sha = SHA256.Create(); using var s = File.O
 (string home, string bep, string root) Fresh()
 {
     string home = Path.Combine(Path.GetTempPath(), "mce-layout-" + Guid.NewGuid().ToString("N").Substring(0, 8));
-    string bep = Path.Combine(home, "BepInEx"), root = Path.Combine(bep, "config", "ModConfigEnhance");
+    string bep = Path.Combine(home, "BepInEx"), root = Path.Combine(bep, "config", "InGameModManager");
     Directory.CreateDirectory(root);
     Stubs.Root = root; Stubs.BepInEx = bep; Stubs.Lines.Clear();
     return (home, bep, root);
@@ -83,7 +83,7 @@ string live = args.Length > 0 ? args[0] : throw new ArgumentException("需要现
     Check(leftInPlace.All(m => MceDirectories.Target(root, Expected(m)).Length > 259), "[A] only over-long paths were left in place");
     foreach (var m in leftInPlace.Take(3)) Console.WriteLine("  left in place (too long): " + m.Substring(0, Math.Min(120, m.Length)));
     Check(MceDirectories.Runtime(root) == Path.Combine(root, "data", "runtime"), "[A] after migration Runtime() resolves to data/runtime");
-    Check(Directory.Exists(Path.Combine(bep, "MCE", "layout-backups")) && !Directory.Exists(Path.Combine(bep, "MCE", "backups")), "[A] backup in MCE/layout-backups (outside the 14-day cleanup)");
+    Check(Directory.Exists(Path.Combine(bep, "IGMM", "layout-backups")) && !Directory.Exists(Path.Combine(bep, "IGMM", "backups")), "[A] backup in MCE/layout-backups (outside the 14-day cleanup)");
     var snapshot = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).ToDictionary(Rel, Hash);
     MceDirectoryMigration.Run(() => false);
     var again = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).ToDictionary(Rel, Hash);

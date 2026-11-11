@@ -8,7 +8,7 @@ namespace ModConfigEnhance.Updating;
 /// <summary>Immutable-by-convention evidence snapshot. IDs are package keys or file paths, never invented plugin GUIDs.</summary>
 public sealed class ComponentDependencyGraph
 {
-    public const string MceGuid = "com.aiae.modconfigenhance";
+    public const string MceGuid = ManagerIdentity.Guid;
     /// <summary>What MCE itself runs on: the ModConfig host it hard-depends on, plus the two PEAKLib assemblies it
     /// references. Deliberately a short, fixed list — the graph walk used to decide this, and it gave MCE a hard
     /// edge to every assembly it could not resolve ("possible provider"), which put unrelated mods under
@@ -22,7 +22,7 @@ public sealed class ComponentDependencyGraph
     /// <summary>2.3.9 (user decision): the protected whitelist — MCE plus <see cref="MceRequiredIdentities"/>. These
     /// cannot be enabled/disabled or uninstalled from MCE; everything else can.</summary>
     public static bool IsProtected(string guid) => !string.IsNullOrEmpty(guid)
-        && (Compare.Equals(guid, MceGuid) || MceRequiredIdentities.Contains(guid, Compare));
+        && (ManagerIdentity.IsManagerGuid(guid) || MceRequiredIdentities.Contains(guid, Compare));
     internal static IReadOnlyList<string> MceRequiredBy(Component component)
     {
         var required = new List<string>();
@@ -79,7 +79,7 @@ public sealed class ComponentDependencyGraph
         var target = Components.FirstOrDefault(c => Compare.Equals(c.Id, id) || (c.PackageKey.Length > 0 && Compare.Equals(c.PackageKey, id)));
         var paths = new Dictionary<string, List<string>>(Compare);
         var pending = new Queue<string>();
-        foreach (var seed in Components.Where(c => c.PluginGuids.Contains(MceGuid, Compare)))
+        foreach (var seed in Components.Where(c => c.PluginGuids.Any(ManagerIdentity.IsManagerGuid)))
             if (!paths.ContainsKey(seed.Id)) { paths[seed.Id] = new List<string> { seed.Id }; pending.Enqueue(seed.Id); }
         bool noSeed = pending.Count == 0;
         var unresolved = new List<string>();

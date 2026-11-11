@@ -32,7 +32,7 @@ internal sealed partial class OverviewProfileStore
 
     public OverviewProfileStore(string? rootDirectory = null, string? pluginsDirectory = null)
     {
-        RootDirectory = rootDirectory ?? Path.Combine(Paths.ConfigPath, "ModConfigEnhance", "profiles");
+        RootDirectory = rootDirectory ?? Path.Combine(Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "profiles");
         _pluginsRoot = pluginsDirectory ?? Paths.PluginPath;
     }
 
@@ -391,7 +391,7 @@ internal sealed partial class OverviewProfileStore
         foreach (string manifestPath in PublishedPack.Packs.Select(p => Path.Combine(p.Root, "profiles.json")))
         {
             string? packDir = Path.GetDirectoryName(manifestPath);
-            if (packDir == null || !Path.GetFileName(packDir).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)) continue;
+            if (packDir == null || !ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(packDir))) continue;
             if (!PublishedPack.CanRead(packDir)) continue;
             try
             {
@@ -821,7 +821,7 @@ internal sealed partial class OverviewProfileStore
         foreach (string file in SafeFiles(_pluginsRoot, fileName))
         {
             string? packDir = Path.GetDirectoryName(file);
-            if (packDir == null || !Path.GetFileName(packDir).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)) continue;
+            if (packDir == null || !ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(packDir))) continue;
             if (!seen.Add(packDir)) continue;
             if (!PublishedPack.CanRead(packDir)) continue;
             string source = RelativePluginPath(packDir);

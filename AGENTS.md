@@ -1,8 +1,16 @@
-# 游戏内模组管理器（In-Game Mod Manager）项目规则
+# 游戏内模组管理器（In-Game Mod Manager，IGMM）项目规则
 
-> 2026-11-11 起工程在 `MODs/InGameModManager/`（本文件夹，git 仓库 `main`）。旧文件夹 `MODs/ModConfigEnhance/` 只读留档：里面的 `备份/`、`发布/` 与历史验证产物还在那里，不要再往旧文件夹写。
-> csproj 名、`DeployDir`、插件 GUID `com.aiae.modconfigenhance`、DLL 名、商店包名、`config/ModConfigEnhance/` 都暂未改，等 MCE / IGMM 拆分时先问用户再定。
+> 2026-11-11 起工程在 `MODs/InGameModManager/`（本文件夹，git 仓库 `main`）。旧文件夹 `MODs/ModConfigEnhance/` 已还原成简化版 **ModConfig Enhance（MCE）** 的独立工程（1.0.2 源码起，现 1.0.3），两边互不相干；旧完整版的历史资料留档在本文件夹 `备份/旧ModConfigEnhance工程留档_20261111/`。
 > 新的部署备份写到本文件夹的 `备份/`（不进 git），发布 ZIP 写到 `发布/`（不进 git）。
+
+## 拆分后的身份（1.0.0 起，用户 2026-11-11 拍板「连内部名称一起换」）
+- **唯一来源 `src/Updating/ManagerIdentity.cs`**（插件、更新助手、进度窗共用）。GUID `com.aiae.ingamemodmanager`、DLL `InGameModManager.dll`、包名 `InGameModManager`（键 `AiAeT-InGameModManager`）、cfg `com.aiae.ingamemodmanager.cfg`、个人数据 `config/InGameModManager/`、运行目录 `BepInEx/IGMM/`、作者资料夹 `IGMMPack`、环境文件 `IGMMEnvironment.json`、助手 `IGMM.UpdateWorker.exe` / `IGMM.Desktop.exe`、恢复入口 `IGMM-Recovery.*`、界面词条前缀 `IGMM_`、快捷键描述前缀 `IGMM.HotkeyDescription.`。
+- **写一律新名，认（读取、判断）新旧都要认**：旧整合包、旧作者资料（`MCEPack`）、旧语言文件（`MCE_` 键）、旧完整环境（`MCEEnvironment.json`）、旧宿主 GUID 都还在用户手里。新代码判断「是不是管理器 / 管理目录」一律调 `ManagerIdentity.IsManager*` / `IsPackFolder` / `IsRuntimeDirectory`，**不要**再写字面量。
+- **简化版 MCE 用旧 GUID 与 `config/ModConfigEnhance/`**，两者可同装：IGMM 进概览提醒一次（`OverviewPage.LegacyMceNotice.cs`），MCE 1.0.3 也提醒；只提示不拦截。按 GUID 无法区分 MCE 与旧完整版，所以旧 GUID 一并当作管理器保护。
+- **首次启动迁移 `src/ManagerSplitMigration.cs`**：cfg 复制（BindConfig 之前）、`config/ModConfigEnhance/` 复制到 `config/InGameModManager/`（旧目录原样留给 MCE；`output/packs`、`exports` 不复制）、签名身份复制、`BepInEx/MCE` 整体改名为 `BepInEx/IGMM`（助手在跑或有更新在提交时推迟）、改写 JSON 旧绝对路径。夹具 `验证/拆分/split-checks`（现场副本 27 项）。
+- 旧整合包固定的宿主 `com.aiae.modconfigenhance >= 2.x` 由新管理器接替：`PackTransactions.CheckRequirements` 与 `PackImports.RemoveHostCopies` 对管理器 GUID 不比版本（版本号从 1.0.0 重新起算）。
+- C# 命名空间 `ModConfigEnhance.*` 与三个 csproj 文件名**有意保留**（纯内部、改动面数百文件），不对外显示。GitHub 仓库链接暂仍指旧仓库，等新仓库建好再换。
+- 版本 1.0.0 起重新计；开发期 CHANGELOG / README 版本说明 / 内置更新日志归档在 `备份/*_开发期_*_20261111.md`。
 
 先读上级 `../AGENTS.md`。保留现有用户改动，不用 git reset 回退整工程。版本流水在 `CHANGELOG.md`；各专项验证记录在 `验证/<专项>/`，部署真源在对应 `deployment_*/result.json`。
 

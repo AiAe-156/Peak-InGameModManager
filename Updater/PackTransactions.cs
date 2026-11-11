@@ -178,7 +178,7 @@ internal static class PackTransactions
     // Layout: <pack>/workspace/language/*.txt holds the personal dictionaries captured at save time (top level only, like config/ModConfigEnhance/language).
     // Author dictionaries of an installed publication already travel as plugins/**/MCEPack/language inside the revision and are discovered from the file list.
     // Nothing is added to the plugin inventory or to signed author data, so signatures and plugin discovery are unaffected.
-    const string AuthorLanguage = "/MCEPack/language/";
+    static readonly string[] AuthorLanguages = { "/" + ManagerIdentity.PackFolder + "/language/", "/" + ManagerIdentity.LegacyPackFolder + "/language/" };
     internal static List<string> LanguageRoots(PackStorage storage, PackRecord pack)
     {
         var roots = new List<string>(); string content = storage.Content(pack);
@@ -186,9 +186,14 @@ internal static class PackTransactions
         try { if (pack.AuthorRoot.Length > 0) Add(Files.Child(content, pack.AuthorRoot + "/language")); } catch (IOException) { }
         foreach (var file in pack.Files)
         {
-            string path = file.Path.Replace((char)92, '/'); int at = path.IndexOf(AuthorLanguage, StringComparison.OrdinalIgnoreCase);
-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguage.Length) >= 0) continue;
-            try { Add(Files.Child(content, path[..(at + AuthorLanguage.Length - 1)])); } catch (IOException) { }
+            string path = file.Path.Replace((char)92, '/');
+            foreach (string folder in AuthorLanguages)
+            {
+                int at = path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
+                if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
+                try { Add(Files.Child(content, path[..(at + folder.Length - 1)])); } catch (IOException) { }
+                break;
+            }
         }
         Add(Path.Combine(storage.Workspace(pack.Id), "language"));
         return roots;
@@ -198,9 +203,10 @@ internal static class PackTransactions
         var roots = new List<string>();
         foreach (var file in live)
         {
-            string path = file.Path; int at = path.IndexOf(AuthorLanguage, StringComparison.OrdinalIgnoreCase);
-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguage.Length) >= 0) continue;
-            string directory = Files.Child(storage.Root, path[..(at + AuthorLanguage.Length - 1)]);
+            string path = file.Path; string? folder = AuthorLanguages.FirstOrDefault(f => path.IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
+            int at = folder == null ? -1 : path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
+            if (folder == null || at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
+            string directory = Files.Child(storage.Root, path[..(at + folder.Length - 1)]);
             if (!roots.Contains(directory, Files.Compare)) roots.Add(directory);
         }
         roots.Add(MceDirectories.Language(MceDirectories.RootFromBepInEx(storage.Root)));
@@ -230,7 +236,7 @@ internal static class PackTransactions
     /// <summary>The "Language file" choice MCE keeps in its own settings; empty means "follow the game language".</summary>
     static string SelectedLanguage(PackStorage storage)
     {
-        string file = Path.Combine(storage.Root, "config", "com.aiae.modconfigenhance.cfg");
+        string file = Path.Combine(storage.Root, "config", ManagerIdentity.ConfigFileName);
         try
         {
             using var input = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
@@ -271,7 +277,7 @@ internal static class PackTransactions
     }
     internal static void ValidateHosts(PackStorage storage, PackIndex index)
     {
-        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
+        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
         foreach (string root in index.HostRoots)
         {
             if (!root.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) || root.TrimEnd('/') == "plugins") throw new IOException("宿主必须位于独立插件目录。");
@@ -282,6 +288,8 @@ internal static class PackTransactions
     {
         foreach (var requirement in pack.Requirements)
         {
+            // 1.0.0 拆分：旧整合包固定的宿主是旧 GUID（2.x 版本号）；新管理器接替它，版本号从 1.0.0 重新起算，按「已满足」处理
+            if (ManagerIdentity.IsManagerGuid(requirement.Guid) && hosts.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) continue;
             var actual = hosts.FirstOrDefault(p => Files.Compare.Equals(p.Guid, requirement.Guid));
             if (actual == null || !Version.TryParse(actual.Version, out var version) || !Version.TryParse(requirement.Version, out var minimum) || version < minimum)
                 throw new IOException("固定宿主版本不满足：" + requirement.Guid + " >= " + requirement.Version);
@@ -393,9 +401,9 @@ internal static class PackTransactions
     }
     static void MigrateWorkspace(PackStorage storage, string id, bool copyLedger = true)
     {
-        string old = Path.Combine(storage.Root, "config", "ModConfigEnhance"), workspace = storage.Workspace(id);
+        string old = Path.Combine(storage.Root, "config", ManagerIdentity.ConfigDirectory), workspace = storage.Workspace(id);
         PackStorage.CopyTree(Path.Combine(old, "profiles"), Path.Combine(workspace, "profiles"));
-        string shopLedger=Path.Combine(storage.Root,"MCE","shop","installed-unmanaged.json");
+        string shopLedger=ManagerIdentity.Runtime(storage.Root,"shop","installed-unmanaged.json");
         if(copyLedger && File.Exists(shopLedger))Files.CopyAtomic(shopLedger,Path.Combine(workspace,"shop-installed.json"));
         foreach (string name in new[] { "applied-profile.json", "pending-profile.json" })
         {
