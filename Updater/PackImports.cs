@@ -594,16 +594,16 @@ internal static class PackImports
         {
             var host = request.HostPlugins.FirstOrDefault(h => Files.Compare.Equals(h.Guid, plugin.Guid))
                 // 1.0.0 拆分：包里带的是旧版管理器（旧 GUID），本机是新管理器：同样视为宿主副本、不比版本
-                ?? (ManagerIdentity.IsManagerGuid(plugin.Guid) ? request.HostPlugins.FirstOrDefault(h => ManagerIdentity.IsManagerGuid(h.Guid)) : null);
+                ?? (ManagerIdentity.IsManagerSuccession(plugin.Guid) ? request.HostPlugins.FirstOrDefault(h => ManagerIdentity.IsManagerGuid(h.Guid)) : null);
             if (host == null) continue;
-            bool managerSuccession = ManagerIdentity.IsManagerGuid(plugin.Guid) && !Files.Compare.Equals(host.Guid, plugin.Guid);
+            bool managerSuccession = ManagerIdentity.IsManagerSuccession(plugin.Guid) && !Files.Compare.Equals(host.Guid, plugin.Guid);
             pack.Requirements.Add(new PackHostPlugin { Guid = managerSuccession ? host.Guid : plugin.Guid, Version = managerSuccession ? host.Version : plugin.Version });
             if (!managerSuccession && (!Version.TryParse(host.Version, out var actual) || !Version.TryParse(plugin.Version, out var wanted) || actual < wanted))
                 pack.Problems.Add("宿主版本不足：" + plugin.Guid + " 要求 " + plugin.Version + "，本机 " + host.Version);
             string directory = Path.GetDirectoryName(plugin.File)!;
             for (var ancestor = new DirectoryInfo(directory); ancestor != null && Files.Within(Path.Combine(content, "plugins"), ancestor.FullName); ancestor = ancestor.Parent)
                 if (File.Exists(Path.Combine(ancestor.FullName, "manifest.json"))) { directory = ancestor.FullName; break; }
-            if (plugins.Any(p => Files.Within(directory, p.File) && !ManagerIdentity.IsManagerGuid(p.Guid) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
+            if (plugins.Any(p => Files.Within(directory, p.File) && !ManagerIdentity.IsManagerSuccession(p.Guid) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
             { pack.Problems.Add("宿主与其他模组混放，文件归属需人工确认：" + directory); continue; }
             foreach (string path in inventory.Keys.Where(p => Files.Within(directory, Files.Child(content, p)))) removed.Add(path);
         }

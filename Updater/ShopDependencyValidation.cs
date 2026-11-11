@@ -40,7 +40,7 @@ internal static class ShopDependencyValidation
         var oldIssues = new HashSet<string>(Validate(baseline), StringComparer.Ordinal);
         result.Warnings.AddRange(Validate(plugins).Where(i => !oldIssues.Contains(i) && !result.Hard.Contains(i)));
         var assemblyIssues = CheckAssemblyConsumers(root,stage,originals,desired);
-        var required = new HashSet<string>(Files.Compare) { ManagerIdentity.Guid, ManagerIdentity.LegacyGuid };
+        var required = new HashSet<string>(Files.Compare) { ManagerIdentity.Guid }; // 2026-11-12：旧 GUID 是简化版 MCE，普通模组，可移除
         bool changed;
         do { changed = false; foreach (var plugin in baseline.Where(p => required.Contains(p.Guid)))
             foreach (var dependency in plugin.Dependencies.Where(d => !d.Optional)) changed |= required.Add(dependency.Guid); } while(changed);

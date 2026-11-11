@@ -277,7 +277,7 @@ internal static class PackTransactions
     }
     internal static void ValidateHosts(PackStorage storage, PackIndex index)
     {
-        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
+        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => ManagerIdentity.IsManagerSuccession(p.Guid))) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
         foreach (string root in index.HostRoots)
         {
             if (!root.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) || root.TrimEnd('/') == "plugins") throw new IOException("宿主必须位于独立插件目录。");
@@ -289,7 +289,7 @@ internal static class PackTransactions
         foreach (var requirement in pack.Requirements)
         {
             // 1.0.0 拆分：旧整合包固定的宿主是旧 GUID（2.x 版本号）；新管理器接替它，版本号从 1.0.0 重新起算，按「已满足」处理
-            if (ManagerIdentity.IsManagerGuid(requirement.Guid) && hosts.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) continue;
+            if (ManagerIdentity.IsManagerSuccession(requirement.Guid) && hosts.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) continue;
             var actual = hosts.FirstOrDefault(p => Files.Compare.Equals(p.Guid, requirement.Guid));
             if (actual == null || !Version.TryParse(actual.Version, out var version) || !Version.TryParse(requirement.Version, out var minimum) || version < minimum)
                 throw new IOException("固定宿主版本不满足：" + requirement.Guid + " >= " + requirement.Version);
