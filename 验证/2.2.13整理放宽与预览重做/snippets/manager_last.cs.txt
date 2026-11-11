@@ -1,0 +1,3 @@
+        // The manager's own folder moves last: if anything before it fails, its running copy is still where the game loaded it.
+        var managerMoves = plan.Moves.Where(m => result.Units.Any(u => u.Notes.Contains("ManagerMovedLast") && Files.Compare.Equals(u.OriginalPath, m.From))).ToList();
+        foreach (var move in managerMoves) { plan.Moves.Remove(move); plan.Moves.Add(move); }

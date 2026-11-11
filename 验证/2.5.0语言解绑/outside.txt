@@ -1,0 +1,304 @@
+-2 = Default,-1-7 = AscentNum
+-2 = Random,-1 = Daily,0-14=Level_Num
+A panel at the top right shows the hovered option's description, default value and allowed range or choices. Requires the tree sidebar. Restart to apply.
+A vertical mod list on the left; the selected mod's sections expand beneath it, options on the right. Restart to apply.
+Above the mod list, hide the export and XUnity button rows; only the language dropdown + Refresh stay, the list moves up and the Export column hides (ticks remembered). Applies at once.
+Add spawned items directly to the selected character's inventory.
+Allow only one selected filter tag at a time. Selecting another tag clears the current selection.
+Allows shadows to be soft, if your PC is too low spec for a high shadowmap setting this to false can stop the wobblyness of the shadows (but will result in a pixelly effect if the shadowmap res is low)
+Amount added or subtracted for the selected status (most bars are 0-1).
+An optional alternative key for accessing the backpack while it's on your back
+Applies sub-pixel projection jitter for DLSS temporal accumulation.
+AutoItemMultiplier
+BakeLightMap
+Base speed added on each SpeedAdjustKey press in Additive mode.
+BetterPeakVoiceFix
+BetterPiggyback
+BetterReviveOrTeleport
+Better_MicIndicator
+Catalog
+Change the ball color of non-standable ground.
+Change the ball color of standable ground.
+Clear Quit
+ClearQuit
+ClimbInfoTracker
+Comma-separated fly speeds for Incremental mode.
+Control path for opening the mod configuration menu (e.g. <Keyboard>/f2, <Keyboard>/space, <Keyboard>/escape)
+Controls NVIDIA DLSS, requires an Nvidia RTX GPU! 0 = Off, 1 = Ultra Quality (77%), 2 = Quality (67%), 3 = Balanced (58%), 4 = Performance (50%), 5 = Ultra Performance (33%), 6 = DLAA (100%).
+Controls the DLSS render preset, experiment to your taste M and K are pretty good. 0 = Preset F, 1 = Preset J, 2 = Preset K, 3 = Preset L, 4 = Preset M.
+Controls the LOD bias of the game. PEAK's High equates to 1.0. Higher values increase detail distance. Range 0.1-10
+Controls the jitter for DLSS, essentially turn it up until you see shaking or a decrease in visual quality.
+Controls the maximum distance shadows are rendered. PEAK's High option equates to 200. Higher values improve distant shadows but reduce performance. Range 0-1000
+Controls the number of shadow cascades used by the directional light. PEAK's High option equates to 2. Higher values improve shadow stability. Range 1-10
+Controls the quality of the shadows, can reduce performance so turn it down if you're having issues. Makes the trees less wobbly
+Controls the render scale of the game. Native is 1.0 (100%). Range 0.1-2.0
+Controls what filter the game uses to scale to your monitor resolution. 0 = auto, 1 = linear, 2 = point, 3 = FSR 1.0, 4 = STP
+Controls what type of AA the Camera uses. By default PEAK uses Temporal Antialiasing (TAA). All of these options are essentially clever blur filters and sometimes people find them unpleasant. 0 = None, 1 = FXAA, 2 = SMAA, 3 = TAA.
+Controls whether Multi-Sample Anti-Aliasing (MSAA) is enabled. MSAA smooths jagged edges on geometry by sampling pixels multiple times. It is generally sharper than post-process AA methods but only affects object edges and can slightly reduce performance. PEAK does not use it by default. Higher values = better quality but worse performance. Valid values = 0, 2, 4, 8.
+Crossplay Stutter Fix
+CrossplayStutterFix
+Current-speed alert color.
+Current-speed text size.
+Custom item spawn multiplier (used if UseCustomMultiplier is true)
+Customize the Font Size for stamina bar text.
+Customize the Outline Width for stamina bar text.
+Cycle incremental speeds or add additive speed.
+Detecting standing spots on concave meshes takes many extra raycasts. Disabling won't show these standing spots, but will improve performance. Remember to increase 'Maximum points per frame' by about 10x if you enable this (1000+ at least - New default assumes this is enabled).
+Determines how trail visibility will be handled.\nAlwaysOn means the trail will always be visible.\nToggleKey means the trail can be toggled on/off with a keybind.\nOnActionShow means the trail will only be visible when a player is performing a specific action.\nOnActionHide means the trail will always be visible except when a player is performing a specific action.\nOnHoldItem means the trail will be visible while holding a specific item.\nOnItemUseButton means the trail will be visible when a player is pressing the primary or secondary use buttons while holding a specific item.
+Display Item ID
+Display the numeric item ID on item tiles and tooltips.
+Displays current day and night countdown, at the top of your screen
+Displays current fog stats, at the top of your screen
+Displays current kiln lava, gloom, and void ghost rising stats, at the top of your screen
+Displays current map biomes name, at the top right of your screen
+Displays current map level name, at the top right of your screen
+Displays how far you've climbed, in meters, at the top of your screen
+Displays how long you've been climbing for, at the top of your screen
+Displays the current map seed from a supported map generation mod, at the top right of your screen
+Displays your stamina bar at the bottom left of your screen
+Displays your teammates' stamina bars at the bottom left of your screen
+Distance for ragdoll update in full speed.
+Distance for ragdoll update in half speed.
+Distance for ragdoll update in very slow speed.
+Distance in front of the active camera when Spawn In Hand is disabled.
+Draw outlines for Ancient luggage.
+Draw outlines for Bees.
+Draw outlines for Beetle.
+Draw outlines for Big luggage.
+Draw outlines for Cactus.
+Draw outlines for Clown luggage.
+Draw outlines for Cursed luggage.
+Draw outlines for Epic luggage.
+Draw outlines for Eruption.
+Draw outlines for Flash plant.
+Draw outlines for Flytrap.
+Draw outlines for Frog.
+Draw outlines for Geyser.
+Draw outlines for Jellyfish.
+Draw outlines for Other luggage.
+Draw outlines for Raven.
+Draw outlines for Respawn luggage.
+Draw outlines for Scorpion.
+Draw outlines for Scoutmaster.
+Draw outlines for Small luggage.
+Draw outlines for Spider.
+Draw outlines for Spikes.
+Draw outlines for Tick.
+Draw outlines for Tornado.
+Draw outlines for Tumbleweed.
+Draw outlines for Urchin.
+Draw outlines for Zombie.
+Draw see-through boxes around a chosen item name, or every item if DetectAllItems is on.
+Draw see-through boxes around beetles, scoutmasters, zombies, bees, and similar. Exclusive with other detect modes.
+Draw see-through boxes around items sitting on the ground.
+Draw see-through boxes around luggage. Exclusive with other detect modes.
+Draw see-through boxes around spiders, flytraps, geysers, and similar. Exclusive with other detect modes.
+EaglesEye
+EasyBackpack
+Enable Moon light at night. Default: true
+Enable Recently Played With tracking
+Enable item light emission. Default: true
+Enable item multiplier
+Enable multiplier for AncientLuggage (Luggage)
+Enable multiplier for BerryBush
+Enable multiplier for BerryVine
+Enable multiplier for GroundPlaceSpawner
+Enable multiplier for Luggage (excludes AncientLuggage and RespawnChest)
+Enable multiplier for RespawnChest (Luggage)
+Enable or disable the BetterPiggyback plugin
+Enable per-biome custom darkness. Default: true
+Enable tweaks for Citadel (Needs reload). Default: true
+Enable tweaks for Kiln (Needs reload). Default: true
+Enable verbose debug logging
+FastStart
+Favorite item prefab names stored as a JSON array. Manage these in the item spawner UI.
+Filtering
+Finds WHICH mod is causing your lag. Macro triage (GC/script/render), correct self-time profiling, per-mod attribution, opt-in native hitch-stack watchdog, auto verdict report.
+Frame Doctor
+Generates a lightmap which is used for certain game mechanics. Disable this if the game crashes.
+HOST MISSING SO FLY alert color.
+HOST MISSING SO FLY anchored X.
+HOST MISSING SO FLY anchored Y.
+HOST MISSING SO FLY text size.
+Helps texture sharpness at angles (set to on)
+Hide on-screen So Fly alerts.
+How close you need to be to your teammate to see their stamina bar
+How far apart the balls are placed horizontally. Reducing will affect performance.
+How far from the camera the balls are placed. Increasing will affect performance.
+How fast to zoom with scroll wheel.
+How large the standing point indicators are.
+How selected tags are combined. And requires every selected tag; Or requires any selected tag.
+How transparent the balls are.
+HudHider
+If disabled, will not render a trail for yourself (local client)
+If false, you'll be immediately dropped whenever a player attempts to carry you while you're not passed out. Use this if you want to fully prevent players from picking you up.
+If true, if you have a backpack and start carrying another player who does not have a backpack, the player you're carrying will automatically equip your backpack.\nThe backpack will be returned to you when you drop the player.\nIf false or if the player you want to carry already has a backpack, you must manually drop your backpack before you can carry that player.
+If true, rounds to the nearest whole number for affliction bars.
+If true, rounds to the nearest whole number for the stamina and extra stamina bars.
+If true, show local hunger countdown values in stamina info.
+If true, show self affliction bars with countdown.
+If true, show teammate extra stamina values outside the right side of the full extra stamina bar with a + prefix. If false, show them inside the extra stamina bar.
+If true, the camera will switch to the spectate view while being carried.\nIf false, the camera will remain in the first-person view while being carried.\nNote that you'll only be able to spectate the player carrying you.
+If true, the full weight of the player you're carrying, including the items they are carrying, will be added to your own weight.\nThis will also consider the weight reduction provided by any balloons that the carried player may have.\nIf false, it won't add the weight of the items they are carrying (vanilla behaviour).
+Incremental cycles a CSV list. Additive adds the base each press.
+Item Spawner Enhanced Chinese Search
+Item dropdown pick used when DetectAllItems is off.
+Item spawn multiplier increment when players count > 4 (0.25 = +0.25x/player items )
+ItemSpawnerEnhanced
+ItemSpawnerEnhanced Chinese Search
+Key to hold for zoom.
+LateJoinFix
+Light the segment campfire when teleporting to it. If BringAllToFire is on, waits until everyone has warped first.
+Local rebuild for PEAK v2.4.b. Restores legacy random-scale defaults and discovers nested map segments.
+Localize ModConfig's own UI (Search, Default, Clear, filters …) and this mod's buttons and notices. Texts come from language files in config\ModConfigEnhance\language\, picked in the language row above the mod list. Restart to apply.
+Log Steam usernames alongside SteamIDs
+Magnitude for automatic ragdoll reset.
+Max teammate stamina bars
+Maximum additive fly speed.
+Menu panel anchored X.
+Menu panel anchored Y.
+Minimum FOV when fully zoomed in.
+ModConfig Enhance
+ModConfig settings page enhancements: tree sidebar, description panel, translation tools, language files.
+Modifier held with FlyToggleKey when RequireModifierKey is true.
+MyBananaDontHurtMe
+NO SEGMENT FIRE alert color.
+NO SEGMENT FIRE anchored X.
+NO SEGMENT FIRE anchored Y.
+NO SEGMENT FIRE text size.
+NOCLIP ON/OFF alert color.
+NOCLIP ON/OFF text size.
+No-clip through world and players while flying.
+Noclip alert anchored X.
+Noclip alert anchored Y.
+Number of duplicate self stamina bars to display when Display Self Stamina Bar is enabled
+OFF by default. When on, every startup empties Endpoint / FallbackEndpoint in AutoTranslatorConfig.ini so XUnity stays dictionary-only (its factory default GoogleTranslateV2 machine-translates every UI text), and empties the machine-translation caches (_AutoGeneratedTranslations*.txt in every language folder; a one-time .bak copy is kept). Turn on only if you want dictionary-only translation; leave off if you rely on live machine translation.
+Open / close the So Fly menu.
+Outline color for Ancient luggage.
+Outline color for Bees.
+Outline color for Beetle.
+Outline color for Big luggage.
+Outline color for Cactus.
+Outline color for Clown luggage.
+Outline color for Cursed luggage.
+Outline color for Epic luggage.
+Outline color for Eruption.
+Outline color for Flash plant.
+Outline color for Flytrap.
+Outline color for Frog.
+Outline color for Geyser.
+Outline color for Jellyfish.
+Outline color for Other luggage.
+Outline color for Raven.
+Outline color for Respawn luggage.
+Outline color for Scorpion.
+Outline color for Scoutmaster.
+Outline color for Small luggage.
+Outline color for Spider.
+Outline color for Spikes.
+Outline color for Tick.
+Outline color for Tornado.
+Outline color for Tumbleweed.
+Outline color for Urchin.
+Outline color for Zombie.
+Outline color for dropped-item detection.
+Outline color for named / all-item detection.
+PEAK Lib.Mod Config
+PEAKLib.ModConfig
+PEAKTrails
+PeakLevelSelect
+PeakSpectatorMode
+PeakStatsEx
+PerspectiveSwitcher
+Picking a language file also switches XUnity AutoTranslator to that language: its dictionary folder becomes Translation\<code>\Text\, the file's non-MCE_ translations are written there as ModConfigEnhance_<code>.txt and dictionaries reload. Untranslated texts show the original. Off = never touch XUnity.
+Plantholder Overhaul_ZH
+PlantholderOverhaul_ZH
+Prefer the observed character when using Smart Target.
+Profile Viewer
+ProfileViewer
+Require the modifier key to toggle fly.
+Reset additive speed back to the base value.
+SO FLY BLOCKED alert color.
+SO FLY BLOCKED anchored X.
+SO FLY BLOCKED anchored Y.
+SO FLY BLOCKED text size.
+SO FLY OFF alert color.
+SO FLY OFF anchored X.
+SO FLY OFF anchored Y.
+SO FLY OFF text size.
+SO FLY ON alert color.
+SO FLY ON anchored X.
+SO FLY ON anchored Y.
+SO FLY ON text size.
+SeedToUse
+Serialized key=value pairs
+Set to true to disable Temporal AA completely (If you feel any sort of ghosting or smearing, I recommend turning this on. The graphics will look sharper when enabled.)
+Set to true to disable all post-processing effects.
+Set to true to disable motion blur, false to leave it enabled.
+Setting to reduce the sound volume of dynamite explosion.
+Show all stamina bars info number (current stamina, extra stamina, affliction bars) when stamina bar is visible
+Show binocular overlay while zooming.
+Show debug information
+Show every item prefab registered by PEAK, including unused, test, cheat, and internal duplicate items.
+Show teammate inventory slots
+Show the So Fly button on the pause menu. F2 still works if this is off.
+ShowAllItems
+SimpleUnlocker
+SingleTagSelection
+So Fly 汉化
+Spawn Distance
+Spawn For Observed
+Spawn In Hand
+Speed alert anchored X.
+Speed alert anchored Y.
+Stay invincible while flying until you land, climb, or pass out.
+Stores the last set state of the Bake LightMap Checkbox in the Airport.
+Stores the last set state of the Set Seed Input Field in the Airport.
+Stores the last set state of the Use Random Seed Checkbox in the Airport.
+Switch the camera perspective (First -> Second -> Third)
+TagMatchMode
+Teammate stamina bars scale
+Teleport every player to the fire with you.
+Teleport to this climb segment's campfire. Auto-light still applies. None = unbound.
+Terrain Randomiser_ZH
+TerrainCustomiser
+TerrainRandomiser_ZH
+The key for toggling the Hud.
+The key you want to use to access the backpack while it's on your back
+The keyboard key used to open and close the item spawner.
+The maximum number of raycasts to do per frame to check for standing spots. Higher values reduce fps but make the visualization appear faster.
+The time in seconds you need to hold the interact button to start carrying another player.\nIf 0, you will start carrying the player immediately upon pressing the interact button.\nIf the player is passed out, you will start carrying them immediately even if this is set to a value greater than 0.
+This sets the amount of time additional key presses will not affect trail visbility after the Visibility Toggle Key has been pressed.
+This sets the length of the trail in seconds. The end of the trail will fade/disappear\nThe maximum value for this config item is 30 minutes
+This sets the transparency of the end of the trail.
+This sets the transparency of the start of the trail
+This sets the width of the trail line itself
+Throwwaway
+Time Theme
+TimeTheme
+Toggle fly mode.
+Toggle for peels stabilizer
+Toggle noclip while flying. None = unbound.
+Toggle: Press once to activate; press again to hide the indicator.\nFade Away: Activates every time the button is pressed. The indicator will fade away after 3 seconds. Credit to VicVoss on GitHub for the idea.\nTrigger: Activates every time the button is pressed. The indicator will remain visible.\nContinuous: Always active. The indicator will remain visible, and updates as you move. Implemented by cjmanca on GitHub.
+Unlocks all Ascents within the game.
+Unlocks all Cosmetics within the game.
+Use custom item multiplier instead of player count based multiplier
+UseRandomSeed
+VoiceVolumeSaver
+When ShowItems is on, outline every item instead of the dropdown pick.
+When Visbility Setting is set to ToggleKey, this key will be used to toggle the trail visibility.\nSet this to a valid unity control string.\nA listing of possible control strings is generated on game launch.
+When Visibility Setting is set to OnAction, this action will be used to display player trails
+When Visibility Setting is set to OnHoldItem OR OnItemUsed, this item will be used to display player trails
+Whether or not to automatically skip the splash screens that the game shows on startup.
+While XUnity is installed, empty Endpoint / FallbackEndpoint in AutoTranslatorConfig.ini at startup so it stays dictionary-only — the factory default GoogleTranslateV2 machine-translates every UI text. Turn off only if you want live machine translation.
+controller bind to reconnect
+keyboard bind to reconnect
+peakReconnect
+steam join code of the last lobby you were in
+true - collect all biome data on game startup if no data present (example, new game version)\nfalse - collect biome data in-game while playing (will collect only visited levels)
+true - collect all biome data on game startup no matter what
+true - if you are the host, players with this mod can switch your displayed map on touchscreen menu
+true - mod will automatically switch your displayed map to the host's displayed map
+대상 플레이어 Center 기준 부활 위치의 높이 오프셋.
+대상 플레이어 위치에서 월드 전방(Vector3.forward)으로 비껴서 워프할 거리.
+워프 후 부활 RPC를 보내기 전 대기 시간(초).

@@ -1,0 +1,90 @@
+using Mono.Cecil;
+using ModConfigEnhance.Updating;
+using System.Text.Json;
+
+int checks = 0;
+void Check(bool condition, string label) { if (!condition) throw new Exception(label); Console.WriteLine("PASS " + label); checks++; }
+var suite = Path.Combine(AppContext.BaseDirectory, "fixtures-" + Guid.NewGuid().ToString("N"));
+string root = "", managed = "";
+AssemblyNameReference Ref(string name, int major = 1, byte[]? token = null) => new(name, new Version(major, 0, 0, 0)) { PublicKeyToken = token ?? Array.Empty<byte>() };
+void Dll(string directory, string name, AssemblyNameReference[]? references = null, bool mce = false, int major = 1, byte[]? token = null)
+{
+    Directory.CreateDirectory(directory);
+    using var assembly = AssemblyDefinition.CreateAssembly(new AssemblyNameDefinition(name, new Version(major, 0, 0, 0)) { PublicKey = token ?? Array.Empty<byte>() }, name, ModuleKind.Dll);
+    if (mce)
+    {
+        var module = assembly.MainModule;
+        var type = new TypeDefinition("Fixture", "Plugin", TypeAttributes.Public | TypeAttributes.Class);
+        module.Types.Add(type);
+        var ctor = new MethodReference(".ctor", module.TypeSystem.Void, new TypeReference("BepInEx", "BepInPlugin", module, module)) { HasThis = true };
+        for (int i = 0; i < 3; i++) ctor.Parameters.Add(new ParameterDefinition(module.TypeSystem.String));
+        var attr = new CustomAttribute(ctor);
+        foreach (string value in new[] { ComponentDependencyGraph.MceGuid, "MCE", "2.0.0" }) attr.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, value));
+        type.CustomAttributes.Add(attr);
+    }
+    assembly.MainModule.AssemblyReferences.Clear();
+    foreach (var reference in references ?? Array.Empty<AssemblyNameReference>()) assembly.MainModule.AssemblyReferences.Add(reference);
+    assembly.Write(Path.Combine(directory, name + ".dll"));
+}
+string Package(string key, string area = "plugins")
+{
+    string dir = Path.Combine(root, area, key); Directory.CreateDirectory(dir);
+    File.WriteAllText(Path.Combine(dir, "manifest.json"), JsonSerializer.Serialize(new { Key = key })); return dir;
+}
+void Setup(params AssemblyNameReference[] gameRefs)
+{
+    root = Path.Combine(suite, Guid.NewGuid().ToString("N"), "BepInEx");
+    managed = Path.Combine(Path.GetDirectoryName(root)!, "PEAK_Data", "Managed"); Directory.CreateDirectory(managed);
+    Dll(Package("Team-MCE"), "MCE", new[] { Ref("ModConfig") }.Concat(gameRefs).ToArray(), true);
+    Dll(Package("Team-ModConfig"), "ModConfig", new[] { Ref("ThirdPartyCore") });
+    Dll(Package("Team-Core", "core"), "ThirdPartyCore");
+    Dll(Package("Team-Ordinary"), "Ordinary");
+}
+ComponentDependencyGraph Collect() => ComponentDependencyCollector.Collect(root, path => JsonSerializer.Deserialize<ComponentDependencyCollector.Manifest>(File.ReadAllText(path), new JsonSerializerOptions { IncludeFields = true })!);
+void Unknown(string label)
+{
+    var graph = Collect(); Check(graph.GetCapability("Team-Ordinary").Unknown && !graph.GetCapability("Team-Ordinary").CanUninstall, label);
+    Check(graph.GetCapability("Team-Core").ProtectionPath.SequenceEqual(new[] { "Team-MCE", "Team-ModConfig", "Team-Core" }), label + ": known chain preserved");
+}
+var gameNames = new[] { "Zorro.Core.Runtime", "PhotonUnityNetworking", "Unity.TextMeshPro", "Assembly-CSharp", "UnityEngine.CoreModule", "System", "mscorlib", "netstandard" };
+Setup(gameNames.Select(n => Ref(n)).ToArray());
+foreach (string name in gameNames) Dll(managed, name);
+var graph = Collect();
+Check(graph.Failures.Count == 0 && graph.GetCapability("Team-Ordinary").CanUninstall && !graph.GetCapability("Team-Ordinary").Unknown, "MCE real game Managed dependencies resolve statically, not unknown");
+Check(graph.GetCapability("Team-Core").ProtectionPath.SequenceEqual(new[] { "Team-MCE", "Team-ModConfig", "Team-Core" }), "MCE -> ModConfig -> third-party Core protection retained");
+Check(graph.Components.Count == 4 && !graph.Components.Any(c => c.Locations.Any(l => l.Contains("Managed"))) && !graph.Edges.Any(e => e.To.StartsWith("missing:")), "game DLLs are never uninstallable package nodes");
+// A non-BepInEx root means the game root itself, not its parent.
+string bepin = root; string direct = Path.GetDirectoryName(root)!;
+Directory.Move(Path.Combine(bepin, "plugins"), Path.Combine(direct, "plugins")); Directory.Move(Path.Combine(bepin, "core"), Path.Combine(direct, "core")); root = direct;
+Check(Collect().GetCapability("Team-Ordinary").CanUninstall, "game-root Managed lookup supported");
+byte[] fixturePublicKey = Enumerable.Range(1, 32).Select(i => (byte)i).ToArray();
+var signedIdentity = new AssemblyNameDefinition("SignedGame", new Version(1, 0, 0, 0)) { PublicKey = fixturePublicKey };
+Setup(Ref("SignedGame", token: signedIdentity.PublicKeyToken)); Dll(managed, "SignedGame", token: fixturePublicKey);
+Check(Collect().GetCapability("Team-Ordinary").CanUninstall, "matching non-empty public key token accepted");
+Setup(Ref("../Outside")); Dll(Path.GetDirectoryName(managed)!, "Outside"); Unknown("assembly name cannot escape Managed directory");
+Setup(Ref("Zorro.Missing")); Unknown("Zorro prefix is not a whitelist");
+Setup(Ref("System.Missing")); Unknown("System prefix is not a whitelist");
+Setup(Ref("Assembly-CSharp")); Unknown("Assembly-CSharp requires a real platform file");
+Setup(Ref("PhotonUnityNetworking", 2)); Dll(managed, "PhotonUnityNetworking", major: 1); Unknown("platform version mismatch fails closed");
+Check(Collect().Edges.Any(e => e.Evidence.Contains("identity mismatch") && e.Evidence.Contains("Version=2.0.0.0")), "missing edge explains required and found platform identities");
+Setup(Ref("Unity.TextMeshPro", token: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })); Dll(managed, "Unity.TextMeshPro"); Unknown("platform public key token mismatch fails closed");
+Setup(Ref("Zorro.Core.Runtime")); Dll(managed, "DifferentIdentity"); File.Move(Path.Combine(managed, "DifferentIdentity.dll"), Path.Combine(managed, "Zorro.Core.Runtime.dll")); Unknown("platform filename alone cannot prove assembly name");
+Setup(Ref("PhotonUnityNetworking")); File.WriteAllBytes(Path.Combine(managed, "PhotonUnityNetworking.dll"), new byte[] { 1, 2, 3 }); Unknown("corrupt platform metadata fails closed");
+Setup(Ref("Zorro.Core.Runtime")); Dll(managed, "Zorro.Core.Runtime");
+Dll(Package("ThirdParty-Shadow"), "Zorro.Core.Runtime", new[] { Ref("MissingShadowDependency") }, major: 99);
+graph = Collect();
+Check(graph.GetCapability("ThirdParty-Shadow").ProtectionPath.SequenceEqual(new[] { "Team-MCE", "ThirdParty-Shadow" }), "installed same-name provider wins even when its identity differs from platform");
+Check(graph.GetCapability("Team-Ordinary").Unknown, "same-name third-party missing dependency cannot bypass protection via platform");
+Setup(Ref("Zorro.Core.Runtime")); Dll(managed, "Zorro.Core.Runtime");
+Dll(Package("ThirdParty-Shadow"), "Zorro.Core.Runtime");
+Dll(Package("Other-Shadow", "patchers"), "Zorro.Core.Runtime");
+graph = Collect(); Check(!graph.GetCapability("ThirdParty-Shadow").CanUninstall && !graph.GetCapability("Other-Shadow").CanUninstall && graph.GetCapability("Team-Ordinary").CanUninstall, "all installed duplicate providers protected before any platform fallback");
+Setup(Ref("Zorro.Core.Runtime")); Dll(managed, "Zorro.Core.Runtime");
+string disabled = Package("ThirdParty-Disabled"); Dll(disabled, "Zorro.Core.Runtime"); File.Move(Path.Combine(disabled, "Zorro.Core.Runtime.dll"), Path.Combine(disabled, "Zorro.Core.Runtime.dll.old"));
+Check(!Collect().GetCapability("ThirdParty-Disabled").CanUninstall, "disabled installed same-name provider still takes precedence");
+Setup(); File.WriteAllText(Path.Combine(Package("Other-Unconfirmed"), "manifest.json"), "{\"Key\":\"NoAuthor\"}"); Check(Collect().GetCapability("Team-Ordinary").CanUninstall && Collect().FailureScopes.Any(f => f.Path.EndsWith("manifest.json")), "unconfirmed unrelated manifest retained with isolated scope");
+Check(!Collect().GetCapability("Team-Core").CanUninstall, "isolated manifest failure does not bypass known chain");
+Setup(); File.WriteAllBytes(Path.Combine(Package("Other-Corrupt"), "bad.dll"), new byte[] { 0, 1 }); Check(Collect().GetCapability("Team-Ordinary").CanUninstall && Collect().FailureScopes.Any(f => f.Node == "Other-Corrupt"), "unrelated corrupt metadata retained with isolated scope");
+Check(!Collect().GetCapability("Team-Core").CanUninstall, "isolated metadata failure does not bypass known chain");
+Console.WriteLine($"PASS {checks} checks; temporary fixture game Managed only; no deployment or live mod scan");
+Console.WriteLine("Fixtures: " + suite);

@@ -1,0 +1,52 @@
+
+// S37 (2.3.0): the group-folder organizer through the worker. Nested groups become a folder chain, a category folder is
+// renamed to its group's name and its packages ride along, a nested package is extracted, a lone wrapper is emptied,
+// the packaging layout stays, folder names never change, and the whole job rolls back.
+{
+    var (root, core) = NewRoot("s37");
+    string P(string rel) => Path.Combine(root, "plugins", rel.Replace('/', Path.DirectorySeparatorChar));
+    void Package(string rel, string name, string guid, string dll, string inside = "")
+    {
+        Directory.CreateDirectory(Path.Combine(P(rel), inside));
+        File.WriteAllBytes(Path.Combine(P(rel), inside, dll), Fixtures.Plugin(core, name, guid, name, "1.0.0"));
+        File.WriteAllText(Path.Combine(P(rel), "manifest.json"), Fixtures.Manifest(name, "1.0.0"));
+    }
+    Package("0核心&基础模组/A-A", "A", "team.a", "A.dll");
+    Package("0核心&基础模组/B-B", "B", "team.b", "B.dll", "plugins");
+    Package("TC", "TC", "team.tc", "TC.dll");
+    Package("TC/Snosz-UBImGui", "UBImGui", "team.ub", "UBImGui.dll");
+    Package("Wrap/Inner-Inner", "Inner", "team.inner", "Inner.dll");
+    Directory.CreateDirectory(P("empty-left"));
+    using var worker = new QueueWorker(root);
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    var groups = new List<LayoutQueueGroup> { new() { Id = "core", Name = "0基础模组" }, new() { Id = "play", Name = "3玩法模组" }, new() { Id = "tc", Name = "地形", ParentId = "play" }, new() { Id = "lib", Name = "依赖模组" } };
+    LayoutQueueRow R(string guid, string group, string rel) => new() { Guids = { guid }, GroupId = group, PackageRoot = P(rel), Loaded = false, Version = "1.0.0" };
+    PostLayout(new LayoutQueueRequest { Groups = groups, UngroupedFolder = "未分组", Rows = new() {
+        R("team.a", "core", "0核心&基础模组/A-A"), R("team.b", "core", "0核心&基础模组/B-B"), R("team.tc", "tc", "TC"), R("team.ub", "lib", "TC/Snosz-UBImGui"), R("team.inner", "", "Wrap/Inner-Inner") } });
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    Check("S37 预览就绪", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + preview.Error + " " + string.Join(" | ", preview.Blockers));
+    var plan = LayoutPlanner.Read(Path.Combine(root, "MCE", "shop", "tasks", preview.Id))!;
+    string Moves() => string.Join(" | ", plan.Moves.Select(m => m.From + "→" + m.To));
+    Check("S37 分类文件夹改名为分组名", plan.Moves.Any(m => m.From == "plugins/0核心&基础模组" && m.To == "plugins/0基础模组"), Moves());
+    Check("S37 嵌套分组成为文件夹层级", plan.Moves.Any(m => m.From == "plugins/TC" && m.To == "plugins/3玩法模组/地形/TC"), Moves());
+    Check("S37 嵌套模组拆出且在外层之前", plan.Moves.FindIndex(m => m.From == "plugins/TC/Snosz-UBImGui") >= 0 && plan.Moves.FindIndex(m => m.From == "plugins/TC/Snosz-UBImGui") < plan.Moves.FindIndex(m => m.From == "plugins/TC"), Moves());
+    Check("S37 未分组移入未分组文件夹", plan.Moves.Any(m => m.From == "plugins/Wrap/Inner-Inner" && m.To == "plugins/未分组/Inner-Inner"), Moves());
+    Check("S37 打包结构 plugins/ 不拆", !plan.Moves.Any(m => m.From.Contains("B-B/")), Moves());
+    Check("S37 空文件夹与拆后空壳列入预览", preview.Tree.Any(n => n.Kind == LayoutNodeKind.Empty && n.OriginalPath == "plugins/empty-left") && preview.Tree.Any(n => n.Kind == LayoutNodeKind.Empty && n.OriginalPath == "plugins/Wrap"),
+        string.Join(",", preview.Tree.Where(n => n.Kind == LayoutNodeKind.Empty).Select(n => n.OriginalPath)));
+    PostLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken });
+    var job = worker.Current.Jobs.SingleOrDefault(j => j.Layout);
+    Check("S37 确认生成整理任务", job != null, Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).Error);
+    if (job != null)
+    {
+        await Drive(worker);
+        Check("S37 整理后文件都在新位置、文件夹名不变", job.State == UpdateStates.PendingRestart
+            && File.Exists(P("0基础模组/A-A/A.dll")) && File.Exists(P("0基础模组/B-B/plugins/B.dll"))
+            && File.Exists(P("3玩法模组/地形/TC/TC.dll")) && File.Exists(P("依赖模组/Snosz-UBImGui/UBImGui.dll"))
+            && File.Exists(P("未分组/Inner-Inner/Inner.dll")) && !Directory.Exists(P("0核心&基础模组")) && !Directory.Exists(P("TC")), job.State + " " + job.Error);
+        Check("S37 空文件夹不被删除", Directory.Exists(P("empty-left")) && Directory.Exists(P("Wrap")));
+        Post(root, worker, new UpdateCommand { Action = "rollback", JobId = job.Id }); await Drive(worker);
+        Check("S37 整理可完整回退", job.State == UpdateStates.RolledBack && File.Exists(P("0核心&基础模组/A-A/A.dll")) && File.Exists(P("TC/Snosz-UBImGui/UBImGui.dll"))
+            && File.Exists(P("TC/TC.dll")) && File.Exists(P("Wrap/Inner-Inner/Inner.dll")) && !Directory.Exists(P("0基础模组")) && !Directory.Exists(P("3玩法模组")), job.State + " " + job.Error);
+    }
+}

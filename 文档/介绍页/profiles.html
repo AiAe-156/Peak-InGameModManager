@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多配置切换 · 游戏内模组管理器</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="index.html"><img src="assets/icon.png" alt=""><span>游戏内模组管理器</span></a>
+  <nav class="nav" aria-label="板块"><a href="index.html">首页</a><a href="mods.html">模组管理</a><a href="config.html">模组配置</a><a href="profiles.html" aria-current="page" style="--c:var(--profiles)">多配置切换</a><a href="packs.html">整合包</a><a href="language.html">多语言翻译</a></nav>
+</div></header>
+<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L0 20 L110 12 L200 22 L320 4 L420 18 L540 8 L640 24 L760 2 L880 20 L990 10 L1090 22 L1200 14 L1200 34 Z" fill="#1b3d5c"/><path d="M0 34 L0 28 L150 24 L300 30 L460 22 L620 30 L780 24 L940 30 L1100 25 L1200 28 L1200 34 Z" fill="#e6ecef"/></svg>
+<main>
+<header class="page-head" style="--c:var(--profiles)"><div><span class="tag">多配置切换</span><h1>同一套模组，好几套配置</h1><p class="lede">比如「日常」和「整活」各一套，参数、快捷键和哪些模组开着各不相同，随时切换。</p></div></header>
+<section style="padding-top:28px">
+  <h2>配置方案里存了什么</h2>
+  <div class="two">
+    <div><p>一套<b>配置方案</b>只存三样东西：所有模组的参数、快捷键、每个模组开还是关。</p>
+    <p>分组、介绍、模组译名这些属于整合包，同一个整合包里的所有方案共用，切换方案时不会变。</p></div>
+<figure class="figure"><img src="assets/toolbar.png" alt="概览顶部工具条：方案下拉、保存配置、变更检查目录等按钮" loading="lazy" style="max-width:720px"><figcaption>工具条最左边的「方案：xxx」就是切换入口。</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>主要功能</h2>
+<ul class="points" style="--c:var(--profiles)"><li><b>切换只是查看</b><span>在方案下拉里点一个就切过去看，不会改动正在用的配置。确定要用，再点保存配置。</span></li><li><b>管理方案</b><span>新建、复制、改名、删除，或者把现在实际的配置记成一套新方案。</span></li><li><b>作者预设保持原样</b><span>整合包作者给的方案是只读的。你第一次改它时，可以原地保存或另存一份个人方案。</span></li><li><b>随时恢复作者设置</b><span>改乱了可以把作者原版预设恢复到草稿，方案名后的 * 表示和原版不同。</span></li><li><b>导出配置</b><span>导出成一个 .mceconfig.json 文件，只含参数、快捷键和启停，适合分享一套设置。</span></li><li><b>导入配置</b><span>导入的内容先进草稿，核对后再保存。</span></li><li><b>离开前会问</b><span>有没保存的改动时离开页面或切换方案，会问你保存、放弃还是继续编辑。</span></li><li><b>保存前的检查</b><span>缺依赖、重复模组、来源未识别、冲突建议都会列出来。大多只是提醒，确认就能保存。</span></li></ul>
+</section>
+<section>
+  <h2>保存和生效是两回事</h2>
+<figure class="figure"><img src="assets/flow.png" alt="一次修改的流程：改动、草稿、保存配置、生效时机" loading="lazy" style="max-width:900px"><figcaption>启停一律在下次启动生效；参数按模组自己的支持情况，可能立即、下一局或重启后生效。</figcaption></figure>
+</section>
+
+<nav class="pager" aria-label="翻页"><a href="config.html" style="--c:var(--config)"><small>上一页</small>模组配置</a><a class="next" href="packs.html" style="--c:var(--packs)"><small>下一页</small>整合包</a></nav>
+<footer><span>游戏内模组管理器 · In-Game Mod Manager · PEAK 模组</span><span>本介绍依据当前开发版整理，界面以游戏内为准</span></footer>
+</main>
+</body>
+</html>

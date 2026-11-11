@@ -1,0 +1,8 @@
+F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\统一保存重构\Deploy.ps1 : PEAK or MCE helper/viewer is r
+unning. Deployment stopped without killing processes.
+所在位置 F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\统一保存重构\Deploy.ps1:81 字符: 2
++  Write-Error $_;exit 1
++  ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,Deploy.ps1
+ 

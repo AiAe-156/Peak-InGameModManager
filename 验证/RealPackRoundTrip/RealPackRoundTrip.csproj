@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><NoWarn>$(NoWarn);CS0649</NoWarn></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../CommercialFix20261028/方案集成/ProfileIntegrationAudit.cs" Link="ProfileIntegrationAudit.cs" />
+    <Compile Include="../../Updater/*.cs" Exclude="../../Updater/Program.cs" Link="Worker/%(Filename)%(Extension)" />
+    <Compile Include="../../src/Updating/*.cs" Link="Shared/%(Filename)%(Extension)" />
+    <Compile Include="../../src/Overview/PackPublisher.Environment.cs;../../src/Overview/PackPublisher.cs;../../src/Overview/PublishedPack.cs;../../src/Overview/PublicationDrafts.cs;../../src/Overview/PublicationFilePolicy.cs;../../src/Overview/OverviewProfileExport.cs;../../src/Overview/OverviewProfileModels.cs;../../src/Overview/OverviewModels.cs;../../src/Overview/OverviewModels.Dependencies.cs;../../src/Overview/OverviewModels.Metadata.cs;../../src/Overview/PackConflictStore.cs;../../src/Overview/PackConflictModels.cs;../../src/Overview/ModSources.cs" Link="Publisher/%(Filename)%(Extension)" />
+    <Compile Include="../../src/Overview/Editor/DocModel.cs;../../src/Overview/Editor/DocJson.cs;../../src/Overview/Editor/DocMarkdown.cs;../../src/Overview/Editor/IDocumentEditorSource.cs" Link="Editor/%(Filename)%(Extension)" />
+    <Compile Include="../../src/Overview/PackConflictService.cs" Link="Publisher/PackConflictService.cs" />
+    <Compile Include="../../src/Overview/OverviewProfileStore.cs;../../src/Overview/OverviewProfileNames.cs" Link="Publisher/%(Filename)%(Extension)" />
+    <Compile Include="../../src/Overview/ProfilePairPersistence.cs" Link="Publisher/ProfilePairPersistence.cs" />
+    <Compile Include="../../src/Overview/PackLibrary.cs" Link="Publisher/PackLibrary.cs" />
+    <Compile Include="../../src/Overview/StoredPackDetails.cs" Link="Publisher/StoredPackDetails.cs" />
+    <Compile Include="../../src/Overview/PackDetailsCache.cs" Link="Publisher/PackDetailsCache.cs" />
+    <Compile Include="../../src/Overview/PackPublisher.Selection.cs;../../src/Overview/OverviewCatalogue.cs;../../src/Overview/OverviewAssemblyReader.cs" Link="Publisher/%(Filename)%(Extension)" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <PackageReference Include="System.Security.Permissions" Version="10.0.0" />
+    <Reference Include="Mono.Cecil"><HintPath>../../../../BepInEx/core/Mono.Cecil.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>../../../../PEAK_Data/Managed/Newtonsoft.Json.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

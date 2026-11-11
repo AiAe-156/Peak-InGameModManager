@@ -1,0 +1,38 @@
+[
+  {
+    "file": "验证\\RealPackRoundTrip\\runs\\20261024_180650_358\\publisher\\BepInEx\\config\\ModConfigEnhance\\runtime\\sources.json",
+    "key": "com.github.LengSword.PeakStatsEx",
+    "entry": {
+      "kind": 1,
+      "ns": "LengSword",
+      "name": "PeakStatsEx",
+      "author": "LengSword",
+      "homepage": "https://codeberg.org/yls-peak-mods/PeakStatsEx",
+      "packageVersion": "",
+      "note": ""
+    }
+  },
+  {
+    "file": "验证\\RealPackRoundTrip\\runs\\20261024_180650_358\\publisher\\BepInEx\\config\\ModConfigEnhance\\runtime\\store-catalog.json",
+    "entry": {
+      "Name": "PeakStatsEx",
+      "Author": "LengSword",
+      "Version": "1.5.4",
+      "Homepage": "https://codeberg.org/yls-peak-mods/PeakStatsEx",
+      "Url": "https://thunderstore.io/c/peak/p/LengSword/PeakStatsEx/"
+    }
+  },
+  {
+    "file": "验证\\RealPackRoundTrip\\runs\\20261024_180930_527\\receiver-Local\\BepInEx\\MCE\\packs\\.imports\\372be7f492534c0081f030e38966ddc6\\content\\plugins\\MCEPack_6b679869\\MCEPack\\sources.json",
+    "key": "com.github.LengSword.PeakStatsEx",
+    "entry": {
+      "kind": 2,
+      "ns": "LengSword",
+      "name": "PeakStatsEx",
+      "author": "LengSword",
+      "homepage": "https://codeberg.org/yls-peak-mods/PeakStatsEx",
+      "packageVersion": "",
+      "note": ""
+    }
+  }
+]

@@ -1,0 +1,740 @@
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/ConfigurationPresetFile.cs" src/Overview/ConfigurationPresetFile.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/ConfigurationPresetFile.cs"	2026-11-09 02:13:51.578065200 +0800
++++ src/Overview/ConfigurationPresetFile.cs	2026-11-09 02:25:42.802350500 +0800
+@@ -26,7 +26,7 @@
+         foreach (var profile in selected)
+         {
+             // The chosen copy is a folder on this machine; shared presets carry only the per-GUID state.
+-            var mods = profile.mods.Select(m => { var portable = JsonConvert.DeserializeObject<OverviewProfileMod>(JsonConvert.SerializeObject(m))!; portable.copy = ""; return portable; }).ToList();
++            var mods = profile.mods.Select(m => { var portable = JsonConvert.DeserializeObject<OverviewProfileMod>(JsonConvert.SerializeObject(m))!; portable.copy = ""; portable.nestedEnabled.Clear(); return portable; }).ToList();
+             var file = new ConfigurationPresetFile { name = profile.name, config = profile.config, mods = mods };
+             foreach (var value in file.config.values)
+                 if (!PublicationFilePolicy.ProfileConfigPath(value.configFile)) throw new InvalidDataException("Configuration preset includes a private or unsupported file.");
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/GroupPalette.cs" src/Overview/GroupPalette.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/GroupPalette.cs"	2026-11-09 02:13:51.470899100 +0800
++++ src/Overview/GroupPalette.cs	2026-11-09 02:29:06.529117200 +0800
+@@ -20,7 +20,7 @@
+         new[] { "#C77772", "#D99A95", "#B0605C", "#DEA775", "#C98A86" }, // red
+         new[] { "#82B5AC", "#A3CAC3", "#6E9C94", "#A1C2CA", "#8FB8A8" }, // teal
+         new[] { "#A4AEC3", "#BFC6D5", "#8399B8", "#B5B2A1", "#9AA4B6" }, // slate
+-        new[] { "#C6A793", "#D8C0B0", "#AE8F7B", "#E0B29B", "#BFA08C" }, // brown
++        new[] { "#C6A793", "#D8C0B0", "#AE8F7B", "#D4A88A", "#BFA08C" }, // brown
+     };
+ 
+     private static readonly StringComparer Hex = StringComparer.OrdinalIgnoreCase;
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/GroupTree.cs" src/Overview/GroupTree.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/GroupTree.cs"	2026-11-09 02:13:51.450288700 +0800
++++ src/Overview/GroupTree.cs	2026-11-09 02:29:06.529117200 +0800
+@@ -154,11 +154,15 @@
+         var target = tree.Get(id); if (target == null) return;
+         string parent = tree.Parent(id);
+         var children = tree.Children(id).ToList();
++        // New sibling order: everything before the deleted group, its children in their order, everything after.
++        var siblings = (parent.Length == 0 ? tree.Roots : tree.Children(parent)).ToList();
++        int at = siblings.IndexOf(target);
++        var order = siblings.Take(at).Concat(children).Concat(siblings.Skip(at + 1)).ToList();
+         groups.RemoveAll(g => g.id == id);
+         foreach (var child in children) child.parentId = parent;
+         foreach (var rule in rules) if (rule.groupId == id) rule.groupId = parent;
+         collapsed?.Remove(id);
+-        Renumber(groups, parent);
++        for (int i = 0; i < order.Count; i++) order[i].order = i;
+     }
+ 
+     /// <summary>Attach or detach; the moved group goes to the end of its new siblings. Returns false (unchanged) when not allowed.</summary>
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/LayoutReviewView.cs" src/Overview/LayoutReviewView.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/LayoutReviewView.cs"	2026-11-09 02:13:51.449287700 +0800
++++ src/Overview/LayoutReviewView.cs	2026-11-09 02:30:48.940076600 +0800
+@@ -15,7 +15,9 @@
+ /// <summary>The folder-organization review (2.3.0): a framed, foldable tree of destination folders. Nested group folders
+ /// are nested cards (indented, one gold rail per level); a renamed category folder shows "renamed from" in its header;
+ /// each mod folder is a framed row with a coloured tag, its unchanged name, where it comes from in small grey text and,
+-/// when needed, the reason in plain words. "Stays where it is" and "empty folders" (each with a Recycle Bin button) come last.</summary>
++/// when needed, the reason in plain words. "Stays where it is" and "empty folders" come last. 2.3.1: empty folders carry
++/// checkboxes (one for the section, one per folder, ticked by default); the ticked ones go to the Recycle Bin together
++/// with "Organize", after every move succeeded — no separate dialog.</summary>
+ internal sealed class LayoutReviewView
+ {
+     private enum Filter { All, Changes, Stays }
+@@ -30,52 +32,69 @@
+     private readonly List<LayoutReviewModel.Section> _sections;
+     private readonly LayoutReviewModel.Summary _summary;
+     private readonly HashSet<string> _folded = new(StringComparer.OrdinalIgnoreCase);
+-    private readonly HashSet<string> _deleted = new(StringComparer.OrdinalIgnoreCase);
++    /// <summary>Empty folders (their OriginalPath) the user unticked; everything else listed as empty is recycled.</summary>
++    private readonly HashSet<string> _keep = new(StringComparer.OrdinalIgnoreCase);
+     private readonly List<(Button Button, Filter Filter)> _filters = new();
+-    private readonly Action<string>? _status;
++    private readonly bool _canRecycle;
+     private Filter _filter = Filter.All;
+ 
+-    internal static void Show(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, Action<string>? status = null)
+-        => new LayoutReviewView(panel, tree, notice, status);
++    internal static LayoutReviewView Show(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, bool canRecycle)
++        => new(panel, tree, notice, canRecycle);
+ 
+-    private LayoutReviewView(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, Action<string>? status)
++    /// <summary>The ticked empty folders, as their preview paths, for the confirm request.</summary>
++    internal List<string> RecycleSelection() => !_canRecycle ? new List<string>()
++        : _sections.Where(s => s.EmptyFolders).SelectMany(s => s.Entries).Select(e => e.From).Where(path => !_keep.Contains(path)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
++
++    private LayoutReviewView(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, bool canRecycle)
+     {
+-        _status = status;
++        _canRecycle = canRecycle;
+         _sections = LayoutReviewModel.Build(tree, out _summary);
+         foreach (var section in _sections) if (!section.OpenByDefault) _folded.Add(section.Key);
+         _host = OverviewUi.Panel("LayoutReview", panel, HostColor); OverviewUi.Fill(_host);
+-        _host.offsetMin = new Vector2(24, 82); _host.offsetMax = new Vector2(-24, -124);
+-        float width = panel.rect.width - 48, y = 10;
+-
+-        foreach (var (text, warning) in notice)
++        // 2.3.1: the header is one line shorter (divider at 84), so the tree starts right under it.
++        _host.offsetMin = new Vector2(24, 80); _host.offsetMax = new Vector2(-24, -94);
++        float width = panel.rect.width - 48, y = 8;
++
++        // Status and the helper's message share one line; warnings (errors, blockers) keep their own lines.
++        var plain = notice.Where(n => !n.Warning).Select(n => n.Text.Replace("\n", " ")).Where(t => t.Trim().Length > 0).ToList();
++        if (plain.Count > 0)
++        {
++            var line = OverviewUi.Text(_host, string.Join("   ·   ", plain), 14); line.color = OverviewUi.Muted;
++            OverviewUi.PlaceClipped(line, 14, y, width - 28, 20); y += 22;
++        }
++        foreach (var (text, _) in notice.Where(n => n.Warning))
+         {
+-            var line = OverviewUi.Text(_host, text, 14); line.color = warning ? ReasonInk : OverviewUi.Muted;
++            var line = OverviewUi.Text(_host, text, 14); line.color = ReasonInk;
+             line.textWrappingMode = TextWrappingModes.Normal;
+             float height = Mathf.Ceil(line.GetPreferredValues(text, width - 28, Mathf.Infinity).y) + 2;
+             OverviewUi.Place(line.rectTransform, 14, y, width - 28, height); y += height + 2;
+         }
+-        // Totals: folders vs mods, so the count matches the overview list.
++        // Totals, the count chips and the filters on one row: folders vs mods first, so the count matches the overview list.
+         var totals = OverviewUi.Text(_host, Loc.F("{0} folders · {1} mods", "{0} 个文件夹 · 共 {1} 个模组", "{0} 個資料夾 · 共 {1} 個模組", _summary.Folders, _summary.Mods), 15);
+-        totals.color = OverviewUi.Ivory; OverviewUi.PlaceClipped(totals, 14, y + 2, width - 28, 20); y += 26;
+-        float x = 14;
++        totals.color = OverviewUi.Ivory;
++        float totalsWidth = Mathf.Ceil(totals.GetPreferredValues(totals.text, Mathf.Infinity, Mathf.Infinity).x) + 6;
++        OverviewUi.PlaceClipped(totals, 14, y + 3, totalsWidth, 20);
++        float x = 14 + totalsWidth + 12;
+         x = Chip(_host, x, y, MoveColor, Loc.T("Move in", "移入", "移入"), _summary.Move);
+         x = Chip(_host, x, y, RenameColor, Loc.T("Moved out of a mod", "拆出", "拆出"), _summary.Extracted);
+         x = Chip(_host, x, y, OverviewUi.Gold, Loc.T("Folder renamed", "文件夹改名", "資料夾改名"), _summary.Renamed);
+         x = Chip(_host, x, y, StayColor, Loc.T("In place", "原位", "原位"), _summary.InPlace);
+         x = Chip(_host, x, y, UngroupedColor, Loc.T("Ungrouped", "未分组", "未分組"), _summary.Ungrouped);
+         x = Chip(_host, x, y, SkipColor, Loc.T("Not moved", "不动", "不動"), _summary.Stays);
+-        Chip(_host, x, y, OverviewUi.Muted, Loc.T("Empty folders", "空文件夹", "空資料夾"), _summary.Empty);
+-        y += 30;
+-        float fx = 14;
+-        foreach (var (label, filter) in new[] { (Loc.T("All", "全部", "全部"), Filter.All), (Loc.T("Changes only", "只看变动", "只看變動"), Filter.Changes), (Loc.T("Not moved and empty", "只看不动与空文件夹", "只看不動與空資料夾"), Filter.Stays) })
++        x = Chip(_host, x, y, OverviewUi.Muted, Loc.T("Empty folders", "空文件夹", "空資料夾"), _summary.Empty);
++        // Filters go right-aligned on the same row when they fit, otherwise on a row of their own.
++        var filters = new[] { (Loc.T("All", "全部", "全部"), Filter.All, 80f), (Loc.T("Changes only", "只看变动", "只看變動"), Filter.Changes, 92f), (Loc.T("Not moved and empty", "只看不动与空文件夹", "只看不動與空資料夾"), Filter.Stays, 150f) };
++        float filtersWidth = filters.Sum(f => f.Item3) + 6 * (filters.Length - 1);
++        float fx = width - 14 - filtersWidth;
++        if (fx < x + 12) { y += 30; fx = 14; }
++        foreach (var (label, filter, w) in filters)
+         {
+-            float w = filter == Filter.Stays ? 150 : 92;
+             var button = OverviewUi.Button(_host, label, () => { _filter = filter; Rebuild(); }, w, 26, UiActionRole.Neutral);
+             var caption = button.GetComponentInChildren<TMP_Text>(true); caption.enableAutoSizing = true; caption.fontSizeMin = 10; caption.fontSizeMax = 13;
+-            OverviewUi.Place((RectTransform)button.transform, fx, y, w, 26); fx += w + 6;
++            OverviewUi.Place((RectTransform)button.transform, fx, y - 1, w, 26); fx += w + 6;
+             _filters.Add((button, filter));
+         }
+-        y += 34;
++        y += 32;
+         var divider = OverviewUi.Panel("Divider", _host, new Color(1, 1, 1, .08f)); OverviewUi.Place(divider, 14, y, width - 28, 1); y += 8;
+ 
+         _scroll = OverviewUi.Rect("Tree", _host).gameObject.AddComponent<ScrollRect>();
+@@ -100,7 +119,7 @@
+         return x + width + 8;
+     }
+ 
+-    private bool Visible(LayoutReviewModel.Entry entry) => !_deleted.Contains(entry.From) && _filter switch
++    private bool Visible(LayoutReviewModel.Entry entry) => _filter switch
+     {
+         Filter.Changes => entry.Kind is K.Move or K.Extracted or K.Ungrouped,
+         Filter.Stays => entry.Kind is K.Stays or K.Skipped or K.Empty,
+@@ -166,6 +185,27 @@
+         var click = heading.gameObject.AddComponent<OverviewHeaderClick>(); heading.raycastTarget = true;
+         click.Clicked = _ => { if (!_folded.Add(section.Key)) _folded.Remove(section.Key); Rebuild(); };
+         float cy = inner + 32;
++        if (section.EmptyFolders && _canRecycle && section.Entries.Count > 0)
++        {
++            // One switch for the whole section; each row below can still be unticked on its own.
++            bool all = section.Entries.All(e => !_keep.Contains(e.From));
++            var check = OverviewUi.Check(card, all, value =>
++            {
++                foreach (var entry in section.Entries) { if (value) _keep.Remove(entry.From); else _keep.Add(entry.From); }
++                Rebuild();
++            });
++            OverviewUi.Place((RectTransform)check.transform, 40, cy - 2, 26, 26);
++            int ticked = section.Entries.Count(e => !_keep.Contains(e.From));
++            var label = OverviewUi.Text(card, Loc.F("Move to the Recycle Bin when organizing ({0} of {1})", "整理时一并放进回收站（{0}/{1}）", "整理時一併放進資源回收筒（{0}/{1}）", ticked, section.Entries.Count), 14);
++            label.color = OverviewUi.Ivory;
++            OverviewUi.PlaceClipped(label, 74, cy + 1, cardWidth - 90, 20);
++            var hint = OverviewUi.Text(card, Loc.T("Recycled after every move succeeded; each folder is checked again first and skipped if it is no longer empty. You can restore them from the Recycle Bin.",
++                "所有移动成功后才放进回收站；放之前逐个再查一次，已经不空的会跳过。可以从回收站还原。", "所有移動成功後才放進資源回收筒；放之前逐個再查一次，已經不空的會略過。可以從資源回收筒還原。"), 11);
++            hint.color = OverviewUi.Muted; hint.textWrappingMode = TextWrappingModes.Normal;
++            float hintHeight = Mathf.Ceil(hint.GetPreferredValues(hint.text, cardWidth - 90, Mathf.Infinity).y) + 1;
++            OverviewUi.Place(hint.rectTransform, 74, cy + 22, cardWidth - 90, hintHeight);
++            cy += 26 + hintHeight + 6;
++        }
+         if (open) foreach (var entry in entries) cy = Row(card, entry, cy, cardWidth) + 4;
+         cy += open && entries.Count > 0 ? 4 : 0;
+         OverviewUi.Place(card, left, top, cardWidth, cy);
+@@ -174,7 +214,7 @@
+ 
+     private string Counts(LayoutReviewModel.Section section)
+     {
+-        if (section.EmptyFolders) return Loc.F("{0} folders", "{0} 个", "{0} 個", section.Entries.Count(e => !_deleted.Contains(e.From)));
++        if (section.EmptyFolders) return Loc.F("{0} folders", "{0} 个", "{0} 個", section.Entries.Count);
+         int mods = section.Stays ? section.Mods : LayoutReviewModel.SubtreeMods(section, _sections);
+         var parts = new List<string> { Loc.F("{0} mods", "{0} 个模组", "{0} 個模組", mods) };
+         if (section.Count(K.Move) > 0) parts.Add(Loc.F("{0} move in", "移入 {0}", "移入 {0}", section.Count(K.Move)));
+@@ -185,10 +225,16 @@
+ 
+     private float Row(RectTransform card, LayoutReviewModel.Entry entry, float y, float width)
+     {
+-        float x = 20, rowWidth = width - x - 10, textX = 76, textWidth = rowWidth - textX - (entry.Kind == K.Empty ? 120 : 44);
++        bool tickable = entry.Kind == K.Empty && _canRecycle;
++        float x = 20, rowWidth = width - x - 10, textX = tickable ? 108 : 76, textWidth = rowWidth - textX - 44;
+         var row = OverviewUi.Panel("Package", card, RowColor);
+         var (tagText, tagColor) = Tag(entry.Kind);
+-        var tag = OverviewUi.Panel("Tag", row, new Color(tagColor.r, tagColor.g, tagColor.b, .9f)); OverviewUi.Place(tag, 8, 8, 56, 20);
++        if (tickable)
++        {
++            var check = OverviewUi.Check(row, !_keep.Contains(entry.From), value => { if (value) _keep.Remove(entry.From); else _keep.Add(entry.From); Rebuild(); });
++            OverviewUi.Place((RectTransform)check.transform, 6, 5, 26, 26);
++        }
++        var tag = OverviewUi.Panel("Tag", row, new Color(tagColor.r, tagColor.g, tagColor.b, .9f)); OverviewUi.Place(tag, tickable ? 40 : 8, 8, 56, 20);
+         var tagLabel = OverviewUi.Text(tag, tagText, 12); tagLabel.color = new Color(.07f, .08f, .08f); tagLabel.fontStyle = FontStyles.Bold; tagLabel.alignment = TextAlignmentOptions.Center;
+         OverviewUi.Fill(tagLabel.rectTransform);
+         float sourceWidth = 0;
+@@ -219,28 +265,11 @@
+         string absolute = Path.Combine(Paths.BepInExRootPath, entry.From.Replace('/', Path.DirectorySeparatorChar));
+         var folder = OverviewUi.IconButton(row, "folder", () => { try { PackFileShortcuts.Open(absolute, true); } catch (Exception error) { Plugin.Log.LogWarning("[目录整理] 打开目录失败：" + error.Message); } }, 26, 26);
+         OverviewUi.Place((RectTransform)folder.transform, rowWidth - 34, 6, 26, 26);
+-        if (entry.Kind == K.Empty)
+-        {
+-            var delete = OverviewUi.Button(row, Loc.T("Recycle", "删除", "刪除"), () => ConfirmRecycle(entry, absolute), 70, 26, UiActionRole.Danger);
+-            OverviewUi.Place((RectTransform)delete.transform, rowWidth - 112, 6, 70, 26);
+-        }
+         float height = Mathf.Max(38, ry + 6);
+         OverviewUi.Place(row, x, y, rowWidth, height);
+         return y + height;
+     }
+ 
+-    /// <summary>Empty folders go to the Windows Recycle Bin after one confirmation; folders with mod files are refused.</summary>
+-    private void ConfirmRecycle(LayoutReviewModel.Entry entry, string absolute)
+-    {
+-        string? refusal = RecycleBin.Refusal(absolute);
+-        if (refusal != null) { _status?.Invoke(Loc.T("This folder cannot be moved to the Recycle Bin: ", "不能放进回收站：", "不能放進資源回收筒：") + refusal); return; }
+-        OverviewUi.Confirm(Loc.T("Move to the Recycle Bin: ", "放进回收站：", "放進資源回收筒：") + entry.Folder + (entry.Node.FileCount > 0 ? Loc.F(" ({0} files)", "（含 {0} 个文件）", "（含 {0} 個檔案）", entry.Node.FileCount) : ""), () =>
+-        {
+-            try { RecycleBin.Send(absolute); _deleted.Add(entry.From); _status?.Invoke(Loc.T("Moved to the Recycle Bin.", "已放进回收站。", "已放進資源回收筒。")); Rebuild(); }
+-            catch (Exception error) { _status?.Invoke(Loc.LocalizeMessage(error.Message)); }
+-        }, UiActionRole.Danger);
+-    }
+-
+     private static float Line(RectTransform row, string text, Color color, float x, float y, float width, float size)
+     {
+         var line = OverviewUi.Text(row, text, size); line.color = color; line.textWrappingMode = TextWrappingModes.Normal;
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/NestedMods.cs" src/Overview/NestedMods.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/NestedMods.cs"	2026-11-09 02:13:51.471908300 +0800
++++ src/Overview/NestedMods.cs	2026-11-09 02:24:07.589924700 +0800
+@@ -53,6 +53,7 @@
+         try
+         {
+             string file = Path.Combine(folder, "manifest.json");
++            if (!File.Exists(file)) file += ".old";   // disabled by MCE
+             if (!File.Exists(file)) return null;
+             var json = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
+             return json.Value<string>("name");
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewEnablementDraft.cs" src/Overview/OverviewEnablementDraft.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewEnablementDraft.cs"	2026-11-09 02:13:51.592604900 +0800
++++ src/Overview/OverviewEnablementDraft.cs	2026-11-09 02:25:15.710271300 +0800
+@@ -13,7 +13,14 @@
+ /// </summary>
+ internal static class OverviewEnablementDraft
+ {
++    /// <summary>2.3.1: a mod nested in a mod that is planned off is planned off too, so saving disables it on disk even
++    /// when the draft only names the outer (an imported profile, an older draft). A nested mod that cannot be toggled
++    /// here (protected library, identity conflict) is left as it is rather than failing the outer.</summary>
+     internal static bool Planned(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod)
++        => Own(draft, mod) && (mod.Outer == null || !mod.CanToggle || Planned(draft, mod.Outer));
++
++    /// <summary>The mod's own planned state, ignoring the mod it is nested in.</summary>
++    private static bool Own(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod)
+     {
+         var entry = draft.FirstOrDefault(m => m.guid == mod.Guid);
+         if (entry == null) return mod.TargetEnabled;
+@@ -23,7 +30,7 @@
+     }
+ 
+     /// <summary>Whether this row can be switched on now: not while the mod it is nested in is (planned) off.</summary>
+-    internal static bool BlockedByOuter(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod) => mod.Outer != null && !Planned(draft, mod.Outer);
++    internal static bool BlockedByOuter(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod) => mod.Outer != null && mod.CanToggle && !Planned(draft, mod.Outer);
+ 
+     /// <summary>Sets a mod and carries it to the mods nested in its folder: turning the outer off turns them off and
+     /// remembers which were on; turning it back on restores exactly those. An inner mod cannot be turned on while its
+@@ -32,19 +39,20 @@
+     {
+         if (enabled && BlockedByOuter(draft, mod)) throw new InvalidOperationException(Loc.F("{0} is inside {1}, which is disabled. Enable {1} first.", "{0} 位于已停用的「{1}」里，请先启用「{1}」。", "{0} 位於已停用的「{1}」裡，請先啟用「{1}」。", mod.Name, mod.Outer!.Name));
+         bool was = Planned(draft, mod);
++        // Read before the outer changes: once it is off every inner reads as off.
++        var on = mod.Inner.Where(i => i.CanToggle && Planned(draft, i)).ToList();
+         Set(draft, mod, enabled);
+         if (mod.Inner.Count == 0 || was == enabled) return;
+         var entry = draft.FirstOrDefault(m => m.guid == mod.Guid);
+         if (!enabled)
+         {
+-            var on = mod.Inner.Where(i => Planned(draft, i)).ToList();
+             if (entry != null) entry.nestedEnabled = on.Select(i => i.Guid).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+             foreach (var inner in on) SetWithNested(draft, inner, false);
+         }
+         else
+         {
+             var restore = new HashSet<string>(entry?.nestedEnabled ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+-            foreach (var inner in mod.Inner.Where(i => restore.Contains(i.Guid))) SetWithNested(draft, inner, true);
++            foreach (var inner in mod.Inner.Where(i => i.CanToggle && restore.Contains(i.Guid))) SetWithNested(draft, inner, true);
+             if (entry != null) entry.nestedEnabled.Clear();
+         }
+     }
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewGroupEditor.cs" src/Overview/OverviewGroupEditor.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewGroupEditor.cs"	2026-11-09 02:13:51.495738500 +0800
++++ src/Overview/OverviewGroupEditor.cs	2026-11-09 02:29:06.529117200 +0800
+@@ -270,7 +270,7 @@
+     private void ConfirmRemoveGroup()
+     {
+         var panel = Secondary(T("Remove this group?", "确认删除此分组？"));
+-        var hint = OverviewUi.Text(panel, T("Its mods become ungrouped. No plugin files are removed.", "组内模组会移到未分组，不删除任何插件文件。"), 21); TopStretch(hint.rectTransform, 20, 75, 78, 40); hint.textWrappingMode = TextWrappingModes.Normal;
++        var hint = OverviewUi.Text(panel, T("Its mods and subgroups move up one level (to Ungrouped when it is a top-level group). No plugin files are removed.", "组内模组和子分组会上移一层（顶层分组的模组移到未分组），不删除任何插件文件。"), 21); TopStretch(hint.rectTransform, 20, 75, 78, 40); hint.textWrappingMode = TextWrappingModes.Normal;
+         var yes = OverviewUi.Button(panel, T("Remove", "删除"), () => Commit(true), 125, 36, role: UiActionRole.Danger); OverviewUi.Bottom((RectTransform)yes.transform, 20, 18);
+         var no = OverviewUi.Button(panel, T("Cancel", "取消"), CloseSecondary, 125, 36, role: UiActionRole.Neutral); OverviewUi.Bottom((RectTransform)no.transform, 155, 18);
+         EventSystem.current?.SetSelectedGameObject(no.gameObject);
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewListView.Groups.cs" src/Overview/OverviewListView.Groups.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewListView.Groups.cs"	2026-11-09 02:13:51.470393200 +0800
++++ src/Overview/OverviewListView.Groups.cs	2026-11-09 02:26:03.396160500 +0800
+@@ -60,6 +60,29 @@
+         return order;
+     }
+ 
++    /// <summary>2.3.1: the menu edits change State in place before saving; a failed save puts everything back so the
++    /// list never shows (and a later full save never commits) an edit the user was told had failed.</summary>
++    private Action GroupEditCheckpoint()
++    {
++        var state = _repo.State;
++        var groups = state.groups.Select(g => (Group: g, g.parentId, g.order)).ToList();
++        var list = state.groups.ToList();
++        var rules = state.mods.Select(r => (Rule: r, r.groupId, r.order)).ToList();
++        var ruleList = state.mods.ToList();
++        var collapsed = state.collapsedGroups.ToList();
++        var rows = _mods.Select(m => (Mod: m, m.Rule)).ToList();
++        return () =>
++        {
++            state.groups.Clear(); state.groups.AddRange(list);
++            foreach (var (group, parentId, order) in groups) { group.parentId = parentId; group.order = order; }
++            state.mods.Clear(); state.mods.AddRange(ruleList);
++            foreach (var (rule, groupId, order) in rules) { rule.groupId = groupId; rule.order = order; }
++            state.collapsedGroups.Clear(); state.collapsedGroups.AddRange(collapsed);
++            foreach (var (mod, rule) in rows) mod.Rule = rule;
++            InvalidateGroupTree(); _pump.Enqueue(Render);
++        };
++    }
++
+     private void ShowGroupMenu(OverviewGroup? group, PointerEventData data)
+     {
+         HideAllHints();
+@@ -88,6 +111,7 @@
+             new[] { (T("Group name", "分组名称"), fallback) }, values =>
+         {
+             string name = values[0].Trim(); if (name.Length == 0) name = fallback;
++            var undo = GroupEditCheckpoint();
+             try
+             {
+                 _repo.EnsureLocalPackCopy();
+@@ -98,7 +122,7 @@
+                 InvalidateGroupTree(); _pump.Enqueue(Render);
+                 _status(T("Group created.", "已新建分组。"));
+             }
+-            catch (Exception ex) { _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
++            catch (Exception ex) { undo(); _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
+         });
+     }
+ 
+@@ -110,6 +134,7 @@
+             T("Its mods", "它的模组") + (children > 0 ? T(" and its subgroups", "和子分组") : "") + T(" move up to ", "会上移到「") + where + T(".", "」。") + "\n" + T("No files are changed.", "不会改动任何文件。"),
+             () =>
+             {
++                var undo = GroupEditCheckpoint();
+                 try
+                 {
+                     _repo.EnsureLocalPackCopy();
+@@ -119,12 +144,13 @@
+                     InvalidateGroupTree(); _pump.Enqueue(Render);
+                     _status(T("Group deleted; its contents moved up one level.", "分组已删除，内容已上移一层。"));
+                 }
+-                catch (Exception ex) { _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
++                catch (Exception ex) { undo(); _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
+             }, UiActionRole.Danger, T("Delete", "删除"));
+     }
+ 
+     private void AttachGroup(string childId, string parentId)
+     {
++        var undo = GroupEditCheckpoint();
+         try
+         {
+             _repo.EnsureLocalPackCopy();
+@@ -139,7 +165,7 @@
+             InvalidateGroupTree(); _pump.Enqueue(Render);
+             _status(parentId.Length == 0 ? T("Moved to the top level.", "已移到顶层。") : T("Now a subgroup of ", "已挂到「") + Groups.Path(parentId) + T(".", "」下。"));
+         }
+-        catch (Exception ex) { _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
++        catch (Exception ex) { undo(); _status(T("Unable to save group: ", "分组保存失败：") + Loc.LocalizeMessage(ex.Message)); }
+     }
+ 
+     private void BeginGroupDrag(OverviewGroup group)
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewPage.Installation.cs" src/Overview/OverviewPage.Installation.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewPage.Installation.cs"	2026-11-09 02:13:51.473908800 +0800
++++ src/Overview/OverviewPage.Installation.cs	2026-11-09 02:29:53.432246800 +0800
+@@ -132,20 +132,24 @@
+         if (task.Blockers.Count > 0) body.Add(Loc.T("Blocked:", "无法继续：", "無法繼續：") + "\n" + string.Join("\n", task.Blockers));
+         bool drawTree = layout && task.Tree.Count > 0;
+         if (!drawTree && (task.Tree.Count > 0 || task.Details.Count > 0 || task.Desired.Count > 0)) body.Add(LayoutPreviewText(task));
+-        if (confirmable) body.Add(Loc.T("The work is queued as a job and runs after PEAK exits; follow it in Downloads and operations.", "该操作会作为任务入队，在游戏退出后执行；进度见“下载与操作”。", "該操作會作為工作入列，在遊戲結束後執行；進度見「下載與操作」。"));
+-        var panel = OverviewUi.CreateModalPanel("MCE_InstallationReview", drawTree ? 1040 : 860, drawTree ? 760 : 560); if (panel == null) return;
+-        OverviewUi.SaveDialogHeader(panel, title, confirmable
++        if (confirmable && !drawTree) body.Add(Loc.T("The work is queued as a job and runs after PEAK exits; follow it in Downloads and operations.", "该操作会作为任务入队，在游戏退出后执行；进度见“下载与操作”。", "該操作會作為工作入列，在遊戲結束後執行；進度見「下載與操作」。"));
++        // 2.3.1: the folder tree gets nearly the whole screen; the plain-text variants keep their size.
++        var panel = OverviewUi.CreateModalPanel("MCE_InstallationReview", drawTree ? 1680 : 860, drawTree ? 1300 : 560); if (panel == null) return;
++        LayoutReviewView? tree = null;
++        OverviewUi.SaveDialogHeader(panel, title, drawTree && confirmable
++            ? Loc.T("Confirm to organize after PEAK exits (progress in Downloads and operations), clear the task, or go back.", "确认后在游戏退出时整理（进度见“下载与操作”），也可清除任务或返回。", "確認後在遊戲結束時整理（進度見「下載與操作」），也可清除工作或返回。")
++            : confirmable
+             ? Loc.T("Confirm to organize, clear the task, or go back and decide later.", "可确认整理、清除任务，或返回稍后再决定。", "可確認整理、清除工作，或返回稍後再決定。")
+             : finished ? Loc.T("Clear this task from the queue or start over.", "可从队列清除此任务，或重新开始。", "可從佇列清除此工作，或重新開始。")
+             : review ? Loc.T("This plan cannot be confirmed; clear it and preview again after fixing the items above.", "此计划无法确认；处理上面的问题后清除并重新预览。", "此計畫無法確認；處理上面的問題後清除並重新預覽。")
+-            : Loc.T("The helper is still analysing; you can stop it.", "更新助手仍在分析，可以停止。", "更新助手仍在分析，可以停止。"));
++            : Loc.T("The helper is still analysing; you can stop it.", "更新助手仍在分析，可以停止。", "更新助手仍在分析，可以停止。"), compactSummary: drawTree, dividerY: drawTree ? 84 : 109);
+         // A layout plan is drawn as a framed tree; everything else (and plans from before the tree existed) stays text.
+-        if (drawTree) LayoutReviewView.Show(panel, task.Tree, body.Select((line, index) => (line, index > 0 && (task.Error.Length > 0 || task.Blockers.Count > 0) && line != message)).ToList(), SetStatus);
++        if (drawTree) tree = LayoutReviewView.Show(panel, task.Tree, body.Select((line, index) => (line, index > 0 && (task.Error.Length > 0 || task.Blockers.Count > 0) && line != message)).ToList(), confirmable);
+         else OverviewUi.SaveDialogBody(panel, string.Join("\n\n", body), attention: !finished);
+         var buttons = new List<(string Label, Action Action, UiActionRole Role)>();
+         if (confirmable) buttons.Add((layout ? Loc.T("Organize", "确认整理", "確認整理") : Loc.T("Import", "确认导入", "確認匯入"), () => ManagementAction(() => {
+             if (!layout) OverviewUpdateQueue.SendLocalImport(new LocalImportRequest { Operation = "confirm", PreviewId = task.Id, PlanToken = task.PlanToken });
+-            else OverviewUpdateQueue.SendLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = task.Id, PlanToken = task.PlanToken });
++            else OverviewUpdateQueue.SendLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = task.Id, PlanToken = task.PlanToken, RecycleEmpty = tree?.RecycleSelection() ?? new List<string>() });
+             OverviewUi.CloseModal();
+             SetStatus(Loc.T("Queued. Progress is in Downloads and operations.", "已加入队列，进度见“下载与操作”。", "已加入佇列，進度見「下載與操作」。"));
+         }), UiActionRole.Commit));
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewPage.SmartGrouping.cs" src/Overview/OverviewPage.SmartGrouping.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewPage.SmartGrouping.cs"	2026-11-09 02:13:51.473908800 +0800
++++ src/Overview/OverviewPage.SmartGrouping.cs	2026-11-09 02:24:07.589924700 +0800
+@@ -54,7 +54,7 @@
+                 string rel = Rel(child);
+                 if (GroupFolderPlanner.NeverTouch(rel) || Path.GetFileName(child).StartsWith(".", StringComparison.Ordinal)) continue;
+                 bool link = (File.GetAttributes(child) & FileAttributes.ReparsePoint) != 0;
+-                entries.Add(new FolderEntry { Path = rel, IsDirectory = true, HasManifest = File.Exists(Path.Combine(child, "manifest.json")), HasLink = link });
++                entries.Add(new FolderEntry { Path = rel, IsDirectory = true, HasManifest = File.Exists(Path.Combine(child, "manifest.json")) || File.Exists(Path.Combine(child, "manifest.json.old")), HasLink = link });
+                 if (!link) pending.Push(child);
+             }
+             foreach (string file in files)
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewProfileExport.cs" src/Overview/OverviewProfileExport.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewProfileExport.cs"	2026-11-09 02:13:51.563697400 +0800
++++ src/Overview/OverviewProfileExport.cs	2026-11-09 02:25:42.802350500 +0800
+@@ -170,6 +170,8 @@
+         if (state["mods"] is JArray mods) foreach (JObject mod in mods.OfType<JObject>())
+             foreach (string field in new[] { "alias", "description", "descriptionOverridden", "updateOverridden", "sourceNamespace", "sourceName" }) mod.Remove(field);
+         if (state["pack"] is JObject pack) { pack["introDocument"] = DocumentFile; pack["introFile"] = MarkdownFile; }
++        // 2.3.1: which nested mods were on before their outer was disabled is this machine's memory, not profile content.
++        if (profile["mods"] is JArray targets) foreach (JObject target in targets.OfType<JObject>()) target.Remove("nestedEnabled");
+     }
+ 
+     private static void CopyLanguage(string sourceDirectory, string targetDirectory)
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.Applied.cs" src/Overview/OverviewRepository.Applied.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.Applied.cs"	2026-11-09 02:13:51.555176300 +0800
++++ src/Overview/OverviewRepository.Applied.cs	2026-11-09 02:14:17.361569100 +0800
+@@ -42,7 +42,7 @@
+         if (File.Exists(AppliedSnapshotPath))
+         {
+             var snapshot = OverviewProfileStore.DeserializeJson<OverviewProfile>(File.ReadAllText(AppliedSnapshotPath));
+-            if (snapshot.schemaVersion != 1 || snapshot.id != Profiles.AppliedId || !snapshot.IsValid)
++            if (!GroupTree.SupportedSchema(snapshot.schemaVersion) || snapshot.id != Profiles.AppliedId || !snapshot.IsValid)
+                 throw new InvalidDataException(Loc.T("The applied-profile record does not match the index. Restore a backup before trying again.", "已应用方案记录与方案索引不一致，请恢复备份后再试。", "已套用方案記錄與方案索引不一致，請還原備份後再試。"));
+             snapshot.state ??= new(); snapshot.state.pack ??= new(); _appliedSnapshot = snapshot;
+         }
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.DraftRecovery.cs" src/Overview/OverviewRepository.DraftRecovery.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.DraftRecovery.cs"	2026-11-09 02:13:51.494233500 +0800
++++ src/Overview/OverviewRepository.DraftRecovery.cs	2026-11-09 02:14:17.362569400 +0800
+@@ -122,7 +122,7 @@
+             applied = OverviewProfileStore.DeserializeJson<OverviewProfile>(File.ReadAllText(appliedPath));
+         }
+         catch (Exception error) when (error is IOException || error is JsonException || error is InvalidDataException) { return null; }
+-        if (pending.Value<int?>("schemaVersion") != 1 || applied.schemaVersion != 1 || pending.Value<string>("profileId") != ViewedProfileId || applied.id != ViewedProfileId
++        if (pending.Value<int?>("schemaVersion") != 1 || !GroupTree.SupportedSchema(applied.schemaVersion) || pending.Value<string>("profileId") != ViewedProfileId || applied.id != ViewedProfileId
+             || pending.Value<bool?>("pending") == true || applied.config?.values == null || applied.mods == null)
+             return null;
+         var repaired = Clone(committed); bool changed = false;
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.SaveScope.cs" src/Overview/OverviewRepository.SaveScope.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewRepository.SaveScope.cs"	2026-11-09 02:13:51.526088500 +0800
++++ src/Overview/OverviewRepository.SaveScope.cs	2026-11-09 02:23:54.685698700 +0800
+@@ -12,6 +12,9 @@
+     internal void SavePackInformation(ConfigurationSaveScope scope, string modId = "")
+     {
+         EnsureLocalPackCopy();
++        // A rule handed out by GetRule lives in _temporaryRules until something merges it. Without this a group
++        // membership set through GetRule (smart grouping, the group editor) was saved without the member.
++        MergeEditedRules();
+         var committed = Clone(_savedDraftProfile.state);
+         if (scope == ConfigurationSaveScope.Groups)
+         {
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewUi.SaveDialogs.cs" src/Overview/OverviewUi.SaveDialogs.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Overview/OverviewUi.SaveDialogs.cs"	2026-11-09 02:13:51.478677700 +0800
++++ src/Overview/OverviewUi.SaveDialogs.cs	2026-11-09 02:29:40.048830700 +0800
+@@ -12,7 +12,9 @@
+     private static readonly Color DialogSurface = new(.105f, .12f, .135f, 1);
+     private static readonly Color DialogInset = new(.065f, .08f, .095f, 1);
+ 
+-    internal static void SaveDialogHeader(RectTransform panel, string title, string subtitle, bool compactSummary = false)
++    /// <summary>Title, one-line or two-line subtitle and divider. <paramref name="dividerY"/> lets a dialog that needs the
++    /// room (the folder-organization review) pull the divider up under a one-line subtitle.</summary>
++    internal static void SaveDialogHeader(RectTransform panel, string title, string subtitle, bool compactSummary = false, float dividerY = 109)
+     {
+         panel.GetComponent<Image>().color = DialogSurface;
+         var accent = Panel("Accent", panel, Blue); Place(accent, 0, 0, panel.rect.width, 3);
+@@ -23,7 +25,7 @@
+         summary.textWrappingMode = TextWrappingModes.Normal;
+         Place(summary.rectTransform, 24, 59, panel.rect.width - 48, compactSummary ? 18 : 42);
+         var divider = Panel("HeaderDivider", panel, new Color(1, 1, 1, .1f));
+-        Place(divider, 24, 109, panel.rect.width - 48, 1);
++        Place(divider, 24, dividerY, panel.rect.width - 48, 1);
+         var footer = Panel("Footer", panel, DialogInset);
+         footer.anchorMin = Vector2.zero; footer.anchorMax = new Vector2(1, 0); footer.pivot = Vector2.zero;
+         footer.sizeDelta = new Vector2(0, 68); footer.anchoredPosition = Vector2.zero;
+Only in ''$'\345\244\207\344\273\275''/2.3.1_20261109_'$'\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215''/src/Overview': RecycleBin.cs
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Plugin.cs" src/Plugin.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Plugin.cs"	2026-11-09 02:13:51.624862000 +0800
++++ src/Plugin.cs	2026-11-09 02:34:35.103549900 +0800
+@@ -21,7 +21,7 @@
+ {
+     public const string PluginGuid = "com.aiae.modconfigenhance";
+     public const string PluginName = "Mod Manager (In-Game)";
+-    public const string PluginVersion = "2.3.0";
++    public const string PluginVersion = "2.3.1";
+ 
+     internal static ManualLogSource Log { get; private set; } = null!;
+ 
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Updating/GroupFolderPlanner.cs" src/Updating/GroupFolderPlanner.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Updating/GroupFolderPlanner.cs"	2026-11-09 02:13:51.628394900 +0800
++++ src/Updating/GroupFolderPlanner.cs	2026-11-09 02:33:49.829010300 +0800
+@@ -11,7 +11,7 @@
+         public string Path = "";
+         public bool IsDirectory;
+         public bool HasLink;
+-        /// <summary>Folders: a manifest.json sits directly inside.</summary>
++        /// <summary>Folders: a manifest.json (or manifest.json.old, a mod MCE disabled) sits directly inside.</summary>
+         public bool HasManifest;
+         public string ManifestName = "", ManifestVersion = "";
+         public List<string> Dependencies = new List<string>();
+@@ -219,6 +219,9 @@
+             foreach (var e in entries) sim.Paths.Add(e.Path);
+             foreach (string p in cls.Packages) sim.Current[p] = p;
+             foreach (string c in cls.Containers) sim.Current[c] = c;
++            // Empty folders are tracked too: one inside a category folder that gets renamed is somewhere else afterwards,
++            // and that later path is where the Recycle Bin step must look.
++            foreach (string e in cls.Empties) sim.Current[e] = e;
+ 
+             // Category folders that stand for a group are renamed to the group's folder (shallow targets first).
+             var mapped = new Dictionary<string, string>(Paths);
+@@ -331,6 +334,8 @@
+             }
+ 
+             foreach (string folder in cls.Empties.OrderBy(f => f, Paths))
++                // 2.3.1: an empty folder the moves fill (an existing, still empty group folder) is not "empty" in the review.
++                if (!cls.Packages.Any(p => Within(sim.Current[p], sim.Current[folder])))
+                 result.Nodes.Add(new LayoutTreeNode { Kind = LayoutNodeKind.Empty, OriginalPath = folder, FinalPath = sim.Current.TryGetValue(folder, out var now) ? now : folder,
+                     Folder = Leaf(folder), Group = Parent(folder).Length > "plugins".Length ? Parent(folder).Substring("plugins/".Length) : "",
+                     FileCount = entries.Count(e => !e.IsDirectory && Within(e.Path, folder)), Disposition = InstallationLayoutDisposition.Unchanged });
+diff -ru --strip-trailing-cr "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Updating/LayoutQueueContracts.cs" src/Updating/LayoutQueueContracts.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/src/Updating/LayoutQueueContracts.cs"	2026-11-09 02:13:51.629396100 +0800
++++ src/Updating/LayoutQueueContracts.cs	2026-11-09 02:28:25.606457300 +0800
+@@ -17,6 +17,8 @@
+     public List<LayoutQueueRow> Rows { get; set; } = new();
+     /// <summary>Folder name for mods nobody grouped, in the user's language.</summary>
+     public string UngroupedFolder { get; set; } = "Ungrouped";
++    /// <summary>2.3.1, confirm only: empty folders from the preview (their OriginalPath) to send to the Recycle Bin after organizing.</summary>
++    public List<string> RecycleEmpty { get; set; } = new();
+ }
+ public sealed class LayoutQueueGroup { public string Id { get; set; } = ""; public string Name { get; set; } = ""; public string ParentId { get; set; } = ""; }
+ public sealed class LayoutQueueMod { public string Guid { get; set; } = ""; public string GroupId { get; set; } = ""; public string Name { get; set; } = ""; }
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/GroupLayoutPlanner.cs" Updater/GroupLayoutPlanner.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/GroupLayoutPlanner.cs"	2026-11-09 02:13:52.436493300 +0800
++++ Updater/GroupLayoutPlanner.cs	2026-11-09 02:24:07.589924700 +0800
+@@ -67,7 +67,9 @@
+                 string rel = Slash(Path.GetRelativePath(root, child));
+                 if (GroupFolderPlanner.NeverTouch(rel) || Path.GetFileName(child).StartsWith(".", StringComparison.Ordinal)) continue;
+                 var entry = new FolderEntry { Path = rel, IsDirectory = true, HasLink = IsLink(child) };
++                // A mod MCE disabled keeps its manifest as manifest.json.old (ModToggleService); it is still a package.
+                 string manifest = Path.Combine(child, "manifest.json");
++                if (!File.Exists(manifest) && File.Exists(manifest + ".old")) manifest += ".old";
+                 if (File.Exists(manifest)) ReadManifest(manifest, entry);
+                 entries.Add(entry);
+                 if (!entry.HasLink) pending.Push(child);
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/Installer.cs" Updater/Installer.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/Installer.cs"	2026-11-09 02:13:52.436493300 +0800
++++ Updater/Installer.cs	2026-11-09 02:28:25.595390700 +0800
+@@ -104,7 +104,7 @@
+                 if (!File.Exists(oldPath)) throw new IOException("预览后文件已不存在，请重新预览：" + oldPath);
+                 if (Files.Hash(oldPath) != file.Hash) throw new IOException("目录内容在预览后发生变化，请重新预览：" + oldPath);
+             }
+-        plan.Phase = "moving"; Save(job, plan);
++        plan.Phase = "moving"; plan.CreatedDirectories ??= []; plan.ReplacedEmptyDirectories ??= []; Save(job, plan);
+         foreach (var move in plan.Moves)
+         {
+             if (move.Done) continue;
+@@ -112,7 +112,14 @@
+             Files.RejectLinks(plan.Root, from);
+             if (!Directory.Exists(from)) throw new IOException("源目录已不存在：" + move.From);
+             if (File.Exists(to) || Directory.Exists(to) && Directory.EnumerateFileSystemEntries(to).Any()) throw new IOException("目标位置已被占用：" + move.To);
+-            if (Directory.Exists(to)) Directory.Delete(to);
++            // Record what this move creates or replaces before touching the disk, so a rollback (even after a crash)
++            // removes only folders the organizer made and restores an empty folder it reused.
++            bool replaced = Directory.Exists(to);
++            if (replaced && !plan.ReplacedEmptyDirectories.Contains(move.To, Files.Compare)) plan.ReplacedEmptyDirectories.Add(move.To);
++            for (string parent = Parent(move.To); parent.Contains('/'); parent = Parent(parent))
++                if (!Directory.Exists(Files.Child(plan.Root, parent)) && !plan.CreatedDirectories.Contains(parent, Files.Compare)) plan.CreatedDirectories.Add(parent);
++            Save(job, plan);
++            if (replaced) Directory.Delete(to);
+             Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+             Directory.Move(from, to);
+             move.Done = true; Save(job, plan);
+@@ -123,6 +130,15 @@
+         LayoutBookkeeping(job, plan, rollback: false, sharedLease);
+         CleanStage(job, plan);
+         WorkerLog.Info("folder organization: " + plan.Moves.Count + " directories moved");
++        // 2.3.1: the empty folders the user ticked go to the Recycle Bin only now, once every move succeeded (some of
++        // them only became empty through those moves). Each is checked again; a folder that is no longer empty or
++        // safe stays and is reported, it never fails the organization that already happened.
++        if (plan.RecycleAfter.Count > 0)
++        {
++            var skipped = RecycleBin.SendAll(plan.Root, plan.RecycleAfter);
++            foreach (string line in skipped) job.Warnings.Add("空文件夹未放进回收站：" + line);
++            plan.RecycleAfter.Clear(); Save(job, plan);
++        }
+     }
+ 
+     internal static void RollbackLayout(UpdateJob job, Transaction plan, Func<IDisposable>? sharedLease)
+@@ -151,18 +167,18 @@
+             WorkerLog.Info("moved back " + move.To + " → " + move.From);
+         }
+         LayoutBookkeeping(job, plan, rollback: true, sharedLease);
+-        // Folders the organizer created and the rollback emptied go too, all the way up (nested group folders are
+-        // several levels deep), but never plugins/ itself and never a folder that still holds anything.
+-        var created = new HashSet<string>(Files.Compare);
+-        foreach (string to in plan.Moves.Select(m => m.To))
+-            for (string parent = to.Contains('/') ? to.Substring(0, to.LastIndexOf('/')) : ""; parent.Contains('/'); parent = parent.Substring(0, parent.LastIndexOf('/')))
+-                created.Add(parent);
+-        foreach (string relative in created.OrderByDescending(d => d.Count(c => c == '/')))
++        // Folders this commit created and the rollback emptied go too, deepest first. A folder that was there before
++        // (an empty group folder the user made) stays even when empty; an empty folder a move reused comes back.
++        foreach (string relative in (plan.CreatedDirectories ?? []).OrderByDescending(d => d.Count(c => c == '/')))
+             try { string empty = Files.Child(plan.Root, relative); if (Directory.Exists(empty) && !Directory.EnumerateFileSystemEntries(empty).Any()) Directory.Delete(empty); } catch (IOException) { } catch (UnauthorizedAccessException) { }
++        foreach (string relative in plan.ReplacedEmptyDirectories ?? [])
++            try { Directory.CreateDirectory(Files.Child(plan.Root, relative)); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+         plan.RollbackRequested = false; job.RollbackRequested = false; plan.Phase = "rolled-back"; Save(job, plan);
+         WorkerLog.Info("folder organization rolled back");
+     }
+ 
++    static string Parent(string relative) { int at = relative.LastIndexOf('/'); return at < 0 ? "" : relative.Substring(0, at); }
++
+     /// <summary>Later moves may run inside folders an earlier move produced (a renamed category folder, then a package
+     /// leaving it), so a move's own destination can legitimately be gone again. What must hold is the end state: every
+     /// moved package is at its final place, and the last move into each destination left it there.</summary>
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/LayoutPlan.cs" Updater/LayoutPlan.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/LayoutPlan.cs"	2026-11-09 02:13:52.441496800 +0800
++++ Updater/LayoutPlan.cs	2026-11-09 02:28:25.606457300 +0800
+@@ -14,6 +14,8 @@
+     public List<PackFile> NewPaths { get; set; } = new();
+     /// <summary>Structured folder result for the confirmation dialog. The plugin words and draws it.</summary>
+     public List<LayoutTreeNode> Tree { get; set; } = new();
++    /// <summary>2.3.1: empty folders (relative to the root) the user ticked; recycled after the moves succeed.</summary>
++    public List<string> RecycleAfter { get; set; } = new();
+ }
+ 
+ /// <summary>Builds the layout plan from what is actually on disk. Unregistered folders organize too; only an
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/MCE.UpdateWorker.csproj" Updater/MCE.UpdateWorker.csproj
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/MCE.UpdateWorker.csproj"	2026-11-09 02:13:52.440499400 +0800
++++ Updater/MCE.UpdateWorker.csproj	2026-11-09 02:34:35.048157700 +0800
+@@ -8,7 +8,7 @@
+     <ImplicitUsings>enable</ImplicitUsings>
+     <Nullable>enable</Nullable>
+     <UseWPF>true</UseWPF>
+-    <Version>2.3.0</Version>
++    <Version>2.3.1</Version>
+     <AssemblyName>MCE.UpdateWorker</AssemblyName>
+     <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
+     <SelfContained>false</SelfContained>
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/PackImports.cs" Updater/PackImports.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/PackImports.cs"	2026-11-09 02:13:52.477951200 +0800
++++ Updater/PackImports.cs	2026-11-09 02:14:17.362569400 +0800
+@@ -462,7 +462,9 @@
+         string profileRoot = Files.Child(root, relative);
+         var state = JsonNode.Parse(File.ReadAllText(Path.Combine(profileRoot, "profile.json")));
+         var config = JsonNode.Parse(File.ReadAllText(Path.Combine(profileRoot, "config-values.json")));
+-        if (state?["schemaVersion"]?.GetValue<int>() != 1 || config?["schemaVersion"]?.GetValue<int>() != 1) throw new IOException("默认方案或配置快照版本无效。");
++        int stateSchema = state?["schemaVersion"]?.GetValue<int>() ?? 0;
++        // 2.3.0: a profile with nested groups is written as version 2 so older managers refuse it; this one reads both.
++        if (stateSchema is not (1 or 2) || config?["schemaVersion"]?.GetValue<int>() != 1) throw new IOException("默认方案或配置快照版本无效。");
+         var targets = new Dictionary<string, bool>(Files.Compare);
+         foreach (var mod in state?["mods"]?.AsArray() ?? new JsonArray())
+         {
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/PackagePlan.cs" Updater/PackagePlan.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/PackagePlan.cs"	2026-11-09 02:13:52.441496800 +0800
++++ Updater/PackagePlan.cs	2026-11-09 02:26:30.627879400 +0800
+@@ -76,6 +76,13 @@
+     /// <summary>Directory renames of a folder-organization job; rollback moves them back in reverse order.</summary>
+     public List<MovePair> Moves { get; set; } = [];
+     public LayoutJournal? Layout { get; set; }
++    /// <summary>2.3.1: folders (relative to the root) a folder-organization commit created; only these are removed again
++    /// when it rolls back. Null on journals written before this existed: rollback then removes no folder at all.</summary>
++    public List<string>? CreatedDirectories { get; set; }
++    /// <summary>2.3.1: empty folders a move replaced (an empty shell reused as the target); rollback puts them back.</summary>
++    public List<string>? ReplacedEmptyDirectories { get; set; }
++    /// <summary>2.3.1: empty folders the user ticked in the review; recycled after every move succeeded.</summary>
++    public List<string> RecycleAfter { get; set; } = [];
+ }
+ 
+ internal sealed class MovePair
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/QueueWorker.cs" Updater/QueueWorker.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/QueueWorker.cs"	2026-11-09 02:13:52.483462700 +0800
++++ Updater/QueueWorker.cs	2026-11-09 02:28:25.606457300 +0800
+@@ -447,7 +447,7 @@
+                 {
+                     State(job, UpdateStates.Verifying, "正在核对要移动的目录。");
+                     var preview = LayoutPlanner.Read(job.WorkDirectory) ?? throw new IOException("整理计划缺失，请重新预览。");
+-                    plan = new Transaction { Root = root, PackageRoot = Path.Combine(root, "plugins"), JobId = job.Id, Installer = InstallPlanner.Version3, Phase = "prepared", RequiresExit = true, StoreVerified = false, Moves = preview.Moves, Layout = preview.Journal };
++                    plan = new Transaction { Root = root, PackageRoot = Path.Combine(root, "plugins"), JobId = job.Id, Installer = InstallPlanner.Version3, Phase = "prepared", RequiresExit = true, StoreVerified = false, Moves = preview.Moves, Layout = preview.Journal, RecycleAfter = preview.RecycleAfter.ToList() };
+                     Transactions.Save(job, plan); Save();
+                 }
+                 else if (job.Uninstall)
+Only in Updater: RecycleBin.cs
+diff -ru --strip-trailing-cr -x bin -x obj "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/WorkerParallelOperations.cs" Updater/WorkerParallelOperations.cs
+--- "\345\244\207\344\273\275/2.3.1_20261109_\345\256\241\346\237\245\344\277\256\345\244\215\345\211\215/Updater/WorkerParallelOperations.cs"	2026-11-09 02:13:52.483462700 +0800
++++ Updater/WorkerParallelOperations.cs	2026-11-09 02:28:33.982824400 +0800
+@@ -205,7 +205,12 @@
+         if(task==null||task.Id!=request.PreviewId||task.PlanToken!=request.PlanToken||task.PlanToken!=shop.TaskToken(task)||task.State!="ready"||task.Request.Operation!="layout-preview")throw new IOException("整理预览已变化，请重新预览。");
+         if(task.Blockers.Count>0)throw new IOException(string.Join("\n",task.Blockers));
+         var plan=LayoutPlanner.Read(shop.WorkDirectory(task))??throw new IOException("整理计划缺失，请重新预览。");
+-        if(plan.Moves.Count==0)throw new IOException("没有可整理的目录。");
++        // 2.3.1: only folders this preview listed as empty can be ticked for the Recycle Bin. A folder that only becomes
++        // empty through the moves is listed under its original path; the moves have rewritten it by then.
++        var empties=plan.Tree.Where(n=>n.Kind==LayoutNodeKind.Empty).ToList();
++        plan.RecycleAfter=request.RecycleEmpty.Select(path=>empties.FirstOrDefault(n=>Files.Compare.Equals(n.OriginalPath,path)))
++            .Where(n=>n!=null).Select(n=>n!.FinalPath.Length>0?n.FinalPath:n.OriginalPath).Distinct(Files.Compare).ToList();
++        if(plan.Moves.Count==0&&plan.RecycleAfter.Count==0)throw new IOException("没有可整理的目录。");
+         // The preview deliberately skips hashing the whole plugin tree. Collect the hashes here, for exactly the
+         // files this job will move, so they describe the content at the moment it is confirmed.
+         foreach(var unit in plan.Journal.Units)

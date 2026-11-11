@@ -1,0 +1,4 @@
+existing catalogue keys: 2176
+new terms to write: 433  (three-arg + reviewed two-arg)
+two-arg terms still needing a reviewed zh-tw: 0
+wrote src\Loc.Release23Terms.cs and 验证\发布前审查\pending_zhtw.tsv

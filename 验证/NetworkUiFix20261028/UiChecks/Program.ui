@@ -1,0 +1,37 @@
+using System;
+using ModConfigEnhance.Overview;
+int count=0;
+void Check(bool ok,string name){if(!ok)throw new Exception(name);count++;}
+var a=new UiGeometry.Box(1030,12,150,32);
+var proxy=UiGeometry.Popover(1500,940,a,380,124);
+Check(proxy.X==1030&&proxy.Y==48&&proxy.Width==380,"代理紧邻右侧按钮，非全屏");
+var edge=UiGeometry.Popover(800,500,new(750,450,40,32),380,124);
+Check(edge.X==412&&edge.Y==322,"右下边缘向上翻转并夹紧");
+var list=UiGeometry.Popover(800,500,new(20,420,120,32),300,1000);
+Check(list.Y==8&&list.Height==408,"长列表上翻并限制高度，交给滚动视口");
+var tiny=UiGeometry.Popover(160,100,new(140,5,20,20),380,124);
+Check(tiny.Width==144&&tiny.X==8&&tiny.Y==29&&tiny.Height==63,"小窗缩窄与垂直夹紧");
+foreach(float scale in new[]{.5f,1f,1.25f,2f})
+foreach(var metrics in new[]{(16f,-4f),(23f,-8f),(9f,-2f)})
+{
+    var caret=UiGeometry.EmptyCaret(19.5f*scale,metrics.Item1*scale,metrics.Item2*scale);
+    Check(Math.Abs(caret.Top-caret.Height/2-19.5f*scale)<.001,"39高空框的光标垂直中心：fallback/字号/缩放");
+}
+// Simulated TMP getter: committed select position + composition length, exactly once.
+foreach(int composition in new[]{0,1,2,4})
+{
+    int tmpCaret=2+composition;
+    var imeEdge=UiGeometry.CaretCharacter(tmpCaret,12);
+    Check(imeEdge.Index==tmpCaret&&!imeEdge.Advance,"production mesh edge: TMP IME position is not counted twice");
+}
+Check(UiGeometry.CaretCharacter(8,8)==(7,true),"production mesh edge: end uses xAdvance");
+Check(UiGeometry.CaretCharacter(-1,8)==(0,false),"production mesh edge: clamp negative");
+Check(UiGeometry.CaretCharacter(99,8)==(7,true),"production mesh edge: clamp beyond mesh");
+var random=new Random(7);
+for(int i=0;i<10000;i++)
+{
+    float w=random.Next(50,2500),h=random.Next(50,1800);
+    var box=UiGeometry.Popover(w,h,new(random.Next(-500,3000),random.Next(-500,2000),random.Next(20,500),32),random.Next(100,800),random.Next(50,2000));
+    Check(box.X>=0&&box.Y>=0&&box.Width>=0&&box.Height>=0&&box.X+box.Width<=w+.01&&box.Y+box.Height<=h+.01,"随机边界不越窗");
+}
+Console.WriteLine($"通过 {count} 项：直接链接生产 UiGeometry；没有 Unity/游戏运行时，不代表视觉验收。");

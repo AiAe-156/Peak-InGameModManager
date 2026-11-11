@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+<ItemGroup><Compile Include="Program.cs;PolicyChecks.cs;Stubs.cs"/><Compile Include="../../src/Overview/ShopNetwork.cs"/><Compile Include="../../src/Overview/ShopCatalog.cs"/><Compile Include="../../src/Overview/ShopDownloadQueue.cs"/><Compile Include="../../src/Overview/ShopDocumentRules.cs"/><Reference Include="Newtonsoft.Json"><HintPath>../../../../PEAK_Data/Managed/Newtonsoft.Json.dll</HintPath></Reference></ItemGroup>
+</Project>

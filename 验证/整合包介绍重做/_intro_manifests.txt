@@ -1,0 +1,61 @@
+ModConfigEnhance 2.4.4 | .\0基础模组\ModManager_InGame_2.0.0_20261029_215224 | Mod Manager (In-Game): PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package expo
+MyBananaDontHurtMe 0.1.7 | .\0基础模组\[优化]性能优化-MyBananaDontHurtMe | A mod to get back some of your frames.
+NoMoreMotionBlur 2.1.0 | .\0基础模组\[优化]无运动模糊(缓解晕3D)-NoMoreMotionBlur | Removes motion blur entirely from PEAK. Useful for those who can't tolerate it. With post-processing removal as well!
+BetterPeakVoiceFix 1.1.10 | .\0基础模组\[优化]更好的语音修复CN-1.1.10 | Fixes voice connection issues with auto-reconnect, host synchronization, and a visual status overlay.  |  支持切换中文。修复了语音连接问题，新增了自动重连、主机同步以及可视化状态显示功能。
+CrossplayStutterFix 2.0.0 | .\0基础模组\[优化]跨平台卡顿修复-CrossplayStutterFix | Fixes the crossplay integration related gameplay stutters, introduced in the v2.4.a update.
+Profile_Cards 0.1.5 | .\0基础模组\[功能]ESC队友资料卡Profile_Cards-0.1.5 | An overhaul of the pause menu for multiplayer!
+Profile_Cards 0.1.7 | .\0基础模组\[功能]ESC队友资料卡Profile_Cards-0.1.5\plugins | An overhaul of the pause menu for multiplayer!
+AutoItemMultiplier 0.2.0 | .\0基础模组\[功能]动态物资倍率-AutoItemMultiplier(LengSword) | Auto configure item spawn multiplier for PEAK
+ClimbInfoTracker 0.5.1 | .\0基础模组\[功能]攀爬记录-ClimbInfoTracker-LengSword | Track your every climbing record.
+BetterPing 1.0.2 | .\0基础模组\[功能]更好的中键标记-BetterPing | 独立中键标记模组：距离与序号、连续渐隐、路径绘制、死亡观战标记及 RPC 兼容；无需 EnhancedPing 或 LocalFix。
+Better_MicIndicator 1.4.1 | .\0基础模组\[功能]更好的麦克风指示器(Better_MicIndicator) | 在HUD左下角显示麦克风状态与四级音量弧线，支持M键静音、Alt+M隐藏UI；使用绝对dBFS电平、PTT门控和可配置阈值。主菜单休眠，HUD等待去重。
+RecentlyPlayedWith 1.0.2 | .\0基础模组\[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.2 | Automatically adds players you play with in PEAK to Steam's Recently Played With list. Local PEAK 2.4.b compatibility rebuild.
+ModConfig 1.8.2 | .\0基础模组\[功能]游戏内更改mod配置-ModConfig-1.8.2 | Easily configure mods inside your game.
+PeakLevelSelect 1.0.6 | .\0基础模组\[功能]登机口选关PeakLevelSelect-1.0.6 | Select the level you want to play in at the GATE KIOSK.
+PEAK_Voice_Volume_Saver 1.0.1 | .\0基础模组\[功能]语音音量保存-PEAK_Voice_Volume_Saver | Saves the voice volumes you set for friends! (No more resetting their volume every game!)
+MicEnhance 1.1.0 | .\0基础模组\[功能]麦克风增强-MicEnhance | 麦克风降噪 + 自动增益 + 麦克风增益，尖叫不再被吞，离远了也听得清。基于 Clear Comms 重写。 | Mic noise suppression with auto gain and mic boost; screams survive and distant voices stay audible. Re
+LateJoinFix 1.4.2 | .\0基础模组\[机制]中途加入自动复活修复版-LateJoinFix-1.4.2 | Fixes late-join player revive/death-state issues by warping and reviving new players near the current run and clearing stuck dead/passed out flags.
+ClearQuit 1.0.0 | .\0基础模组\[机制]彻底退出游戏-ClearQuit-1.0.0 | 本地自制模组，Thunderstore 上没有，写 manifest 只为目录结构统一
+Better_Resurrection/Teleportation 1.4.5 | .\0基础模组\[机制]更好的手动复活&传送 | 可指定玩家复活/传送到当前玩家/被观看者/锁定目的地玩家附近。修复游戏侧的虚空复活（原版雕像同样中招），复活带落地校验与幂等补发。界面随游戏语言自动中/英切换。.切换玩家，Shift+H锁定目的地，H传送(对自己=最近队友)，Alt+H复活。
+LocalFix 2.26.0 | .\0基础模组\[机制]综合本地修复-LocalFix | 本地自制模组，Thunderstore 上没有
+PeakStatsEx 1.6.2 | .\1拓展模组\[信息]Peak状态Ex-PeakStatsEx | Displays teammate stamina bars and item names in the inventory for improved cooperative gameplay. You can also see how long and how far you've been climbing!
+BetterPlayerDistance 1.1.6 | .\1拓展模组\[信息]更好的显示玩家距离-1.1.5 | 定位你的队友，昏迷了也跑不掉！完全贴近原版的风格，自定义选项丰富，几乎没有性能损失。 | Find your teammates—even the downed ones can't hide! Vanilla-style visuals, rich customization, and virtually no pe
+EasyBackpack_Fix 1.1.9 | .\1拓展模组\[功能]B键便捷背包-EasyBackpack_Fix-1.1.8 | Compatibility fix for the original EasyBackpack mod (by nickklmao). Access your backpack without dropping it, restored for the 2026-08-12 PEAK update.
+peakReconnect 1.0.2 | .\1拓展模组\[功能]K键掉线重连-peakReconnect-1.0.2 | Press a configurable key or controller button to reconnect to the last server you were in.
+BetterPiggyback 0.1.1 | .\1拓展模组\[功能]更好的背队友-BetterPiggyback-0.1.1 | Lets you carry your mates even when they're not passed out.
+ItemInfoDisplayForkedCNPlus_new 1.2.1 | .\1拓展模组\[功能]物品详细信息-ItemInfoDisplayForkedCNPlus_1.2.1 | Displays item information with CN localization, updated for PEAK 2.0.a: adds accurate descriptions for all new items (amulets, jetpack/rocketpack, glider, candl
+PerspectiveSwitcher 0.1.3 | .\1拓展模组\[功能]视角切换器PerspectiveSwitcher-0.1.3 | Enhanced camera mod with First, Second, and Third person perspectives. Based on peak-thirdperson with second-person view support and improved architecture. Cycl
+FastStart 0.1.0 | .\1拓展模组\[功能]跳过开始屏幕-FastStart(LengSword) | Fastly start your game.
+EaglesEye 3.0.2 | .\1拓展模组\[功能]鹰眼-EaglesEye-3.0.2 | Adds a zoom feature with scroll support and optional binocular overlay. Spot things like an eagle.
+HudHider 1.2.1 | .\1拓展模组\[美化]F11隐藏hud(截图专用)-HudHider | Toggles the HUD when a configurable key is pressed.
+TimeTheme 0.4.3 | .\1拓展模组\[美化]时间主题-TimeTheme-0.4.3 | Switches the UIs color palette when it becomes night/day.
+SimpleUnlocker 1.1.0 | .\1拓展模组\[美化]简易解锁装扮&难度(默认禁用)-SimpleUnlocker | A PEAK cosmetic unlocker mod that just gets the job done. (w/ Sash Colors + Ascents)
+PlantholderOverhaul 0.1.9 | .\1拓展模组\[美化]迷你景观台-汉化-PlantholderOverhaul-0.1.7 | See the miniatures of today's (or any) map biomes right in the airport! Multiplayer-Interactive in-game menu included.
+PeakSpectatorMode 1.2.2 | .\2额外模组\[功能]更好的观战视角-PeakSpectatorMode | Better spectator camera: F3 free-fly cam, Q/E switch players, smooth soft-follow, overhead name/altitude labels, x-ray silhouettes. 更好的观战视角：F3 自由相机、切换玩家、软跟随、头顶标
+PEAKTrails 1.2.1 | .\2额外模组\[实用]路线轨迹(再也不怕找不到路)-PEAKTrails | Client-sided mod that adds real-time trails for all players!
+PiggybackTeammate 1.1.1 | .\2额外模组\[机制]T键骑队友-PiggybackTeammate | Hang onto a teammate's back with a hotkey. Rewrite of shuhia's Piggyback 1.0.0 that fixes the stuck-rider state leak, caps riders per carrier, and plays nice wi
+PEAK_Visuals 2.1.0 | .\2额外模组\[画质]Peak_画面调整(低配慎选)-PEAK_Visuals | Improves the visual fidelity of PEAK by expanding the graphics options! Now with DLSS!
+LightingTweaks 1.0.7 | .\2额外模组\[画质]月光优化(强烈推荐)-LightingTweaks | Various lighting tweaks. The most important feature is re-adding the Moonlight
+PlushieSwap 1.1.1 | .\2额外模组\[美化]自嘲熊替换宾绑-PlushieSwap | Replaces the BingBong plush with a cartoon Miffy or Zichao Xiong. Switch between the vanilla bear and both replacements in game with F7. Models, shading and ico
+ItemSpawnerEnhanced 1.6.0 | .\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0 | A client-side item spawner for PEAK built for players across every supported game language, with localized smart search, spectator-aware targeting, and support 
+So_Fly 2.1.0 | .\2额外模组\[调试]飞行模组So_Fly-2.1.0 | Made for me but also devs and tester. Fly with customizable speeds. Toggle no clip. Detect luggage, items, mobs, and hazards. Add/Remove/Reduce/Clear Affliction
+Throwwaway 1.2.4 | .\2额外模组\[趣味]抛出昏迷队友-Throwwaway | 队友太沉？送他一程！救援也好，整活也罢。 / Heavy teammate? Give them a lift—literally. Rescue meets mischief.
+PLL_Fog_Resources 1.0.0 | .\3玩法模组\AeralisFoundation-PLL_Fog_Resources | Sealed Direct3D 11 fog shader resources for PLL Library on PEAK 2.6a.
+Unified_Ray_Tracing 1.0.0 | .\3玩法模组\AeralisFoundation-Unified_Ray_Tracing | Unity 6000.3.15f1 SRP Core 17.3.0 Unified Ray Tracing compute resources for PEAK mods.
+TrueFinalAscent 3.0.4 | .\3玩法模组\CptPICHU-TrueFinalAscent | Climb every biome in one run. A new mode that stacks the whole mountain into a single ascent - plus an Apocalypse mode full of weather that wants you dead.
+TerrainRandomiser 1.2.0 | .\3玩法模组\[功能]地形随机器-TerrainRandomiser-1.2.0 | Randomise terrain generation with a seed and select what biome or variants to play on for near infinite choices.
+ZombieTweaks 1.3.0 | .\3玩法模组\[玩法][纯主机]僵尸追猎_快跑吧！-ZombieTweaks | Adjust PEAK mushroom zombie lifetime/speed, and spawn zombies on new levels or by hotkey. Host-authoritative.
+TerrainCustomiser_Fix 1.0.5 | .\3玩法模组\[玩法]地形定制器fix-TerrainCustomiser | Community rebuild of Snosz-TerrainCustomiser 0.3.2 for current PEAK (verified v2.6.b): custom biome maps work again, with old-save, multiplayer and storm fixes.
+RandomTerrainEnhance 1.0.20 | .\3玩法模组\[补丁]随机地形增强 | TerrainRandomiser multiplayer sync fixes: desync check (F8), per-spawner RNG isolation, ViewID alignment, host-synced baking, storm shelter; coexists with TrueF
+MonoDetour 0.7.1701 | .\MonoDetour-MonoDetour | Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.
+UpscaleLib 1.0.0 | .\依赖模组\glarmer-UpscaleLib | Loads upscaling DLLs. For use with PEAK_Visuals
+UBImGui 1.0.0 | .\依赖模组\Snosz-UBImGui | A plugin that allows mod developers to use Dear ImGui in Unity.
+PEAKLib_Core 1.7.2 | .\依赖模组\[依赖]PEAKLib核心-PEAKLib_Core | Core module of the PEAKLib community API.
+PEAKLib_Items 1.6.2 | .\依赖模组\[依赖]PEAKLib物品-PEAKLib_Items | Items module of the PEAKLib community API.
+PEAKLib_UI 1.7.2 | .\依赖模组\[依赖]PEAKLib界面-PEAKLib_UI | UI module of the PEAKLib community API.
+PhotonCustomPropsUtils 1.1.0 | .\依赖模组\[依赖]光子系统属性工具-PhotonCustomPropsUtils | Helps modders easily synchronize room/player properties across all connected clients through Photon's Custom Properties.
+XUnity_AutoTranslator 5.6.11 | .\依赖模组\[依赖]实时翻译框架-XUnity_AutoTranslator | Advanced translator plugin
+SoftDependencyFix 1.0.0 | .\依赖模组\[依赖]软依赖修复-SoftDependencyFix | Fixes ReflectionUtility usage in Vanilla from breaking from mods with soft dependencies.
+FrameDoctor 1.1.5 | .\未分组\[优化]掉帧医生-FrameDoctor | PEAK frame-drop diagnostics with component and coroutine probes, measured residual time and optional native watchdog.
+Foothold 1.6.3 | .\未分组\[功能]这里能踩吗(立足点)？-FootholdForked | A mod for PEAK that visualizes standable ground
+PeakerPlus 0.1.1 | .\未分组\[功能]远征整合增强-PeakerPlus | Who knew that PEAK could get even more PEAK!? An all-in-one feature & fix mod for larger expeditions!

@@ -1,0 +1,9 @@
+{
+  "namespace": "MonoDetour",
+  "name": "MonoDetour",
+  "description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+  "version_number": "0.7.16",
+  "dependencies": [],
+  "website_url": "https://github.com/MonoDetour/MonoDetour",
+  "FullName": "MonoDetour-MonoDetour"
+}

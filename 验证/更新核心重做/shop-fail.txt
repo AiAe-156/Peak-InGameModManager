@@ -1,0 +1,4 @@
+Unhandled exception. System.Exception: standalone core transaction commits in sandbox without migration
+   at Program.<>c__DisplayClass0_0.<<Main>$>g__Check|0(Boolean ok, String message) in F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\ShopChecks\Program.cs:line 7
+   at Program.<Main>$(String[] args) in F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\ShopChecks\Program.cs:line 52
+   at Program.<Main>(String[] args)

@@ -1,0 +1,30 @@
+    /// <summary>A category folder named differently from its group ("0核心&基础模组" for group "0基础模组"): it holds no plugin
+    /// of its own, only package folders, and most of those packages' own plugins belong to one group. Without this the whole
+    /// category folder was taken for one package carrying plugins from several groups and skipped.</summary>
+    static InstallationLayoutGroup? InferredContainer(string root, string folder, LayoutQueueRequest request, List<InstallationLayoutGroup> groups)
+    {
+        if (Directory.GetFiles(folder).Any(f => PluginFileNames.IsAssembly(f) || Path.GetFileName(f).Equals("manifest.json", StringComparison.OrdinalIgnoreCase))) return null;
+        var children = Directory.GetDirectories(folder).Where(c => !Path.GetFileName(c).StartsWith(".", StringComparison.Ordinal)).ToArray();
+        if (children.Length < 2) return null;
+        var votes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase); int packages = 0;
+        foreach (string child in children)
+        {
+            var plugins = InstallMetadata.ReadTree(root, child);
+            if (plugins.Count == 0) continue;
+            packages++;
+            int Depth(PluginInfo p) => Slash(Path.GetRelativePath(child, p.File)).Count(c => c == '/');
+            int top = plugins.Min(Depth);
+            foreach (string id in plugins.Where(p => Depth(p) == top)
+                .Select(p => request.Mods.FirstOrDefault(m => Files.Compare.Equals(m.Guid, p.Guid))?.GroupId ?? "")
+                .Where(g => g.Length > 0 && g != "ungrouped").Distinct(StringComparer.OrdinalIgnoreCase))
+                votes[id] = votes.TryGetValue(id, out int n) ? n + 1 : 1;
+        }
+        if (packages < 2 || votes.Count == 0) return null;
+        var best = votes.OrderByDescending(v => v.Value).First();
+        if (best.Value * 2 <= packages) return null;
+        var group = groups.FirstOrDefault(g => Files.Compare.Equals(g.Id, best.Key));
+        // Another folder already stands for this group: two folders for one group would need merging, which is not this step.
+        if (group == null || group.StableFolderName.Length > 0 && !Files.Compare.Equals(group.StableFolderName, Path.GetFileName(folder))) return null;
+        return group;
+    }
+

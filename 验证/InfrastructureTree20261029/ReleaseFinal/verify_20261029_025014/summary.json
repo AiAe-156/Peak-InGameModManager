@@ -1,0 +1,589 @@
+{
+  "status": "verification-passed",
+  "started_at": "2026-10-29T02:50:14.887095+08:00",
+  "commands": [
+    {
+      "label": "worker-publish",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "publish",
+        "Updater/MCE.UpdateWorker.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-o",
+        "Updater/bin/bundle",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\worker-publish.log"
+    },
+    {
+      "label": "protocol-manifest",
+      "command": [
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\MCE.UpdateWorker.exe",
+        "--validate-protocol-manifest",
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\protocol-manifest.log"
+    },
+    {
+      "label": "main-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "ModConfigEnhance.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false",
+        "-t:Build;CollectReleaseFiles"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\main-build.log"
+    },
+    {
+      "label": "Graph21-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/InfrastructureTree20261029/Graph/Graph.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Graph21-restore.log"
+    },
+    {
+      "label": "Graph21-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/InfrastructureTree20261029/Graph/Graph.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Graph21-build.log"
+    },
+    {
+      "label": "Graph21-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/InfrastructureTree20261029/Graph/Graph.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Graph21-run.log"
+    },
+    {
+      "label": "PlatformFix30-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/InfrastructureTree20261029/Graph/PlatformFix/PlatformFix.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\PlatformFix30-restore.log"
+    },
+    {
+      "label": "PlatformFix30-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/InfrastructureTree20261029/Graph/PlatformFix/PlatformFix.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\PlatformFix30-build.log"
+    },
+    {
+      "label": "PlatformFix30-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/InfrastructureTree20261029/Graph/PlatformFix/PlatformFix.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\PlatformFix30-run.log"
+    },
+    {
+      "label": "ScopedFix12-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/InfrastructureTree20261029/Graph/ScopedFix/ScopedFix.csproj",
+        "-p:EnableDeployment=false",
+        "-p:BaseIntermediateOutputPath=obj-scoped/"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ScopedFix12-restore.log"
+    },
+    {
+      "label": "ScopedFix12-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/InfrastructureTree20261029/Graph/ScopedFix/ScopedFix.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false",
+        "-p:BaseIntermediateOutputPath=obj-scoped/"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ScopedFix12-build.log"
+    },
+    {
+      "label": "ScopedFix12-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/InfrastructureTree20261029/Graph/ScopedFix/ScopedFix.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false",
+        "-p:BaseIntermediateOutputPath=obj-scoped/"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ScopedFix12-run.log"
+    },
+    {
+      "label": "WorkerGraph26-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/InfrastructureTree20261029/Final/WorkerGraph/WorkerGraph.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\WorkerGraph26-restore.log"
+    },
+    {
+      "label": "WorkerGraph26-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/InfrastructureTree20261029/Final/WorkerGraph/WorkerGraph.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\WorkerGraph26-build.log"
+    },
+    {
+      "label": "WorkerGraph26-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/InfrastructureTree20261029/Final/WorkerGraph/WorkerGraph.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\WorkerGraph26-run.log"
+    },
+    {
+      "label": "UI36-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/InfrastructureTree20261029/UI/UiChecks.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\UI36-restore.log"
+    },
+    {
+      "label": "UI36-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/InfrastructureTree20261029/UI/UiChecks.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\UI36-build.log"
+    },
+    {
+      "label": "UI36-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/InfrastructureTree20261029/UI/UiChecks.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\UI36-run.log"
+    },
+    {
+      "label": "Overview28-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/ComponentActions20261028/概览展示/OverviewChecks.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Overview28-restore.log"
+    },
+    {
+      "label": "Overview28-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/ComponentActions20261028/概览展示/OverviewChecks.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Overview28-build.log"
+    },
+    {
+      "label": "Overview28-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/ComponentActions20261028/概览展示/OverviewChecks.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Overview28-run.log"
+    },
+    {
+      "label": "ShopUi7-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/IndependentEnvironment20261028/ShopUi/ShopUi.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopUi7-restore.log"
+    },
+    {
+      "label": "ShopUi7-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/IndependentEnvironment20261028/ShopUi/ShopUi.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopUi7-build.log"
+    },
+    {
+      "label": "ShopUi7-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/IndependentEnvironment20261028/ShopUi/ShopUi.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopUi7-run.log"
+    },
+    {
+      "label": "Shop82-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/IndependentEnvironment20261028/Shop/Shop.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Shop82-restore.log"
+    },
+    {
+      "label": "Shop82-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/IndependentEnvironment20261028/Shop/Shop.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Shop82-build.log"
+    },
+    {
+      "label": "Shop82-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/IndependentEnvironment20261028/Shop/Shop.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Shop82-run.log"
+    },
+    {
+      "label": "ShopChecks33-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/ShopChecks/ShopChecks.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopChecks33-restore.log"
+    },
+    {
+      "label": "ShopChecks33-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/ShopChecks/ShopChecks.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopChecks33-build.log"
+    },
+    {
+      "label": "ShopChecks33-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/ShopChecks/ShopChecks.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\ShopChecks33-run.log"
+    },
+    {
+      "label": "Actions82-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/ComponentActions20261028/Actions/Actions.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Actions82-restore.log"
+    },
+    {
+      "label": "Actions82-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/ComponentActions20261028/Actions/Actions.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Actions82-build.log"
+    },
+    {
+      "label": "Actions82-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/ComponentActions20261028/Actions/Actions.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Actions82-run.log"
+    },
+    {
+      "label": "Integration29-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/IndependentEnvironment20261028/Integration/Integration.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Integration29-restore.log"
+    },
+    {
+      "label": "Integration29-build",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "验证/IndependentEnvironment20261028/Integration/Integration.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Integration29-build.log"
+    },
+    {
+      "label": "Integration29-run",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "run",
+        "--project",
+        "验证/IndependentEnvironment20261028/Integration/Integration.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--no-restore",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\Integration29-run.log"
+    },
+    {
+      "label": "CrossFlow-restore",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "restore",
+        "验证/IndependentEnvironment20261028/CrossFlow/CrossFlow.csproj",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\CrossFlow-restore.log"
+    },
+    {
+      "label": "CrossFlow-publish",
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "publish",
+        "验证/IndependentEnvironment20261028/CrossFlow/CrossFlow.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-o",
+        "验证/IndependentEnvironment20261028/CrossFlow/release",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\CrossFlow-publish.log"
+    },
+    {
+      "label": "CrossFlow44-run",
+      "command": [
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\IndependentEnvironment20261028\\CrossFlow\\release\\MCE.UpdateWorker.exe",
+        "--bootstrap",
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\IndependentEnvironment20261028\\CrossFlow"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\CrossFlow44-run.log"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Graph21",
+      "passed": 21
+    },
+    {
+      "name": "PlatformFix30",
+      "passed": 30
+    },
+    {
+      "name": "ScopedFix12",
+      "passed": 12
+    },
+    {
+      "name": "WorkerGraph26",
+      "passed": 26
+    },
+    {
+      "name": "UI36",
+      "passed": 36
+    },
+    {
+      "name": "Overview28",
+      "passed": 28
+    },
+    {
+      "name": "ShopUi7",
+      "passed": 7
+    },
+    {
+      "name": "Shop82",
+      "passed": 82
+    },
+    {
+      "name": "ShopChecks33",
+      "passed": 33
+    },
+    {
+      "name": "Actions82",
+      "passed": 82
+    },
+    {
+      "name": "Integration29",
+      "passed": 29
+    },
+    {
+      "name": "CrossFlow44",
+      "passed": 44
+    }
+  ],
+  "completed_at": "2026-10-29T02:51:35.353159+08:00"
+}

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>GraphChecks</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The real graph: it has no BepInEx or Unity dependency, so it can be checked on its own. -->
+    <Compile Include="../../../src/Updating/ComponentDependencyGraph.cs" Link="ComponentDependencyGraph.cs" />
+  </ItemGroup>
+</Project>

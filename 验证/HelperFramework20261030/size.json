@@ -1,0 +1,23 @@
+{
+  "files": {
+    "MCE.UpdateWorker.exe": 489984,
+    "MCE.UpdateWorker.exe.config": 327,
+    "Microsoft.Bcl.AsyncInterfaces.dll": 27952,
+    "Mono.Cecil.dll": 339456,
+    "Mono.Cecil.LICENSE.txt": 1098,
+    "Runtime-LICENSE.TXT": 188,
+    "Runtime-THIRD-PARTY-NOTICES.TXT": 4937,
+    "System.Buffers.dll": 23816,
+    "System.IO.Pipelines.dll": 85768,
+    "System.Memory.dll": 145200,
+    "System.Numerics.Vectors.dll": 110344,
+    "System.Runtime.CompilerServices.Unsafe.dll": 19256,
+    "System.Text.Encodings.Web.dll": 87824,
+    "System.Text.Json.dll": 777480,
+    "System.Threading.Tasks.Extensions.dll": 27960,
+    "worker-protocol.manifest": 1561,
+    "Licenses\\Microsoft-THIRD-PARTY-NOTICES.TXT": 78041
+  },
+  "totalBytes": 2221192,
+  "MiB": 2.1182937622070312
+}

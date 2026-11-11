@@ -1,0 +1,20 @@
+=== 误归档的文件是否已恢复
+  core/AutoHookGenPatcher-1.1.1/manifest.json                OK 在
+  core/Cysharp-UniTask/manifest.json                         OK 在
+  patchers/Hamunii-DetourContext_Dispose_Fix/manifest.json   OK 在
+  patchers/Hamunii-AutoHookGenPatcher/README.md              OK 在
+  patchers/MonoDetour-MonoDetour_BepInEx_5/manifest.json     OK 在
+  core/MonoDetour-MonoDetour/manifest.json                   OK 在
+
+=== MonoDetour 重复副本现状（回退后应仍在，等修复后重跑清理）
+  \core\com.github.MonoDetour.Bindings.Reorg.dll
+  \core\com.github.MonoDetour.dll
+  \core\com.github.MonoDetour.Interop.HarmonyX.dll
+  \core\com.github.MonoDetour.Reflection.dll
+  \core\MonoDetour-MonoDetour\com.github.MonoDetour.Bindings.Reorg.dll
+  \core\MonoDetour-MonoDetour\com.github.MonoDetour.dll
+  \core\MonoDetour-MonoDetour\com.github.MonoDetour.Reflection.dll
+  \core\MonoDetour-MonoDetour_BepInEx_5\com.github.MonoDetour.Interop.HarmonyX.dll
+  \patchers\0.com.github.MonoDetour.BepInEx.5.dll
+  \patchers\MonoDetour-MonoDetour_BepInEx_5\0.com.github.MonoDetour.BepInEx.5.dll
+  \patchers\MonoDetour-MonoDetour_BepInEx_5\com.github.MonoDetour.Interop.HarmonyX.dll

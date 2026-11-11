@@ -1,0 +1,329 @@
+{
+  "stamp": "20261028_173858",
+  "prepared_at": "2026-10-28T17:38:58.381245+08:00",
+  "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\备份\\部署前_网络与界面修复_20261028_173858\\installed",
+  "zip": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\发布\\ModConfigEnhance_2.0.0_20261028_173858_network-ui-fix.zip",
+  "started_at": "2026-10-28T17:39:03.632391+08:00",
+  "target": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[界面]ModConfig增强-ModConfigEnhance",
+  "status": "success",
+  "process_checks": [
+    {
+      "stage": "before-package-and-backup",
+      "time": "2026-10-28T17:39:03.848203+08:00",
+      "processes": []
+    },
+    {
+      "stage": "immediately-before-copy",
+      "time": "2026-10-28T17:39:11.745552+08:00",
+      "processes": []
+    }
+  ],
+  "route_checks": [
+    {
+      "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[界面]ModConfig增强-ModConfigEnhance",
+      "exists": true
+    },
+    {
+      "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\[界面]ModConfig增强-ModConfigEnhance",
+      "exists": false
+    },
+    {
+      "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\0核心&基础模组\\[界面]ModConfig增强-ModConfigEnhance",
+      "exists": false
+    },
+    {
+      "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\ModConfigEnhance",
+      "exists": false
+    },
+    {
+      "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\ModConfigEnhance",
+      "exists": false
+    }
+  ],
+  "build_results": [
+    {
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "publish",
+        "Updater/MCE.UpdateWorker.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-o",
+        "Updater/bin/bundle",
+        "-v",
+        "quiet",
+        "-p:EnableDeployment=false"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\NetworkUiFix20261028\\部署\\publish_20261028_173858.log"
+    },
+    {
+      "command": [
+        "C:/Program Files/dotnet/dotnet.exe",
+        "build",
+        "ModConfigEnhance.csproj",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:EnableDeployment=false",
+        "-t:Build;CollectReleaseFiles",
+        "-v",
+        "quiet"
+      ],
+      "exit": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\NetworkUiFix20261028\\部署\\build_20261028_173858.log"
+    }
+  ],
+  "worker_bundle": {
+    "self_contained": true,
+    "single_file": true,
+    "rid": "win-x64"
+  },
+  "freshness": [
+    {
+      "binary": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\bin\\Release\\netstandard2.1\\ModConfigEnhance.dll",
+      "size": 2198528,
+      "mtime": "2026-10-28T17:39:06.235044+08:00",
+      "latest_input": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\src\\Overview\\ShopNetwork.cs",
+      "latest_input_mtime": "2026-10-28T17:35:20.087479+08:00"
+    },
+    {
+      "binary": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\MCE.UpdateWorker.exe",
+      "size": 74202461,
+      "mtime": "2026-10-28T02:44:04.473494+08:00",
+      "latest_input": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\PackagePlan.cs",
+      "latest_input_mtime": "2026-10-28T02:08:00.120006+08:00"
+    }
+  ],
+  "zip_crc": "passed",
+  "zip_size": 40365958,
+  "backup_files": 22,
+  "release_inventory": [
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\bin\\Release\\netstandard2.1\\ModConfigEnhance.dll",
+      "path": "ModConfigEnhance.dll",
+      "size": 2198528
+    },
+    {
+      "source": "C:\\Users\\AiAe\\.nuget\\packages\\markdig\\0.37.0\\lib\\netstandard2.1\\Markdig.dll",
+      "path": "Markdig.dll",
+      "size": 474624
+    },
+    {
+      "source": "C:\\Users\\AiAe\\.nuget\\packages\\yamldotnet\\16.3.0\\lib\\netstandard2.1\\YamlDotNet.dll",
+      "path": "YamlDotNet.dll",
+      "size": 290816
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\MCE.UpdateWorker.exe",
+      "path": "Tools/Updater/MCE.UpdateWorker.exe",
+      "size": 74202461
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\Mono.Cecil.LICENSE.txt",
+      "path": "Tools/Updater/Mono.Cecil.LICENSE.txt",
+      "size": 1098
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\Runtime-LICENSE.TXT",
+      "path": "Tools/Updater/Runtime-LICENSE.TXT",
+      "size": 1139
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\bundle\\Runtime-THIRD-PARTY-NOTICES.TXT",
+      "path": "Tools/Updater/Runtime-THIRD-PARTY-NOTICES.TXT",
+      "size": 78041
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\introduction.md",
+      "path": "Demo/introduction.md",
+      "size": 10171
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\media\\existing-video.mp4",
+      "path": "Demo/media/existing-video.mp4",
+      "size": 6753552
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\media\\groups.png",
+      "path": "Demo/media/groups.png",
+      "size": 48198
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\media\\playback.gif",
+      "path": "Demo/media/playback.gif",
+      "size": 70790
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\profile-format\\profiles.json",
+      "path": "Demo/profile-format/profiles.json",
+      "size": 127
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\profile-format\\profiles\\example\\config-values.json",
+      "path": "Demo/profile-format/profiles/example/config-values.json",
+      "size": 431
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\profile-format\\profiles\\example\\profile.json",
+      "path": "Demo/profile-format/profiles/example/profile.json",
+      "size": 683
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\README.md",
+      "path": "Demo/README.md",
+      "size": 802
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Demo\\日志接入_API.md",
+      "path": "Demo/日志接入_API.md",
+      "size": 3261
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\README.md",
+      "path": "README.md",
+      "size": 50020
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\CHANGELOG.md",
+      "path": "CHANGELOG.md",
+      "size": 48086
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\THIRD-PARTY-NOTICES.md",
+      "path": "THIRD-PARTY-NOTICES.md",
+      "size": 3031
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\LICENSE.txt",
+      "path": "LICENSE.txt",
+      "size": 1090
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\manifest.json",
+      "path": "manifest.json",
+      "size": 538
+    },
+    {
+      "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\icon.png",
+      "path": "icon.png",
+      "size": 131770
+    }
+  ],
+  "files": 22,
+  "verified_files": [
+    {
+      "path": "ModConfigEnhance.dll",
+      "size": 2198528,
+      "exists": true
+    },
+    {
+      "path": "Markdig.dll",
+      "size": 474624,
+      "exists": true
+    },
+    {
+      "path": "YamlDotNet.dll",
+      "size": 290816,
+      "exists": true
+    },
+    {
+      "path": "Tools/Updater/MCE.UpdateWorker.exe",
+      "size": 74202461,
+      "exists": true
+    },
+    {
+      "path": "Tools/Updater/Mono.Cecil.LICENSE.txt",
+      "size": 1098,
+      "exists": true
+    },
+    {
+      "path": "Tools/Updater/Runtime-LICENSE.TXT",
+      "size": 1139,
+      "exists": true
+    },
+    {
+      "path": "Tools/Updater/Runtime-THIRD-PARTY-NOTICES.TXT",
+      "size": 78041,
+      "exists": true
+    },
+    {
+      "path": "Demo/introduction.md",
+      "size": 10171,
+      "exists": true
+    },
+    {
+      "path": "Demo/media/existing-video.mp4",
+      "size": 6753552,
+      "exists": true
+    },
+    {
+      "path": "Demo/media/groups.png",
+      "size": 48198,
+      "exists": true
+    },
+    {
+      "path": "Demo/media/playback.gif",
+      "size": 70790,
+      "exists": true
+    },
+    {
+      "path": "Demo/profile-format/profiles.json",
+      "size": 127,
+      "exists": true
+    },
+    {
+      "path": "Demo/profile-format/profiles/example/config-values.json",
+      "size": 431,
+      "exists": true
+    },
+    {
+      "path": "Demo/profile-format/profiles/example/profile.json",
+      "size": 683,
+      "exists": true
+    },
+    {
+      "path": "Demo/README.md",
+      "size": 802,
+      "exists": true
+    },
+    {
+      "path": "Demo/日志接入_API.md",
+      "size": 3261,
+      "exists": true
+    },
+    {
+      "path": "README.md",
+      "size": 50020,
+      "exists": true
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 48086,
+      "exists": true
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "size": 3031,
+      "exists": true
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1090,
+      "exists": true
+    },
+    {
+      "path": "manifest.json",
+      "size": 538,
+      "exists": true
+    },
+    {
+      "path": "icon.png",
+      "size": 131770,
+      "exists": true
+    }
+  ],
+  "completed_at": "2026-10-28T17:39:11.801345+08:00",
+  "user_data": "config/library/queue untouched; no install/uninstall/cleanup/pack switch executed; game not started"
+}

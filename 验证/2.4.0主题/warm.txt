@@ -1,0 +1,67 @@
+== chromatic: 81
+== grey: 77
+== warm-neutral: 63
+  ModConfigLook.cs:24  (0.18,0.13,0.09)  internal static readonly Color ClassicBox = new Color(0.1792453f, 0.1253449f, 0.09046815f, 62f / 85f);
+  ModConfigSidebarWidgets.cs:86  (0.87,0.85,0.76)  internal static readonly Color Cream = new Color(0.8745098f, 0.854902f, 0.7607843f, 1f);
+  ModConfigSidebarWidgets.cs:307  (0.79,0.65,0.36)  internal static readonly Color Night = new Color(0.7882353f, 0.6470588f, 0.3568628f);    // #C9A55B
+  ModConfigTranslationExport.cs:36  (0.55,0.36,0.16)  private static readonly Color FolderColor = new Color(0.55f, 0.36f, 0.16f);
+  UiActionStyle.cs:27  (0.29,0.23,0.16)  _ => new Color32(0x4a, 0x3b, 0x29, 255)
+  UiActionStyle.cs:50  (0.23,0.22,0.20)  if (!enabled) color = Color.Lerp(color, new Color(.23f, .22f, .20f), .7f);
+  Overview\LayoutReviewView.cs:27  (0.56,0.56,0.52)  private static readonly Color UngroupedColor = new(.56f, .56f, .52f), SkipColor = new(.88f, .63f, .33f), Reaso
+  Overview\LayoutReviewView.cs:295  (0.55,0.55,0.52)  _ => (Loc.T("source unverified", "来源待定", "來源待定"), new Color(.55f, .55f, .52f))
+  Overview\LogWindow.cs:420  (0.17,0.09,0.09)  _pinPanel.gameObject.AddComponent<Image>().color = new Color(.17f, .09f, .09f, .99f);
+  Overview\LogWindow.cs:429  (0.20,0.09,0.09)  int slot = i; var button = FlatListRow.Create(_pinContent, () => OpenPinnedDetails(slot), _viewport.rect.width
+  Overview\ModEnablementPresentation.cs:7  (0.73,0.73,0.69)  internal static readonly Color Enabled = new(.48f,.78f,.46f,1), Changing = new(.95f,.76f,.30f,1), Disabled = n
+  Overview\OverviewController.cs:409  (0.29,0.25,0.17)  var rect = OverviewUi.Rect("Tab", _frame); var shape = rect.gameObject.AddComponent<OverviewTabGraphic>(); sha
+  Overview\OverviewEditableFrame.cs:24  (0.82,0.75,0.56)  var graphic=overlay.AddComponent<OverviewEditableFrameGraphic>();graphic.Target=target;graphic.raycastTarget=f
+  Overview\OverviewGroupEditor.cs:235  (0.11,0.10,0.08)  var add = OverviewUi.Panel("AddColor", _palette, new Color(.11f, .10f, .08f, .98f));
+  Overview\OverviewListView.Conflicts.cs:23  (0.19,0.17,0.09)  var mark = OverviewUi.Text(badge, "!", 12); mark.color = new Color(.19f, .17f, .09f); mark.fontStyle = FontSty
+  Overview\OverviewListView.cs:251  (0.77,0.76,0.66)  for (int c = 0; c < edges.Length - 1; c++) { var line = OverviewUi.Panel("ColumnLine", _header, new Color(.77f
+  Overview\OverviewManagementCenter.cs:59  (0.16,0.13,0.10)  _panel = OverviewUi.Panel("ManagementWindow", _root, new Color(.16f, .13f, .10f, 1)); OverviewUi.Fill(_panel, 
+  Overview\OverviewPage.Packs.cs:77  (0.13,0.12,0.10)  var detail = OverviewUi.Panel("PackDetail", host, new Color(.13f, .12f, .10f, .95f)); OverviewUi.Place(detail,
+  Overview\OverviewPage.Profiles.cs:397  (0.84,0.45,0.38)  Color rail = !profile.IsValid ? new Color(.84f, .45f, .38f)
+  Overview\OverviewPage.Profiles.cs:400  (0.55,0.55,0.52)  : profile.kind == OverviewProfileKind.Default ? new Color(.55f, .55f, .52f) : OverviewUi.Blue;
+  Overview\OverviewPage.Profiles.cs:534  (0.77,0.76,0.66)  var line = OverviewUi.Panel("Rule", parent, new Color(.77f, .76f, .66f, .4f));
+  Overview\OverviewPage.Toolbar.cs:127  (0.72,0.68,0.56)  if (i == _toolSeparators.Count) { var separator = OverviewUi.Text(_controls, "|", 22); separator.color = new C
+  Overview\OverviewUi.cs:17  (0.94,0.91,0.81)  internal static readonly Color Ivory = new(.94f, .91f, .81f);
+  Overview\OverviewUi.cs:18  (0.70,0.70,0.64)  internal static readonly Color Muted = new(.70f, .70f, .64f);
+  Overview\OverviewUi.cs:21  (0.16,0.13,0.10)  internal static readonly Color Brown = new(.16f, .13f, .10f, .96f);
+  Overview\OverviewUi.cs:22  (0.70,0.60,0.37)  internal static readonly Color Gold = new(.70f, .60f, .37f);
+  Overview\OverviewUi.cs:123  (0.29,0.23,0.16)  var peak = MenuAPI.CreateMenuButton(label).ParentTo(parent).SetColor(new Color(.29f, .23f, .16f));
+  Overview\OverviewUi.cs:177  (0.11,0.10,0.08)  var root = Panel("MCE_Input", parent, new Color(.11f, .10f, .08f, .98f));
+  Overview\OverviewUi.SourceToolsDropdown.cs:90  (0.12,0.11,0.09)  }, rowWidth, 32, item.Checked ? new Color(.20f, .48f, .60f) : Color.Lerp(new Color(.12f, .11f, .09f), UiAction
+  Overview\PackConflictUi.cs:43  (0.12,0.12,0.07)  var card = OverviewUi.Panel("PackConflict", parent, new Color(.12f, .115f, .075f, .83f));
+  Overview\PackPreviewView.cs:54  (0.31,0.21,0.14)  var banner = OverviewUi.Panel("Verdict", _host, ready ? new Color(.17f, .27f, .17f, 1) : new Color(.31f, .21f,
+  Overview\PackPreviewView.cs:324  (0.12,0.10,0.08)  var card = OverviewUi.Panel("Card", _host, new Color(.12f, .10f, .08f, .95f));
+  Overview\PublishFilePreview.cs:248  (0.85,0.78,0.58)  var handle = OverviewUi.Rect("Handle", track); OverviewUi.Fill(handle, 1); handle.gameObject.AddComponent<Imag
+  Overview\ShopWindow.cs:369  (0.14,0.12,0.10)  var popup=OverviewUi.Panel("ShopFinalConfirm",_panel,new Color(.14f,.12f,.10f,1));OverviewUi.Place(popup,30,_p
+  Overview\ShopWindow.cs:393  (0.15,0.10,0.10)  var popup=OverviewUi.Panel("UninstallFinalConfirm",_panel,new Color(.15f,.10f,.10f,1));OverviewUi.Place(popup,
+  Overview\SourceMenuView.cs:43  (0.28,0.17,0.16)  _ => new Color(.28f, .17f, .16f, .98f)
+  Overview\SourceUi.cs:319  (0.43,0.41,0.37)  shape.color = kind == ModSourceKind.Store ? new Color(.31f, .40f, .50f) : kind == ModSourceKind.Local ? new Co
+  Overview\SourceUi.cs:320  (0.90,0.88,0.81)  shape.Ink = new Color(.90f, .88f, .81f);
+  Overview\Authoring\IntroductionMedia.cs:78  (0.13,0.12,0.10)  controls.AddComponent<Image>().color=new(.13f,.12f,.1f,.9f);
+  Overview\Authoring\IntroductionMedia.cs:87  (0.35,0.35,0.32)  track.AddComponent<Image>().color=new(.35f,.35f,.32f);
+  Overview\Authoring\IntroductionMedia.cs:99  (0.35,0.35,0.32)  var vtrack=Node(volume.transform,"VolumeSlider");var vr=(RectTransform)vtrack.transform;Fill(vr);vr.offsetMin=
+  Overview\Authoring\IntroductionMedia.cs:109  (0.35,0.35,0.32)  var track=Node(_scaleControls.transform,"ScaleSlider");var tr=(RectTransform)track.transform;Fill(tr);tr.offse
+  Overview\Authoring\IntroductionReadingUi.cs:62  (0.94,0.92,0.87)  text.fontStyle=FontStyles.Normal;text.color=new Color(.94f,.92f,.87f,1);
+  Overview\Authoring\OverviewDocumentView.cs:67  (0.91,0.85,0.71)  private static readonly Color Paper = new(.91f, .85f, .71f, .95f), Ink = new(.25f, .15f, .09f), Panel = new(.2
+  Overview\Authoring\OverviewDocumentView.cs:67  (0.25,0.15,0.09)  private static readonly Color Paper = new(.91f, .85f, .71f, .95f), Ink = new(.25f, .15f, .09f), Panel = new(.2
+  Overview\Authoring\OverviewDocumentView.cs:67  (0.25,0.16,0.11)  private static readonly Color Paper = new(.91f, .85f, .71f, .95f), Ink = new(.25f, .15f, .09f), Panel = new(.2
+  Overview\Authoring\OverviewDocumentView.cs:80  (0.31,0.21,0.20)  var files=Group("Files",new Color(.31f,.21f,.20f,.96f));MenuButton(files,"文件",FileMenu);Button(files,"保存",Save
+  Overview\Authoring\OverviewDocumentView.cs:288  (0.67,0.64,0.57)  if(b.Type=="rule"){body.AddComponent<Image>().color=Background(b);le.preferredHeight=18;var line=Node(body.tra
+  Overview\Editor\DocCanvas.cs:19  (0.94,0.92,0.87)  internal static readonly Color Ink = new(.94f, .92f, .87f, 1), Gold = new(.87f, .76f, .45f, 1), Muted = new(.7
+  Overview\Editor\DocCanvas.cs:19  (0.78,0.76,0.70)  internal static readonly Color Ink = new(.94f, .92f, .87f, 1), Gold = new(.87f, .76f, .45f, 1), Muted = new(.7
+  Overview\Editor\DocCanvas.cs:188  (0.67,0.64,0.57)  var dash = line.gameObject.AddComponent<IntroductionDashedRule>(); dash.color = new Color(.67f, .64f, .57f, .7
+  Overview\Editor\DocCanvas.cs:348  (0.78,0.68,0.42)  if (quote) { view.Bar ??= MakeImage(view.Rect, "QuoteBar", 0); view.Bar.color = new Color(.78f, .68f, .42f, .8
+  Overview\Editor\DocCanvas.cs:373  (0.70,0.68,0.62)  if (view.Placeholder == null) { view.Placeholder = _factory(view.Rect, Loc.T("Type here. Use the toolbar or # 
+  Overview\Editor\DocMediaTools.cs:76  (0.85,0.80,0.68)  var grip = _grip.gameObject.AddComponent<DocGripGraphic>(); grip.color = new Color(.85f, .80f, .68f, .75f);
+  Overview\Editor\DocToolbar.cs:20  (0.23,0.19,0.14)  internal static readonly Color Normal = new(.23f, .19f, .14f, .96f), Hover = new(.33f, .27f, .19f, .98f), Acti
+  Overview\Editor\DocToolbar.cs:20  (0.33,0.27,0.19)  internal static readonly Color Normal = new(.23f, .19f, .14f, .96f), Hover = new(.33f, .27f, .19f, .98f), Acti
+  Overview\Editor\DocToolbar.cs:20  (0.56,0.45,0.22)  internal static readonly Color Normal = new(.23f, .19f, .14f, .96f), Hover = new(.33f, .27f, .19f, .98f), Acti
+  Overview\Editor\DocToolbar.cs:20  (0.13,0.11,0.08)  internal static readonly Color Normal = new(.23f, .19f, .14f, .96f), Hover = new(.33f, .27f, .19f, .98f), Acti
+  Overview\Editor\DocToolbar.cs:171  (0.23,0.22,0.20)  if (!_enabled) color = Color.Lerp(color, new Color(.23f, .22f, .20f), .7f);
+  Overview\Editor\DocToolbar.cs:250  (0.12,0.10,0.08)  var image = _panel.gameObject.AddComponent<Image>(); image.color = new Color(.12f, .10f, .08f, .98f); ModConfi
+  Overview\Editor\DocToolbar.cs:283  (0.10,0.08,0.06)  button.Label.color = color.grayscale > .55f ? new Color(.1f, .08f, .06f) : DocCanvas.Ink;
+  Overview\Editor\IntroductionEditorView.cs:85  (0.25,0.16,0.11)  var barImage = bar.gameObject.AddComponent<Image>(); barImage.color = new Color(.25f, .16f, .11f, .95f);
+  Overview\Editor\IntroductionEditorView.cs:89  (0.91,0.85,0.71)  var handleImage = handle.gameObject.AddComponent<Image>(); handleImage.color = new Color(.91f, .85f, .71f, .9f
+== cool-neutral: 61

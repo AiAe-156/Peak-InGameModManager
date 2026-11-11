@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>12</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects><GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType></PropertyGroup><ItemGroup><Compile Include="../../Updater/*.cs" Exclude="../../Updater/Program.cs" /><Compile Include="../../src/Updating/ComponentDependency*.cs" />
+<Compile Include="../../src/Updating/ShopContracts.cs" />
+<Compile Include="../../src/Updating/WorkerProtocol.cs" />
+<Compile Include="../../src/Updating/UpdateContracts.cs" />
+<Compile Include="../../src/Updating/PackContracts.cs" />
+<Compile Include="../../src/Updating/MaintenanceContracts.cs" />
+<Compile Include="../../src/Updating/PackReportText.cs" />
+<Compile Include="../../src/Updating/PackLanguages.cs" />
+<Compile Include="../../src/Updating/PackEditPolicy.cs" />
+<Compile Include="../../src/Updating/NetworkProbeContracts.cs" />
+<Compile Include="../../src/Updating/UpdateMessage*.cs" /><Compile Include="Checks.cs" /><Compile Include="Extra.cs" /><Reference Include="Mono.Cecil"><HintPath>../../Updater/bin/framework-bundle/Mono.Cecil.dll</HintPath></Reference></ItemGroup></Project>

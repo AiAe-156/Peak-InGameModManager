@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "capturedUtc": "2026-10-31T15:10:21.8592251Z",
+  "values": [
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "section": "S",
+      "key": "Restart",
+      "type": "System.Int32",
+      "serializedValue": "3",
+      "diskBaselineKnown": true,
+      "diskExists": true,
+      "liveBaselineKnown": false,
+      "liveValue": "",
+      "diskValue": "1",
+      "missing": false,
+      "missingReason": ""
+    },
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "section": "S",
+      "key": "Number",
+      "type": "System.Int32",
+      "serializedValue": "6",
+      "diskBaselineKnown": true,
+      "diskExists": true,
+      "liveBaselineKnown": false,
+      "liveValue": "",
+      "diskValue": "6",
+      "missing": false,
+      "missingReason": ""
+    }
+  ],
+  "files": [
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "loaded": true,
+      "supported": true,
+      "message": ""
+    }
+  ]
+}

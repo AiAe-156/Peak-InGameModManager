@@ -1,0 +1,107 @@
+[
+  {
+    "name": "plugin",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\plugin-build.log"
+  },
+  {
+    "name": "worker",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\worker-build.log"
+  },
+  {
+    "name": "desktop",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\desktop-build.log"
+  },
+  {
+    "name": "documents",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\document-checks.log"
+  },
+  {
+    "name": "scope",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\scope-checks.log"
+  },
+  {
+    "name": "migration",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\migration-checks.log"
+  },
+  {
+    "name": "authors",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\author-working-checks.log"
+  },
+  {
+    "name": "presets",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\preset-checks.log"
+  },
+  {
+    "name": "cache",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\cache-checks.log"
+  },
+  {
+    "name": "native",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\native-checks.log"
+  },
+  {
+    "name": "resource-draft",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\resource-draft-checks.log"
+  },
+  {
+    "name": "HarmonyChecks-build",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\harmony-build.log"
+  },
+  {
+    "name": "HarmonyChecks",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\harmony-checks.log"
+  },
+  {
+    "name": "ConfigTransactionChecks-build",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\config-transaction-build.log"
+  },
+  {
+    "name": "ConfigTransactionChecks",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\config-transaction-checks.log"
+  },
+  {
+    "name": "ShopChecks",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\shop-regression.log"
+  },
+  {
+    "name": "PackLibraryChecks",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\pack-regression.log"
+  },
+  {
+    "name": "InstallationFlowChecks",
+    "exitCode": 3762504530,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\installation-regression.log"
+  },
+  {
+    "name": "ModImportChecks",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\import-regression.log"
+  },
+  {
+    "name": "navigation",
+    "exitCode": 1,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\navigation-checks.log"
+  },
+  {
+    "name": "save-navigation",
+    "exitCode": 0,
+    "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\六项审查修复\\整合回归_20261031_232332\\save-navigation-checks.log"
+  }
+]

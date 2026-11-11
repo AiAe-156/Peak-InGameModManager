@@ -1,0 +1,23 @@
+共 27 行（非 observe 22 行）
+2026-11-03 02:15:57.434 [INFO] worker 2.2.0 pid=39840 root=F:\Games\Steam\steamapps\common\PEAK\BepInEx jobs=30 archived=0
+2026-11-03 02:15:57.502 [INFO] args: --root F:\Games\Steam\steamapps\common\PEAK\BepInEx --protocol 2 --language zh-cn
+2026-11-03 02:15:57.735 [INFO] MonoDetour 0.7.1701→0.7.1701 [pending-restart → completed]
+2026-11-03 02:15:57.749 [INFO] MonoDetour_BepInEx_5 0.7.1701→0.7.1701 [pending-restart → completed]
+2026-11-03 02:15:57.760 [INFO] MonoDetour 0.7.1701→0.7.1701 [pending-restart → completed]
+2026-11-03 02:15:57.967 [INFO] queued [玩法]真正的最终天阶 3.0.1→3.0.2 root=F:\Games\Steam\steamapps\common\PEAK\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent
+2026-11-03 02:15:57.972 [INFO] command update-batch 4639400d accepted
+2026-11-03 02:15:58.207 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [queued → resolving] 正在读取指定的商店版本。
+2026-11-03 02:15:58.813 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [resolving → downloading] 正在下载新版。
+2026-11-03 02:15:58.962 [INFO] window shown
+2026-11-03 02:16:00.446 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [downloading → verifying] 正在检查包内容。
+2026-11-03 02:16:02.176 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [verifying → waiting-exit] 新版涉及运行中的文件，退出游戏后安装。
+2026-11-03 02:16:11.027 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [waiting-exit → deploying] 正在安装已验证的新版本。
+2026-11-03 02:16:11.871 [INFO] installed [玩法]真正的最终天阶 3.0.2: 6 files, 6 moved, 0 retired, 56 kept
+2026-11-03 02:16:11.887 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [deploying → pending-restart]
+2026-11-03 02:16:11.989 [INFO] storage sweep done
+2026-11-03 02:16:12.814 [INFO] worker exit (idle)
+2026-11-03 02:17:07.213 [INFO] worker 2.2.0 pid=6360 root=F:\Games\Steam\steamapps\common\PEAK\BepInEx jobs=31 archived=0
+2026-11-03 02:17:07.285 [INFO] args: --root F:\Games\Steam\steamapps\common\PEAK\BepInEx --protocol 2 --language zh-cn
+2026-11-03 02:17:07.590 [INFO] [玩法]真正的最终天阶 3.0.1→3.0.2 [pending-restart → completed]
+2026-11-03 02:17:07.686 [INFO] storage sweep done
+2026-11-03 02:17:09.510 [INFO] worker exit (idle)

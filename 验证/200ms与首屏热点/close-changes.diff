@@ -1,0 +1,311 @@
+--- before/src/Overview/OverviewController.cs
++++ src/Overview/OverviewController.cs
+@@ -534,9 +534,10 @@
+     private void AttachToolHint(GameObject target, Func<string> text)
+     {
+         var hover = target.AddComponent<OverviewHover>();
+-        hover.Enter = () => { _activeToolHintTarget = target; _activeToolHintText = text; _list?.ShowExternalHint(text()); };
++        hover.Enter = () => { _activeToolHintTarget = target; _activeToolHintText = text; _list?.QueueExternalHint(target,text); };
+         hover.Exit = () => { if (_activeToolHintTarget != target) return; ClearToolHint(); _list?.HideExternalHint(); };
+-        var focus = target.AddComponent<OverviewHotkeyFocus>(); focus.Selected = hover.Enter; focus.Deselected = hover.Exit;
++        var focus = target.AddComponent<OverviewHotkeyFocus>();
++        focus.Selected = () => { _activeToolHintTarget=target;_activeToolHintText=text;_list?.QueueExternalHint(target,text,true); }; focus.Deselected = hover.Exit;
+     }
+     private void OnListChanged() { RefreshHeader(); _hotkeysStale = true; if (_tab == PageTab.Hotkeys && _hotkeys?.IsRecording != true) EnsureSelectedPage(); }
+     private void ShowTagFilter()
+--- before/src/Overview/OverviewListView.cs
++++ src/Overview/OverviewListView.cs
+@@ -42,6 +42,7 @@
+     private int _languageRevision = -1;
+     private string _shownHint = "";
+     private readonly HoverDwell _hintDwell=new();
++    private readonly DeferredHint _factoryHint=new();
+     private float _warmAfter, _warmFirstAt;
+     private int _warmSettledFrames;
+     private int _warmRow;
+@@ -173,6 +174,7 @@
+         _groupEditor = new OverviewGroupEditor(repo, _mods, status, () => { Save(); Render(); _headersChanged(); });
+         _pump.Tick = () => {
+             if(OverviewUi.HasModal)HideAllHints();
++            else if(_factoryHint.Take(Time.unscaledTime,target=>target is GameObject go && go!=null && go.activeInHierarchy) is string generated) ShowHint(generated);
+             else if(_hintDwell.Take(Time.unscaledTime) is string ready) ShowHint(ready);
+             if (_hint.gameObject.activeSelf) PositionHint();
+             if (_opened && _checking && _checkDisplayContext!=SourceUi.DependencyContext)
+@@ -591,10 +593,10 @@
+     {
+         if (string.IsNullOrWhiteSpace(text)) return;
+         var hover = target.GetComponent<OverviewHover>() ?? target.AddComponent<OverviewHover>();
+-        hover.Enter = () => { _warmAfter=Time.unscaledTime+.25f;_hintDwell.Enter(text,Time.unscaledTime); _hint.gameObject.SetActive(false); };
++        hover.Enter = () => { _factoryHint.Cancel();_warmAfter=Time.unscaledTime+.25f;_hintDwell.Enter(text,Time.unscaledTime); _hint.gameObject.SetActive(false); };
+         hover.Exit = HideExternalHint;
+         var focus=target.GetComponent<OverviewHotkeyFocus>() ?? target.AddComponent<OverviewHotkeyFocus>();
+-        focus.Selected+=()=> { _hintDwell.Cancel();ShowHint(text); };
++        focus.Selected+=()=> { _factoryHint.Cancel();_hintDwell.Cancel();ShowHint(text); };
+         focus.Deselected+=HideExternalHint;
+     }
+     private void ShowHint(string text)
+@@ -605,19 +607,31 @@
+         _lastHintPointer=new(float.NaN,float.NaN);PositionHint(); _hint.SetAsLastSibling(); _hint.gameObject.SetActive(true);
+     }
+     internal bool TryCloseLayer() => _groupEditor.TryCloseTop() || _dependencyHints.TryCloseLayer();
+-    internal void HideAllHints() { _hintDwell.Cancel(); _hint.gameObject.SetActive(false); _dependencyHints.HideNow(); }
++    internal void HideAllHints() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); _dependencyHints.HideNow(); }
+     internal void BindDependencyHint(GameObject target, OverviewMod mod)
+     {
+         _dependencyHints.Bind(target, mod);
+     }
+     internal int? GetDisplayNumber(OverviewMod mod) => _displayNumbers.TryGetValue(mod,out int number)?number:null;
+     internal void SetGlobalAllowed(bool value) => SetGlobalUpdateAllowed(value);
++    internal void QueueExternalHint(object target, Func<string> factory, bool immediate=false)
++    {
++        if(_disposed || !_opened || OverviewUi.HasModal) { HideExternalHint();return; }
++        _hintDwell.Cancel();
++        if(immediate) ShowHint(_factoryHint.Focus(target,factory,Time.unscaledTime));
++        else _factoryHint.Enter(target,factory,Time.unscaledTime);
++    }
++    internal void RefreshExternalHint(object target,Func<string> factory)
++    {
++        if(_disposed || !_opened || OverviewUi.HasModal) { HideExternalHint();return; }
++        if(_factoryHint.Refresh(target,factory) is string ready)ShowHint(ready);
++    }
+     internal void ShowExternalHint(string text)
+     {
+         if(_disposed || OverviewUi.HasModal || (_hint.gameObject.activeSelf && _shownHint==text))return;
+-        _hintDwell.Enter(text,Time.unscaledTime);
+-    }
+-    internal void HideExternalHint() { _hintDwell.Cancel(); _hint.gameObject.SetActive(false); }
++        _factoryHint.Cancel();_hintDwell.Enter(text,Time.unscaledTime);
++    }
++    internal void HideExternalHint() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); }
+     private void PositionHint()
+     {
+         float width = Mathf.Min(700, Width - 30);
+@@ -868,7 +882,7 @@
+     }
+     public void Dispose()
+     {
+-        if (_disposed) return; ResetVirtualRows(); _disposed = true; _round?.Cancel(); _lifetime.Cancel(); _pump.Tick = null; _groupEditor.Dispose(); _dependencyHints.Dispose();
++        if (_disposed) return; HideAllHints();_componentProtectionRefresh.Clear(); ResetVirtualRows(); _disposed = true; _round?.Cancel(); _lifetime.Cancel(); _pump.Tick = null; _groupEditor.Dispose(); _dependencyHints.Dispose();
+         // Dispose the HTTP client only after in-flight work has observed cancellation.
+         var pending = new[] { _checkTask, _tagTask }.Where(task => task != null && !task.IsCompleted).Cast<Task>().ToArray();
+         if (pending.Length > 0) _ = Task.WhenAll(pending).ContinueWith(_ => { _updates.Dispose(); _lifetime.Dispose(); }, TaskScheduler.Default);
+--- before/src/Overview/OverviewListView.Infrastructure.cs
++++ src/Overview/OverviewListView.Infrastructure.cs
+@@ -17,6 +17,7 @@
+     private int _infrastructureRevision = -1;
+ 
+     private ModConfigEnhance.Updating.ComponentDependencyGraph? _infrastructureGraph;
++    private readonly List<Action> _componentProtectionRefresh = new();
+     private int _infrastructureGeneration;
+     private string _infrastructureContext = "";
+     private void RefreshInfrastructure(bool force = false)
+@@ -28,30 +29,46 @@
+         int generation = ++_infrastructureGeneration;
+         _infrastructureLoading = true; _infrastructureRedraw = false; _infrastructureGraph = null;
+         SourceUi.InvalidateDependencyGraph();
++        foreach(var refresh in _componentProtectionRefresh)refresh();
+         // Keep the displayed snapshot while scanning; publish both sections in one Render.
+         // Capture confirmed real file mappings before leaving the main thread.
+         string root = BepInEx.Paths.BepInExRootPath;
+         var graphconfirmed = _mods.Where(m => m.SourceConfirmed && m.IdentityConflict.Length == 0)
+             .SelectMany(m => (m.AssemblyPaths.Count > 0 ? m.AssemblyPaths : new List<string> { m.Location })
+                 .Select(path => new ModConfigEnhance.Updating.ComponentDependencyCollector.ConfirmedFile { PackageKey = m.SourceKey, Path = path })).ToArray();
+-        _ = Task.Run(() => (Rows: InfrastructureOverviewModel.Create(InfrastructurePackages.Scan(root)),
+-            Graph: InfrastructureDependencyCollector.Collect(root, graphconfirmed))).ContinueWith(task => {
++        _ = Task.Run(() => {
++            var rows = InfrastructureOverviewModel.Create(InfrastructurePackages.Scan(root));
+             _pump.Enqueue(() => {
+                 if (_disposed || generation != _infrastructureGeneration) return;
+                 if (revision != OverviewPageCache.Inventory || context != SourceUi.DependencyContext) { RefreshInfrastructure(true); return; }
++                _infrastructure = rows; _infrastructureLoading = false; _infrastructureError = "";
++                _infrastructureRedraw = true;
++                _status(Loc.T("Reading dependency graph…", "正在读取依赖关系……", "正在讀取相依關係……"));
++            });
++            return InfrastructureDependencyCollector.Collect(root, graphconfirmed);
++        }).ContinueWith(task => {
++            _pump.Enqueue(() => {
++                if (_disposed || generation != _infrastructureGeneration) return;
++                if (revision != OverviewPageCache.Inventory || context != SourceUi.DependencyContext) { RefreshInfrastructure(true); return; }
++                // Metadata owns the one structural publication. Graph completion never rebuilds rows.
++                bool metadataFailed = _infrastructureLoading;
+                 _infrastructureLoading = false;
+                 if (task.IsFaulted || task.IsCanceled)
+                 {
+-                    _infrastructure = Array.Empty<InfrastructureOverviewModel>();
+                     _infrastructureError = task.Exception?.GetBaseException().Message ?? "Component scan cancelled";
++                    if(metadataFailed) _infrastructureRedraw = true;
+                 }
+-                else { _infrastructure = task.Result.Rows; _infrastructureGraph = task.Result.Graph; _infrastructureError = "";
+-                    SourceUi.PublishDependencyGraph(task.Result.Graph, context, revision, _infrastructure); }
+-                _infrastructureRedraw = true;
++                else {
++                    _infrastructureGraph = task.Result; _infrastructureError = "";
++                    SourceUi.PublishDependencyGraph(task.Result, context, revision, _infrastructure);
++                }
++                _dependencyHints.HideNow(); _dependencyHints.InvalidateDisplay();
++                foreach(var refresh in _componentProtectionRefresh)refresh();
+                 _status(_infrastructureError.Length == 0 ? "" : Loc.T("Could not read components: ", "组件读取失败：", "組件讀取失敗：") + _infrastructureError);
+             });
+         }, TaskScheduler.Default);
+     }
++
+     private void FlushInfrastructureRedraw()
+     {
+         if (!_infrastructureRedraw || _infrastructureLoading || !_opened || _building || IsEditingText || _dragged != null || _scroll.velocity.sqrMagnitude > 1) return;
+@@ -77,6 +94,7 @@
+         float xSettings, float xHome, float xFolder, float xVersion, float versionWidth, float xAuthor, float authorWidth, float xDescription, bool compact)
+     {
+         _infrastructureRedraw = false;
++        _componentProtectionRefresh.Clear();
+         var rows = _infrastructure.Where(p => p.Matches(_searchQuery)).ToArray();
+         y += 2;
+         bool collapsed = _infrastructureCollapsed && _searchQuery.Length == 0;
+@@ -103,13 +121,20 @@
+             var placeholder = Label(row, "—", xEnable, 4, goalWidth, 32, 20); placeholder.alignment = TextAlignmentOptions.Midline;
+             AddHint(placeholder.gameObject, Loc.T("Component enablement is not a profile mod target.", "组件启停不作为方案模组目标。", "組件啟停不作為方案模組目標。"));
+             void Menu() => SourceUi.ComponentMenu(_repo, _mods, package, _infrastructure);
+-            var diagnostic = SourceUi.DependencyDiagnostic(package.Key);
+-            bool lockedState = !package.IdentityConfirmed || !diagnostic.CanUninstall;
+-            string protectionHint = package.IdentityConfirmed ? diagnostic.Summary
+-                : Loc.T("Identity unconfirmed", "身份未确认", "身分未確認");
+-            if (lockedState) {
+-                var locked = Label(row, "⊘", xName + nameWidth - 20, 4, 18, 34, 16); locked.color = OverviewUi.Muted; AddHint(locked.gameObject, protectionHint);
++            var locked = Label(row, "⊘", xName + nameWidth - 20, 4, 18, 34, 16); locked.color = OverviewUi.Muted;
++            string protectionHint = "";
++            void RefreshProtection() {
++                if(locked==null)return;
++                var diagnostic=SourceUi.DependencyDiagnostic(package.Key);
++                protectionHint=package.IdentityConfirmed ? diagnostic.Summary : Loc.T("Identity unconfirmed", "身份未确认", "身分未確認");
++                locked.gameObject.SetActive(!package.IdentityConfirmed || !diagnostic.CanUninstall);
++
+             }
++            _componentProtectionRefresh.Add(RefreshProtection);RefreshProtection();
++            var lockHover=locked.gameObject.AddComponent<OverviewHover>();
++            lockHover.Enter=()=>ShowExternalHint(protectionHint);lockHover.Exit=HideExternalHint;
++            var lockFocus=locked.gameObject.AddComponent<OverviewHotkeyFocus>();
++            lockFocus.Selected=()=>ShowHint(protectionHint);lockFocus.Deselected=HideExternalHint;
+             string[] installedVersions = package.Version.Split('/').Select(v => v.Trim()).Where(v => v.Length > 0).ToArray();
+             string latest = package.IdentityConfirmed && installedVersions.Length > 0
+                 ? InfrastructurePackages.Results.Where(p => p.Key.Equals(package.Key, StringComparison.OrdinalIgnoreCase))
+@@ -117,7 +142,7 @@
+                     .Aggregate("", (best, candidate) => best.Length == 0 || ThunderstoreUpdateService.IsNewer(candidate, best) ? candidate : best)
+                 : "";
+             bool hasUpdate = latest.Length > 0;
+-            float titleWidth = Mathf.Max(20, nameWidth - (lockedState ? 24 : 4) - (hasUpdate ? AvailableUpdateDot.NameReserve : 0));
++            float titleWidth = Mathf.Max(20, nameWidth - 24 - (hasUpdate ? AvailableUpdateDot.NameReserve : 0));
+             var name = Label(row, EscapeRich(package.Name), xName, 4, titleWidth, 34, 19);
+             OverviewUi.PlaceClipped(name, xName, 4, titleWidth, 34);
+             BindDependencyCard(name.gameObject, package); name.gameObject.AddComponent<OverviewTextClick>().Clicked = _ => Menu();
+--- before/src/Overview/OverviewPage.Toolbar.cs
++++ src/Overview/OverviewPage.Toolbar.cs
+@@ -24,13 +24,13 @@
+         + "\n\n" + AutomaticUpdateChecks.StatusText();
+     private void ClearToolHint()
+     {
+-        _activeToolHintTarget = null; _activeToolHintText = null;
++        _activeToolHintTarget = null; _activeToolHintText = null;_list?.HideExternalHint();
+     }
+     private void RefreshActiveToolHint()
+     {
+         if (_activeToolHintText == null) return;
+         if (_activeToolHintTarget == null || !_activeToolHintTarget.activeInHierarchy) { ClearToolHint(); _list?.HideExternalHint(); return; }
+-        _list?.ShowExternalHint(_activeToolHintText());
++        _list?.RefreshExternalHint(_activeToolHintTarget,_activeToolHintText);
+     }
+     private void RefreshAutomaticUpdateHint()
+     {
+--- before/src/Overview/OverviewUpdateQueue.cs
++++ src/Overview/OverviewUpdateQueue.cs
+@@ -22,10 +22,12 @@
+     {
+         internal string Context="", Error="";
+         internal long Epoch;
++        internal bool Executed;
+         internal double PrepareMs, PublishMs, LaunchMs;
+     }
+     private static UpdateSnapshot _snapshot = new();
+     private static DateTime _pollAt, _observeAt, _launchAt;
++    private static string _queueError="", _observeError="";
+     private static string _error = "", _historicalError = "", _localError = "", _feedback = "";
+     private static readonly DateTime SessionStartUtc = DateTime.UtcNow;
+     private static DateTime _workerAttemptUtc;
+@@ -118,8 +120,8 @@
+         {
+             if(context!=_readContext)return;
+             _unsafeRead=error.Length>0 || value==null;
+-            if(value!=null) { _snapshot=value.Snapshot;_error=_localError.Length > 0 ? _localError : value.Error;_historicalError=value.HistoricalError; }
+-            if(_unsafeRead)_error="Could not read the update queue; the previous view was kept: "+error;
++            if(value!=null) { _snapshot=value.Snapshot;_queueError=value.Error;_error=_localError.Length > 0 ? _localError : _observeError.Length>0 ? _observeError : _queueError;_historicalError=value.HistoricalError; }
++            if(_unsafeRead)_error=_queueError="Could not read the update queue; the previous view was kept: "+error;
+         }
+     }
+     private static string ReadContext(string root)=>root+"|"+SourceUi.DependencyContext;
+@@ -254,7 +256,9 @@
+             var result = _observeTask.GetAwaiter().GetResult(); _observeTask = null;
+             if (result.Context == context && result.Epoch == System.Threading.Interlocked.Read(ref _commandEpoch))
+             {
+-                lock(Gate) { _localError = _error = result.Error; _pollAt = DateTime.MinValue; }
++                lock(Gate) {
++                    if(result.Executed) { _observeError=result.Error;_error=_localError.Length>0?_localError:_observeError.Length>0?_observeError:_queueError;_pollAt=DateTime.MinValue; }
++                }
+                 Plugin.Log.LogDebug($"[更新队列] 自动observe prepare={result.PrepareMs:F1}ms publish={result.PublishMs:F1}ms launch={result.LaunchMs:F1}ms error={result.Error}");
+             }
+         }
+@@ -269,7 +273,7 @@
+         long epoch = System.Threading.Interlocked.Read(ref _commandEpoch);
+         _observeTask = System.Threading.Tasks.Task.Run(() => Observe(root, bepRoot, source, context, epoch, command));
+         }
+-        catch(Exception error) { lock(Gate) _localError = _error = error.Message; }
++        catch(Exception error) { lock(Gate) { _observeError=error.Message;_error=_localError.Length>0?_localError:_observeError; } }
+     }
+     private static ObserveResult Observe(string root, string bepRoot, string source, string context, long epoch, UpdateCommand command)
+     {
+@@ -281,9 +285,10 @@
+                 // An explicit command supersedes an observation which has not started yet.
+                 if(epoch != System.Threading.Interlocked.Read(ref _commandEpoch)) return result;
+                 var timer = Stopwatch.StartNew();
++                result.Executed=true;
+                 string tools = PrepareWorkerTools(root, bepRoot, source); result.PrepareMs = timer.Elapsed.TotalMilliseconds;
+                 timer.Restart();
+-                lock(Gate) { if(context != _readContext) return result; }
++                lock(Gate) { if(context != _readContext) { result.Executed=false;return result; } }
+                 string commands = Path.Combine(root, "commands"); Directory.CreateDirectory(commands);
+                 string file = Path.Combine(commands, DateTime.UtcNow.Ticks + "_" + command.Id + ".json");
+                 File.WriteAllText(file + ".tmp", JsonConvert.SerializeObject(command, Formatting.Indented)); File.Move(file + ".tmp", file);
+--- before/src/Overview/SourceUi.cs
++++ src/Overview/SourceUi.cs
+@@ -17,9 +17,12 @@
+     private static IReadOnlyList<InfrastructureOverviewModel> _components = Array.Empty<InfrastructureOverviewModel>();
+     internal static string DependencyContext {
+         get {
++            long at=UiPerfProbe.Begin();
++            try {
+             var active=PackLibrary.Active;
+             return System.IO.Path.GetFullPath(active!=null ? PackLibrary.Workspace : BepInEx.Paths.BepInExRootPath)
+                 + "|" + (active?.RevisionStateHash ?? "");
++            } finally { UiPerfProbe.DependencyContext(at); }
+         }
+     }
+     internal static void InvalidateDependencyGraph() { _dependencyGraph = null; _components = Array.Empty<InfrastructureOverviewModel>(); }
+--- before/src/Overview/UiPerfProbe.cs
++++ src/Overview/UiPerfProbe.cs
+@@ -12,6 +12,9 @@
+     private static float _inspectAt;
+     internal static void RequestInspect(Transform root) { if(!Enabled)return;_inspectRoot=root;_inspectAt=Time.unscaledTime+3; }
+ 
++    private static int _contextCalls;
++    private static long _contextTicks, _contextMax;
++    internal static void DependencyContext(long at) { if(at==0)return;long elapsed=Stopwatch.GetTimestamp()-at;System.Threading.Interlocked.Increment(ref _contextCalls);System.Threading.Interlocked.Add(ref _contextTicks,elapsed);long old;do { old=System.Threading.Interlocked.Read(ref _contextMax);if(old>=elapsed)break; } while(System.Threading.Interlocked.CompareExchange(ref _contextMax,elapsed,old)!=old); }
+     private static int _content, _measure, _bounds, _hits, _shows, _rows;
+     private static long _rowTicks, _rowMaxTicks;
+     private static int _listCommits, _entryLayouts, _layers;
+@@ -77,7 +80,8 @@
+         double dt=Time.unscaledDeltaTime*1000d;_frames++;_frameMs+=dt;_maxFrame=Math.Max(_maxFrame,dt);
+         if(Time.unscaledTime<_next)return;
+         int gc=GC.CollectionCount(0);
+-        Plugin.Log.LogInfo($"[UI计量] frames={_frames} frame avg/max={_frameMs/Math.Max(1,_frames):0.00}/{_maxFrame:0.00}ms canvas-event avg/max={_renderMs/Math.Max(1,_renders):0.00}/{_maxRender:0.00}ms shows={_shows} cacheHits={_hits} content={_content}/{Ms(_contentTicks):0.00}ms measure={_measure}/{Ms(_measureTicks):0.00}ms bounds={_bounds} rows={_rows}/{Ms(_rowTicks):0.00}ms rowBatchMax={Ms(_rowMaxTicks):0.00}ms layers={_layers}/{Ms(_layerTicks):0.00}ms layerMax={Ms(_layerMaxTicks):0.00}ms listCommits={_listCommits} entryLayouts={_entryLayouts} GC0={gc-_gc}");
++        Plugin.Log.LogInfo($"[UI计量] frames={_frames} frame avg/max={_frameMs/Math.Max(1,_frames):0.00}/{_maxFrame:0.00}ms canvas-event avg/max={_renderMs/Math.Max(1,_renders):0.00}/{_maxRender:0.00}ms shows={_shows} cacheHits={_hits} content={_content}/{Ms(_contentTicks):0.00}ms measure={_measure}/{Ms(_measureTicks):0.00}ms bounds={_bounds} rows={_rows}/{Ms(_rowTicks):0.00}ms rowBatchMax={Ms(_rowMaxTicks):0.00}ms layers={_layers}/{Ms(_layerTicks):0.00}ms layerMax={Ms(_layerMaxTicks):0.00}ms listCommits={_listCommits} entryLayouts={_entryLayouts} context={_contextCalls}/{Ms(_contextTicks):0.00}ms contextMax={Ms(_contextMax):0.00}ms GC0={gc-_gc}");
++        System.Threading.Interlocked.Exchange(ref _contextCalls,0);System.Threading.Interlocked.Exchange(ref _contextTicks,0);System.Threading.Interlocked.Exchange(ref _contextMax,0);
+         _gc=gc;_next=Time.unscaledTime+5;_frames=_renders=_content=_measure=_bounds=_hits=_shows=_rows=0;_rowTicks=_rowMaxTicks=0;_listCommits=_entryLayouts=_layers=0;_layerTicks=_layerMaxTicks=0;
+         _renderMs=_maxRender=_frameMs=_maxFrame=0;_contentTicks=_measureTicks=0;
+     }

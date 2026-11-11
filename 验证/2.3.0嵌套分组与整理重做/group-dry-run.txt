@@ -1,0 +1,88 @@
+groups=5 rows=66 moves=11 blockers=0
+MOVE plugins/0核心&基础模组 -> plugins/0基础模组
+MOVE plugins/3玩法类模组(大多数需要全员安装相同版本) -> plugins/3玩法模组
+MOVE plugins/0基础模组/[0依赖]Mods -> plugins/依赖模组
+MOVE plugins/2额外模组/[画质]Peak_画面调整(低配慎选)-PEAK_Visuals/glarmer-UpscaleLib -> plugins/依赖模组/glarmer-UpscaleLib
+MOVE plugins/3玩法模组/[玩法]地形定制器fix-TerrainCustomiser/Snosz-UBImGui -> plugins/依赖模组/Snosz-UBImGui
+MOVE plugins/3玩法模组/[玩法]真正的最终天阶-TrueFinalAscent/CptPICHU-TrueFinalAscent -> plugins/3玩法模组/CptPICHU-TrueFinalAscent
+MOVE plugins/2额外模组/[功能]这里能踩吗(立足点)？-FootholdForked -> plugins/未分组/[功能]这里能踩吗(立足点)？-FootholdForked
+MOVE plugins/2额外模组/[功能]远征整合增强-PeakerPlus -> plugins/未分组/[功能]远征整合增强-PeakerPlus
+MOVE plugins/CptPICHU-TrueFinalAscent -> plugins/3玩法模组/CptPICHU-TrueFinalAscent 3.0.0
+MOVE plugins/[优化]掉帧医生-FrameDoctor -> plugins/未分组/[优化]掉帧医生-FrameDoctor
+MOVE plugins/[依赖]PLL地图与群系库-PLL_Library -> plugins/3玩法模组/[依赖]PLL地图与群系库-PLL_Library
+TREE Package Move manager | plugins/0核心&基础模组/ModManager_InGame_2.0.0_20261029_215224 => plugins/0基础模组/ModManager_InGame_2.0.0_20261029_215224 | mods=2 | notes: ManagerMovedLast,CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[优化]性能优化-MyBananaDontHurtMe => plugins/0基础模组/[优化]性能优化-MyBananaDontHurtMe | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[优化]无运动模糊(缓解晕3D)-NoMoreMotionBlur => plugins/0基础模组/[优化]无运动模糊(缓解晕3D)-NoMoreMotionBlur | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[优化]更好的语音修复CN-1.1.8 => plugins/0基础模组/[优化]更好的语音修复CN-1.1.8 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[优化]跨平台卡顿修复-CrossplayStutterFix => plugins/0基础模组/[优化]跨平台卡顿修复-CrossplayStutterFix | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]ESC队友资料卡Profile_Cards-0.1.5 => plugins/0基础模组/[功能]ESC队友资料卡Profile_Cards-0.1.5 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]动态物资倍率-AutoItemMultiplier(LengSword) => plugins/0基础模组/[功能]动态物资倍率-AutoItemMultiplier(LengSword) | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]攀爬记录-ClimbInfoTracker-LengSword => plugins/0基础模组/[功能]攀爬记录-ClimbInfoTracker-LengSword | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]更好的中键标记-BetterPing => plugins/0基础模组/[功能]更好的中键标记-BetterPing | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]更好的麦克风指示器(Better_MicIndicator) => plugins/0基础模组/[功能]更好的麦克风指示器(Better_MicIndicator) | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.2 => plugins/0基础模组/[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.2 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]游戏内更改mod配置-ModConfig-1.8.2 => plugins/0基础模组/[功能]游戏内更改mod配置-ModConfig-1.8.2 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]登机口选关PeakLevelSelect-1.0.6 => plugins/0基础模组/[功能]登机口选关PeakLevelSelect-1.0.6 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]语音音量保存-PEAK_Voice_Volume_Saver => plugins/0基础模组/[功能]语音音量保存-PEAK_Voice_Volume_Saver | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[功能]麦克风增强-MicEnhance => plugins/0基础模组/[功能]麦克风增强-MicEnhance | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[机制]中途加入自动复活修复版-LateJoinFix-1.4.2 => plugins/0基础模组/[机制]中途加入自动复活修复版-LateJoinFix-1.4.2 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[机制]彻底退出游戏-ClearQuit-1.0.0 => plugins/0基础模组/[机制]彻底退出游戏-ClearQuit-1.0.0 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[机制]更好的手动复活&传送 => plugins/0基础模组/[机制]更好的手动复活&传送 | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[机制]综合本地修复-LocalFix => plugins/0基础模组/[机制]综合本地修复-LocalFix | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[界面]ModConfig增强-ModConfigEnhance => plugins/0基础模组/[界面]ModConfig增强-ModConfigEnhance | mods=0 | notes: GroupFromSameName,CarriedByFolderRename
+TREE Package Unchanged | plugins/1拓展模组/[信息]Peak状态Ex-PeakStatsEx => plugins/1拓展模组/[信息]Peak状态Ex-PeakStatsEx | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[信息]更好的显示玩家距离-1.1.5 => plugins/1拓展模组/[信息]更好的显示玩家距离-1.1.5 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]B键便捷背包-EasyBackpack_Fix-1.1.8 => plugins/1拓展模组/[功能]B键便捷背包-EasyBackpack_Fix-1.1.8 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]K键掉线重连-peakReconnect-1.0.2 => plugins/1拓展模组/[功能]K键掉线重连-peakReconnect-1.0.2 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]更好的背队友-BetterPiggyback-0.1.1 => plugins/1拓展模组/[功能]更好的背队友-BetterPiggyback-0.1.1 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]物品详细信息-ItemInfoDisplayForkedCNPlus_1.2.1 => plugins/1拓展模组/[功能]物品详细信息-ItemInfoDisplayForkedCNPlus_1.2.1 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]视角切换器PerspectiveSwitcher-0.1.3 => plugins/1拓展模组/[功能]视角切换器PerspectiveSwitcher-0.1.3 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]跳过开始屏幕-FastStart(LengSword) => plugins/1拓展模组/[功能]跳过开始屏幕-FastStart(LengSword) | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[功能]鹰眼-EaglesEye-3.0.2 => plugins/1拓展模组/[功能]鹰眼-EaglesEye-3.0.2 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[美化]F11隐藏hud(截图专用)-HudHider => plugins/1拓展模组/[美化]F11隐藏hud(截图专用)-HudHider | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[美化]时间主题-TimeTheme-0.4.3 => plugins/1拓展模组/[美化]时间主题-TimeTheme-0.4.3 | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[美化]简易解锁装扮&难度(默认禁用)-SimpleUnlocker => plugins/1拓展模组/[美化]简易解锁装扮&难度(默认禁用)-SimpleUnlocker | mods=1
+TREE Package Unchanged | plugins/1拓展模组/[美化]迷你景观台-汉化-PlantholderOverhaul-0.1.7 => plugins/1拓展模组/[美化]迷你景观台-汉化-PlantholderOverhaul-0.1.7 | mods=2
+TREE Package Unchanged | plugins/2额外模组/[功能]更好的观战视角-PeakSpectatorMode => plugins/2额外模组/[功能]更好的观战视角-PeakSpectatorMode | mods=1
+TREE Package Unchanged | plugins/2额外模组/[实用]路线轨迹(再也不怕找不到路)-PEAKTrails => plugins/2额外模组/[实用]路线轨迹(再也不怕找不到路)-PEAKTrails | mods=1
+TREE Package Unchanged | plugins/2额外模组/[机制]T键骑队友-PiggybackTeammate => plugins/2额外模组/[机制]T键骑队友-PiggybackTeammate | mods=1
+TREE Package Unchanged | plugins/2额外模组/[画质]Peak_画面调整(低配慎选)-PEAK_Visuals => plugins/2额外模组/[画质]Peak_画面调整(低配慎选)-PEAK_Visuals | mods=1
+TREE Package Unchanged | plugins/2额外模组/[画质]月光优化(强烈推荐)-LightingTweaks => plugins/2额外模组/[画质]月光优化(强烈推荐)-LightingTweaks | mods=1
+TREE Package Unchanged | plugins/2额外模组/[美化]自嘲熊替换宾绑-PlushieSwap => plugins/2额外模组/[美化]自嘲熊替换宾绑-PlushieSwap | mods=1
+TREE Package Unchanged | plugins/2额外模组/[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0 => plugins/2额外模组/[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0 | mods=2
+TREE Package Unchanged | plugins/2额外模组/[调试]飞行模组So_Fly-2.1.0 => plugins/2额外模组/[调试]飞行模组So_Fly-2.1.0 | mods=2
+TREE Package Unchanged | plugins/2额外模组/[趣味]抛出昏迷队友-Throwwaway => plugins/2额外模组/[趣味]抛出昏迷队友-Throwwaway | mods=1
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]真正的最终天阶-TrueFinalAscent/CptPICHU-TrueFinalAscent => plugins/3玩法模组/CptPICHU-TrueFinalAscent | mods=1
+TREE Package Move | plugins/CptPICHU-TrueFinalAscent => plugins/3玩法模组/CptPICHU-TrueFinalAscent 3.0.0 | mods=1 | notes: NameSuffixed
+TREE Package Move | plugins/[依赖]PLL地图与群系库-PLL_Library => plugins/3玩法模组/[依赖]PLL地图与群系库-PLL_Library | mods=1
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[功能]地形随机器-TerrainRandomiser-1.2.0 => plugins/3玩法模组/[功能]地形随机器-TerrainRandomiser-1.2.0 | mods=2 | notes: CarriedByFolderRename
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法][纯主机]僵尸追猎_快跑吧！-ZombieTweaks => plugins/3玩法模组/[玩法][纯主机]僵尸追猎_快跑吧！-ZombieTweaks | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]地形定制器fix-TerrainCustomiser => plugins/3玩法模组/[玩法]地形定制器fix-TerrainCustomiser | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[补丁]随机地形增强 => plugins/3玩法模组/[补丁]随机地形增强 | mods=1 | notes: CarriedByFolderRename
+TREE Package Unchanged | plugins/AeralisFoundation-PLL_Fog_Resources => plugins/AeralisFoundation-PLL_Fog_Resources | mods=0 | notes: NoGroupKnown
+TREE Package Unchanged | plugins/AeralisFoundation-Unified_Ray_Tracing => plugins/AeralisFoundation-Unified_Ray_Tracing | mods=0 | notes: NoGroupKnown
+TREE Package Unchanged | plugins/MonoDetour-MonoDetour => plugins/MonoDetour-MonoDetour | mods=0 | notes: NoGroupKnown
+TREE Package Move | plugins/2额外模组/[画质]Peak_画面调整(低配慎选)-PEAK_Visuals/glarmer-UpscaleLib => plugins/依赖模组/glarmer-UpscaleLib | mods=1 | notes: NestedExtracted
+TREE Package Move | plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]地形定制器fix-TerrainCustomiser/Snosz-UBImGui => plugins/依赖模组/Snosz-UBImGui | mods=1 | notes: NestedExtracted
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/XUnity.ResourceRedirector => plugins/依赖模组/XUnity.ResourceRedirector | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]PEAKLib核心-PEAKLib_Core => plugins/依赖模组/[依赖]PEAKLib核心-PEAKLib_Core | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]PEAKLib物品-PEAKLib_Items => plugins/依赖模组/[依赖]PEAKLib物品-PEAKLib_Items | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]PEAKLib界面-PEAKLib_UI => plugins/依赖模组/[依赖]PEAKLib界面-PEAKLib_UI | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]光子系统属性工具-PhotonCustomPropsUtils => plugins/依赖模组/[依赖]光子系统属性工具-PhotonCustomPropsUtils | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]实时翻译框架-XUnity_AutoTranslator => plugins/依赖模组/[依赖]实时翻译框架-XUnity_AutoTranslator | mods=1 | notes: CarriedByFolderRename
+TREE Package Move | plugins/0核心&基础模组/[0依赖]Mods/[依赖]软依赖修复-SoftDependencyFix => plugins/依赖模组/[依赖]软依赖修复-SoftDependencyFix | mods=1 | notes: CarriedByFolderRename
+TREE Package Move ungrouped | plugins/[优化]掉帧医生-FrameDoctor => plugins/未分组/[优化]掉帧医生-FrameDoctor | mods=2
+TREE Package Move ungrouped | plugins/2额外模组/[功能]这里能踩吗(立足点)？-FootholdForked => plugins/未分组/[功能]这里能踩吗(立足点)？-FootholdForked | mods=1
+TREE Package Move ungrouped | plugins/2额外模组/[功能]远征整合增强-PeakerPlus => plugins/未分组/[功能]远征整合增强-PeakerPlus | mods=1
+TREE Container Move | plugins/0核心&基础模组 => plugins/0基础模组 | mods=0
+TREE Container Move | plugins/3玩法类模组(大多数需要全员安装相同版本) => plugins/3玩法模组 | mods=0
+TREE Container Move | plugins/0核心&基础模组/[0依赖]Mods => plugins/依赖模组 | mods=0
+TREE Empty Unchanged | plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]真正的最终天阶-TrueFinalAscent => plugins/3玩法模组/[玩法]真正的最终天阶-TrueFinalAscent | mods=0 | notes: EmptyAfterMove
+TREE Empty Unchanged | plugins/glarmer-PEAK_Unlimited => plugins/glarmer-PEAK_Unlimited | mods=0
+TREE Empty Unchanged | plugins/glarmer-PEAK_Voice_Volume_Saver => plugins/glarmer-PEAK_Voice_Volume_Saver | mods=0
+TREE Empty Unchanged | plugins/l10n => plugins/l10n | mods=0
+TREE Empty Unchanged | plugins/local => plugins/local | mods=0
+TREE Empty Unchanged | plugins/nickklmao-PeakStats => plugins/nickklmao-PeakStats | mods=0
+TREE Empty Unchanged | plugins/pixx-StaminaStats => plugins/pixx-StaminaStats | mods=0
+TREE Empty Unchanged | plugins/xtyobmodding-WeatherToggle => plugins/xtyobmodding-WeatherToggle | mods=0
+TREE Empty Unchanged | plugins/[玩法]真正的最终天阶-TrueFinalAscent => plugins/[玩法]真正的最终天阶-TrueFinalAscent | mods=0

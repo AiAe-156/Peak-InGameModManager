@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+<ItemGroup>
+<Compile Include="../../src/Updating/PluginFileNames.cs" Link="PluginFileNames.cs"/>
+<Compile Include="../../src/Overview/OverviewFileConflicts.cs" Link="OverviewFileConflicts.cs"/>
+<Reference Include="Mono.Cecil"><HintPath>../../../../BepInEx/core/Mono.Cecil.dll</HintPath><Private>true</Private></Reference>
+<None Include="../../bin/Release/netstandard2.1/ModConfigEnhance.dll" Link="ModConfigEnhance.dll" CopyToOutputDirectory="Always"/>
+<Reference Include="BepInEx"><HintPath>../../../../BepInEx/core/BepInEx.dll</HintPath><Private>true</Private></Reference>
+<Reference Include="UnityEngine"><HintPath>../../../../PEAK_Data/Managed/UnityEngine.dll</HintPath><Private>true</Private></Reference>
+<Reference Include="UnityEngine.CoreModule"><HintPath>../../../../PEAK_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>true</Private></Reference>
+<Reference Include="Newtonsoft.Json"><HintPath>../../../../PEAK_Data/Managed/Newtonsoft.Json.dll</HintPath><Private>true</Private></Reference>
+<Reference Include="YamlDotNet"><HintPath>../../bin/Release/netstandard2.1/YamlDotNet.dll</HintPath><Private>true</Private></Reference>
+</ItemGroup></Project>

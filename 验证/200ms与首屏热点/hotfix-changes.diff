@@ -1,0 +1,179 @@
+--- before/src/Plugin.cs
++++ src/Plugin.cs
+@@ -81,6 +81,7 @@
+         }
+ 
+         Harmony harmony = new(PluginGuid);
++        SettingsTabActivationPatch.Install(harmony);
+         Overview.AnimatorRestGate.Install(harmony, Config);
+         Overview.OverviewController.Register(harmony);
+         if (EnableTreeLayout.Value)
+--- before/src/Overview/OverviewUpdateQueue.cs
++++ src/Overview/OverviewUpdateQueue.cs
+@@ -14,6 +14,16 @@
+ internal static class OverviewUpdateQueue
+ {
+     private static readonly object Gate = new();
++    private static readonly object CommandGate = new();
++    private static readonly object WorkerGate = new();
++    private static System.Threading.Tasks.Task<ObserveResult>? _observeTask;
++    private static long _commandEpoch;
++    private sealed class ObserveResult
++    {
++        internal string Context="", Error="";
++        internal long Epoch;
++        internal double PrepareMs, PublishMs, LaunchMs;
++    }
+     private static UpdateSnapshot _snapshot = new();
+     private static DateTime _pollAt, _observeAt, _launchAt;
+     private static string _error = "", _historicalError = "", _localError = "", _feedback = "";
+@@ -134,38 +144,48 @@
+ 
+     internal static void EnsureWorker()
+     {
+-        lock (Gate)
+-        {
+-            string tools = PrepareWorkerTools(); // Also diagnose schema/protocol mismatch when an older helper owns the lock.
+-            Directory.CreateDirectory(Root);
+-            string lockPath = Path.Combine(Root, "worker.lock");
++        EnsureWorker(Root, Paths.BepInExRootPath, null);
++        lock(Gate) { _localError = ""; _error = ""; }
++    }
++    private static void EnsureWorker(string root, string bepRoot, string? prepared)
++    {
++        // Tool IO/launch serialization must never hold the UI snapshot publication lock.
++        lock (WorkerGate)
++        {
++            string tools = prepared ?? PrepareWorkerTools(root, bepRoot, WorkerSource());
++            Directory.CreateDirectory(root);
++            string lockPath = Path.Combine(root, "worker.lock");
+             try { using var probe = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
+             catch (IOException) { return; }
+-            if (DateTime.UtcNow < _launchAt) return;
+-            var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + Paths.BepInExRootPath.TrimEnd('\\', '/') + "\" --protocol 2") {
++            lock(Gate) { if (DateTime.UtcNow < _launchAt) return; }
++            var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + bepRoot.TrimEnd('\\', '/') + "\" --protocol 2") {
+                 UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools
+             };
+-            start.EnvironmentVariables["DOTNET_BUNDLE_EXTRACT_BASE_DIR"] = Path.Combine(Root, "tools", ".extract");
+-            _workerAttemptUtc = DateTime.UtcNow;
++            start.EnvironmentVariables["DOTNET_BUNDLE_EXTRACT_BASE_DIR"] = Path.Combine(root, "tools", ".extract");
++            lock(Gate) _workerAttemptUtc = DateTime.UtcNow;
+             using var launched = Process.Start(start) ?? throw new IOException("Could not start the update worker.");
+-            _localError = ""; _error = "";
+-            _launchAt = DateTime.UtcNow.AddSeconds(3);
+-        }
+-    }
+-
+-    internal static string PrepareWorkerTools()
+-    {
+-        string source = Path.Combine(Path.GetDirectoryName(typeof(Plugin).Assembly.Location)!, "Tools", "Updater");
+-        string index = Path.Combine(Root, "packs", "index.json");
+-        WorkerProtocol.RejectLinks(Path.GetDirectoryName(Paths.BepInExRootPath.TrimEnd('\\', '/'))!, index);
+-        if (File.Exists(index))
+-        {
+-            var data = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(index));
+-            WorkerProtocol.RequireProtocol(data.Value<int?>("SchemaVersion") ?? 1, data.Value<int?>("MinimumWorkerProtocol") ?? 1);
+-        }
+-        string tools = WorkerProtocol.PrepareTools(source, Path.Combine(Root, "tools"), sourceBoundary: Path.GetDirectoryName(Paths.BepInExRootPath.TrimEnd('\\', '/'))!, cacheBoundary: Path.GetDirectoryName(Paths.BepInExRootPath.TrimEnd('\\', '/'))!);
+-        RecoveryLauncher.Write(Root, tools);
+-        return tools;
++            lock(Gate) _launchAt = DateTime.UtcNow.AddSeconds(3);
++        }
++    }
++
++    private static string WorkerSource() => Path.Combine(Path.GetDirectoryName(typeof(Plugin).Assembly.Location)!, "Tools", "Updater");
++    internal static string PrepareWorkerTools() => PrepareWorkerTools(Root, Paths.BepInExRootPath, WorkerSource());
++    private static string PrepareWorkerTools(string root, string bepRoot, string source)
++    {
++        lock(WorkerGate)
++        {
++            string index = Path.Combine(root, "packs", "index.json");
++            string boundary = Path.GetDirectoryName(bepRoot.TrimEnd('\\', '/'))!;
++            WorkerProtocol.RejectLinks(boundary, index);
++            if (File.Exists(index))
++            {
++                var data = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(index));
++                WorkerProtocol.RequireProtocol(data.Value<int?>("SchemaVersion") ?? 1, data.Value<int?>("MinimumWorkerProtocol") ?? 1);
++            }
++            string tools = WorkerProtocol.PrepareTools(source, Path.Combine(root, "tools"), sourceBoundary: boundary, cacheBoundary: boundary);
++            RecoveryLauncher.Write(root, tools);
++            return tools;
++        }
+     }
+     internal static Process StartProbe(string id)
+     {
+@@ -180,6 +200,9 @@
+     private static int ProcessId { get { using var process = Process.GetCurrentProcess(); return process.Id; } }
+     private static void Post(UpdateCommand command, Action<string>? posted = null)
+     {
++        lock(CommandGate)
++        {
++            System.Threading.Interlocked.Increment(ref _commandEpoch);
+         if (command.Action != "pack" && command.Action != "observe" && command.Action != "network") PackLibrary.EnsureAvailable();
+         PrepareWorkerTools(); // Validate before publishing any command.
+         command.MinimumWorkerProtocol = WorkerProtocol.Current;
+@@ -192,6 +215,7 @@
+         _localError = ""; _error = "";
+         posted?.Invoke(Path.GetFileName(file));
+         EnsureWorker(); _pollAt = DateTime.MinValue;
++        }
+     }
+     internal static void SendLocalImport(LocalImportRequest request)
+     { request.SourceProcessId = ProcessId; Post(new UpdateCommand { Action = "local-import", LocalImport = request }); }
+@@ -224,10 +248,52 @@
+     internal static void Reconcile()
+     {
+         Poll();
+-        if (DateTime.UtcNow < _observeAt || !_snapshot.Jobs.Any(j => UpdateStates.Pending(j.State))) return;
++        string context = _readContext;
++        if (_observeTask is {IsCompleted:true})
++        {
++            var result = _observeTask.GetAwaiter().GetResult(); _observeTask = null;
++            if (result.Context == context && result.Epoch == System.Threading.Interlocked.Read(ref _commandEpoch))
++            {
++                lock(Gate) { _localError = _error = result.Error; _pollAt = DateTime.MinValue; }
++                Plugin.Log.LogDebug($"[更新队列] 自动observe prepare={result.PrepareMs:F1}ms publish={result.PublishMs:F1}ms launch={result.LaunchMs:F1}ms error={result.Error}");
++            }
++        }
++        if (_observeTask != null || DateTime.UtcNow < _observeAt || !_snapshot.Jobs.Any(j => UpdateStates.Pending(j.State))) return;
+         _observeAt = DateTime.UtcNow.AddSeconds(10);
+-        try { Post(new UpdateCommand { Action = "observe" }); }
+-        catch (Exception error) { _localError = _error = error.Message; }
++        // Capture all runtime/Unity-owned inputs here; the worker only handles immutable values and IO.
++        try
++        {
++        string root = Root, bepRoot = Paths.BepInExRootPath, source = WorkerSource();
++        var command = new UpdateCommand { Action = "observe", MinimumWorkerProtocol = WorkerProtocol.Current,
++            SchemaVersion = 2, Id = Guid.NewGuid().ToString("N"), SourceProcessId = ProcessId, LoadedAssemblyPaths = LoadedPaths() };
++        long epoch = System.Threading.Interlocked.Read(ref _commandEpoch);
++        _observeTask = System.Threading.Tasks.Task.Run(() => Observe(root, bepRoot, source, context, epoch, command));
++        }
++        catch(Exception error) { lock(Gate) _localError = _error = error.Message; }
++    }
++    private static ObserveResult Observe(string root, string bepRoot, string source, string context, long epoch, UpdateCommand command)
++    {
++        var result = new ObserveResult {Context=context, Epoch=epoch};
++        try
++        {
++            lock(CommandGate)
++            {
++                // An explicit command supersedes an observation which has not started yet.
++                if(epoch != System.Threading.Interlocked.Read(ref _commandEpoch)) return result;
++                var timer = Stopwatch.StartNew();
++                string tools = PrepareWorkerTools(root, bepRoot, source); result.PrepareMs = timer.Elapsed.TotalMilliseconds;
++                timer.Restart();
++                lock(Gate) { if(context != _readContext) return result; }
++                string commands = Path.Combine(root, "commands"); Directory.CreateDirectory(commands);
++                string file = Path.Combine(commands, DateTime.UtcNow.Ticks + "_" + command.Id + ".json");
++                File.WriteAllText(file + ".tmp", JsonConvert.SerializeObject(command, Formatting.Indented)); File.Move(file + ".tmp", file);
++                result.PublishMs = timer.Elapsed.TotalMilliseconds; timer.Restart();
++                // The exact validated tool directory is reused inside this command; no safety checks are bypassed.
++                EnsureWorker(root, bepRoot, tools); result.LaunchMs = timer.Elapsed.TotalMilliseconds;
++            }
++        }
++        catch(Exception error) { result.Error = error.Message; }
++        return result;
+     }
+ 
+     internal static bool HasPendingForPackage(string packageRoot)

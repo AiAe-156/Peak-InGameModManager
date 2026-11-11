@@ -1,0 +1,4 @@
+src\Overview\InfrastructureOverviewModel.cs:106: (Areas.Contains("core") ? "Core components 核心组件 核心組件 " : "")
+src\Overview\InfrastructureOverviewModel.cs:107: +(Areas.Contains("patchers") ? "Startup patchers 启动补丁 啟動補丁" : ""),string.Join(" ",Dependencies));
+src\Overview\OverviewPage.Packs.cs:109: form.Text(task.Request.Operation.StartsWith("maintenance-", StringComparison.Ordinal) ? task.Maintenance?.Operation == MaintenanceOperations.DeletePack ? Loc.T("Delete modpack · ch
+-- 3 line(s)

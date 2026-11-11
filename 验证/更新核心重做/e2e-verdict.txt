@@ -1,0 +1,20 @@
+root: C:\Users\AiAe\AppData\Local\Temp\mce-e2e\20261102_191305
+PASS worker �����������л����ˣ��������Ϊ�� �� exit=0
+PASS ��װ����ʵ���ز���� �� pending-restart 
+PASS ��װ��Ӳ�������Զ���� �� pending-restart
+PASS ��װ������Ҳ��� �� pending-restart
+PASS ��װ�����Ŀ¼�Ѵ��� �� ['MonoDetour-MonoDetour', 'MonoDetour-MonoDetour_BepInEx_5']
+PASS ��װ���̵��˱��ѵǼ������� �� ['MonoDetour-MonoDetour', 'MonoDetour-MonoDetour_BepInEx_5']
+PASS ���£��������ز��滻�ɹ� �� pending-restart 
+PASS ���£��ļ����ϱ���һ�� �� 5 �� 5
+PASS ���ˣ��ָ�����ǰ�ļ� �� rolled-back
+PASS ж�أ�תΪ������������Ŀ¼ �� pending-restart exists=False
+PASS ж�أ��ļ����뱸�� �� 5
+PASS ж�أ��ɻ��˻�ԭ �� rolled-back
+PASS ���˳���Ҫ�滻����ʹ�õ��ļ�ʱͣ�ڵȴ��˳� �� waiting-exit �°��漰�����е��ļ����˳���Ϸ��װ��
+PASS �˳���ű������̽������Զ��ύ��������Ϸ�������� �� pending-restart 
+PASS ������׼����һ����������ݵ�Ŀ¼ �� F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\plugins
+PASS ������Ԥ�������ƶ��ƻ� �� ready desired=2 []
+PASS ������ȷ�Ϻ�Ŀ¼���ƶ��������������� �� pending-restart dest=plugins\Ungrouped--5b32bf330cce57c6\E2ELayout--6bb9ae88a7b8f5f4 landed=True source_gone=True plugins=['MonoDetour-MonoDetour', 'Ungrouped--5b32bf330cce57c6']
+=== 17 passed, 0 failed ===
+exit=0

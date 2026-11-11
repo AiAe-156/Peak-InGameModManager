@@ -1,0 +1,275 @@
+{
+  "startedUtc": "2026-10-30T12:39:18.690922+00:00",
+  "steps": [
+    {
+      "name": "worker-publish",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "publish",
+        "Updater/MCE.UpdateWorker.csproj",
+        "-c",
+        "Release",
+        "-o",
+        "Updater/bin/framework-bundle",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\worker-publish.log"
+    },
+    {
+      "name": "desktop-build",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "build",
+        "Desktop/MCE.Desktop.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\desktop-build.log"
+    },
+    {
+      "name": "desktop-selftest",
+      "command": [
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Desktop\\bin\\Release\\net48\\MCE.Desktop.exe",
+        "--self-test"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\desktop-selftest.log"
+    },
+    {
+      "name": "plugin-release",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "build",
+        "ModConfigEnhance.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false",
+        "-t:Build;CollectReleaseFiles"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\plugin-release.log"
+    },
+    {
+      "name": "installation",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/InstallationFlowChecks/InstallationFlowChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\installation.log"
+    },
+    {
+      "name": "shop",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/ShopChecks/ShopChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\shop.log"
+    },
+    {
+      "name": "packs",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/PackLibraryChecks/PackLibraryChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\packs.log"
+    },
+    {
+      "name": "deployment-policy",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/LocalDeploymentChecks/LocalDeploymentChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\deployment-policy.log"
+    },
+    {
+      "name": "dropdown",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/DropdownSuffixChecks/DropdownSuffixChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\dropdown.log"
+    },
+    {
+      "name": "settings-dropdown",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/SettingsCompactDropdown20261030/GeometryChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\settings-dropdown.log"
+    },
+    {
+      "name": "update-markers",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/ModUpdateMarkerChecks/ModUpdateMarkerChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\update-markers.log"
+    },
+    {
+      "name": "relationships",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/SharedRelationships20261029/SharedRelationships.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\relationships.log"
+    },
+    {
+      "name": "catalog",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/SharedStoreCatalog20261029/SharedCatalogChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\catalog.log"
+    },
+    {
+      "name": "update-flow",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/UpdateFlow20261029/Checks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\update-flow.log"
+    },
+    {
+      "name": "source-updates",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/SourceUpdateChecks/SourceUpdateChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\source-updates.log"
+    },
+    {
+      "name": "source-offline-import",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/SourceUpdateChecks/OfflineImport/OfflineImport.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\source-offline-import.log"
+    },
+    {
+      "name": "group-progress",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/主菜单与概览优化/GroupProgressChecks/GroupProgressChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\group-progress.log"
+    },
+    {
+      "name": "overview-performance",
+      "command": [
+        "C:\\Program Files\\dotnet\\dotnet.exe",
+        "run",
+        "--project",
+        "验证/主菜单与概览优化/PerformanceChecks/PerformanceChecks.csproj",
+        "-c",
+        "Release",
+        "-p:EnableDeployment=false"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\overview-performance.log"
+    },
+    {
+      "name": "helper-protocol",
+      "command": [
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\framework-bundle\\MCE.UpdateWorker.exe",
+        "--validate-protocol-manifest",
+        "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\Updater\\bin\\framework-bundle"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\helper-protocol.log"
+    },
+    {
+      "name": "release-inventory",
+      "command": [
+        "C:\\Users\\AiAe\\.workbuddy\\binaries\\python\\envs\\default\\Scripts\\python.exe",
+        "tools/package_thunderstore.py",
+        "--check-only",
+        "--no-build"
+      ],
+      "exitCode": 0,
+      "log": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\主菜单与概览优化\\integration_20261030_203918\\release-inventory.log"
+    }
+  ],
+  "status": "passed",
+  "completedUtc": "2026-10-30T12:39:58.039249+00:00"
+}

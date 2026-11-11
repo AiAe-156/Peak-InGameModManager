@@ -1,0 +1,33 @@
+src/Overview/Authoring/IntroductionFontRegistry.cs:186:                if (face != null) { face.name = AliasPrefix + "face_" + game.name; face.normalStyle = game.normalStyle; face.boldStyle = game.boldStyle; DynamicFaces[game] = face; }
+src/Overview/Authoring/IntroductionFontRegistry.cs:258:        font.normalStyle = 0; font.boldStyle = .8f; font.isMultiAtlasTexturesEnabled = true;
+src/Overview/Authoring/IntroductionReadingUi.cs:63:        text.fontStyle=FontStyles.Normal;text.color=new Color(.94f,.92f,.87f,1);
+src/Overview/Authoring/IntroductionReadingUi.cs:69:        var source=text.fontSharedMaterial;if(source==null)return;
+src/Overview/Authoring/IntroductionReadingUi.cs:73:        Set("_WeightNormal",0);Set("_WeightBold",.16f);Set("_OutlineWidth",0);Set("_FaceDilate",-.04f);
+src/Overview/Authoring/IntroductionReadingUi.cs:75:        text.fontSharedMaterial=_owned;
+src/Overview/Editor/DocCanvas.cs:266:            text.fontStyle = p.Style == ParaStyle.Heading3 ? FontStyles.Bold : p.Style == ParaStyle.Quote ? FontStyles.Italic : FontStyles.Normal;
+src/Overview/LogWindow.cs:121:            var text = OverviewUi.Text(_content, "", 16); text.richText = true; text.textWrappingMode = TextWrappingModes.NoWrap; text.overflowMode = TextOverflowModes.Overflow; text.raycastTarget = false; text.alignment = TextAlignmentOptions.MidlineLeft; text.fontStyle = FontStyles.Normal; text.fontWeight = FontWeight.Regular; _rows.Add(text);
+src/Overview/LogWindow.cs:239:                var text = button.GetComponentInChildren<TextMeshProUGUI>(); text.alignment = TextAlignmentOptions.MidlineLeft; text.margin = new Vector4(14, 0, 14, 0); text.richText=true; text.fontStyle = FontStyles.Normal; text.overflowMode = TextOverflowModes.Ellipsis; y += 38;
+src/Overview/MceTextWeight.cs:13:        text.fontWeight=FontWeight.Regular;
+src/Overview/MceTextWeight.cs:15:        var source=text.fontSharedMaterial;if(source==null||source.name.EndsWith(" (MCE balanced)"))return;
+src/Overview/MceTextWeight.cs:19:            Set("_WeightNormal",0);Set("_WeightBold",.16f);Set("_OutlineWidth",0);Set("_FaceDilate",-.04f);
+src/Overview/MceTextWeight.cs:23:        text.fontSharedMaterial=material;
+src/Overview/OverviewDependencyHints.cs:40:        _text = OverviewUi.Text(_viewport, "", 18); _text.richText = true; _text.fontStyle = FontStyles.Normal;
+src/Overview/OverviewDependencyHints.cs:42:        _footer = OverviewUi.Text(_card, "", 14); _footer.fontStyle = FontStyles.Normal; _footer.color = OverviewUi.Muted;
+src/Overview/OverviewFontReport.cs:58:            var material = text.fontSharedMaterial;
+src/Overview/OverviewFontReport.cs:61:                    " 描边=" + Value(material, ShaderUtilities.ID_OutlineWidth) +
+src/Overview/OverviewFontReport.cs:62:                    " 字面膨胀=" + Value(material, ShaderUtilities.ID_FaceDilate) +
+src/Overview/OverviewFontReport.cs:63:                    " 常规字重=" + Value(material, ShaderUtilities.ID_WeightNormal) +
+src/Overview/OverviewFontReport.cs:64:                    " 粗体字重=" + Value(material, ShaderUtilities.ID_WeightBold) +
+src/Overview/OverviewListView.Conflicts.cs:20:        var mark = OverviewUi.Text(badge, "!", 12); mark.color = new Color(.19f, .17f, .09f); mark.fontStyle = FontStyles.Bold; mark.alignment = TextAlignmentOptions.Midline;
+src/Overview/OverviewListView.cs:455:        var caption = Label(row, EscapeRich(groupName), 35, 0, titleWidth, GroupHeight, 22); caption.fontStyle = FontStyles.Normal; caption.color = GroupColor(groupId); caption.characterSpacing = 1.5f; OverviewUi.ReadableName(caption, titleWidth); OverviewEditableFrame.Set(caption.rectTransform, _authorMode);
+src/Overview/OverviewUi.cs:99:            if (nativeShadow != null) { var shadow = text.gameObject.AddComponent<Shadow>(); shadow.effectColor = nativeShadow.effectColor; shadow.effectDistance = nativeShadow.effectDistance; shadow.useGraphicAlpha = nativeShadow.useGraphicAlpha; }
+src/Overview/OverviewUi.cs:108:        text.richText = true; text.fontStyle = FontStyles.Normal; text.fontWeight = FontWeight.Regular;
+src/Overview/OverviewUi.cs:110:        Material? source = text.fontSharedMaterial;
+src/Overview/OverviewUi.cs:117:                if (material.HasProperty(ShaderUtilities.ID_OutlineWidth)) material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0);
+src/Overview/OverviewUi.cs:118:                if (material.HasProperty(ShaderUtilities.ID_FaceDilate)) material.SetFloat(ShaderUtilities.ID_FaceDilate, Mathf.Min(0, material.GetFloat(ShaderUtilities.ID_FaceDilate)));
+src/Overview/OverviewUi.cs:119:                if (material.HasProperty(ShaderUtilities.ID_WeightNormal)) material.SetFloat(ShaderUtilities.ID_WeightNormal, material.GetFloat(ShaderUtilities.ID_WeightNormal) * .45f);
+src/Overview/OverviewUi.cs:123:            text.fontSharedMaterial = material;
+src/Overview/OverviewUi.ProfileReview.cs:19:        var heading = Text(panel, title, 28); Place(heading.rectTransform, 24, 16, width - 48, 42); heading.fontStyle = FontStyles.Normal; heading.fontWeight = FontWeight.Regular;
+src/Overview/OverviewUi.ProfileReview.cs:57:            var label = Text(parent, value, size); label.color = color; label.fontStyle = FontStyles.Normal; label.fontWeight = FontWeight.Regular;
+src/Overview/OverviewUi.ProfileReview.cs:91:                    groupName.color = first.GroupColor; groupName.fontStyle = FontStyles.Normal; groupName.fontWeight = FontWeight.Regular; PlaceClipped(groupName, 16, 0, available - 32, 36);
+src/Overview/PackConflictUi.cs:36:        label.fontStyle = bold ? FontStyles.Bold : FontStyles.Normal; label.textWrappingMode = TextWrappingModes.Normal;

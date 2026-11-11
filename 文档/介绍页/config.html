@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模组配置 · 游戏内模组管理器</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="index.html"><img src="assets/icon.png" alt=""><span>游戏内模组管理器</span></a>
+  <nav class="nav" aria-label="板块"><a href="index.html">首页</a><a href="mods.html">模组管理</a><a href="config.html" aria-current="page" style="--c:var(--config)">模组配置</a><a href="profiles.html">多配置切换</a><a href="packs.html">整合包</a><a href="language.html">多语言翻译</a></nav>
+</div></header>
+<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L0 20 L110 12 L200 22 L320 4 L420 18 L540 8 L640 24 L760 2 L880 20 L990 10 L1090 22 L1200 14 L1200 34 Z" fill="#1b3d5c"/><path d="M0 34 L0 28 L150 24 L300 30 L460 22 L620 30 L780 24 L940 30 L1100 25 L1200 28 L1200 34 Z" fill="#e6ecef"/></svg>
+<main>
+<header class="page-head" style="--c:var(--config)"><div><span class="tag">模组配置</span><h1>所有模组的设置，集中在一棵树里</h1><p class="lede">在 ModConfig 设置页的基础上加了树形侧栏、说明面板和快捷键页。改动先放进草稿，核对清楚再保存。</p></div></header>
+<section style="padding-top:28px">
+<figure class="figure"><img src="assets/settings-tree.jpg" alt="模组设置页截图：左侧树形侧栏和工具行，右侧顶部是说明面板，下面是设置项" loading="lazy"><figcaption>左侧按模组和分区排列，可以搜索、置顶；右侧顶部显示当前设置项的说明。</figcaption></figure>
+</section>
+<section>
+  <h2>快捷键页</h2>
+<figure class="figure"><img src="assets/hotkeys.jpg" alt="快捷键页截图：按分组和模组列出每个快捷键，右侧三列是当前按键、模组默认和方案预设，重复的键标着 Duplicate" loading="lazy"><figcaption>每个键三列：当前按键（点击录制）、模组默认、方案预设。用了同一个键的会标「重复」。</figcaption></figure>
+</section>
+<section>
+  <h2>主要功能</h2>
+<ul class="points" style="--c:var(--config)"><li><b>树形侧栏</b><span>模组和它的分区排成一棵树，跟概览用同一套分组。可以搜索，常用的模组可以置顶。</span></li><li><b>说明面板</b><span>选中或悬停一个设置项，上方显示它的说明、默认值和可选范围。</span></li><li><b>小数正常显示</b><span>模组参数里的小数照常显示和输入，不会被取整。</span></li><li><b>保存和默认并排</b><span>每个设置项右边是保存和恢复默认两个按钮。</span></li><li><b>快捷键页</b><span>所有模组的快捷键放在同一页，每个键三列：当前按键、模组默认、方案目标。点一下直接录新按键。</span></li><li><b>重复键提示</b><span>两个模组用了同一个键会标出来，可以跳到对方那一项，也可以在本机忽略这对冲突。</span></li><li><b>先改草稿</b><span>参数、快捷键、启停改了都先进草稿，名称旁出现橙色角标。游戏崩溃了草稿也还在。</span></li><li><b>变更检查目录</b><span>保存前按模组列出原值、新值和什么时候生效：立即、下一局、重启游戏。</span></li><li><b>离线修改</b><span>模组这次没加载，它已有的配置文件也能改，启用后使用。</span></li><li><b>和别的工具合并</b><span>手动改了 cfg 文件，没冲突的字段自动合并；同一个字段两边都改了，让你选保留哪个。</span></li></ul>
+</section>
+<section>
+  <h2>两套配色</h2>
+<figure class="figure"><img src="assets/overview-purple.jpg" alt="紫色主题下的模组概览" loading="lazy"><figcaption>紫色主题。和上面的蓝色是同一个界面。</figcaption></figure>
+  <div class="two" style="margin-top:18px">
+    <div><p>全部界面有蓝色和紫色两套配色。蓝色跟着游戏 3.1 的设置菜单，紫色是夜间风格。点概览工具条或设置页「搜索」旁的月亮图标切换，也可以选「夜里自动紫色」：装了 TimeTheme 时，游戏里天黑就自动变紫。</p></div>
+    <div class="callout">按钮按功能分颜色：<b>绿色</b>提交，<b>红色</b>危险操作，<b>蓝色</b>编辑和选择，<b>青绿</b>打开别的窗口，<b>灰色</b>普通操作，<b>使用说明</b>单独一种颜色。</div>
+  </div>
+</section>
+
+<nav class="pager" aria-label="翻页"><a href="mods.html" style="--c:var(--mods)"><small>上一页</small>模组管理</a><a class="next" href="profiles.html" style="--c:var(--profiles)"><small>下一页</small>多配置切换</a></nav>
+<footer><span>游戏内模组管理器 · In-Game Mod Manager · PEAK 模组</span><span>本介绍依据当前开发版整理，界面以游戏内为准</span></footer>
+</main>
+</body>
+</html>

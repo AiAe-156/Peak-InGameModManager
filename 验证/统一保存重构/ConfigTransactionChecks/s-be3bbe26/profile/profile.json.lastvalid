@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "id": "p",
+  "publicationId": "",
+  "name": "",
+  "kind": 1,
+  "directory": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\统一保存重构\\ConfigTransactionChecks\\s-be3bbe26\\profile",
+  "source": "",
+  "readOnly": false,
+  "createdUtc": "0001-01-01T00:00:00",
+  "modifiedUtc": "0001-01-01T00:00:00",
+  "state": {
+    "packNameOverride": "",
+    "pack": {
+      "introDocument": "",
+      "introFile": ""
+    },
+    "groups": [],
+    "mods": []
+  },
+  "config": {
+    "schemaVersion": 1,
+    "capturedUtc": "2026-10-31T15:08:54.6144992Z",
+    "values": [
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "section": "S",
+        "key": "Restart",
+        "type": "System.Int32",
+        "serializedValue": "3",
+        "diskBaselineKnown": true,
+        "diskExists": true,
+        "liveBaselineKnown": false,
+        "liveValue": "",
+        "diskValue": "1",
+        "missing": false,
+        "missingReason": ""
+      },
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "section": "S",
+        "key": "Number",
+        "type": "System.Int32",
+        "serializedValue": "6",
+        "diskBaselineKnown": true,
+        "diskExists": true,
+        "liveBaselineKnown": false,
+        "liveValue": "",
+        "diskValue": "6",
+        "missing": false,
+        "missingReason": ""
+      }
+    ],
+    "files": [
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "loaded": true,
+        "supported": true,
+        "message": ""
+      }
+    ]
+  },
+  "mods": [
+    {
+      "id": "",
+      "guid": "test.mod",
+      "name": "",
+      "version": "",
+      "pluginVersion": "",
+      "packageVersion": "",
+      "packageNamespace": "",
+      "packageName": "",
+      "enabled": true,
+      "installed": true
+    }
+  ],
+  "loadError": "",
+  "_pairedConfig": {
+    "schemaVersion": 1,
+    "capturedUtc": "2026-10-31T15:08:54.6144992Z",
+    "values": [
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "section": "S",
+        "key": "Restart",
+        "type": "System.Int32",
+        "serializedValue": "3",
+        "diskBaselineKnown": true,
+        "diskExists": true,
+        "liveBaselineKnown": false,
+        "liveValue": "",
+        "diskValue": "1",
+        "missing": false,
+        "missingReason": ""
+      },
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "section": "S",
+        "key": "Number",
+        "type": "System.Int32",
+        "serializedValue": "6",
+        "diskBaselineKnown": true,
+        "diskExists": true,
+        "liveBaselineKnown": false,
+        "liveValue": "",
+        "diskValue": "6",
+        "missing": false,
+        "missingReason": ""
+      }
+    ],
+    "files": [
+      {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "loaded": true,
+        "supported": true,
+        "message": ""
+      }
+    ]
+  }
+}

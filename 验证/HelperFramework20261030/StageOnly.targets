@@ -1,0 +1,1 @@
+<Project><Target Name="ExcludeParallelUnfinishedImport" BeforeTargets="AssignTargetPaths"><ItemGroup><Compile Remove="ModImportPreview.cs" /></ItemGroup></Target></Project>

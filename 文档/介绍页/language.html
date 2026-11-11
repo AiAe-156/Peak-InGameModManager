@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多语言翻译 · 游戏内模组管理器</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="index.html"><img src="assets/icon.png" alt=""><span>游戏内模组管理器</span></a>
+  <nav class="nav" aria-label="板块"><a href="index.html">首页</a><a href="mods.html">模组管理</a><a href="config.html">模组配置</a><a href="profiles.html">多配置切换</a><a href="packs.html">整合包</a><a href="language.html" aria-current="page" style="--c:var(--lang)">多语言翻译</a></nav>
+</div></header>
+<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L0 20 L110 12 L200 22 L320 4 L420 18 L540 8 L640 24 L760 2 L880 20 L990 10 L1090 22 L1200 14 L1200 34 Z" fill="#1b3d5c"/><path d="M0 34 L0 28 L150 24 L300 30 L460 22 L620 30 L780 24 L940 30 L1100 25 L1200 28 L1200 34 Z" fill="#e6ecef"/></svg>
+<main>
+<header class="page-head" style="--c:var(--lang)"><div><span class="tag">多语言翻译</span><h1>界面和模组说明，都能翻译成你的语言</h1><p class="lede">管理器自己内置英文、简体、繁体三种语言。模组的名字、简介和设置项说明走同一套词典，补翻也方便。</p></div></header>
+<section style="padding-top:28px">
+  <h2>主要功能</h2>
+<ul class="points" style="--c:var(--lang)"><li><b>内置三种语言</b><span>英文、简体中文、繁体中文直接写在管理器里，不装任何语言文件也能用。</span></li><li><b>语言下拉</b><span>在设置页工具行选语言，选中立刻生效。新放进去的语言文件点刷新就能选。</span></li><li><b>模组名称也能翻</b><span>在概览里双击模组名称、简介或快捷键说明，直接改成你习惯的译名。</span></li><li><b>显示原文</b><span>需要对照时一键切回原文。</span></li><li><b>一键导出待翻文本</b><span>导出全部文字，或者只导出还没翻的。可以只导出勾选的几个模组。</span></li><li><b>导入补翻</b><span>翻好的导出文件点「导入补翻」，有译文的行直接合进当前语言文件，旧文件先备份。</span></li><li><b>正则规则</b><span>只差数字或名字的句子可以写成一条正则，比如 <code>r:"^(\d+) players$"=$1 名玩家</code>。格式和 XUnity 词典一样，能直接搬过来。</span></li><li><b>跟着整合包走</b><span>整合包作者补好的译文随包一起发给玩家，玩家导入时可以选显示语言。</span></li><li><b>不需要 XUnity</b><span>模组设置页的选项名、分区、下拉选项也由管理器自己翻译。装了 XUnity 并开着在线机翻时会提醒，可以一键关掉。</span></li></ul>
+</section>
+<section>
+  <h2>一句话从哪里来</h2>
+  <p class="muted">界面上每一句都按这个顺序找，找到就停。</p>
+  <ul class="steps" style="--c:var(--lang)">
+    <li><span><b>个人词典</b>：你自己改的、补翻的。放在 <code>config/ModConfigEnhance/language/</code>。</span></li>
+    <li><span><b>作者词典</b>：跟着整合包来的。</span></li>
+    <li><span><b>内置</b>：管理器自己的界面文字，中英繁三份。</span></li>
+    <li><span><b>英文原文</b>：哪都没找到就显示模组作者写的原文。</span></li>
+  </ul>
+</section>
+<section>
+  <h2>补翻是怎么转一圈的</h2>
+  <ul class="steps" style="--c:var(--lang)">
+    <li><span>在设置页点「导出翻译」或「补漏翻」，待翻文本写到 <code>config/ModConfigEnhance/output/translation/</code>。</span></li>
+    <li><span>只填每行等号右边，保留 <code>\n</code>、<code>{0}</code> 这类占位符。</span></li>
+    <li><span>用 UTF-8 保存，点「导入补翻」选这个文件，填好的行合进当前语言文件。</span></li>
+    <li><span>发布整合包时勾选这种语言，译文就跟着包一起发出去。</span></li>
+  </ul>
+</section>
+
+<nav class="pager" aria-label="翻页"><a href="packs.html" style="--c:var(--packs)"><small>上一页</small>整合包</a></nav>
+<footer><span>游戏内模组管理器 · In-Game Mod Manager · PEAK 模组</span><span>本介绍依据当前开发版整理，界面以游戏内为准</span></footer>
+</main>
+</body>
+</html>

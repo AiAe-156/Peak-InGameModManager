@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "profileId": "",
+  "session": "",
+  "pending": false,
+  "config": {
+    "schemaVersion": 1,
+    "capturedUtc": "0001-01-01T00:00:00",
+    "values": [],
+    "files": []
+  },
+  "restartParameters": [],
+  "restartMods": [],
+  "appliedIntroductionHash": ""
+}

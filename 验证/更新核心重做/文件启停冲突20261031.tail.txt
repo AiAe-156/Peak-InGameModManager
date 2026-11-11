@@ -1,0 +1,13 @@
+PASS complete evidence retained .old
+PASS active DLL excludes backup .old
+PASS backup identified .old
+PASS production selects active .old
+PASS production ignores old identity/dependencies .old
+PASS disable uses the short MCE suffix .old
+PASS legacy MCE suffix still recognised as ours
+PASS no active DLL means suffixed files are disabled candidates .old
+PASS multiple disabled candidates report paths .old
+Unhandled exception. System.IO.FileNotFoundException: Could not find file 'F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\文件启停冲突20261031\bin\Release\net10.0\fixtures-e179c35bca93493eb2a0a9b07fdaddf7\3a4d42b679e84395a413a8dd5f4b20b2\Example.dll.disabled-by-mce'.
+File name: 'F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\文件启停冲突20261031\bin\Release\net10.0\fixtures-e179c35bca93493eb2a0a9b07fdaddf7\3a4d42b679e84395a413a8dd5f4b20b2\Example.dll.disabled-by-mce'
+   at System.IO.File.Move(String sourceFileName, String destFileName, Boolean overwrite)
+   at Program.<Main>$(String[] args) in F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\文件启停冲突20261031\Program.cs:line 60

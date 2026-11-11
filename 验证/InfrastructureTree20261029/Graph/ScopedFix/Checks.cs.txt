@@ -1,0 +1,128 @@
+using System.IO.Compression;
+using System.Net;
+using System.Reflection;
+using System.Text.Json;
+using Mono.Cecil;
+using MCE.UpdateWorker;
+using ModConfigEnhance.Updating;
+// Final review probes. Sandbox only: fixture BepInEx/PEAK_Data live under this project's bin. No live game/core/config/inventory/queue.
+int passed = 0, failed = 0;
+void Check(bool ok, string label) { Console.WriteLine((ok ? "PASS " : "FAIL ") + label); if (ok) passed++; else failed++; }
+string suite = Path.Combine(AppContext.BaseDirectory, "fixtures-" + Guid.NewGuid().ToString("N"));
+const string modConfigGuid = "com.github.PEAKModding.PEAKLib.ModConfig", uiGuid = "com.github.PEAKModding.PEAKLib.UI";
+Files.RunningProbe = _ => false;
+string Root(out string managed)
+{
+    string game = Path.Combine(suite, Guid.NewGuid().ToString("N")[..8]);
+    string root = Path.Combine(game, "BepInEx"); Directory.CreateDirectory(Path.Combine(root, "plugins"));
+    managed = Path.Combine(game, "PEAK_Data", "Managed"); Directory.CreateDirectory(managed);
+    File.WriteAllBytes(Path.Combine(managed, "mscorlib.dll"), Build("mscorlib", null, null, null, new Version(4, 0, 0, 0))); return root;
+}
+string Manifest(string root, string key, string area = "plugins", string[]? deps = null)
+{
+    string dir = Path.Combine(root, area, key); Directory.CreateDirectory(dir);
+    File.WriteAllText(Path.Combine(dir, "manifest.json"), JsonSerializer.Serialize(new { name = key.Split('-')[1], @namespace = key.Split('-')[0], version_number = "1.0.0", dependencies = deps ?? Array.Empty<string>() }));
+    return dir;
+}
+byte[] Build(string name, string? guid, (string, bool)[]? deps, (string Name, Version V)[]? refs, Version? version = null)
+{
+    using var a = AssemblyDefinition.CreateAssembly(new AssemblyNameDefinition(name, version ?? new Version(1, 0)), name, ModuleKind.Dll);
+    var m = a.MainModule;
+    if (name is "mscorlib" or "System") { using var plain = new MemoryStream(); a.Write(plain); return plain.ToArray(); } // platform stub: metadata identity only
+    var t = new TypeDefinition("Fixture", "Plugin", Mono.Cecil.TypeAttributes.Public | Mono.Cecil.TypeAttributes.Class, m.TypeSystem.Object); m.Types.Add(t);
+    MethodReference Attr(string type, params TypeReference[] args) { var c = new MethodReference(".ctor", m.TypeSystem.Void, new TypeReference("BepInEx", type, m, m.TypeSystem.CoreLibrary)) { HasThis = true }; foreach (var x in args) c.Parameters.Add(new ParameterDefinition(x)); return c; }
+    if (guid != null) { var at = new CustomAttribute(Attr("BepInPlugin", m.TypeSystem.String, m.TypeSystem.String, m.TypeSystem.String)); foreach (string v in new[] { guid, name, "1.0.0" }) at.ConstructorArguments.Add(new CustomAttributeArgument(m.TypeSystem.String, v)); t.CustomAttributes.Add(at); }
+    foreach (var (dep, soft) in deps ?? Array.Empty<(string, bool)>()) { var at = new CustomAttribute(Attr("BepInDependency", m.TypeSystem.String, m.TypeSystem.Int32)); at.ConstructorArguments.Add(new CustomAttributeArgument(m.TypeSystem.String, dep)); at.ConstructorArguments.Add(new CustomAttributeArgument(m.TypeSystem.Int32, soft ? 2 : 1)); t.CustomAttributes.Add(at); }
+    foreach (var r in m.AssemblyReferences.Where(r => r.Name == "mscorlib")) r.PublicKeyToken = Array.Empty<byte>();
+    foreach (var (rn, rv) in refs ?? Array.Empty<(string, Version)>()) m.AssemblyReferences.Add(new AssemblyNameReference(rn, rv) { PublicKeyToken = Array.Empty<byte>() });
+    using var ms = new MemoryStream(); a.Write(ms); return ms.ToArray();
+}
+void Write(string dir, string name, string? guid, (string, bool)[]? deps, string[]? refs, Version? version, bool disabled = false)
+{
+    Directory.CreateDirectory(dir);
+    File.WriteAllBytes(Path.Combine(dir, name + (disabled ? ".dll.old" : ".dll")), Build(name, guid, deps, refs?.Select(r => (r, new Version(1, 0))).ToArray(), version));
+}
+// Standard closure: MCE -> ModConfig -> UI -> (assembly ref) third-party Core; Ordinary/Leaf are unrelated.
+string Standard(out string managed)
+{
+    string root = Root(out managed);
+    Write(Manifest(root, "AiAeT-ModConfigEnhance", deps: new[] { "Team-ModConfig-1.0.0" }), "Mce", ComponentDependencyGraph.MceGuid, new[] { (modConfigGuid, false), ("optional", true) }, null, null);
+    Write(Manifest(root, "Team-ModConfig"), "ModConfig", modConfigGuid, new[] { (uiGuid, false) }, null, null);
+    Write(Manifest(root, "Team-UI"), "UI", uiGuid, null, new[] { "ThirdPartyCore" }, null);
+    Write(Manifest(root, "Team-Core", "core"), "ThirdPartyCore", null, null, null, null);
+    Write(Manifest(root, "Team-Ordinary"), "Ordinary", "ordinary", null, null, null);
+    Write(Manifest(root, "Team-Leaf"), "Leaf", "leaf", null, null, null);
+    return root;
+}
+ComponentDependencyGraph Graph(string root) => new ShopQueue(root).ReadComponentGraph();
+
+{
+    string r = Standard(out _);
+    string shared = "core/Team-Core/ThirdPartyCore.dll";
+    Write(Manifest(r, "Other-Owner"), "Private", "private", null, new[] { "PrivateProvider" }, null);
+    Write(Manifest(r, "Other-PrivateProvider"), "PrivateProvider", null, null, null, null);
+    var claims = new[] { new ComponentDependencyCollector.ConfirmedFile { PackageKey = "Team-Core", Path = shared, Hash = Files.Hash(Path.Combine(r, shared)) },
+        new ComponentDependencyCollector.ConfirmedFile { PackageKey = "Other-Owner", Path = shared, Hash = Files.Hash(Path.Combine(r, shared)) } };
+    ComponentDependencyGraph Collect() => ComponentDependencyCollector.Collect(r, f => {
+        using var doc = JsonDocument.Parse(File.ReadAllText(f)); var x = doc.RootElement;
+        return new() { Key = x.GetProperty("namespace").GetString() + "-" + x.GetProperty("name").GetString(), Dependencies = x.GetProperty("dependencies").EnumerateArray().Select(d => d.GetString()!).ToArray() };
+    }, claims);
+    var g = Collect();
+    Check(g.Failures.Count == 0 && !g.GetCapability("Other-Owner").CanUninstall, "same path/hash shared MCE file protects every owner without failure");
+    Check(g.GetCapability("Other-PrivateProvider").CanUninstall && g.Components.Count(c => c.Id == "Other-Owner") == 1, "co-owner private dependency is not merged into MCE tree");
+    claims[1].Hash = "bad"; g = Collect();
+    Check(g.FailureScopes.Any(f => f.Node == "Other-Owner" && f.Path.EndsWith("ThirdPartyCore.dll")) && !g.GetCapability("Other-Owner").CanUninstall, "wrong hash recorded with scope and cannot bypass shared protection");
+    claims[0].Hash = claims[1].Hash = ""; g = Collect();
+    Check(!g.GetCapability("Other-Owner").CanUninstall && g.Failures.Count == 0, "legacy hashless claims verified against live bytes and share conservatively");
+}
+{
+    string r = Standard(out _); File.WriteAllBytes(Path.Combine(r, "plugins/Team-Leaf/bad.dll"), new byte[] { 1 });
+    var g = Graph(r);
+    Check(g.GetCapability("Team-Leaf").Unknown && g.GetCapability("Team-Leaf").CanUninstall && g.Failures.Count > 0, "damaged owner is verification-only, failures retained");
+    Write(Path.Combine(r, "plugins/Team-UI"), "UI", uiGuid, new[] { ("unreadable.guid", false) }, new[] { "ThirdPartyCore" }, null);
+    g = Graph(r);
+    Check(!g.GetCapability("Team-Leaf").CanUninstall && g.Edges.Any(e => e.To == "Team-Leaf" && e.Evidence.Contains("possible provider")), "unresolved MCE GUID binds damaged candidate and refuses deletion");
+}
+{
+    string r = Standard(out string managed);
+    File.WriteAllBytes(Path.Combine(managed, "System.dll"), Build("System", null, null, null, new Version(4, 0, 0, 0)));
+    Write(Path.Combine(r, "plugins/Team-UI"), "UI", uiGuid, null, new[] { "ThirdPartyCore", "System" }, null);
+    string dir = Manifest(r, "Other-System"); File.WriteAllBytes(Path.Combine(dir, "System.dll"), new byte[] { 1 });
+    var g = Graph(r);
+    Check(!g.GetCapability("Other-System").CanUninstall && g.GetCapability("Team-Leaf").Unknown, "corrupt installed same-name provider cannot be bypassed through valid platform");
+}
+{
+    string r = Standard(out _);
+    File.WriteAllBytes(Path.Combine(r, "plugins/AiAeT-ModConfigEnhance/Mce.dll"), new byte[] { 1 });
+    var cap = Graph(r).GetCapability("Team-Leaf");
+    Check(cap.Unknown && !cap.CanUninstall && cap.Reason.Contains("seed"), "missing/corrupt MCE seed blocks globally with explicit reason");
+}
+{
+    string r = Standard(out _);
+    string folder = Manifest(r, "Other-Standard");
+    File.WriteAllText(Path.Combine(folder, "manifest.json"), JsonSerializer.Serialize(new { name = "Standard", version_number = "1.0.0", dependencies = Array.Empty<string>() }));
+    Write(folder, "Standard", "standard", null, null, null);
+    var g = Graph(r);
+    Check(g.GetCapability("Other-Standard").CanUninstall && g.Failures.Count == 0, "standard no-namespace manifest infers explicit Team-Package directory");
+    string nested = Path.Combine(folder, "docs"); Directory.CreateDirectory(nested);
+    File.WriteAllText(Path.Combine(nested, "manifest.json"), JsonSerializer.Serialize(new { name = "Fake", @namespace = "Wrong", version_number = "1.0.0", dependencies = new[] { "Missing-Fake-1.0.0" } }));
+    g = Graph(r);
+    Check(!g.Components.Any(c => c.Id == "Wrong-Fake") && g.GetCapability("Team-Leaf").CanUninstall, "nested documentation manifest does not create package or pollute parent dependencies");
+}
+{
+    string r = Standard(out _);
+    string bad = Path.Combine(r, "plugins/Team-Leaf/bad.dll"); File.WriteAllBytes(bad, new byte[] { 1 });
+    var queue = new ShopQueue(r);
+    queue.Handle(new() { Operation = "preview-uninstall", Namespace = "Team", Package = "Leaf", Version = "1.0.0" });
+    await queue.Pump(new());
+    var task = queue.Read()!;
+    Check(task.State != "completed" && File.Exists(bad) && File.Exists(Path.Combine(r, "core/Team-Core/ThirdPartyCore.dll")), "verification-only damaged owner preview never grants direct deletion or bypasses known protection");
+}
+{
+    string r = Standard(out string managed);
+    using (var platform = AssemblyDefinition.CreateAssembly(new AssemblyNameDefinition("System", new Version(4, 0, 0, 0)) { Culture = "fr" }, "System", ModuleKind.Dll))
+        platform.Write(Path.Combine(managed, "System.dll"));
+    File.WriteAllBytes(Path.Combine(r, "plugins/Team-UI/UI.dll"), Build("UI", uiGuid, null, new[] { ("ThirdPartyCore", new Version(1, 0)), ("System", new Version(2, 0, 0, 0)) }));
+    Check(Graph(r).GetCapability("Team-Leaf").Unknown, "higher platform version with wrong culture does not satisfy MCE reference");
+}
+Console.WriteLine($"{passed} passed, {failed} failed"); return failed == 0 ? 0 : 1;

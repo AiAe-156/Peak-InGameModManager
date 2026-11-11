@@ -1,0 +1,11 @@
+{
+  "name": "ModConfigEnhance",
+  "version_number": "2.5.4",
+  "website_url": "https://github.com/AiAe-156/Peak-ModConfigEnhance",
+  "description": "Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
+  "dependencies": [
+    "BepInEx-BepInExPack_PEAK-5.4.2403",
+    "PEAKModding-PEAKLib_UI-1.7.2",
+    "PEAKModding-ModConfig-1.8.2"
+  ]
+}

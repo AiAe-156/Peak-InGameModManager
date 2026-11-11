@@ -1,0 +1,90 @@
+{
+  "status": "completed",
+  "startedUtc": "2026-10-30T11:26:07.066037+00:00",
+  "mods": [
+    {
+      "project": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport",
+      "target": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[机制]更好的手动复活&传送",
+      "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport\\备份\\部署前_主菜单空转优化_20261030_192607\\installed",
+      "status": "completed",
+      "files": [
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport\\bin\\Release\\BetterReviveOrTeleport.dll",
+          "relative": "BetterReviveOrTeleport.dll",
+          "size": 59392
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport\\README.md",
+          "relative": "README.md",
+          "size": 9997
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport\\CHANGELOG.md",
+          "relative": "CHANGELOG.md",
+          "size": 933
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\汉化\\BetterReviveTeleport\\manifest.json",
+          "relative": "manifest.json",
+          "size": 517
+        }
+      ],
+      "completedUtc": "2026-10-30T11:26:07.623330+00:00"
+    },
+    {
+      "project": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\Better_MicIndicator",
+      "target": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[功能]更好的麦克风指示器(Better_MicIndicator)",
+      "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\Better_MicIndicator\\备份\\部署前_主菜单空转优化_20261030_192607\\installed",
+      "status": "completed",
+      "files": [
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\Better_MicIndicator\\bin\\Release\\netstandard2.1\\Better_MicIndicator.dll",
+          "relative": "Better_MicIndicator.dll",
+          "size": 32768
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\Better_MicIndicator\\README.md",
+          "relative": "README.md",
+          "size": 514
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\Better_MicIndicator\\CHANGELOG.md",
+          "relative": "CHANGELOG.md",
+          "size": 1939
+        }
+      ],
+      "completedUtc": "2026-10-30T11:26:07.805302+00:00"
+    },
+    {
+      "project": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2",
+      "target": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\1拓展模组\\[信息]更好的显示玩家距离-1.1.5",
+      "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2\\备份\\部署前_主菜单空转优化_20261030_192607\\installed",
+      "status": "completed",
+      "files": [
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2\\bin\\Release\\netstandard2.1\\BetterPlayerDistance.dll",
+          "relative": "BetterPlayerDistance.dll",
+          "size": 288768
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2\\README.md",
+          "relative": "README.md",
+          "size": 5897
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2\\CHANGELOG.md",
+          "relative": "CHANGELOG.md",
+          "size": 17062
+        },
+        {
+          "source": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\显示玩家距离\\更好的显示玩家距离2\\manifest.json",
+          "relative": "manifest.json",
+          "size": 440
+        }
+      ],
+      "completedUtc": "2026-10-30T11:26:07.973692+00:00"
+    }
+  ],
+  "processes": [],
+  "completedUtc": "2026-10-30T11:26:07.973917+00:00"
+}

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCE 的文件脉络：发布包、资源包、多语言与整合包</title>
+<style>
+  :root {
+    --haze: #e4eaee;        /* 页面底：高山晨雾 */
+    --paper: #f4f6f7;       /* 卡片底 */
+    --navy: #122e48;        /* 游戏 3.1 设置菜单的 BoxColor */
+    --navy-2: #1b3d5c;
+    --cream: #dfdac2;       /* 游戏 TextDefaultColor */
+    --ink: #1d2a35;
+    --ink-2: #4c5b68;
+    --line: #c5d0d8;
+    --store: #c99a2e;       /* 商店读的 */
+    --load: #3e7cb1;        /* 游戏 / BepInEx 加载的 */
+    --read: #2a8c82;        /* MCE 自己读的资料 */
+    --tool: #6a7a8c;        /* 更新助手 */
+    --pack: #8a5cc2;        /* 整合包 */
+    --pin: #c8f05a;         /* MCE 置顶线的青柠色：标「必需」 */
+    --warn: #c8572e;
+    --mono: "Cascadia Mono", "Consolas", "Sarasa Mono SC", monospace;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }
+  body { margin: 0; background: var(--haze); color: var(--ink); font: 16px/1.75 var(--sans); }
+  a { color: var(--load); }
+  code, .path { font-family: var(--mono); font-size: .88em; }
+  code { background: #dde5ea; padding: .05em .35em; border-radius: 4px; }
+  :focus-visible { outline: 3px solid var(--pin); outline-offset: 2px; }
+
+  /* —— 顶部：山脊线 —— */
+  .ridge { height: 74px; background: var(--navy); position: relative; overflow: hidden; }
+  .ridge svg { position: absolute; bottom: -1px; left: 0; width: 100%; height: 74px; }
+  .topnav { position: absolute; inset: 0; display: flex; align-items: center; gap: 22px; padding: 0 clamp(16px, 5vw, 64px); z-index: 1; }
+  .topnav strong { color: var(--cream); font-weight: 700; letter-spacing: .02em; margin-right: auto; }
+  .topnav a { color: #c9d6e1; text-decoration: none; font-size: 14px; }
+  .topnav a:hover { color: #fff; }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 96px; }
+  section { padding-top: 64px; }
+  h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.25; margin: 40px 0 10px; letter-spacing: -.01em; }
+  h2 { font-size: 26px; line-height: 1.35; margin: 0 0 8px; }
+  h3 { font-size: 18px; margin: 0 0 6px; }
+  .lede { max-width: 46em; color: var(--ink-2); margin: 0 0 28px; }
+  .sub { max-width: 46em; color: var(--ink-2); margin: 0 0 22px; }
+
+  /* —— 图例 —— */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 18px; font-size: 14px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  /* —— 主树 —— */
+  .explorer { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 0; background: var(--navy); border-radius: 14px; overflow: hidden; box-shadow: 0 18px 40px -24px #0c2033; }
+  .tree { padding: 18px 10px 18px 14px; max-height: 620px; overflow: auto; border-right: 1px solid #24486a; }
+  .tree ul { list-style: none; margin: 0; padding-left: 18px; border-left: 1px dashed #345a7c; }
+  .tree > ul { border-left: none; padding-left: 0; }
+  .node { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: 0; color: var(--cream); font: 14px/1.5 var(--mono); text-align: left; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+  .node:hover { background: #1f4568; }
+  .node[aria-selected="true"] { background: #2b5a85; color: #fff; }
+  .node .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .node .size { margin-left: auto; color: #8fa7bc; font-size: 12px; padding-left: 12px; }
+  .node .req { width: 3px; height: 16px; background: var(--pin); border-radius: 2px; flex: none; }
+  .node .noreq { width: 3px; flex: none; }
+  .node .caret { width: 12px; color: #8fa7bc; flex: none; transition: transform .15s; }
+  li[aria-expanded="false"] > ul { display: none; }
+  li[aria-expanded="false"] > .node .caret { transform: rotate(-90deg); }
+  .detail { padding: 26px 28px; color: var(--cream); background: var(--navy-2); }
+  .detail .kind { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #b6c6d4; }
+  .detail h3 { color: #fff; font: 600 19px/1.4 var(--mono); margin: 8px 0 14px; word-break: break-all; }
+  .detail dl { margin: 0; display: grid; grid-template-columns: 5.5em 1fr; gap: 8px 12px; font-size: 15px; }
+  .detail dt { color: #8fa7bc; }
+  .detail dd { margin: 0; }
+  .detail .note { margin-top: 18px; padding: 10px 12px; border-left: 3px solid var(--warn); background: #2a3f56; font-size: 14px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 28px; margin: 0 0 26px; }
+  .fact b { display: block; font-size: 30px; line-height: 1.1; }
+  .fact span { font-size: 14px; color: var(--ink-2); }
+
+  /* —— 落地位置 —— */
+  .zones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .zone { background: var(--paper); border-radius: 12px; padding: 18px 18px 16px; border-top: 4px solid var(--c); }
+  .zone .path { display: block; color: var(--c); font-weight: 600; margin-bottom: 6px; word-break: break-all; }
+  .zone p { margin: 0 0 10px; font-size: 15px; }
+  .zone ul { margin: 0; padding-left: 1.1em; font-size: 14px; color: var(--ink-2); }
+  .zone .who { font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
+
+  /* —— 多语言：查词阶梯 —— */
+  .ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 8px 0 26px; position: relative; }
+  .rung { padding: 16px 16px 14px; background: var(--paper); border-right: 1px solid var(--line); position: relative; }
+  .rung:first-child { border-radius: 12px 0 0 12px; }
+  .rung:last-child { border-radius: 0 12px 12px 0; border-right: none; }
+  .rung b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .rung .path { display: block; color: var(--read); margin-bottom: 6px; word-break: break-all; }
+  .rung p { margin: 0; font-size: 14px; color: var(--ink-2); }
+  .rung .step { position: absolute; top: 14px; right: 14px; font-size: 13px; color: var(--ink-2); }
+  .rung.on { background: #dff0ec; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+  .chip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 5px 14px; font: 14px var(--sans); cursor: pointer; color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--read); border-color: var(--read); color: #fff; }
+  .explain { background: var(--paper); border-radius: 12px; padding: 16px 20px; margin-bottom: 26px; min-height: 92px; }
+  .explain p { margin: 0 0 6px; }
+
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .panel { background: var(--paper); border-radius: 12px; padding: 20px 22px; }
+  .panel ol, .panel ul { margin: 6px 0 0; padding-left: 1.3em; }
+  .panel li { margin: 4px 0; }
+
+  /* —— 整合包流 —— */
+  .flow { display: grid; grid-template-columns: 1fr 34px 1.35fr 34px 1fr; align-items: stretch; margin: 10px 0 22px; }
+  .arrow { display: flex; align-items: center; justify-content: center; color: var(--pack); }
+  .arrow svg { width: 26px; height: 26px; }
+  .stage { background: var(--paper); border-radius: 12px; padding: 18px; }
+  .stage h3 { color: var(--pack); }
+  .stage p { margin: 0 0 8px; font-size: 15px; }
+  .pack-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+  .pf { border: 1px solid #dccdec; background: #f7f1fc; border-radius: 8px; padding: 8px 10px; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+  .pf code { background: none; padding: 0; color: var(--pack); font-weight: 600; overflow-wrap: anywhere; }
+  .pf small { display: block; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+  .pf[aria-pressed="true"] { border-color: var(--pack); box-shadow: inset 0 0 0 1px var(--pack); }
+  .pf .link { color: var(--read); }
+  .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .mode { background: var(--paper); border-radius: 12px; padding: 16px 18px; }
+  .mode .path { display: block; font-size: 13px; color: var(--pack); margin: 6px 0 8px; word-break: break-all; }
+  .mode p { margin: 0; font-size: 14px; color: var(--ink-2); }
+  .couple { margin-top: 22px; background: var(--navy); color: var(--cream); border-radius: 12px; padding: 20px 24px; }
+  .couple h3 { color: #fff; }
+  .couple ul { margin: 6px 0 0; padding-left: 1.2em; }
+  .couple li { margin: 6px 0; }
+  .couple code { background: #24486a; color: #fff; }
+
+  /* —— 资源包 —— */
+  .anatomy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .box { background: var(--paper); border-radius: 12px; padding: 18px 20px; }
+  .file-list { list-style: none; margin: 8px 0 0; padding: 0; font: 14px/1.9 var(--mono); }
+  .file-list li { display: flex; gap: 10px; align-items: baseline; }
+  .file-list .tag { font: 12px var(--sans); color: #fff; padding: 0 7px; border-radius: 4px; }
+  .file-list .sz { margin-left: auto; color: var(--ink-2); font-size: 12px; }
+
+  /* —— 检查清单 —— */
+  .checks { list-style: none; margin: 0; padding: 0; background: var(--paper); border-radius: 12px; }
+  .checks li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); align-items: start; }
+  .checks li:last-child { border-bottom: none; }
+  .checks .st { font-weight: 700; }
+  .checks .ok { color: var(--read); }
+  .checks .bad { color: var(--warn); }
+  .checks .now { font-size: 14px; color: var(--ink-2); text-align: right; white-space: nowrap; }
+  .cmd { background: var(--navy); color: var(--cream); border-radius: 10px; padding: 14px 18px; font: 14px/1.7 var(--mono); overflow-x: auto; margin: 14px 0 0; }
+  footer { margin-top: 56px; font-size: 13px; color: var(--ink-2); }
+
+  @media (max-width: 900px) {
+    .explorer, .two, .anatomy { grid-template-columns: 1fr; }
+    .tree { max-height: 440px; border-right: none; border-bottom: 1px solid #24486a; }
+    .zones, .ladder, .modes { grid-template-columns: 1fr 1fr; }
+    .rung, .rung:first-child, .rung:last-child { border-radius: 0; }
+    .flow { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); height: 34px; }
+    .topnav a { display: none; }
+  }
+  @media (max-width: 560px) { .zones, .ladder, .modes, .pack-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="ridge">
+  <nav class="topnav" aria-label="页内导航">
+    <strong>MCE 文件脉络</strong>
+    <a href="#package">发布包</a><a href="#install">装到哪里</a><a href="#language">多语言</a><a href="#packs">整合包</a><a href="#resource">资源包</a><a href="#checklist">发布前检查</a>
+  </nav>
+  <svg viewBox="0 0 1200 74" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 74 L0 52 L90 40 L150 50 L250 22 L330 44 L410 30 L520 54 L600 18 L690 46 L780 34 L860 50 L960 14 L1040 42 L1120 30 L1200 46 L1200 74 Z" fill="#1b3d5c"/>
+    <path d="M0 74 L0 62 L120 56 L230 64 L360 50 L470 62 L600 46 L720 60 L850 52 L980 64 L1100 54 L1200 60 L1200 74 Z" fill="#e4eaee"/>
+  </svg>
+</header>
+
+<main>
+<section id="package" style="padding-top:8px">
+  <h1>MCE 发到雷霆商店的包里有什么，装上以后又各去了哪里</h1>
+  <p class="lede">下面这棵树就是 <code>tools/package_thunderstore.py</code> 打出来的商店包，版本 2.4.4。点任何一个文件或文件夹，右边会说明它是谁读的、少了会怎样。左侧青柠色短条表示打包脚本强制要求的文件。</p>
+
+  <div class="facts" aria-label="发布包概况">
+    <div class="fact"><b>50</b><span>个文件</span></div>
+    <div class="fact"><b>13.7 MB</b><span>解压后，压缩包约 10.2 MB</span></div>
+    <div class="fact"><b>6.6 MB</b><span>其中一段示例视频，约占一半</span></div>
+    <div class="fact"><b>4</b><span>个商店依赖</span></div>
+  </div>
+
+  <div class="legend" aria-label="颜色图例">
+    <span><i class="sw" style="background:var(--store)"></i>商店读的</span>
+    <span><i class="sw" style="background:var(--load)"></i>游戏启动时加载</span>
+    <span><i class="sw" style="background:var(--read)"></i>MCE 运行时读取</span>
+    <span><i class="sw" style="background:var(--tool)"></i>更新助手</span>
+    <span><i class="sw" style="background:var(--pack)"></i>整合包相关</span>
+  </div>
+
+  <div class="explorer">
+    <div class="tree" id="tree" role="tree" aria-label="商店包文件树"></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="install">
+  <h2>装上以后：包里的东西只占一个地方，运行时还会长出三个</h2>
+  <p class="sub">r2modman 或雷霆商店会把整个包装进 <code>BepInEx/plugins/AiAeT-ModConfigEnhance/</code>。这个文件夹只放发布出来的东西，更新时整个替换。你的方案、词典、整合包库都在别处，所以更新 MCE 不会丢资料。</p>
+  <div class="zones">
+    <div class="zone" style="--c:var(--load)">
+      <span class="path">BepInEx/plugins/<br>AiAeT-ModConfigEnhance/</span>
+      <p>商店包解开后的全部内容。</p>
+      <ul><li>插件本体和两个库</li><li>更新助手的原件</li><li>说明图例、示例</li></ul>
+      <div class="who">写入者：商店管理器、MCE 自己的更新</div>
+    </div>
+    <div class="zone" style="--c:var(--read)">
+      <span class="path">BepInEx/config/<br>ModConfigEnhance/</span>
+      <p>你的个人资料，首次运行时创建。</p>
+      <ul><li><code>language/</code> 个人词典</li><li><code>profiles/</code> 配置方案、整合包介绍与素材</li><li><code>output/</code> 导出的东西：<code>translation/</code> 待翻译文本、<code>packs/</code> 发布输出、<code>logs/</code> 日志导出</li><li><code>data/</code> 管理器自己的数据：<code>runtime/</code> 已应用和待应用状态、<code>backups/</code> 自动备份、<code>help/</code> 你改过的说明、<code>legacy/</code> 10 月前旧数据</li></ul>
+      <div class="who">写入者：MCE 插件</div>
+    </div>
+    <div class="zone" style="--c:var(--tool)">
+      <span class="path">BepInEx/MCE/</span>
+      <p>更新助手的工作区，只在有任务时才动。</p>
+      <ul><li><code>queue.json</code>、<code>jobs/</code> 任务</li><li><code>backups/</code> 每次改文件前的备份</li><li><code>downloads/</code> 下载缓存</li><li><code>tools/</code> 助手实际运行的副本</li><li><code>packs/</code> 整合包库（本机 1.9 GB）</li></ul>
+      <div class="who">写入者：MCE.UpdateWorker.exe</div>
+    </div>
+    <div class="zone" style="--c:var(--pack)">
+      <span class="path">%LOCALAPPDATA%/<br>ModConfigEnhance/signing/</span>
+      <p>发布签名身份，在游戏目录和管理器档案之外。</p>
+      <ul><li>私钥只在你自己电脑上</li><li>换电脑用「备份 / 导入发布签名身份」</li></ul>
+      <div class="who">写入者：发布向导</div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:16px">为什么助手要先复制一份到 <code>BepInEx/MCE/tools/</code> 再运行：更新 MCE 自己时，助手要替换的正是插件文件夹里的那份 exe。从副本运行，原件才能被换掉。</p>
+</section>
+
+<section id="language">
+  <h2>多语言：三种文字，一条查词顺序</h2>
+  <p class="sub">MCE 要翻译的文字有三种来源，但模组名称和界面文字都走同一套词典。界面上显示的每一句，都按下面的顺序从左往右找，找到就停。</p>
+
+  <div class="ladder" id="ladder">
+    <div class="rung" data-k="personal"><span class="step">先找</span><b>个人词典</b><span class="path">config/ModConfigEnhance/language/</span><p>你自己改的、补翻的。在概览里双击名称改词，会按需创建 <code>&lt;组名&gt;_personal.txt</code>。</p></div>
+    <div class="rung" data-k="author"><b>作者词典</b><span class="path">plugins/&lt;整合包&gt;/MCEPack/language/</span><p>跟着整合包一起来的。作者发布时选了哪些语言，这里就有哪些。</p></div>
+    <div class="rung" data-k="builtin"><b>内置</b><span class="path">ModConfigEnhance.dll 内</span><p>MCE 自己的界面文字，英文、简体、繁体三份写在代码里。不装任何语言文件也能用。</p></div>
+    <div class="rung" data-k="source"><span class="step">最后</span><b>英文原文</b><span class="path">模组自己写的文字</span><p>哪都没找到就显示原文。英文原文同时也是词典左边的键。</p></div>
+  </div>
+
+  <div class="chips" role="group" aria-label="选一种文字看它从哪里来">
+    <button class="chip" aria-pressed="true" data-t="ui">MCE 界面文字</button>
+    <button class="chip" aria-pressed="false" data-t="mod">模组名称和说明</button>
+    <button class="chip" aria-pressed="false" data-t="help">使用说明</button>
+  </div>
+  <div class="explain" id="explain" aria-live="polite"></div>
+
+  <div class="two">
+    <div class="panel">
+      <h3>词典文件怎样合成一种语言</h3>
+      <ul>
+        <li><code>zh-cn.txt</code> 和 <code>zh-cn_补翻_20261010.txt</code> 属于同一组「zh-cn」，按文件名排序读，后读的同名条目覆盖先读的。</li>
+        <li><code>zh-cn-funny.txt</code> 是独立的一种语言，在下拉里单独出现。</li>
+        <li>首行写 <code>// display: 简体中文</code> 就是下拉里显示的名字。</li>
+        <li>语言选择是全局的，切换方案不变；切换整合包也不变，除非这个包存入时选了自己的语言。</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>补翻是怎么转一圈回来的</h3>
+      <ol>
+        <li>设置侧栏点「导出翻译」或「补漏翻」，文本写到 <code>config/ModConfigEnhance/output/translation/</code>。</li>
+        <li>只填等号右边，保留 <code>\n</code>、<code>{0}</code> 这类占位符。</li>
+        <li>点「导入补翻」选这个文件，填好的行合进当前语言文件（旧文件先备份）。</li>
+        <li>发布整合包时勾选这种语言，这些词条就会进作者词典，跟着包走到玩家那里。</li>
+      </ol>
+      <p style="margin:10px 0 0;font-size:14px;color:var(--ink-2)">装了 XUnity AutoTranslator 时，MCE 会把选好的语言和词典同步过去，并默认关掉它的在线机翻，让词典说了算。</p>
+    </div>
+  </div>
+</section>
+
+<section id="packs">
+  <h2>整合包：一个装着方案和词典的文件夹，外面套上模组</h2>
+  <p class="sub">MCE 整合包的核心是一个叫 <code>MCEPack</code> 的文件夹。它不含任何 DLL，只是资料。三种导出方式的区别，在于这个文件夹外面还套了多少东西。点中间的文件看它和别的功能怎么连起来。</p>
+
+  <div class="flow">
+    <div class="stage">
+      <h3>作者在游戏里整理</h3>
+      <p>概览里调参数、启停、分组、写介绍、补翻译，再核对每个模组的来源。</p>
+      <p>同一个整合包可以有多套方案；分组、介绍、媒体、字体由所有方案共用。</p>
+    </div>
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="stage">
+      <h3>MCEPack/ 里的文件</h3>
+      <div class="pack-grid" id="packgrid"></div>
+      <p id="packnote" style="margin:12px 0 0;font-size:14px;color:var(--ink-2)" aria-live="polite"></p>
+    </div>
+    <div class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="stage">
+      <h3>玩家导入和切换</h3>
+      <p>导入只存进整合包库 <code>BepInEx/MCE/packs/</code>，不碰游戏文件。</p>
+      <p>切换要替换运行中的文件，所以等退出游戏后由更新助手完成，改动前都会先备份。</p>
+      <p>第一次进主菜单时应用作者指定的默认方案。玩家的修改存进「个人副本」，作者原件保持只读。</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:6px">三种导出方式</h3>
+  <div class="modes">
+    <div class="mode"><b>仅作者资料</b><span class="path">plugins/MCEPack/</span><p>只有方案、介绍、译文和来源。给已经装好模组的玩家。</p></div>
+    <div class="mode"><b>完整本地整合包</b><span class="path">BepInEx/plugins/&lt;名称&gt;/MCEPack/<br>+ 所有模组文件夹 + 生成的配置</span><p>离线可用。配置文件只根据默认方案里记录的参数生成，不会整份复制你的 config。</p></div>
+    <div class="mode"><b>雷霆商店包</b><span class="path">manifest.json 的 dependencies<br>+ BepInEx/plugins/&lt;名称&gt;/MCEPack/</span><p>商店里有的模组写成依赖，其余按你的选择随包附带。</p></div>
+  </div>
+
+  <div class="couple">
+    <h3>它和其他功能扣在一起的地方</h3>
+    <ul>
+      <li><b>和多语言：</b>发布时选的语言被复制进 <code>MCEPack/language/</code>，成为玩家那边的「作者词典」那一级。玩家导入时可以挑显示语言。</li>
+      <li><b>和更新：</b><code>sources.json</code> 记下每个插件 GUID 对应的商店包，MCE 靠它检查更新。商店包的依赖也是从这里生成的。方案里记的版本是「整合包指定版本」，只在显式恢复时使用。</li>
+      <li><b>和签名：</b><code>signature.json</code> 存公钥和每个文件的哈希。文件被改过时，受影响的作者资料停用，玩家自己的配置不受影响。</li>
+      <li><b>和资源包：</b>上传到商店的 MCE 整合包，本身就是一个没有 DLL 的资源包，载荷是 <code>MCEPack/</code>，依赖是那些模组。所以本机 plugins 里那个 <code>MCEPack_6b679869</code> 在概览里显示成资源包。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="resource">
+  <h2>资源包：有 manifest、没有 DLL 的商店包</h2>
+  <p class="sub">BepInEx 只加载 DLL，所以资源包里的文件没人主动去读，要靠依赖它的那个模组按路径去找。MCE 发现一个文件夹里有 <code>manifest.json</code> 却没有 DLL，就标成资源包（青色角标）。停用它就是把 <code>manifest.json</code> 改名成 <code>manifest.json.old</code>。</p>
+  <div class="anatomy">
+    <div class="box">
+      <h3>本机的实例：AeralisFoundation-PLL_Fog_Resources</h3>
+      <ul class="file-list">
+        <li><span class="tag" style="background:var(--store)">商店</span>manifest.json<span class="sz">0.2 KB</span></li>
+        <li><span class="tag" style="background:var(--store)">商店</span>icon.png<span class="sz">14.6 KB</span></li>
+        <li><span class="tag" style="background:var(--store)">商店</span>README.md<span class="sz">0.9 KB</span></li>
+        <li><span class="tag" style="background:var(--ink-2)">许可</span>LICENSE.md<span class="sz">0.3 KB</span></li>
+        <li><span class="tag" style="background:var(--load)">载荷</span>NativeFog.bundle<span class="sz">6.6 MB</span></li>
+      </ul>
+      <p style="margin:12px 0 0;font-size:14px;color:var(--ink-2)">载荷是 PLL 雾效库要读的着色器包。同目录的 Unified_Ray_Tracing 也一样，载荷是一个叫 <code>unifiedraytracing</code> 的文件。</p>
+    </div>
+    <div class="box">
+      <h3>自己发一个资源包要准备什么</h3>
+      <ol style="margin:6px 0 0;padding-left:1.3em">
+        <li>ZIP 根目录放商店三件套：<code>manifest.json</code>、256×256 的 <code>icon.png</code>、<code>README.md</code>。</li>
+        <li>载荷放在用它的模组会去找的位置，惯例是 <code>plugins/</code> 下。r2modman 会装进 <code>BepInEx/plugins/&lt;团队&gt;-&lt;包名&gt;/</code>。</li>
+        <li>用它的模组在自己 manifest 的 <code>dependencies</code> 里写上这个包，玩家装模组时就会顺带装上。</li>
+        <li>不要在 <code>plugins</code> 根目录下再放一份同名的 <code>manifest.json</code>。同一个包两份说明文件版本不一致，就会出现 2.4.4 修掉的「已更新还在提醒」。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="checklist">
+  <h2>上传 MCE 之前过一遍</h2>
+  <p class="sub">前五条由打包脚本自动检查，任何一条不满足都会停下来不出包。后三条是这次整理时发现的，脚本不会拦。</p>
+  <ul class="checks">
+    <li><span class="st ok">✓</span><span>版本号是三段数字，manifest、两个 csproj 和代码里的 <code>PluginVersion</code> 一致</span><span class="now">2.4.4</span></li>
+    <li><span class="st ok">✓</span><span>商店简介不超过 250 个字符</span><span class="now">163 字符</span></li>
+    <li><span class="st ok">✓</span><span>16 个必需文件都在清单里</span><span class="now">已验证 50 个</span></li>
+    <li><span class="st ok">✓</span><span>更新助手目录不超过 10 MiB</span><span class="now">2.4 MB</span></li>
+    <li><span class="st ok">✓</span><span>编译产物比源码新，没有拿旧 DLL 打包</span><span class="now">已构建</span></li>
+    <li><span class="st bad">!</span><span><b>不要上传 <code>发布/</code> 里带后缀的 ZIP。</b>那些是部署脚本顺手打的备份，文件全平铺在根目录，商店装上后插件不会出现在 <code>plugins</code> 里。</span><span class="now">用下面的命令</span></li>
+    <li><span class="st bad">!</span><span><b>README.md 是商店页面正文，现在标题还写着 2.3.5</b>，内容是逐版更新说明。建议改成介绍页，更新说明留给 CHANGELOG.md。</span><span class="now">待改</span></li>
+    <li><span class="st bad">!</span><span><code>Demo/media/existing-video.mp4</code> 占了包体一半，只是介绍编辑器的示例素材。可以考虑换成更小的视频，或者干脆不带。</span><span class="now">6.6 MB</span></li>
+  </ul>
+  <pre class="cmd">cd MODs/ModConfigEnhance
+python tools/package_thunderstore.py --check-only    # 只核对，不出包
+python tools/package_thunderstore.py                 # 构建并生成 发布/ModConfigEnhance_2.4.4.zip</pre>
+  <p class="sub" style="margin-top:14px">脚本不会覆盖已有的同名包。商店团队名（AiAeT）在网页上传时选，不写在 manifest 里。四个依赖：BepInExPack_PEAK 5.4.2403、PEAKLib_UI 1.7.2、ModConfig 1.8.2、XUnity_AutoTranslator 5.6.11。</p>
+</section>
+
+<footer>依据 2026-11-10 的源码、发行清单 <code>release-files.txt</code>、打包脚本和本机现装整理。文件大小取自 2.4.4 构建产物。</footer>
+</main>
+
+<script>
+const K = { store:'var(--store)', load:'var(--load)', read:'var(--read)', tool:'var(--tool)', pack:'var(--pack)' };
+const KN = { store:'商店读的', load:'游戏启动时加载', read:'MCE 运行时读取', tool:'更新助手', pack:'整合包相关' };
+const tree = {
+  name:'ModConfigEnhance_2.4.4.zip', k:'store', open:true, d:{ what:'上传到雷霆商店的压缩包。根目录这几个文件是给商店网页看的，真正装进游戏的东西都在 BepInEx/ 下面。', who:'雷霆商店网站、r2modman', miss:'—' },
+  c:[
+    { name:'manifest.json', k:'store', req:true, size:'0.5 KB', d:{ what:'包名、版本、简介、主页和依赖。r2modman 靠 dependencies 自动装上 BepInEx、PEAKLib.UI、ModConfig 和 XUnity。', who:'商店、管理器；MCE 也会读它来显示自己的版本', miss:'商店拒收' } },
+    { name:'icon.png', k:'store', req:true, size:'128.7 KB', d:{ what:'商店列表里的图标，必须是 256×256 的 PNG。', who:'商店、管理器', miss:'商店拒收' } },
+    { name:'README.md', k:'store', req:true, size:'134.4 KB', d:{ what:'商店页面的正文。', who:'商店网页；也会随包装进游戏目录', miss:'商店拒收', note:'标题还写着 2.3.5，内容是逐版更新说明，玩家打开商店页第一眼看到的是这些。' } },
+    { name:'CHANGELOG.md', k:'store', req:true, size:'165.2 KB', d:{ what:'商店页面的「Changelog」标签。', who:'商店网页', miss:'打包脚本拒绝出包' } },
+    { name:'LICENSE.txt', k:'store', req:true, size:'1.1 KB', d:{ what:'MCE 自己的许可证。', who:'商店网页、玩家', miss:'打包脚本拒绝出包' } },
+    { name:'THIRD-PARTY-NOTICES.md', k:'store', req:true, size:'4.8 KB', d:{ what:'随包分发的第三方库（Markdig、YamlDotNet、Mono.Cecil、.NET 运行库）的许可声明。', who:'玩家', miss:'打包脚本拒绝出包；分发这些库也需要它' } },
+    { name:'BepInEx/plugins/ModConfigEnhance/', k:'load', open:true, d:{ what:'装进游戏的全部内容。r2modman 安装时会把这一层换成 plugins/AiAeT-ModConfigEnhance/，所以里面的文件互相按相对路径找。', who:'BepInEx', miss:'—' },
+      c:[
+        { name:'ModConfigEnhance.dll', k:'load', req:true, size:'3.0 MB', d:{ what:'插件本体。三语使用说明的正文（Help/*.md）和内置的英文、简体、繁体界面文字都编译在里面，所以说明文字不需要单独的文件。', who:'BepInEx 在游戏启动时加载', miss:'MCE 不存在' } },
+        { name:'Markdig.dll', k:'load', req:true, size:'463.5 KB', d:{ what:'Markdown 解析库。整合包介绍、使用说明、模组商店页面都靠它渲染。', who:'ModConfigEnhance.dll', miss:'打开任何说明或介绍都会报错' } },
+        { name:'YamlDotNet.dll', k:'load', req:true, size:'284.0 KB', d:{ what:'YAML 库。用 r2modman 档案时，MCE 改了模组版本或卸载了模组，要同步回档案里的 mods.yml。', who:'ModConfigEnhance.dll', miss:'档案同步失效，r2modman 显示的版本会和实际不符' } },
+        { name:'Tools/Updater/', k:'tool', open:false, size:'2.4 MB', d:{ what:'更新助手。安装、更新、卸载、目录整理、切换整合包这些改文件的操作，都由它在游戏外完成，这样可以替换游戏正在用的 DLL。用的是 Windows 自带的 .NET Framework 4.8，所以不用额外装运行库。', who:'MCE 插件按需启动；先复制到 BepInEx/MCE/tools/ 再运行', miss:'商店、更新、整合包切换全部不可用' },
+          c:[
+            { name:'MCE.UpdateWorker.exe', k:'tool', req:true, size:'', d:{ what:'干活的进程：下载、校验、备份、替换、回退。只在有任务时运行，必须有前台窗口。', who:'MCE 插件', miss:'所有文件操作不可用' } },
+            { name:'MCE.Desktop.exe', k:'tool', req:true, size:'', d:{ what:'进度窗口。游戏退出后还在进行的整理、更新会弹出这个窗口告诉你结果。', who:'更新助手', miss:'退出游戏后看不到进度和结果' } },
+            { name:'*.exe.config', k:'tool', req:true, size:'', d:{ what:'两个 exe 的运行配置，指定用 .NET Framework 4.8 和程序集重定向。', who:'Windows', miss:'exe 可能启动失败' } },
+            { name:'worker-protocol.manifest', k:'tool', req:true, size:'', d:{ what:'插件和助手之间的协议版本。版本对不上时插件拒绝启动旧助手，防止新旧混用改坏文件。', who:'MCE 插件、更新助手', miss:'打包脚本拒绝出包' } },
+            { name:'resource-capabilities.txt', k:'tool', size:'', d:{ what:'助手支持哪些资源操作的声明，插件据此决定显示哪些按钮。', who:'MCE 插件', miss:'部分资源操作按钮不出现' } },
+            { name:'System.Text.Json.dll 等 9 个库', k:'tool', size:'', d:{ what:'助手要用的 JSON、内存、管道等库，.NET Framework 4.8 本身没有。', who:'更新助手', miss:'助手启动即崩' } },
+            { name:'Mono.Cecil.dll', k:'tool', size:'', d:{ what:'不加载 DLL 就能读出插件 GUID、版本和依赖，用来判断要替换哪些文件、谁依赖谁。', who:'更新助手', miss:'无法识别插件，安装计划做不出来' } },
+            { name:'许可证 4 份', k:'store', req:true, size:'', d:{ what:'Mono.Cecil、.NET 运行库和微软第三方声明。随附这些库必须带上。', who:'玩家', miss:'打包脚本拒绝出包' } }
+          ] },
+        { name:'Help/', k:'read', open:false, size:'608.4 KB', d:{ what:'使用说明的图例图片，三种语言各 4 张。正文编译在 DLL 里，图片太大不适合编进去，所以单独放。', who:'MCE 的使用说明页', miss:'说明页里的图例显示为空' },
+          c:[
+            { name:'zh-cn/media/  toolbar · chips · boxes · flow', k:'read', size:'', d:{ what:'简体中文说明的四张图例：工具条、角标、启用方框、生效流程。可以用 make_figures.py 重画。', who:'使用说明页', miss:'对应语言的说明缺图' } },
+            { name:'zh-tw/media/', k:'read', size:'', d:{ what:'繁体中文说明的图例。', who:'使用说明页', miss:'缺图' } },
+            { name:'en-us/media/', k:'read', size:'', d:{ what:'英文说明的图例。其他语言的说明正文暂时用英文，也会用到这一份。', who:'使用说明页', miss:'缺图' } }
+          ] },
+        { name:'Demo/', k:'pack', open:false, size:'6.6 MB', d:{ what:'给整合包作者看的示例：一份介绍文档和它引用的素材、一个方案文件格式示例，以及日志接入 API 的说明。', who:'整合包作者；MCE 本身不依赖它', miss:'MCE 照常工作，作者少了参考', note:'其中 existing-video.mp4 一个文件就有 6.6 MB，占了整个包的一半。' },
+          c:[
+            { name:'introduction.md', k:'pack', size:'', d:{ what:'示例介绍，演示图片、动图、视频、对齐和缩进怎么写。', who:'作者', miss:'—' } },
+            { name:'media/  existing-video.mp4 · groups.png · playback.gif', k:'pack', size:'6.7 MB', d:{ what:'示例介绍引用的素材。', who:'作者', miss:'—', note:'视频 6.6 MB，可以换成更短的片段，或者不放进商店包。' } },
+            { name:'profile-format/', k:'pack', size:'', d:{ what:'profiles.json + 一个方案目录的最小示例，说明整合包里方案文件长什么样。', who:'作者', miss:'—' } },
+            { name:'日志接入_API.md', k:'read', size:'', d:{ what:'别的模组怎样把自己的日志接到 MCE 日志窗里。', who:'模组开发者', miss:'—' } },
+            { name:'README.md', k:'pack', size:'', d:{ what:'示例目录的说明。', who:'作者', miss:'—' } }
+          ] }
+      ] }
+  ]
+};
+
+const treeEl = document.getElementById('tree'), detailEl = document.getElementById('detail');
+let selected = null;
+function render(node, parentUl, depth) {
+  const li = document.createElement('li');
+  li.setAttribute('role', 'treeitem');
+  if (node.c) li.setAttribute('aria-expanded', node.open ? 'true' : 'false');
+  const b = document.createElement('button');
+  b.className = 'node'; b.type = 'button';
+  b.setAttribute('aria-selected', 'false');
+  b.innerHTML = (node.req ? '<i class="req" title="打包脚本要求"></i>' : '<i class="noreq"></i>')
+    + (node.c ? '<span class="caret" aria-hidden="true">▾</span>' : '<span class="caret" aria-hidden="true"></span>')
+    + '<i class="dot" style="background:' + K[node.k] + '"></i><span>' + node.name + '</span>'
+    + (node.size ? '<span class="size">' + node.size + '</span>' : '');
+  b.addEventListener('click', () => {
+    if (node.c) li.setAttribute('aria-expanded', li.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+    select(node, b);
+  });
+  li.appendChild(b);
+  if (node.c) { const ul = document.createElement('ul'); ul.setAttribute('role', 'group'); node.c.forEach(c => render(c, ul, depth + 1)); li.appendChild(ul); }
+  parentUl.appendChild(li);
+  return b;
+}
+function select(node, button) {
+  if (selected) selected.setAttribute('aria-selected', 'false');
+  selected = button; button.setAttribute('aria-selected', 'true');
+  const d = node.d;
+  detailEl.innerHTML = '<span class="kind"><i class="sw" style="background:' + K[node.k] + '"></i>' + KN[node.k] + (node.req ? '，打包脚本要求' : '') + '</span>'
+    + '<h3>' + node.name + '</h3><dl><dt>是什么</dt><dd>' + d.what + '</dd><dt>谁会读</dt><dd>' + d.who + '</dd><dt>缺了会怎样</dt><dd>' + d.miss + '</dd>'
+    + (node.size ? '<dt>大小</dt><dd>' + node.size + '</dd>' : '') + '</dl>'
+    + (d.note ? '<div class="note">' + d.note + '</div>' : '');
+}
+const rootUl = document.createElement('ul'); treeEl.appendChild(rootUl);
+const first = render(tree, rootUl, 0);
+select(tree, first);
+
+/* 多语言 */
+const texts = {
+  ui:   { rungs:['personal','author','builtin','source'], html:'<p><b>MCE 界面文字</b>（按钮、提示、对话框）。英文、简体、繁体三份直接写在代码里，所以内置那一级总能找到，几乎不会落到最后一格。</p><p>想改措辞：在个人词典里写一行同样的英文原文，等号右边写你的译法，个人那一级就会先命中。</p>' },
+  mod:  { rungs:['personal','author','source'], html:'<p><b>模组的名称、简介、设置项说明</b>。MCE 不内置这些译文，所以跳过「内置」那一级，没人翻译过就显示模组作者写的原文。</p><p>整合包作者补好的译文放在作者词典里，跟着整合包到玩家手上；玩家在概览里双击名称改的，存进个人词典。</p>' },
+  help: { rungs:['personal','builtin','source'], html:'<p><b>使用说明</b>是整页的 Markdown，不按词条查，单独走一条路：正文三语编译在 DLL 里，图例图片在包里的 <code>Help/&lt;语言&gt;/media/</code>。</p><p>开启「允许编辑功能说明」后改的内容存到 <code>config/ModConfigEnhance/data/help/&lt;语言&gt;/</code>，优先显示。简繁英以外的语言暂时显示英文。</p>' }
+};
+const chips = document.querySelectorAll('.chip'), rungs = document.querySelectorAll('.rung'), explain = document.getElementById('explain');
+function pick(t) {
+  chips.forEach(c => c.setAttribute('aria-pressed', c.dataset.t === t ? 'true' : 'false'));
+  rungs.forEach(r => r.classList.toggle('on', texts[t].rungs.includes(r.dataset.k)));
+  explain.innerHTML = texts[t].html;
+}
+chips.forEach(c => c.addEventListener('click', () => pick(c.dataset.t)));
+pick('ui');
+
+/* 整合包文件 */
+const packFiles = [
+  ['release.json', '包 ID、版本、默认方案', '整合包的身份证。<b>defaultProfile</b> 决定玩家第一次进游戏时应用哪套方案；<b>warnings</b> 记下发布时被跳过的模组和原因。'],
+  ['profiles.json', '方案列表', '列出包里有哪几套方案和各自的文件夹。玩家在方案下拉里看到的就是这些。'],
+  ['profiles/&lt;id&gt;/profile.json', '启停目标、分组归属', '一套方案：每个模组该开还是关、在哪个分组、排第几。模组按插件 GUID 记，所以换了文件夹名也认得出。'],
+  ['profiles/&lt;id&gt;/config-values.json', '参数值', '这套方案里每个设置项的值。完整本地包的 config 文件就是从这里生成的。'],
+  ['profiles/&lt;id&gt;/introduction.*', '介绍与媒体', '介绍正文（.md 和编辑器用的 .mcedoc.json）和 media/ 里引用的图片、动图、视频。概览打开整合包时首先看到它。'],
+  ['language/', '作者词典', '发布时选中的语言。到了玩家那里，就是查词顺序里的<span class="link">「作者词典」</span>那一级。'],
+  ['sources.json', '每个插件对应的商店包', 'GUID → 商店的团队和包名。检查更新、生成商店包依赖、模组商店里「已安装」的判断都靠它。'],
+  ['conflicts.json', '冲突建议', '作者写的「这两个模组不要同时开」之类的规则，概览里会提示玩家。'],
+  ['signature.json', '公钥与文件哈希', '证明以上文件出自同一个作者、没被改过。私钥不在包里，在作者电脑的 %LOCALAPPDATA% 下。']
+];
+const grid = document.getElementById('packgrid'), note = document.getElementById('packnote');
+packFiles.forEach(([name, short, long], i) => {
+  const b = document.createElement('button'); b.className = 'pf'; b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+  b.innerHTML = '<code>' + name + '</code><small>' + short + '</small>';
+  b.addEventListener('click', () => { grid.querySelectorAll('.pf').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); note.innerHTML = long; });
+  grid.appendChild(b);
+  if (i === 0) { b.setAttribute('aria-pressed', 'true'); note.innerHTML = long; }
+});
+</script>
+</body>
+</html>

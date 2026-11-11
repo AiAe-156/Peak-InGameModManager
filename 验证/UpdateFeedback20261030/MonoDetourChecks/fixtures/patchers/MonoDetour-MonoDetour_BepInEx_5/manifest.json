@@ -1,0 +1,11 @@
+{
+  "namespace": "MonoDetour",
+  "name": "MonoDetour_BepInEx_5",
+  "description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+  "version_number": "0.7.16",
+  "dependencies": [
+    "MonoDetour-MonoDetour-0.7.16"
+  ],
+  "website_url": "https://github.com/MonoDetour/MonoDetour",
+  "FullName": "MonoDetour-MonoDetour_BepInEx_5"
+}

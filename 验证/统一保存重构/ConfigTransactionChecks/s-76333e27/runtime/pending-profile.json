@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "profileId": "p",
+  "session": "aac4879fe20541cba24da0857c29b98a",
+  "pending": false,
+  "config": {
+    "schemaVersion": 1,
+    "capturedUtc": "0001-01-01T00:00:00",
+    "values": [],
+    "files": []
+  },
+  "restartParameters": [
+    {
+      "previous": "1",
+      "effectTiming": 3,
+      "target": {
+        "pluginGuid": "test.mod",
+        "configFile": "live.cfg",
+        "section": "S",
+        "key": "Restart",
+        "type": "System.Int32",
+        "serializedValue": "3",
+        "diskBaselineKnown": true,
+        "diskExists": true,
+        "liveBaselineKnown": false,
+        "liveValue": "",
+        "diskValue": "1",
+        "missing": false,
+        "missingReason": ""
+      }
+    }
+  ],
+  "restartMods": [],
+  "appliedIntroductionHash": "\n<missing>\n<missing>"
+}

@@ -1,0 +1,5 @@
+工作副本: C:\Users\AiAe\AppData\Local\Temp\mce-migration-unxz2ds3\language
+组 en-us: 文件 1 个 -> 旧读法 67 条, 合并后 67 条, 值不同 0, 缺失 0
+组 zh-cn: 文件 4 个 -> 旧读法 1244 条, 合并后 1244 条, 值不同 0, 缺失 0
+组 zh-tw: 文件 1 个 -> 旧读法 67 条, 合并后 67 条, 值不同 0, 缺失 0
+结论: 一致
