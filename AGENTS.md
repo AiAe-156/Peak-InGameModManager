@@ -9,7 +9,7 @@
 - **简化版 MCE 用旧 GUID 与 `config/ModConfigEnhance/`**，两者可同装：IGMM 进概览提醒一次（`OverviewPage.LegacyMceNotice.cs`），MCE 1.0.3 也提醒；只提示不拦截。按 GUID 无法区分 MCE 与旧完整版，所以旧 GUID 一并当作管理器保护。
 - **首次启动迁移 `src/ManagerSplitMigration.cs`**：cfg 复制（BindConfig 之前）、`config/ModConfigEnhance/` 复制到 `config/InGameModManager/`（旧目录原样留给 MCE；`output/packs`、`exports` 不复制）、签名身份复制、`BepInEx/MCE` 整体改名为 `BepInEx/IGMM`（助手在跑或有更新在提交时推迟）、改写 JSON 旧绝对路径。夹具 `验证/拆分/split-checks`（现场副本 27 项）。
 - 旧整合包固定的宿主 `com.aiae.modconfigenhance >= 2.x` 由新管理器接替：`PackTransactions.CheckRequirements` 与 `PackImports.RemoveHostCopies` 对管理器 GUID 不比版本（版本号从 1.0.0 重新起算）。
-- C# 命名空间 `ModConfigEnhance.*` 与三个 csproj 文件名**有意保留**（纯内部、改动面数百文件），不对外显示。GitHub 仓库链接暂仍指旧仓库，等新仓库建好再换。
+- C# 命名空间 `ModConfigEnhance.*` 与三个 csproj 文件名**有意保留**（纯内部、改动面数百文件），不对外显示。GitHub 仓库 `https://github.com/AiAe-156/Peak-InGameModManager`（公开，`main`，2026-11-11 建）；旧仓库 `Peak-ModConfigEnhance` 归简化版 MCE。推送需 `git -c credential.helper=manager push`（本机未配置 credential.helper，登录在 Git Credential Manager 里），推送前跑 `验证/拆分/secret_scan.py`。
 - 版本 1.0.0 起重新计；开发期 CHANGELOG / README 版本说明 / 内置更新日志归档在 `备份/*_开发期_*_20261111.md`。
 
 先读上级 `../AGENTS.md`。保留现有用户改动，不用 git reset 回退整工程。版本流水在 `CHANGELOG.md`；各专项验证记录在 `验证/<专项>/`，部署真源在对应 `deployment_*/result.json`。
