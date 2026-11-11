@@ -112,7 +112,7 @@
 100% 宽度 · 缩进一级
 
 <!--mce:{"v":1,"Type":"text","Media":"","Align":"left","Width":100,"Indent":0,"Background":"","InlineWithPrevious":false}-->
-[打开 ModConfig Enhance 主页](https://github.com/AiAe-156/Peak-ModConfigEnhance)
+[打开游戏内模组管理器主页](https://github.com/AiAe-156/Peak-InGameModManager)
 
 <!--mce:{"v":1,"Type":"rule","Media":"","Align":"left","Width":100,"Indent":0,"Background":"","InlineWithPrevious":false}-->
 ---

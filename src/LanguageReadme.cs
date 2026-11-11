@@ -79,7 +79,7 @@ internal static class LanguageReadme
 
         Not needed: all translation is done by these language files. If XUnity is installed with online machine translation on (`Endpoint` in `AutoTranslatorConfig.ini` is not empty), the manager reminds you once per launch — the two would mix — and can turn its machine translation off for you (the ini is backed up first). Option: `2. Localization / Warn about XUnity machine translation`.
 
-        Feedback and translations: `2323086800@qq.com` · QQ group `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
+        Feedback and translations: `2323086800@qq.com` · QQ group `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
 
         """;
 
@@ -151,7 +151,7 @@ internal static class LanguageReadme
 
         不需要它：翻译全部由这里的语言文件完成。如果装了 XUnity 并且开着在线机翻（`AutoTranslatorConfig.ini` 的 `Endpoint` 不为空），两边的译文会混在一起，管理器每次启动会提醒一次，并可以替你关掉它的在线机翻（先备份 ini）。开关：`2. Localization / Warn about XUnity machine translation`。
 
-        问题反馈和投稿译文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
+        问题反馈和投稿译文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
 
         """;
 
@@ -223,7 +223,7 @@ internal static class LanguageReadme
 
         不需要它：翻譯全部由這裡的語言檔案完成。如果裝了 XUnity 並且開著線上機翻（`AutoTranslatorConfig.ini` 的 `Endpoint` 不為空），兩邊的譯文會混在一起，管理器每次啟動會提醒一次，並可以替你關掉它的線上機翻（先備份 ini）。開關：`2. Localization / Warn about XUnity machine translation`。
 
-        問題回報和投稿譯文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
+        問題回報和投稿譯文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
 
         """;
 }

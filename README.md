@@ -2,7 +2,7 @@
 
 不用退出游戏、不用开管理器，在 PEAK 的设置菜单里就能看到装了哪些模组、各自是什么版本、谁依赖谁，改配置、改快捷键、更新、启停、卸载，都在同一个界面里完成。
 
-![模组概览](https://raw.githubusercontent.com/AiAe-156/Peak-ModConfigEnhance/master/%E5%9B%BE%E7%89%87/%E7%99%BD%E5%A4%A91.png)
+![模组概览](文档/介绍页/assets/overview-blue.jpg)
 
 **[查看完整介绍](文档/介绍页/index.html)**
 
@@ -68,7 +68,7 @@
 
 ---
 
-**[完整介绍、截图和使用说明](文档/介绍页/index.html)**　·　[更新日志](CHANGELOG.md)　·　[问题反馈](https://github.com/AiAe-156/Peak-ModConfigEnhance/issues)
+**[完整介绍、截图和使用说明](文档/介绍页/index.html)**　·　[更新日志](CHANGELOG.md)　·　[问题反馈](https://github.com/AiAe-156/Peak-InGameModManager/issues)
 
 ---
 

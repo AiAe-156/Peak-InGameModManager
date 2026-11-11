@@ -1,7 +1,7 @@
 {
   "name": "InGameModManager",
   "version_number": "1.0.0",
-  "website_url": "https://github.com/AiAe-156/Peak-ModConfigEnhance",
+  "website_url": "https://github.com/AiAe-156/Peak-InGameModManager",
   "description": "Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
   "dependencies": [
     "BepInEx-BepInExPack_PEAK-5.4.2403",
