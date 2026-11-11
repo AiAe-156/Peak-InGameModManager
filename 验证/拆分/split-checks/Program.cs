@@ -244,5 +244,27 @@ string liveBepFull = Path.GetFullPath(liveBep).TrimEnd('\\');
     Check(aliases.Count >= 2 && aliases.Any(a => a.Contains("SteamLibrary")) && aliases.Any(a => a.Contains("\\Steam\\")), "[K] both Steam and SteamLibrary spellings recognised for the live install");
 }
 
+// ── L：用户 2026-11-12「确保新装的 MCE 不会出问题」——IGMM 不把简化版 MCE 当成自己 ──
+{
+    Check(!ManagerIdentity.IsManagerGuid("com.aiae.modconfigenhance") && ManagerIdentity.IsManagerGuid("com.aiae.ingamemodmanager"), "[L] MCE's GUID is not treated as this manager (can be disabled / uninstalled / imported)");
+    Check(!ManagerIdentity.IsManagerPackage("AiAeT-ModConfigEnhance") && ManagerIdentity.IsManagerPackage("AiAeT-InGameModManager"), "[L] MCE's store package is an ordinary package");
+    Check(!ManagerIdentity.IsManagerDll("ModConfigEnhance.dll") && !ManagerIdentity.IsManagerAssembly("ModConfigEnhance"), "[L] ModConfigEnhance.dll is not taken as the manager host of a complete environment");
+    Check(ManagerIdentity.IsManagerSuccession("com.aiae.modconfigenhance") && ManagerIdentity.IsManagerDependency("AiAeT-ModConfigEnhance"), "[L] old pack host requirements / dependencies are still taken over by this manager");
+    // 迁移只读旧目录、不写不删：MCE 新装后用的是原封不动的 config\ModConfigEnhance 与 com.aiae.modconfigenhance.cfg
+    string home = Home(), bep = Path.Combine(home, "BepInEx"), config = Path.Combine(bep, "config");
+    Write(Path.Combine(config, "ModConfigEnhance", "language", "zh-cn.txt"), "MCE_SEARCH=搜索");
+    Write(Path.Combine(config, "com.aiae.modconfigenhance.cfg"), "[3. State]\nLanguage file = zh-cn\n");
+    var before = Snapshot(Path.Combine(config, "ModConfigEnhance"));
+    string cfgBefore = File.ReadAllText(Path.Combine(config, "com.aiae.modconfigenhance.cfg"));
+    var report = new ManagerSplitMigration.Report();
+    ManagerSplitMigration.CopyConfig(config, report);
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    ManagerSplitMigration.Run(bep, config, "", busy: false);
+    var after = Snapshot(Path.Combine(config, "ModConfigEnhance"));
+    Check(before.Count == after.Count && before.All(kv => after.TryGetValue(kv.Key, out var h) && h == kv.Value) && File.ReadAllText(Path.Combine(config, "com.aiae.modconfigenhance.cfg")) == cfgBefore, "[L] MCE's folder and cfg are left exactly as they were");
+    try { Directory.Delete(home, true); } catch { }
+}
+
+
 Console.WriteLine(failed == 0 ? "ALL PASS" : failed + " FAILED");
 return failed == 0 ? 0 : 1;

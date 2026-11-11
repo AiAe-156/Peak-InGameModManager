@@ -30,8 +30,16 @@ internal static class ManagerIdentity
     internal const string ConfigFileName = Guid + ".cfg";
     internal const string LegacyConfigFileName = LegacyGuid + ".cfg";
 
-    /// <summary>是不是管理器本身（新旧完整版都算；简化版 MCE 与旧完整版同 GUID，按 GUID 无法区分，一并当作管理器保护）。</summary>
-    internal static bool IsManagerGuid(string? guid) => Same(guid, Guid) || Same(guid, LegacyGuid);
+    /// <summary>
+    /// 是不是**正在运行的**本管理器（只认新 GUID）。用户 2026-11-12：拆分后旧 GUID 属于简化版 MCE，是一个普通模组，
+    /// 新装 MCE 时 IGMM 不能把它当成自己保护起来（不能停用、卸载、导入），也不能拿它当完整环境里的管理宿主。
+    /// </summary>
+    internal static bool IsManagerGuid(string? guid) => Same(guid, Guid);
+    /// <summary>
+    /// 旧整合包与旧完整环境里记下的宿主身份（新旧都认）：只用于「新管理器接替旧版宿主要求」，
+    /// 例如旧包要求 <c>com.aiae.modconfigenhance &gt;= 2.0.0</c> 时由本管理器满足。
+    /// </summary>
+    internal static bool IsManagerSuccession(string? guid) => Same(guid, Guid) || Same(guid, LegacyGuid);
     /// <summary>
     /// 商店里的「本管理器自身」：只认新包键。复查 #14：旧包键 <c>AiAeT-ModConfigEnhance</c> 现在是简化版 MCE 的商店包，
     /// 是一个普通模组，可以在 IGMM 的商店里装、更新、卸载（同装时概览会提醒）。
@@ -39,8 +47,8 @@ internal static class ManagerIdentity
     /// </summary>
     internal static bool IsManagerPackage(string? key) => Same(key, PackageKey);
     internal static bool IsManagerDependency(string? key) => Same(key, PackageKey) || Same(key, LegacyPackageKey);
-    internal static bool IsManagerAssembly(string? name) => Same(name, AssemblyName) || Same(name, LegacyAssemblyName);
-    internal static bool IsManagerDll(string? fileName) => Same(fileName, DllName) || Same(fileName, LegacyAssemblyName + ".dll");
+    internal static bool IsManagerAssembly(string? name) => Same(name, AssemblyName);
+    internal static bool IsManagerDll(string? fileName) => Same(fileName, DllName);
     internal static bool IsManagerConfigFile(string? fileName) => Same(fileName, ConfigFileName) || Same(fileName, LegacyConfigFileName);
 
     // ── 个人数据 config\<ConfigDirectory>\ ─────────────────

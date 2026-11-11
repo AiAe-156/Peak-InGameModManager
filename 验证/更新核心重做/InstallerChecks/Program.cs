@@ -618,7 +618,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
     File.WriteAllText(Path.Combine(nested, "manifest.json"), Fixtures.Manifest("Nested", "1.0.0"));
     string a = Installed(root, "0核心&基础模组/Alpha-Alpha", "Alpha", "1.0.0", Fixtures.Plugin(core, "Alpha", "team.alpha", "Alpha", "1.0.0"), "Alpha.dll");
     string b = Installed(root, "0核心&基础模组/Beta-Beta", "Beta", "1.0.0", Fixtures.Plugin(core, "Beta", "team.beta", "Beta", "1.0.0"), "Beta.dll");
-    string manager = Installed(root, "Manager-MCE", "IGMM", "1.0.0", Fixtures.Plugin(core, "IGMM", "com.aiae.modconfigenhance", "IGMM", "1.0.0"), "MCE.dll");
+    string manager = Installed(root, "Manager-MCE", "IGMM", "1.0.0", Fixtures.Plugin(core, "IGMM", "com.aiae.ingamemodmanager", "IGMM", "1.0.0"), "MCE.dll");
     string doubled = Installed(root, "Doubled-Doubled", "Doubled", "1.0.0", Fixtures.Plugin(core, "Doubled", "team.doubled", "Doubled", "1.0.0"), "Doubled.dll");
     File.Copy(Path.Combine(doubled, "Doubled.dll"), Path.Combine(doubled, "Doubled.dll.old"));
     using var worker = new QueueWorker(root);
@@ -628,7 +628,7 @@ byte[] PackageZip(string name, string version, byte[] dll, string dllPath = "", 
         Mode = InstallationLayoutMode.GroupOnly,
         Groups = new() { new LayoutQueueGroup { Id = "core", Name = "0基础模组" }, new LayoutQueueGroup { Id = "tools", Name = "Tools" } },
         Mods = new() { new LayoutQueueMod { Guid = "team.alpha", GroupId = "core" }, new LayoutQueueMod { Guid = "team.beta", GroupId = "core" },
-            new LayoutQueueMod { Guid = "com.aiae.modconfigenhance", GroupId = "core" }, new LayoutQueueMod { Guid = "team.nested", GroupId = "tools" }, new LayoutQueueMod { Guid = "team.doubled", GroupId = "tools" } }
+            new LayoutQueueMod { Guid = "com.aiae.ingamemodmanager", GroupId = "core" }, new LayoutQueueMod { Guid = "team.nested", GroupId = "tools" }, new LayoutQueueMod { Guid = "team.doubled", GroupId = "tools" } }
     });
     var preview = Files.Read<ShopTask>(Path.Combine(root, "IGMM", "shop", "task.json"));
     Check("S36 预览就绪无阻断", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + preview.Error + " " + string.Join(" | ", preview.Blockers));
