@@ -85,7 +85,7 @@ internal static class ModConfigTranslationExport
 
         PeakMenuButton openDir = MakeButton(page, "MCE_OpenFolder", "BTN_OPEN_FOLDER", FolderColor, left + (third + gap) * 3f, top, height, height, OpenRootFolder);
         ModConfigSidebarWidgets.StyleFolderButton(openDir, height);
-        openDir.gameObject.AddComponent<ModConfigSidebarWidgets.TipTarget>().Key = "TIP_OPEN_DIR_V2";
+        openDir.gameObject.AddComponent<ModConfigSidebarWidgets.TipTarget>().Key = "TIP_OPEN_DIR_V3";
     }
 
     /// <summary>2.5.0：选一个填好的导出文件，有译文的行合进当前语言文件，然后重读。</summary>
@@ -120,9 +120,9 @@ internal static class ModConfigTranslationExport
     {
         try
         {
-            Directory.CreateDirectory(Loc.LanguageDirectory);
+            // 2.5.5（用户要求）：直接打开翻译导出目录（导出翻译、补漏翻写在这里，导入补翻也从这里选）
             Directory.CreateDirectory(Loc.ExportDirectory);
-            Application.OpenURL("file:///" + Loc.RootDirectory.Replace('\\', '/'));
+            Application.OpenURL("file:///" + Loc.ExportDirectory.Replace('\\', '/'));
         }
         catch (Exception ex)
         {
@@ -429,7 +429,7 @@ internal static class ModConfigTranslationExport
         void Line(string text) => sb.Append(text).Append('\n');
 
         Line("// ==============================================================");
-        Line("//   ModConfig Enhance " + Plugin.PluginVersion + " · " + (untranslatedOnly
+        Line("//   " + L("In-Game Mod Manager", "游戏内模组管理器", "遊戲內模組管理器") + " " + Plugin.PluginVersion + " · " + (untranslatedOnly
             ? L("untranslated texts", "未翻译文本", "未翻譯文字")
             : L("texts to translate", "待翻译文本", "待翻譯文字")) + " · " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
         Line("// ==============================================================");
@@ -494,9 +494,9 @@ internal static class ModConfigTranslationExport
         sb.Append('\n');
 
         // 本模组界面词条：键是稳定 ID，等号右边预填英文，翻完这段就是本模组的语言文件
-        Line(L("// ==== ModConfig Enhance UI (MCE_ keys: translate the right side only, never the key) ====",
-               "// ==== ModConfig Enhance 界面（MCE_ 键：只翻等号右边，键不要动）====",
-               "// ==== ModConfig Enhance 介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="));
+        Line(L("// ==== In-Game Mod Manager UI (MCE_ keys: translate the right side only, never the key) ====",
+               "// ==== 游戏内模组管理器界面（MCE_ 键：只翻等号右边，键不要动）====",
+               "// ==== 遊戲內模組管理器介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="));
         HashSet<string>? translatedMceTerms = untranslatedOnly ? Loc.CurrentTranslatedTermKeys() : null;
         written = 0;
         skipped = 0;

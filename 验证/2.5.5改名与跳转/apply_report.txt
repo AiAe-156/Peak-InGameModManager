@@ -1,0 +1,30 @@
+changed:
+src\Loc.cs
+src\Loc.GeneratedTerms.cs
+src\Loc.InlineTerms.cs
+src\Loc.Release23Terms.cs
+src\Loc.UpdaterTerms.cs
+src\ModConfigLook.cs
+src\ModConfigTranslationExport.cs
+src\Plugin.cs
+src\Diagnostics\ManagerLog.cs
+src\Overview\AnimatorRestGate.cs
+src\Overview\ComponentToggle.cs
+src\Overview\DiagnosticSummary.cs
+src\Overview\DiagnosticUiLanguage.cs
+src\Overview\ModToggleService.cs
+src\Overview\OverviewCatalogue.cs
+src\Overview\OverviewPage.Packs.cs
+src\Overview\OverviewPage.SmartGrouping.cs
+src\Overview\OverviewRepository.ApplyReview.cs
+src\Overview\PackPreviewView.cs
+src\Overview\Editor\DocJson.cs
+src\Overview\Help\HelpPage.cs
+src\Updating\PackReportText.cs
+Desktop\Program.cs
+Desktop\ProgressWindow.cs
+Updater\Program.cs
+Updater\WorkerWindow.cs
+
+unused pairs:
+MCE runs on this component

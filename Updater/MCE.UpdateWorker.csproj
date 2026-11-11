@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <Version>2.5.4</Version>
+    <Version>2.5.5</Version>
     <AssemblyName>MCE.UpdateWorker</AssemblyName>
     <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
     <SelfContained>false</SelfContained>

@@ -69,7 +69,10 @@ string live = args.Length > 0 ? args[0] : throw new ArgumentException("需要现
         return rel;
     }
     var before = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(p => !p.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).ToDictionary(Rel, Hash, StringComparer.OrdinalIgnoreCase);
-    Check(MceDirectories.Runtime(root) == Path.Combine(root, "runtime"), "[A] before migration Runtime() resolves to the old folder");
+    // 2.5.5：现场 11-11 17:45 已搬过，副本里没有旧 runtime/ 时这条前提不成立，只在旧目录还在时检查
+    if (Directory.Exists(Path.Combine(root, "runtime")))
+        Check(MceDirectories.Runtime(root) == Path.Combine(root, "runtime"), "[A] before migration Runtime() resolves to the old folder");
+    else Console.WriteLine("SKIP [A] live copy has no old runtime/ (already migrated)");
     var report = MceDirectoryMigration.Run(() => false);
     foreach (var line in Stubs.Lines.Take(6)) Console.WriteLine("  log: " + line.Substring(0, Math.Min(200, line.Length)));
     var after = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Select(Rel).ToHashSet(StringComparer.OrdinalIgnoreCase);

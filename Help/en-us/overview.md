@@ -2,7 +2,7 @@
 
 **View, enable, configure and update your mods, and manage modpacks, without leaving the game.**
 
-In-Game Mod Manager, MCE for short, puts the mod list, enhanced settings pages, hotkeys, translation, store updates and modpack tools in one place. If this is your first time, read "Three-minute start" and "Interface legend" below, and look up unfamiliar words in the glossary.
+In-Game Mod Manager (IGMM) puts the mod list, enhanced settings pages, hotkeys, translation, store updates and modpack tools in one place. If this is your first time, read "Three-minute start" and "Interface legend" below, and look up unfamiliar words in the glossary.
 
 **Jump to**　[Three-minute start](#start) · [How a change takes effect](#flow) · [Interface legend](#legend) · [Glossary](#glossary) · [Safety rules](#safety) · [Chapters](#chapters)
 
@@ -26,7 +26,7 @@ Installing, updating and uninstalling **do not use the draft**; they are queued 
 
 ![How a change takes effect](media/flow.png)
 
-There are two kinds of actions in MCE:
+There are two kinds of actions in the manager:
 
 - **Drafted, applied on save**: settings, hotkeys, enabling/disabling mods, groups, modpack information, introductions. Before saving you can open **Change review** to check what changed and when it applies (immediately, next round, after a restart, or as the mod decides).
 - **Queued straight away**: install, update, uninstall, local import, folder organization, enabling/disabling base components. The separate **update helper** runs them, independently of saving your configuration.
@@ -55,7 +55,7 @@ Each marker has a **fixed slot**, so the same kind lines up on every row. Hover 
 
 - The border colour compares the **current load state** with the **target**: green enabled, grey disabled, yellow means the target differs from now and applies after saving or restarting.
 - A resource pack has no DLL, so it never shows as loaded; its box is green whenever its files are enabled.
-- Source labels can be turned off in MCE's own settings.
+- Source labels can be turned off in the manager's own settings.
 
 ## Glossary {#glossary}
 
@@ -68,7 +68,7 @@ Each marker has a **fixed slot**, so the same kind lines up on every row. Hover 
 - **Effect timing**: when a saved value actually takes effect: immediately, next round, after restarting the game, or as the mod decides.
 - **Source**: where a mod comes from: **Store** (Thunderstore identity confirmed, update checks work), **Local** (you confirmed it has no store version), **Pending** (not confirmed yet).
 - **Thunderstore**: PEAK's mod store, also the repository used by r2modman and Thunderstore Mod Manager.
-- **GUID**: each plugin's unique ID, such as `com.author.modname`. MCE uses it to tell whether two files are the same mod.
+- **GUID**: each plugin's unique ID, such as `com.author.modname`. The manager uses it to tell whether two files are the same mod.
 - **manifest**: the `manifest.json` in a mod package, with its name, author, version and dependencies.
 - **Base component**: a shared library in BepInEx's core or patchers folders, listed separately at the top of the overview.
 - **BepInEx**: the framework that loads mods. `plugins` holds normal mods; `core` and `patchers` hold the loader and startup patches.
@@ -76,9 +76,9 @@ Each marker has a **fixed slot**, so the same kind lines up on every row. Hover 
 
 ## Safety rules {#safety}
 
-MCE's principle is **warn rather than block**: most checks only tell you about a problem and let you decide. Only these are actually stopped:
+The manager's principle is **warn rather than block**: most checks only tell you about a problem and let you decide. Only these are actually stopped:
 
-- **The whitelist**: MCE itself and the libraries it runs on — ModConfig, PEAKLib.Core and PEAKLib.UI. They cannot be disabled or uninstalled from MCE, because the manager would not open on the next launch.
+- **The whitelist**: The manager itself and the libraries it runs on — ModConfig, PEAKLib.Core and PEAKLib.UI. They cannot be disabled or uninstalled from the manager, because the manager would not open on the next launch.
 - **BepInEx core files** and the game itself: checked, never changed.
 - **Anything that would damage files**: paths outside the game folder, links or junctions, a destination that is already taken, and similar.
 

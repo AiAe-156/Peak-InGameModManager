@@ -264,17 +264,20 @@ internal sealed class OverviewEntry : MonoBehaviour
     private void FinishOpen()
     {
         if(_parent==null || _page==null) { CancelOpen();return; }
+        // 2.5.5（用户实机：跳快捷键只到概览）：切页会隐藏当前的设置页，触发 OpenDriver.OnDisable；
+        // 若此时仍算「打开中」，它会取消打开并清掉跳快捷键的意图。所以先把状态收尾、记下意图，再切页。
+        bool hotkeys = _openHotkeys;
+        _openHotkeys = false; _opening = false; _driven = false;
         try
         {
             var handler = _parent.GetComponentInParent<UIPageHandler>(true);
             if (handler != null) handler.TransistionToPage(_page, new SetActivePageTransistion());
-            if (_openHotkeys) { _openHotkeys = false; _page.ShowHotkeysTab(); }
+            if (hotkeys) _page.ShowHotkeysTab();
         }
         catch(Exception error)
         {
             FailOpen(error);
         }
-        finally { _opening=false; _driven=false; }
     }
     internal void Refresh() => Refresh(true);
     internal void Refresh(bool reload)

@@ -1,6 +1,6 @@
 # Sources and updates {#top}
 
-A mod's "source" answers one question: which package in the store is this? Once the source is confirmed, MCE can check for updates and write correct dependencies when you publish a modpack.
+A mod's "source" answers one question: which package in the store is this? Once the source is confirmed, the manager can check for updates and write correct dependencies when you publish a modpack.
 
 On this page: [Source types](#types) · [Identifying sources](#match) · [Checking for updates](#cache) · [Unread changes](#dots) · [Update queue](#update-queue) · [Update helper](#helper)
 
@@ -10,7 +10,7 @@ On this page: [Source types](#types) · [Identifying sources](#match) · [Checki
 - **Local**: you confirmed it has no store version (your own, or shared privately). Publishing can bundle it.
 - **Pending**: store identity not confirmed yet. Mods with only a GitHub or other project page are pending too. Pending mods get no automatic update checks, but this **does not affect dependency checks**: if it is installed, enabled and new enough, no dependency issue is reported.
 
-Source labels can be toggled from the "Sources and updates" menu; source assignments are shared by all profiles. Mods installed through MCE's store are confirmed from the install record and need no identification.
+Source labels can be toggled from the "Sources and updates" menu; source assignments are shared by all profiles. Mods installed through the manager's store are confirmed from the install record and need no identification.
 
 Click a mod's **home** icon to open the project page (such as GitHub) or the store page separately.
 
@@ -36,7 +36,7 @@ When a newer version exists, green markers appear beside the name and the versio
 
 ## Unread changes {#dots}
 
-On first run MCE records the current state. After that, changed mod versions, new config entries, changed defaults or ranges, and author preset changes are marked with a **blue marker**.
+On first run the manager records the current state. After that, changed mod versions, new config entries, changed defaults or ranges, and author preset changes are marked with a **blue marker**.
 
 Click the marker to see old and new content and the current value; clicking the related control marks it read. To work through them together use "Sources and updates" → "Review changes"; when done, "Mark all notification badges as read" (update-available markers and unsaved drafts are kept).
 
@@ -63,7 +63,7 @@ Install, update, uninstall, local import and folder organization are all run by 
 
 - It starts only when there is work, shows a foreground progress window, and exits when done — **it never stays in the background**.
 - While waiting for the game to exit it minimizes and does not steal focus; once you quit it carries on automatically and shows the result.
-- Every file operation is backed up first and rolled back on failure; MCE checks on next launch that it took effect.
+- Every file operation is backed up first and rolled back on failure; the manager checks on next launch that it took effect.
 - Several tasks that do not conflict are prepared in parallel; ones that need the same files wait their turn — **your request is never refused**.
 - r2modman and Thunderstore Mod Manager profile layouts are supported and found automatically; the manager's version records are updated after a successful commit (on next launch if the manager is running).
 

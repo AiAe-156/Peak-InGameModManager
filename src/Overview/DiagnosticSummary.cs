@@ -18,7 +18,7 @@ internal sealed class DiagnosticSummary
     { State = state; CanUninstall = canUninstall; CanUpdate = canUpdate; _details = details; }
     internal string Summary => State switch {
         Status.NotRead => Loc.T("Dependency information has not been read", "依赖信息尚未读取", "依賴資訊尚未讀取"),
-        Status.RequiredByMce => Loc.T("MCE runs on this component; it cannot be disabled or uninstalled", "MCE 运行依赖此组件，不能停用或卸载", "MCE 執行依賴此組件，不能停用或解除安裝"),
+        Status.RequiredByMce => Loc.T("The manager runs on this component; it cannot be disabled or uninstalled", "管理器运行依赖此组件，不能停用或卸载", "管理器執行依賴此組件，不能停用或解除安裝"),
         Status.Incomplete => Loc.T("Dependency information is incomplete; uninstall is not yet available", "依赖信息不完整，暂不能卸载", "依賴資訊不完整，暫不能解除安裝"),
         Status.VerificationRequired => Loc.T("Uninstall preview is available; file ownership and dependencies still need verification", "可进入卸载预览，仍需核实文件归属和依赖", "可進入解除安裝預覽，仍需核實檔案歸屬與依賴"),
         Status.CompleteEnvironmentRequired => Loc.T("Migrate the current pack to a complete environment first", "当前整合包尚未迁移为完整环境", "目前整合包尚未遷移為完整環境"),

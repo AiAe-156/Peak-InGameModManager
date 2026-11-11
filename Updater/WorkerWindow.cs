@@ -117,7 +117,7 @@ internal sealed class WorkerWindow : IDisposable
     }
 
     static string T(string english, string simplified, string traditional) => WorkerLanguage.T(english, simplified, traditional);
-    static string TitleText => T("MCE operations", "MCE 模组操作", "MCE 模組操作");
+    static string TitleText => T("In-Game Mod Manager · operations", "游戏内模组管理器 · 模组操作", "遊戲內模組管理器 · 模組操作");
 
     Window Build()
     {

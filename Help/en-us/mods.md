@@ -21,8 +21,8 @@ Tick or untick the enable box. The change goes into the draft (an orange marker 
 
 - When the same mod is installed in several folders, each copy has its own row; **ticking one copy disables the others**, so only one stays on.
 - Disabling an outer mod also disables the nested mods inside its folder; enabling it again restores only the ones that were on.
-- MCE itself and the libraries it runs on (ModConfig, PEAKLib.Core, PEAKLib.UI) cannot be disabled; their box is grey. Every other mod can be disabled. If other mods depend on it, saving warns you and you can confirm to continue.
-- With r2modman or Thunderstore Mod Manager profiles, MCE finds the profile location automatically and enabling works as usual. While the manager is running, its own version records are synced on the next launch.
+- The manager itself and the libraries it runs on (ModConfig, PEAKLib.Core, PEAKLib.UI) cannot be disabled; their box is grey. Every other mod can be disabled. If other mods depend on it, saving warns you and you can confirm to continue.
+- With r2modman or Thunderstore Mod Manager profiles, the manager finds the profile location automatically and enabling works as usual. While the manager is running, its own version records are synced on the next launch.
 
 ## Groups {#groups}
 
@@ -52,7 +52,7 @@ The "Base components" section at the top of the list shows shared libraries in B
 - **Display name**: give it a friendlier name; the package name stays visible in grey.
 - **Enable / Disable**: renames its DLLs to `.dll.d` (disabled) or back to `.dll` (enabled), effective next launch. Asks once.
 - **Uninstall**: first an extra reminder ("base components are shared libraries; other mods may stop working without it"), then the safe preview checks files and dependencies before anything is removed.
-- The components MCE runs on cannot be disabled or uninstalled.
+- The components the manager runs on cannot be disabled or uninstalled.
 - Base components **do not take part in groups or folder organization**.
 
 ## Special mods {#special}
@@ -70,7 +70,7 @@ Management center → "Tools" → "Organize into group folders" makes the plugin
 
 - **Move only, never rename**: mod folder names never change. Only when two folders would collide does the later one get its version number appended.
 - Group names become folder paths; nested groups become nested folders; mods without a group go to "Ungrouped".
-- Mods already in the right place are not touched. MCE itself is organized too, moved last.
+- Mods already in the right place are not touched. The manager itself is organized too, moved last.
 - Folders left empty are listed and ticked by default; they can go to the Windows Recycle Bin (restorable).
 - The move runs as a task in the update helper; while the game is running it waits for you to quit. A window reports the result afterwards.
 - A mod is skipped only when moving it could damage files (links, paths outside the game folder or too long, destination taken, and so on); the preview gives the reason.
@@ -83,13 +83,13 @@ Before saving, conflicts you have not ignored are listed separately. You can go 
 
 ## Opening settings {#settings}
 
-Click the gear on a mod's row to open its settings; the gear column heading opens the general mod settings page. The tree sidebar on the left can be searched and pinned; the right side shows each option's description, default and allowed range. Values changed on a settings page also go into the draft and are committed on save. Every MCE screen comes in two colour themes: **Blue** (follows the game's settings menu) and **Purple** (the night style). Switch with the moon icon in the overview toolbar or to the right of **Search** on the settings page, or pick one under MCE's own **Layout › Colour theme**; **PurpleAtNight** turns purple at night when TimeTheme is installed. The settings page switches at once, the overview the next time it opens. **Go to keybindings** at the right of the sidebar header opens the overview on its Keybindings tab. Pinned rows have a thin lime line on the left; group rails get thinner and shorter with each level.
+Click the gear on a mod's row to open its settings; the gear column heading opens the general mod settings page. The tree sidebar on the left can be searched and pinned; the right side shows each option's description, default and allowed range. Values changed on a settings page also go into the draft and are committed on save. Every manager screen comes in two colour themes: **Blue** (follows the game's settings menu) and **Purple** (the night style). Switch with the moon icon in the overview toolbar or to the right of **Search** on the settings page, or pick one under the manager's own **Layout › Colour theme**; **PurpleAtNight** turns purple at night when TimeTheme is installed. The settings page switches at once, the overview the next time it opens. **Go to keybindings** at the right of the sidebar header opens the overview on its Keybindings tab. Pinned rows have a thin lime line on the left; group rails get thinner and shorter with each level.
 
 ## Controls and appearance {#controls}
 
 - Mouse: click to select, scroll to read, ESC closes dropdowns and dialogs first.
 - Controller: stick or D-pad moves focus, A confirms, B goes back, LB/RB switch mods. Type with a physical keyboard or the platform's on-screen keyboard (Steam Deck: Steam+X).
-- Theme, entry position and list animation speed are in MCE's own settings.
+- Theme, entry position and list animation speed are in the manager's own settings.
 - Click "Refresh" to re-read changes on disk right away.
 
 Related: [Profiles and hotkeys](profiles) · [Sources and updates](sources) · [FAQ](faq)

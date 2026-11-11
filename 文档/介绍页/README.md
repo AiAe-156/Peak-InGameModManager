@@ -23,7 +23,7 @@ python -I build.py
 
 ## 图片
 
-`assets/` 里：`settings-tree.jpg` 是从 `图片/白天1.png` 压缩的（2560 → 1600 宽，4.2 MB → 131 KB）；`toolbar.png`、`chips.png`、`flow.png`、`boxes.png` 是内置使用说明的图例。想换截图就替换同名文件。
+`assets/` 里：`settings-tree.jpg` 是 2.5.5 设置页实机截图（简体中文、蓝色主题）压缩的（2560 → 1600 宽，160 KB）；`toolbar.png`、`chips.png`、`flow.png`、`boxes.png` 是内置使用说明的图例。想换截图就替换同名文件。
 
 ## 以后发布到 GitHub Pages
 

@@ -22,7 +22,7 @@ internal static class ComponentToggle
         if (!package.IdentityConfirmed) return Loc.T("Component identity is unconfirmed.", "组件身份未确认。", "組件身分未確認。");
         if (package.RuntimeFiles.Count == 0) return Loc.T("This component has no assembly to rename.", "此组件没有可改名的程序集。", "此組件沒有可改名的程式集。");
         if (!enabled && RequiredByMce(package))
-            return Loc.T("MCE runs on this component; it cannot be disabled or uninstalled.", "MCE 运行依赖此组件，不能停用或卸载。", "MCE 執行依賴此組件，不能停用或解除安裝。");
+            return Loc.T("The manager runs on this component; it cannot be disabled or uninstalled.", "管理器运行依赖此组件，不能停用或卸载。", "管理器執行依賴此組件，不能停用或解除安裝。");
         if (enabled && package.RuntimeFiles.Any(PluginFileNames.IsForeignDisabled))
             return Loc.T("Disabled by another tool. Restore it using that tool.", "由其他工具停用，请使用原工具恢复。", "由其他工具停用，請使用原工具恢復。");
         return "";

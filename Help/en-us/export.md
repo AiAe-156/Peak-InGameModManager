@@ -31,7 +31,7 @@ Author data includes selected profiles, referenced media and fonts, selected lan
 
 Store packages list downloadable mods as dependencies and include other files according to your selections. Additional core and patcher dependencies are supported. When the real store version is missing, confirm the full dependency string or include the mod locally.
 
-Caches, logs, backups, old exports and MCE personal runtime state are excluded. Review the preview and confirm that distributed media and fonts have the required permissions.
+Caches, logs, backups, old exports and the manager's personal runtime state are excluded. Review the preview and confirm that distributed media and fonts have the required permissions.
 
 ## Author identity and signing {#signing}
 

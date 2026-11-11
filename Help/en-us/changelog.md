@@ -6,7 +6,7 @@
 - **Groups:** groups can nest three levels; right-click a heading for a new subgroup, or drag a heading under another group. On first visit the overview can build groups from your existing category folders. Folding a group no longer redraws the whole list.
 - **Better recognition:** resource packs (packages without a DLL), loose DLLs in the plugins folder, disabled files with any suffix, and mods nested inside other mods' folders are recognized and marked.
 - **Base components:** can be given a display name, enabled, disabled and uninstalled (with an extra reminder before uninstalling).
-- **Protected whitelist:** only MCE and the libraries it runs on — ModConfig, PEAKLib.Core and PEAKLib.UI — cannot be disabled or uninstalled; everything else is allowed. Enabling and disabling ask nothing; uninstalling asks first.
+- **Protected whitelist:** only the manager and the libraries it runs on — ModConfig, PEAKLib.Core and PEAKLib.UI — cannot be disabled or uninstalled; everything else is allowed. Enabling and disabling ask nothing; uninstalling asks first.
 - **Markers:** seven status markers, each with its own colour, a fixed slot and a hover explanation; the name column is wider.
 - **Translation:** every interface string has English source text plus Simplified and Traditional Chinese, and all of it goes into the translation export. XUnity AutoTranslator is no longer needed: option names, sections and choices on the Mod Settings page are translated by the manager's own language files, which now support `r:` regex rules; Import additions merges a filled-in export into your language file, and a reminder appears when XUnity runs online machine translation. The personal data folder is organized into language, profiles, output and data; see Translation › Where the files are.
 - **User guide:** rewritten, with a three-minute start, an interface legend and a glossary.
@@ -62,4 +62,4 @@ Our largest update since the public 1.0.2 release. This release combines the int
 
 ### Upgrading
 
-Exit PEAK before replacing MCE. Keep personal data in `BepInEx/config/ModConfigEnhance/`. Existing language and overview data are migrated; choose and apply a profile when ready, then restart for plugin enablement changes.
+Exit PEAK before replacing the old version. Keep personal data in `BepInEx/config/ModConfigEnhance/`. Existing language and overview data are migrated; choose and apply a profile when ready, then restart for plugin enablement changes.

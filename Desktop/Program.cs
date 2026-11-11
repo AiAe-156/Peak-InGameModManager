@@ -22,7 +22,7 @@ internal static class Program
         }
         catch (Exception e)
         {
-            MessageBox.Show(e.GetType().Name + ": " + Protocol.Redact(e.Message, AppDomain.CurrentDomain.BaseDirectory), "MCE progress", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(e.GetType().Name + ": " + Protocol.Redact(e.Message, AppDomain.CurrentDomain.BaseDirectory), "In-Game Mod Manager", MessageBoxButton.OK, MessageBoxImage.Error);
             return 1;
         }
     }

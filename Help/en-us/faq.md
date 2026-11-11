@@ -18,7 +18,7 @@ On this page: [Saving and taking effect](#profile) · [Enabling and uninstalling
 
 ## Enabling and uninstalling {#enable}
 
-**Why are some enable boxes grey**: MCE itself and the libraries it runs on (ModConfig, PEAKLib.Core, PEAKLib.UI) cannot be disabled or uninstalled from MCE; loader files in BepInEx/core are never changed either. Files disabled by another tool should be restored with that tool. Every other mod can be enabled, disabled and uninstalled.
+**Why are some enable boxes grey**: The manager itself and the libraries it runs on (ModConfig, PEAKLib.Core, PEAKLib.UI) cannot be disabled or uninstalled from the manager; loader files in BepInEx/core are never changed either. Files disabled by another tool should be restored with that tool. Every other mod can be enabled, disabled and uninstalled.
 
 **Ticking one copy unticked another**: when the same mod is installed several times, only one copy can be enabled; the one you tick is kept.
 

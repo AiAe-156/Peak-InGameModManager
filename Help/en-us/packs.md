@@ -27,7 +27,7 @@ Select a pack in the library and click **Preview switch**; the preview lists wha
 Switching replaces files that are running, so the update helper finishes it **after you quit PEAK**. Do not start the game before it is done; starting early cancels the switch and restores the previous environment.
 
 - Updates waiting for a restart do not affect switching; updates still downloading, waiting for exit or needing recovery make the switch wait.
-- MCE and the libraries it runs on always stay; BepInEx core files are checked, never changed; monomod and standalone scripts need manual handling.
+- The manager and the libraries it runs on always stay; BepInEx core files are checked, never changed; monomod and standalone scripts need manual handling.
 - Configs the new pack does not have are not carried over from the old one. Language choice and local preferences are shared between modpacks (unless a pack chose its own language when stored).
 
 ## Temporary modpacks {#temporary}
@@ -42,7 +42,7 @@ One modpack can have several profiles (for everyday play and different play styl
 
 ## First install {#first-install}
 
-After installing a modpack published by an author, the first time you reach the main menu MCE tries to apply the default profile the author chose, and tells you what still needs attention; if plugins were enabled or disabled, restart the game as prompted.
+After installing a modpack published by an author, the first time you reach the main menu the manager tries to apply the default profile the author chose, and tells you what still needs attention; if plugins were enabled or disabled, restart the game as prompted.
 
 After that you can use the author preset as it is, or duplicate it into a personal profile under "Manage profiles…".
 

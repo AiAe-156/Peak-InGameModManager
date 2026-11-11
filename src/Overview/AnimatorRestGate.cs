@@ -23,7 +23,7 @@ internal sealed class AnimatorRestGate : MonoBehaviour
     internal static void Install(Harmony harmony,ConfigFile config)
     {
         _option=config.Bind("4. Mod overview","Rest idle button animations",true,
-            "Pause completed non-looping MCE button Normal animations. Original hover, click, selection and sounds are retained.");
+            "Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.");
         try
         {
             harmony.Patch(AccessTools.Method(typeof(Selectable),"DoStateTransition"),

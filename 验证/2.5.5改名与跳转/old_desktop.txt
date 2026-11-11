@@ -1,0 +1,11 @@
+Program.cs:15: Usage: MCE.Desktop.exe --root <BepInEx directory> --task <32 hex task ID> --language en-us|zh-cn|zh-tw
+Program.cs:25: MCE progress
+ProgressWindow.cs:32: MCE · Modpack switch
+ProgressWindow.cs:32: MCE · 整合包切换
+ProgressWindow.cs:32: MCE · 整合包切換
+ProgressWindow.cs:96: The task changed. Return to MCE; no action is available in this window.
+ProgressWindow.cs:96: 任务记录已变化，请返回 MCE 查看；本窗口不会处理新任务。
+ProgressWindow.cs:96: 工作記錄已變更，請返回 MCE 檢視；本視窗不會處理新工作。
+ProgressWindow.cs:128: Retry has not been acknowledged. It may still be queued. Do not submit duplicates; check MCE/worker status or use recovery only.
+ProgressWindow.cs:128: 尚未收到重试确认，请求可能仍在队列中。请勿重复提交；检查 MCE／后台状态或使用仅恢复入口。
+ProgressWindow.cs:128: 尚未收到重試確認，請求可能仍在佇列中。請勿重複提交；檢查 MCE／背景狀態或使用僅復原入口。

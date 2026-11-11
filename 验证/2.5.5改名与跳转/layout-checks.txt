@@ -1,0 +1,35 @@
+[A] copied 1434 files
+SKIP [A] live copy has no old runtime/ (already migrated)
+  log: [目录] 整理 config\ModConfigEnhance：搬了 0 个文件（同名改留 0 个），改写 0 处保存的路径；备份 C:\Users\AiAe\AppData\Local\Temp\mce-layout-2138f912\BepInEx\MCE\layout-backups\20261111_183543
+  log: WARN [目录] 没搬动，留在原处，下次启动再试：C:\Users\AiAe\AppData\Local\Temp\mce-layout-2138f912\BepInEx\config\ModConfigEnhance\exports\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-Tr
+  log: WARN [目录] 没搬动，留在原处，下次启动再试：C:\Users\AiAe\AppData\Local\Temp\mce-layout-2138f912\BepInEx\config\ModConfigEnhance\exports\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-
+PASS [A] all 1232 non-JSON files moved with identical bytes, or deliberately left in place (2)
+PASS [A] only over-long paths were left in place
+  left in place (too long): exports/20261017_022718_777640/Local/BepInEx/plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]真正的最终天阶-TrueFinalAscent/CptPICHU-TrueFina
+  left in place (too long): exports/20261022_120945_841fa66f/Local/BepInEx/plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]真正的最终天阶-TrueFinalAscent/CptPICHU-TrueFi
+PASS [A] after migration Runtime() resolves to data/runtime
+PASS [A] backup in MCE/layout-backups (outside the 14-day cleanup)
+PASS [A] second run changes nothing
+PASS [B] locked file reported as skipped
+PASS [B] locked file stays where it was, untouched
+PASS [B] the other file was moved
+PASS [B] other folders moved
+PASS [B] after unlock the next launch merges the rest; real data intact
+PASS [B] no file was pushed aside
+PASS [C] over-long file left in place
+PASS [C] the rest moved
+PASS [C] reported with a reason
+PASS [D] newer copy wins (written by the old version)
+PASS [D] newer copy wins (new layout)
+PASS [D] the other copy kept as .old-layout
+PASS [D] old folder merged and removed
+PASS [E] worker running: nothing moved, old folder still used
+PASS [E] Runtime() keeps pointing at the old folder
+PASS [F] backslash form rewritten (overview -> data/legacy)
+PASS [F] mixed form rewritten (runtime)
+PASS [F] forward-slash root form rewritten (exports)
+PASS [F] runtime-xxx untouched
+PASS [F] profiles untouched
+PASS Remap runtime
+PASS Remap leaves profiles alone
+ALL PASS
