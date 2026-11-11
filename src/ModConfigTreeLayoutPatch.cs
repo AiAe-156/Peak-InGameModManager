@@ -246,8 +246,6 @@ internal static class ModConfigTreeLayoutPatch
         GamepadSupport.ApplyPatches(harmony);
 
         // PEAK 3.1.0：模组参数恢复小数显示，输入时不再被取整回写（原版设置不受影响）
-        ModFloatDisplayPatch.Apply(harmony);
-        Plugin.Log.LogInfo("[小数显示] " + ModFloatDisplayPatch.State);
 
         try
         {

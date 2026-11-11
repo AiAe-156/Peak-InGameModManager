@@ -41,14 +41,25 @@ internal static class MceDirectories
     internal static string Help(string root) => Resolve(root, "help", DataName + "/help");
     internal static string Legacy(string root) => Resolve(root, "overview", DataName + "/legacy");
 
+    /// <summary>目录只搬了一半时留在新目录里的标记：搬完（旧目录清空）才删。</summary>
+    internal const string IncompleteMarker = ".layout-incomplete";
+
     /// <summary>新位置（不看旧目录在不在）：搬家和核对用。</summary>
     internal static string Target(string root, string relative) => Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
 
-    /// <summary>旧目录在、新目录不在 → 还没搬（或搬失败了），继续用旧目录；其余一律新目录。</summary>
+    /// <summary>
+    /// 旧目录在、新目录不在 → 还没搬（或搬失败了），继续用旧目录。复查：**只搬了一半**（新目录里有 <see cref="IncompleteMarker"/>）
+    /// 也继续用旧目录——否则这次运行会在新位置写出默认文件，下次并入按修改时间取新，默认文件反而胜过留在旧目录的真实文件。
+    /// 其余一律新目录。
+    /// </summary>
     private static string Resolve(string root, string oldName, string newName)
     {
         string target = Target(root, newName), old = Path.Combine(root, oldName);
-        try { return !Directory.Exists(target) && Directory.Exists(old) ? old : target; }
+        try
+        {
+            if (!Directory.Exists(old)) return target;
+            return !Directory.Exists(target) || File.Exists(Path.Combine(target, IncompleteMarker)) ? old : target;
+        }
         catch { return target; }
     }
 

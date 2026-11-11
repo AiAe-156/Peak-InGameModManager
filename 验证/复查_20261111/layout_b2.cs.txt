@@ -1,0 +1,16 @@
+// ── B2：复查指出的缺口——只搬了一半时，插件这次在新位置写默认文件，下次并入不能让默认文件胜过真实文件 ──
+{
+    var (home, bep, root) = Fresh();
+    Write(Path.Combine(root, "runtime", "ui.json"), "{\"real\":1}", DateTime.UtcNow.AddDays(-1));
+    Write(Path.Combine(root, "runtime", "sources.json"), "{\"real\":2}");
+    using (var hold = new FileStream(Path.Combine(root, "runtime", "ui.json"), FileMode.Open, FileAccess.Read, FileShare.None))
+        MceDirectoryMigration.Run(() => false);
+    Check(MceDirectories.Runtime(root) == Path.Combine(root, "runtime"), "[B2] half-moved folder: Runtime() keeps pointing at the old folder");
+    // 插件本次运行按 Runtime() 写文件 → 写到旧目录，不在新位置另起默认文件
+    Check(!File.Exists(Path.Combine(root, "data", "runtime", "ui.json")), "[B2] no default ui.json created in the new folder");
+    var again = MceDirectoryMigration.Run(() => false);
+    Check(File.ReadAllText(Path.Combine(root, "data", "runtime", "ui.json")) == "{\"real\":1}" && !Directory.Exists(Path.Combine(root, "runtime")), "[B2] next launch finishes the move; real file wins");
+    Check(!File.Exists(Path.Combine(root, "data", "runtime", MceDirectories.IncompleteMarker)) && MceDirectories.Runtime(root) == Path.Combine(root, "data", "runtime"), "[B2] marker removed and Runtime() switches once complete");
+    Directory.Delete(home, true);
+}
+
