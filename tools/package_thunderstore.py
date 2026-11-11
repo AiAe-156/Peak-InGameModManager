@@ -3,7 +3,7 @@
 
 默认构建 Release 主插件及使用系统 Framework 4.8 的轻量助手；--no-build 用于已构建产物。
 始终禁止部署，已有发布包不覆盖。
-商店页面资料放 ZIP 根目录，插件、助手和示例放 BepInEx/plugins/ModConfigEnhance/。
+商店页面资料放 ZIP 根目录，插件、助手和示例放 BepInEx/plugins/InGameModManager/。
 """
 import argparse
 import json
@@ -33,7 +33,7 @@ for project in (ROOT / "ModConfigEnhance.csproj", ROOT / "Updater/MCE.UpdateWork
         sys.exit("项目版本与 manifest 不一致：" + str(project))
 if plugin_version != version:
     sys.exit("插件声明版本与 manifest 不一致")
-out = args.output.resolve() if args.output else ROOT / "发布" / f"ModConfigEnhance_{version}.zip"
+out = args.output.resolve() if args.output else ROOT / "发布" / f"InGameModManager_{version}.zip"
 partial = out.with_suffix(".zip.partial")
 if not args.check_only and (out.exists() or partial.exists()):
     sys.exit("输出已经存在，保留原文件：" + str(out))
@@ -58,13 +58,13 @@ for line in inventory.read_text(encoding="utf-8-sig").splitlines():
     if name.lower() in files or not source.is_file():
         sys.exit("清单文件重复或不存在：" + name)
     files[name.lower()] = (source, name)
-required = {"modconfigenhance.dll", "markdig.dll", "yamldotnet.dll", "manifest.json", "readme.md", "changelog.md", "icon.png", "license.txt", "third-party-notices.md",
-            "tools/updater/mce.desktop.exe", "tools/updater/mce.desktop.exe.config", "tools/updater/worker-protocol.manifest", "tools/updater/mce.updateworker.exe", "tools/updater/mono.cecil.license.txt", "tools/updater/runtime-license.txt", "tools/updater/runtime-third-party-notices.txt"}
+required = {"ingamemodmanager.dll", "markdig.dll", "yamldotnet.dll", "manifest.json", "readme.md", "changelog.md", "icon.png", "license.txt", "third-party-notices.md",
+            "tools/updater/igmm.desktop.exe", "tools/updater/igmm.desktop.exe.config", "tools/updater/worker-protocol.manifest", "tools/updater/igmm.updateworker.exe", "tools/updater/mono.cecil.license.txt", "tools/updater/runtime-license.txt", "tools/updater/runtime-third-party-notices.txt"}
 if not required.issubset(files):
     sys.exit("发布清单缺少必需文件：" + ", ".join(sorted(required - files.keys())))
 for binary, inputs in (
-    (files["modconfigenhance.dll"][0], [ROOT / "ModConfigEnhance.csproj", *ROOT.glob("src/**/*.cs"), *ROOT.glob("Help/**/*.md")]),
-    (files["tools/updater/mce.updateworker.exe"][0], [ROOT / "Updater/MCE.UpdateWorker.csproj", *ROOT.glob("Updater/*.cs"), *ROOT.glob("src/Updating/*.cs")]),
+    (files["ingamemodmanager.dll"][0], [ROOT / "ModConfigEnhance.csproj", *ROOT.glob("src/**/*.cs"), *ROOT.glob("Help/**/*.md")]),
+    (files["tools/updater/igmm.updateworker.exe"][0], [ROOT / "Updater/MCE.UpdateWorker.csproj", *ROOT.glob("Updater/*.cs"), *ROOT.glob("src/Updating/*.cs")]),
 ):
     if binary.stat().st_mtime < max(p.stat().st_mtime for p in inputs):
         sys.exit("编译产物早于源码，请重新构建：" + str(binary))
@@ -78,7 +78,7 @@ out.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(partial, "x", zipfile.ZIP_DEFLATED) as archive:
     metadata = {"manifest.json", "readme.md", "changelog.md", "icon.png", "license.txt", "third-party-notices.md"}
     for source, name in sorted(files.values(), key=lambda item: item[1].lower()):
-        destination = name if name.lower() in metadata else "BepInEx/plugins/ModConfigEnhance/" + name
+        destination = name if name.lower() in metadata else "BepInEx/plugins/InGameModManager/" + name
         archive.write(source, destination)
 with zipfile.ZipFile(partial) as archive:
     bad = archive.testzip()
