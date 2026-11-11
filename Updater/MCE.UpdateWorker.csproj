@@ -8,8 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <Version>2.5.5</Version>
-    <AssemblyName>MCE.UpdateWorker</AssemblyName>
+    <Version>1.0.0</Version>
+    <AssemblyName>IGMM.UpdateWorker</AssemblyName>
     <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
     <SelfContained>false</SelfContained>
     <AppConfig>$(MSBuildProjectDirectory)/obj/FrameworkApp.config</AppConfig>
@@ -27,6 +27,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Compile Include="../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" />
     <Compile Include="../src/Updating/PluginFileNames.cs" Link="PluginFileNames.cs" />
     <Compile Include="../src/Updating/ManifestCopies.cs" Link="ManifestCopies.cs" />
     <Compile Include="../src/Updating/MceDirectories.cs" Link="MceDirectories.cs" />
@@ -62,6 +63,6 @@
     <!-- Legacy protocol2 names are retained; these describe prerequisites, not a bundled runtime. -->
     <WriteLinesToFile File="$(PublishDir)Runtime-LICENSE.TXT" Lines="Requires Windows .NET Framework 4.8 (system prerequisite). No .NET runtime is redistributed. Microsoft Framework terms: https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48" Overwrite="true" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\THIRD-PARTY-NOTICES.md" DestinationFiles="$(PublishDir)Runtime-THIRD-PARTY-NOTICES.TXT" />
-    <Exec Command="&quot;$(PublishDir)MCE.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(PublishDir).&quot;" />
+    <Exec Command="&quot;$(PublishDir)IGMM.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(PublishDir).&quot;" />
   </Target>
 </Project>

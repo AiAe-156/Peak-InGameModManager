@@ -54,8 +54,8 @@ internal sealed class ShopInstallationState
     }
     internal bool CanInstall(string key)=>BlockReason(key).Length==0;
     internal Func<string,string>? DependencyUninstallReason { get; set; }
-    internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
-        ? "Required BepInEx/MCE management host cannot be uninstalled independently." : BlockReason(key, true);
+    internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : ModConfigEnhance.Updating.ManagerIdentity.IsManagerPackage(key) || key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
+        ? "Required BepInEx/manager host cannot be uninstalled independently." : BlockReason(key, true);
     internal bool CanUninstall(string key,bool owned)=>UninstallBlockReason(key).Length==0&&Snapshot.Has(key)&&
         (owned||Snapshot.Packages[key].All(r=>r.Area=="plugins"||r.Area=="patchers"||r.Area=="core"));
     // Serialize sorted tuples, not delimiter joins or object identity. Dictionary/list order is irrelevant.

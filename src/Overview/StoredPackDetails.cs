@@ -83,7 +83,7 @@ internal static class StoredPackDetails
         report.Headline = "已保存到整合包库。查看内容不会下载文件或切换整合包。";
         report.Kind = "stored";
         if (report.KindText.Length == 0) report.KindText = pack.PublicationId.Length == 0 ? "类型：临时整合包快照。" : "类型：已导入整合包。";
-        report.Files = pack.Files.Select(f => new PackReportFile { Path = f.Path.Replace((char)92, '/'), Group = f.Path.StartsWith("config/", StringComparison.OrdinalIgnoreCase) ? "配置文件" : f.Path.StartsWith("patchers/", StringComparison.OrdinalIgnoreCase) ? "启动补丁" : f.Path.IndexOf("/MCEPack/", StringComparison.OrdinalIgnoreCase) >= 0 ? "作者资料" : "模组文件" }).ToList();
+        report.Files = pack.Files.Select(f => new PackReportFile { Path = f.Path.Replace((char)92, '/'), Group = f.Path.StartsWith("config/", StringComparison.OrdinalIgnoreCase) ? "配置文件" : f.Path.StartsWith("patchers/", StringComparison.OrdinalIgnoreCase) ? "启动补丁" : ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder(f.Path) ? "作者资料" : "模组文件" }).ToList();
         if (copy.Report == null)
         {
             report.Lines.AddRange(pack.Problems.Select(PackReportText.Problem));
@@ -128,7 +128,7 @@ internal static class StoredPackDetails
         copy.Report = report;
         return new PackTask { Id = "stored-" + pack.Id + "-" + pack.Content, State = "preview", Request = new PackRequest { Operation = "view-stored", PackId = pack.Id }, Proposed = copy, Report = report, StagingDirectory = root };
     }
-    private const string AuthorLanguageFolder = "/MCEPack/language/";
+    private static readonly string[] AuthorLanguageFolders = { "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/language/", "/" + ModConfigEnhance.Updating.ManagerIdentity.LegacyPackFolder + "/language/" };
     /// <summary>
     /// Language groups of a stored revision, grouped by the shared PackLanguages rules. Read-only; never writes the library.
     /// Sources: the declared author root, any MCEPack/language folder listed in the revision (older temporary snapshots), and workspace/language (snapshots saved with the player's own dictionaries).
@@ -140,9 +140,14 @@ internal static class StoredPackDetails
         try { if (pack.AuthorRoot.Length > 0) Add(OverviewProfileAssets.CheckedPath(root, pack.AuthorRoot + "/language")); } catch (IOException) { }
         foreach (var file in pack.Files)
         {
-            string path = file.Path.Replace((char)92, '/'); int at = path.IndexOf(AuthorLanguageFolder, StringComparison.OrdinalIgnoreCase);
-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguageFolder.Length) >= 0) continue;
-            try { Add(OverviewProfileAssets.CheckedPath(root, path.Substring(0, at + AuthorLanguageFolder.Length - 1))); } catch (IOException) { }
+            string path = file.Path.Replace((char)92, '/');
+            foreach (string folder in AuthorLanguageFolders)
+            {
+                int at = path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
+                if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
+                try { Add(OverviewProfileAssets.CheckedPath(root, path.Substring(0, at + folder.Length - 1))); } catch (IOException) { }
+                break;
+            }
         }
         try { Add(OverviewProfileAssets.CheckedPath(PackLibrary.Home, pack.Id + "/workspace/language")); } catch (IOException) { }
         var merged = new Dictionary<string, PackLanguage>(StringComparer.OrdinalIgnoreCase);

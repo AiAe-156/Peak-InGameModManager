@@ -409,7 +409,7 @@ internal sealed class ModToggleService
     {
         if (plan.Moves.Count == 0) return null;
         string ledgerPath = PackLibrary.Active != null ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
-            : Path.Combine(bepinexRoot, "MCE", "shop", "installed-unmanaged.json");
+            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(bepinexRoot, "shop", "installed-unmanaged.json");
         SafePath(bepinexRoot, ledgerPath);
         if (!File.Exists(ledgerPath)) return null;
         byte[] before = File.ReadAllBytes(ledgerPath);

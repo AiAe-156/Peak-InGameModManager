@@ -67,7 +67,7 @@ internal static class OverviewProfileExport
         string exportParent = parentDirectory == null ? OverviewProfileAssets.CheckedPath(configRoot, "output/packs") : Path.GetFullPath(parentDirectory);
         string exportRoot = Path.Combine(exportParent, DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + PackPublisher.SafeLabel(displayName ?? items[0].Name) + "_" + Guid.NewGuid().ToString("N").Substring(0, 8));
         if (Directory.Exists(exportRoot) || File.Exists(exportRoot)) throw new IOException(Loc.T("The selected export folder already exists. Choose another folder and try again.", "生成目录发生冲突，请更换输出目录后重试。", "產生目錄發生衝突，請更換輸出資料夾後重試。"));
-        string package = OverviewProfileAssets.CheckedPath(exportRoot, "plugins/MCEPack");
+        string package = OverviewProfileAssets.CheckedPath(exportRoot, "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder);
         Directory.CreateDirectory(package);
         var profiles = new JArray();
         foreach (var entry in selected)

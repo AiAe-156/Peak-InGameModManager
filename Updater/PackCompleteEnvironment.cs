@@ -52,8 +52,8 @@ internal static class PackCompleteEnvironment
         foreach (string name in new[] { "BepInEx", "BepInEx.Preloader", "0Harmony" })
             if (!assemblies.Any(a => a.Name == name && a.Path.StartsWith("core/", StringComparison.OrdinalIgnoreCase)))
                 issues.Add("目标缺少必要核心程序集：" + name);
-        if (!assemblies.Any(a => a.Name == "ModConfigEnhance" && a.Path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase))
-            || !plugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) issues.Add("目标缺少启用的 MCE 管理宿主。");
+        if (!assemblies.Any(a => ManagerIdentity.IsManagerAssembly(a.Name) && a.Path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase))
+            || !plugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) issues.Add("目标缺少启用的 MCE 管理宿主。");
         foreach (var group in plugins.GroupBy(p => p.Guid, Files.Compare).Where(g => g.Count() > 1)) issues.Add("重复插件身份：" + group.Key);
         foreach (var dependency in dependencies)
             if (!plugins.Any(p => Files.Compare.Equals(p.Guid, dependency.Guid) && (dependency.Minimum == null || Version.TryParse(dependency.Minimum, out var minimum) && Version.TryParse(p.Version, out var actual) && actual >= minimum)))
@@ -67,7 +67,7 @@ internal static class PackCompleteEnvironment
             foreach (var reference in owner.References)
             {
                 if (assemblies.Any(a => Files.Compare.Equals(a.Name, reference.Name) && a.Token == Token(reference) && a.Version >= reference.Version)) continue;
-                if (reference.Name.StartsWith("BepInEx", StringComparison.OrdinalIgnoreCase) || reference.Name is "0Harmony" or "ModConfigEnhance")
+                if (reference.Name.StartsWith("BepInEx", StringComparison.OrdinalIgnoreCase) || reference.Name == "0Harmony" || ManagerIdentity.IsManagerAssembly(reference.Name))
                 { issues.Add(owner.Path + " 缺少目标管理程序集：" + reference.FullName); continue; }
                 string platform = Files.Child(managed, reference.Name + ".dll");
                 if (File.Exists(platform))
@@ -96,7 +96,7 @@ internal static class PackCompleteEnvironment
 
     internal static T Clone<T>(T value) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Files.Json), Files.Json)!;
     internal static string LedgerPath(PackStorage storage, string id) => id.Length == 0
-        ? Path.Combine(storage.Root, "MCE", "shop", "installed-unmanaged.json") : Path.Combine(storage.Workspace(id), "shop-installed.json");
+        ? ManagerIdentity.Runtime(storage.Root, "shop", "installed-unmanaged.json") : Path.Combine(storage.Workspace(id), "shop-installed.json");
     internal static string? ReadLedgerText(PackStorage storage, string id)
     {
         string path = LedgerPath(storage, id); Files.RejectLinks(storage.Root, path);

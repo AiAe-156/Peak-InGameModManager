@@ -72,6 +72,6 @@ On this page: [Saving and taking effect](#profile) · [Enabling and uninstalling
 
 **Author signature warning**: get the author's complete original package again; your live configuration and personal profiles are kept. See [Author identity and signing](export#signing).
 
-**Viewing the runtime log**: click "Logs" in the toolbar to filter by level and mod, search, copy, or export the log for a mod author. Exporting opens a Save As window to pick the location; if that window cannot open, the file is saved to `BepInEx\config\ModConfigEnhance\output\logs\` and the status line shows the path.
+**Viewing the runtime log**: click "Logs" in the toolbar to filter by level and mod, search, copy, or export the log for a mod author. Exporting opens a Save As window to pick the location; if that window cannot open, the file is saved to `BepInEx\config\InGameModManager\output\logs\` and the status line shows the path.
 
 Related: [Feature overview](overview) · [Mod management](mods) · [Profiles and hotkeys](profiles) · [Sources and updates](sources)

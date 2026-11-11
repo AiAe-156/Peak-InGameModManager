@@ -210,7 +210,7 @@ internal static class Installer
             try
             {
                 var storage = new PackStorage(plan.Root); string active = storage.Read().ActivePackId;
-                string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(plan.Root, "MCE", "shop", "installed-unmanaged.json");
+                string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(plan.Root, "shop", "installed-unmanaged.json");
                 if (File.Exists(path))
                 {
                     var ledger = Files.Read<ShopLedger>(path); bool changed = false;
@@ -328,7 +328,7 @@ internal static class Installer
             return;
         }
         var storage = new PackStorage(plan.Root); string active = storage.Read().ActivePackId;
-        string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(plan.Root, "MCE", "shop", "installed-unmanaged.json");
+        string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(plan.Root, "shop", "installed-unmanaged.json");
         Files.RejectLinks(plan.Root, path);
         var ledger = File.Exists(path) ? Files.Read<ShopLedger>(path) : new ShopLedger();
         if (ledger.SchemaVersion != 1) throw new IOException("账本架构版本不受支持。");

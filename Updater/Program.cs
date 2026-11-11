@@ -19,7 +19,7 @@ try
     if (args.Length == 1 && args[0] == "--protocol")
     { Console.WriteLine("MCE worker protocol=2 build=" + WorkerRecovery.BuildIdentity); return 0; }
     int index = Array.IndexOf(args, "--root");
-    if (index < 0 || index + 1 >= args.Length) throw new ArgumentException("用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw|en-us]");
+    if (index < 0 || index + 1 >= args.Length) throw new ArgumentException("用法：IGMM.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw|en-us]");
     string root = Path.GetFullPath(args[index + 1]).TrimEnd('\\', '/');
     // Optional: the real game folder. Absent it the parent of --root is used, which is only correct for a
     // plain local installation; a manager profile lives elsewhere and would otherwise be mistaken for it.
@@ -112,7 +112,7 @@ catch (Exception error)
     if (!args.Contains("--write-protocol-manifest") && !args.Contains("--validate-protocol-manifest"))
     {
         System.Threading.Mutex? dialog = null; bool owned = false;
-        try { dialog = new System.Threading.Mutex(true, @"Local\MCE.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
+        try { dialog = new System.Threading.Mutex(true, @"Local\IGMM.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
         try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "In-Game Mod Manager", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
         finally { if (owned) dialog!.ReleaseMutex(); dialog?.Dispose(); }
     }
@@ -124,7 +124,7 @@ catch (Exception error)
             string root = Path.GetFullPath(args[index + 1]).TrimEnd('\\', '/');
             if (Directory.Exists(Path.Combine(root, "plugins")))
             {
-                string home = Path.Combine(root, "MCE"); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
+                string home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
                 Files.Save(Path.Combine(home, "worker-error.json"), new { Message = ModConfigEnhance.Updating.UpdateMessages.Encode(error.Message), UpdatedUtc = DateTime.UtcNow.ToString("O") });
             }
         }

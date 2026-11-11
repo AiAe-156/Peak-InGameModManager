@@ -444,9 +444,9 @@ internal static class ModConfigTranslationExport
                "//   ★ 原文里的 = 和换行已转义成 \\= 和 \\n，一条里可能有很多个 \\=（如 \"Hold\\=按住显示；Toggle\\=切换…flag.=\"）；真正的分隔符是第一个不带 \\ 的 =，正常导出时就是最右边那个。译文里要用 = 或换行，同样写 \\= 和 \\n。",
                "//   ★ 原文裡的 = 和換行已轉義成 \\= 和 \\n，一條裡可能有很多個 \\=（如 \"Hold\\=按住顯示；Toggle\\=切換…flag.=\"）；真正的分隔符是第一個不帶 \\ 的 =，正常匯出時就是最右邊那個。譯文裡要用 = 或換行，同樣寫 \\= 和 \\n。"));
         Line("//");
-        Line(L("//   How to use: fill in the right side, save, then click \"Import additions\" in the language row of the settings page — the filled lines are merged into the current language file (language\\<code>.txt). See BepInEx\\config\\ModConfigEnhance\\readme.md.",
-               "//   用法：填好等号右边并保存，在设置页语言行点「导入补翻」，填好的行会合进当前语言文件（language\\<语言码>.txt）。详见 BepInEx\\config\\ModConfigEnhance\\readme.md。",
-               "//   用法：填好等號右邊並儲存，在設定頁語言列點「匯入補翻」，填好的行會合進目前語言檔案（language\\<語言碼>.txt）。詳見 BepInEx\\config\\ModConfigEnhance\\readme.md。"));
+        Line(L("//   How to use: fill in the right side, save, then click \"Import additions\" in the language row of the settings page — the filled lines are merged into the current language file (language\\<code>.txt). See BepInEx\\config\\InGameModManager\\readme.md.",
+               "//   用法：填好等号右边并保存，在设置页语言行点「导入补翻」，填好的行会合进当前语言文件（language\\<语言码>.txt）。详见 BepInEx\\config\\InGameModManager\\readme.md。",
+               "//   用法：填好等號右邊並儲存，在設定頁語言列點「匯入補翻」，填好的行會合進目前語言檔案（language\\<語言碼>.txt）。詳見 BepInEx\\config\\InGameModManager\\readme.md。"));
         Line(L("//   Regex rules are supported in language files: r:\"^(\\d+) players$\"=$1 名玩家 (same format as XUnity, $1 refers to the first group).",
                "//   语言文件支持正则规则：r:\"^(\\d+) players$\"=$1 名玩家（与 XUnity 同格式，$1 引用第一个括号）。",
                "//   語言檔案支援正則規則：r:\"^(\\d+) players$\"=$1 名玩家（與 XUnity 同格式，$1 引用第一個括號）。"));

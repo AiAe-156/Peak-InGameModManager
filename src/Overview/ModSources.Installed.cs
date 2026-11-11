@@ -14,7 +14,7 @@ internal static partial class ModSources
     private static ShopLedger? InstalledLedger()
     {
         string path = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
-            : Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
+            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
         lock (Gate)
         {
             try {

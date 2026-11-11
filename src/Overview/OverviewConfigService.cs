@@ -23,7 +23,7 @@ internal sealed class OverviewConfigService
     public OverviewConfigService(string? configRoot = null, string? runtimeDirectory = null)
     {
         _configRoot = Path.GetFullPath(configRoot ?? Paths.ConfigPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        _backupRoot = runtimeDirectory ?? Path.Combine(Updating.MceDirectories.Runtime(Path.Combine(_configRoot, "ModConfigEnhance")), "config-backups");
+        _backupRoot = runtimeDirectory ?? Path.Combine(Updating.MceDirectories.Runtime(Path.Combine(_configRoot, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory)), "config-backups");
     }
     internal OverviewConfigService(string configRoot, string runtimeDirectory, Func<IEnumerable<(string Guid, ConfigFile File)>> configProvider)
         : this(configRoot, runtimeDirectory) { _configProvider = configProvider; }

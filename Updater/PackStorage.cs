@@ -9,8 +9,8 @@ internal sealed class PackStorage
     internal readonly string Root, Home, IndexPath, TaskPath;
     internal PackStorage(string root)
     {
-        Root = root; Home = Path.Combine(root, "MCE", "packs");
-        IndexPath = Path.Combine(Home, "index.json"); TaskPath = Path.Combine(root, "MCE", "pack-task.json");
+        Root = root; Home = ManagerIdentity.Runtime(root, "packs");
+        IndexPath = Path.Combine(Home, "index.json"); TaskPath = ManagerIdentity.Runtime(root, "pack-task.json");
         Files.RejectLinks(Directory.GetParent(root)!.FullName, Home);
     }
     // Structure/protocol only: execution must explicitly Validate its target/plan.

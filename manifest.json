@@ -1,6 +1,6 @@
 {
-  "name": "ModConfigEnhance",
-  "version_number": "2.5.5",
+  "name": "InGameModManager",
+  "version_number": "1.0.0",
   "website_url": "https://github.com/AiAe-156/Peak-ModConfigEnhance",
   "description": "Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
   "dependencies": [

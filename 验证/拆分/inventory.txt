@@ -1,0 +1,118 @@
+[dirname] src\MceDirectoryMigration.cs:106: if (text.IndexOf("ModConfigEnhance", StringComparison.OrdinalIgnoreCase) >= 0) yield return file;
+[dirname] src\Updating\ManagerIdentity.cs:26: internal const string LegacyAssemblyName = "ModConfigEnhance";
+[dirname] src\Updating\ManagerIdentity.cs:42: internal const string LegacyConfigDirectory = "ModConfigEnhance";
+[env] src\Updating\ManagerIdentity.cs:90: internal const string LegacyEnvironmentFile = "MCEEnvironment.json";
+[exe] Desktop\Program.cs:15: throw new ArgumentException("Usage: MCE.Desktop.exe --root <BepInEx directory> --task <32 hex task ID> --language en-us|zh-cn|zh-tw");
+[exe] Desktop\Program.cs:5: namespace MCE.Desktop;
+[exe] Desktop\ProgressProtocol.cs:11: namespace MCE.Desktop;
+[exe] Desktop\ProgressWindow.cs:14: namespace MCE.Desktop;
+[exe] Desktop\SelfTest.cs:5: namespace MCE.Desktop;
+[exe] Updater\Files.cs:6: namespace MCE.UpdateWorker;
+[exe] Updater\FrameworkCompat.cs:14: namespace MCE.UpdateWorker
+[exe] Updater\FrameworkCompat.cs:3: global using Path = MCE.UpdateWorker.FrameworkPath;
+[exe] Updater\GroupLayoutPlanner.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\InstallArchive.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\InstallDependencies.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\InstallInventory.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\InstallMetadata.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\InstallPlanner.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\InstallStorage.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\Installer.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\LayoutPlan.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\ManagerProfileSync.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\ModImportPreview.cs:11: namespace MCE.UpdateWorker;
+[exe] Updater\NetworkProbe.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackCompleteEnvironment.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackImportEnvironment.cs:20: var data = MCE.UpdateWorker.Files.Read<PackImportEnvironment>(path);
+[exe] Updater\PackImportEnvironment.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\PackImportTarget.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\PackImports.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackMaintenance.cs:8: namespace MCE.UpdateWorker;
+[exe] Updater\PackPersonalCopy.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackQueue.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\PackResolvedImport.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\PackRevisionState.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackSignature.cs:7: namespace MCE.UpdateWorker;
+[exe] Updater\PackStorage.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackTransactions.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\PackagePlan.cs:6: namespace MCE.UpdateWorker;
+[exe] Updater\Program.cs:1: using MCE.UpdateWorker;
+[exe] Updater\Program.cs:22: if (index < 0 || index + 1 >= args.Length) throw new ArgumentException("用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw|en-us]"
+[exe] Updater\QueueWorker.cs:6: namespace MCE.UpdateWorker;
+[exe] Updater\RecycleBin.cs:5: namespace MCE.UpdateWorker;
+[exe] Updater\ShopComponentProtection.cs:2: namespace MCE.UpdateWorker;
+[exe] Updater\ShopCoreBatch.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\ShopDependencyValidation.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\ShopDependencyWarnings.cs:2: namespace MCE.UpdateWorker;
+[exe] Updater\ShopLocalImport.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\ShopOwnership.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\ShopQueue.cs:7: namespace MCE.UpdateWorker;
+[exe] Updater\StateChangePublication.cs:1: namespace MCE.UpdateWorker;
+[exe] Updater\StoreClient.cs:6: namespace MCE.UpdateWorker;
+[exe] Updater\Transactions.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerLanguage.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerLog.cs:4: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerParallelOperations.cs:2: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerRecovery.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerStatus.cs:1: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerTargetProtocol.cs:3: namespace MCE.UpdateWorker;
+[exe] Updater\WorkerWindow.cs:10: namespace MCE.UpdateWorker;
+[exe] src\Updating\UpdateMessageCatalog.cs:41: new UpdateMessageTerm("worker-usage", "用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--once]", "Usage: MCE.UpdateWorker.exe --root <BepInEx directory> [--once]", "用法：MCE.UpdateWorker.exe --root <BepInEx目錄> [--once]"),
+[exe] tools\QueueLocalDeployment.ps1:131: $exe = Get-Item -LiteralPath (Join-Path $bundle 'MCE.UpdateWorker.exe')
+[exe] tools\QueueLocalDeployment.ps1:134: foreach ($file in Get-ChildItem -LiteralPath $bundle -File | Where-Object { $_.Name -eq 'MCE.UpdateWorker.exe' -or $_.Extension -eq '.txt' }) {
+[exe] tools\QueueLocalDeployment.ps1:138: $start = [Diagnostics.ProcessStartInfo]::new((Join-Path $tools 'MCE.UpdateWorker.exe'))
+[exe] tools\QueueLocalDeployment.ps1:76: if (-not ($payload | Where-Object Relative -eq 'Tools\Updater\MCE.UpdateWorker.exe')) { throw '缺少自包含更新助手。' }
+[exe] tools\package_thunderstore.py:31: for project in (ROOT / "ModConfigEnhance.csproj", ROOT / "Updater/MCE.UpdateWorker.csproj"):
+[exe] tools\package_thunderstore.py:45: run("dotnet", "publish", "Updater/MCE.UpdateWorker.csproj", "-c", "Release", "-o", "Updater/bin/framework-bundle", "-p:EnableDeployment=false")
+[exe] tools\package_thunderstore.py:46: run("dotnet", "build", "Desktop/MCE.Desktop.csproj", "-c", "Release", "-p:EnableDeployment=false")
+[exe] tools\package_thunderstore.py:67: (files["tools/updater/mce.updateworker.exe"][0], [ROOT / "Updater/MCE.UpdateWorker.csproj", *ROOT.glob("Updater/*.cs"), *ROOT.glob("src/Updating/*.cs")]),
+[guid] Updater\ShopCoreBatch.cs:9: static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||ManagerIdentity.IsManagerPackage(p.Key)||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetF
+[guid] src\Updating\ManagerIdentity.cs:23: internal const string LegacyGuid = "com.aiae.modconfigenhance";
+[guid] tools\QueueLocalDeployment.ps1:104: $config = Join-Path $bepRoot 'config\com.aiae.modconfigenhance.cfg'
+[guid] tools\QueueLocalDeployment.ps1:125: Enabled=$true;AllowDowngrade=$false;RestoreParameters=$false;PluginGuids=@('com.aiae.modconfigenhance');AssemblyPaths=@((Join-Path $targetRoot 'ModConfigEnhance.dll'));LoadedAssemblyPaths=@();ConfigurationFiles=@($config
+[hotkeykey] src\Updating\ManagerIdentity.cs:104: internal const string LegacyHotkeyPrefix = "ModConfigEnhance.HotkeyDescription.";
+[keyprefix] src\Loc.Layered.cs:43: text.Append(builtin.Contains(entry.Key) ? KeyPrefix : "").Append(Escape(entry.Key)).Append('=').Append(Escape(entry.Value)).Append('\n');
+[keyprefix] src\Loc.cs:1031: MenuAPI.CreateLocalization(KeyPrefix + term.Key).AddLocalization(value, language);
+[keyprefix] src\Loc.cs:1056: LocalizedText.mainTable[(KeyPrefix + term.Key).ToUpperInvariant()] = row;
+[keyprefix] src\Loc.cs:296: string value = LocalizedText.GetText(KeyPrefix + key, printDebug: false);
+[keyprefix] src\Loc.cs:31: internal const string KeyPrefix = Updating.ManagerIdentity.TermPrefix;
+[keyprefix] src\Loc.cs:32: internal const string LegacyKeyPrefix = Updating.ManagerIdentity.LegacyTermPrefix;
+[keyprefix] src\Loc.cs:334: internal static string Index(string key) => KeyPrefix + key;
+[keyprefix] src\Loc.cs:367: MenuAPI.CreateLocalization(KeyPrefix + term.Key)
+[keyprefix] src\Loc.cs:37: foreach (string prefix in new[] { KeyPrefix, LegacyKeyPrefix })
+[keyprefix] src\Loc.cs:962: if (text != null && !string.IsNullOrEmpty(text.index) && text.index.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
+[keyprefix] src\ModConfigLocalizationPatch.cs:235: label.SetLocalizationIndex(KeyPrefix + "SEARCH");
+[keyprefix] src\ModConfigLocalizationPatch.cs:252: localized.index = KeyPrefix + "SEARCH_HERE";
+[keyprefix] src\ModConfigLocalizationPatch.cs:269: label.SetLocalizationIndex(KeyPrefix + panelKeys[index]);
+[keyprefix] src\ModConfigLocalizationPatch.cs:28: private const string KeyPrefix = Loc.KeyPrefix;
+[keyprefix] src\ModConfigLocalizationPatch.cs:317: button.SetLocalizationIndex(KeyPrefix + key);
+[keyprefix] src\ModConfigTranslationExport.cs:512: sb.Append(Loc.KeyPrefix).Append(term.Key).Append('=').Append(Escape(term.English)).Append('\n');
+[keyprefix] src\Updating\ManagerIdentity.cs:101: internal const string LegacyTermPrefix = "MCE_";
+[mce-dir] Updater\ShopQueue.cs:19: string LedgerPathFor(PackIndex index) => index.ActivePackId.Length>0 ? Path.Combine(storage.Workspace(index.ActivePackId),"shop-installed.json") : Path.Combine(storage.Root,"MCE","shop","installed-unmanaged.json");
+[mce-dir] Updater\ShopQueue.cs:313: if(ProtectedHost(target))throw new IOException("Required BepInEx/MCE management host cannot be uninstalled independently: "+target.Key);
+[mce-dir] src\Overview\ShopInstallationState.cs:58: ? "Required BepInEx/MCE management host cannot be uninstalled independently." : BlockReason(key, true);
+[mce-dir] src\Updating\MaintenanceContracts.cs:23: public const string Downloads = "downloads";       // BepInEx/MCE/downloads
+[mce-dir] src\Updating\MaintenanceContracts.cs:24: public const string ViewCache = "view-cache";      // BepInEx/MCE/packs/.view-cache
+[mce-dir] src\Updating\MaintenanceContracts.cs:25: public const string Transactions = "transactions"; // BepInEx/MCE/packs/.transactions/<id> whose switch plan is installed or rolled-back
+[mce-dir] src\Updating\MaintenanceContracts.cs:26: public const string PackTrash = "pack-trash";      // BepInEx/MCE/packs/.trash/<id>; only used by purge-pack-trash
+[mce-dir] src\Updating\ManagerIdentity.cs:47: internal const string LegacyRuntimeDirectory = "MCE";
+[mce-dir] src\Updating\PackReportText.cs:55: else if (Starts("含本机运行数据：", out rest)) Set("包内含有管理器运行数据：" + rest, "", "重新打包时排除管理器运行目录（BepInEx/MCE）。");
+[mutex] Updater\Program.cs:114: System.Threading.Mutex? dialog = null; bool owned = false;
+[mutex] Updater\Program.cs:115: try { dialog = new System.Threading.Mutex(true, @"Local\IGMM.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
+[mutex] Updater\Program.cs:117: finally { if (owned) dialog!.ReleaseMutex(); dialog?.Dispose(); }
+[mutex] src\Overview\ConfigurationIssueReport.cs:19: if (text.IndexOf("Sharing violation", StringComparison.OrdinalIgnoreCase) >= 0 || text.IndexOf("worker.lock", StringComparison.OrdinalIgnoreCase) >= 0)
+[mutex] src\Overview\OverviewUpdateQueue.cs:263: string lockPath = Path.Combine(root, "worker-instance.lock");
+[mutex] src\Plugin.cs:144: string path = Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "worker-instance.lock");
+[mutex] src\Updating\UpdateContracts.cs:205: public static InstallationWriteLease AcquireWorkerInstance(string root) => new(root, false, "worker-instance.lock");
+[mutex] src\Updating\UpdateContracts.cs:206: InstallationWriteLease(string root, bool recover, string lockName = "worker.lock")
+[mutex] src\Updating\UpdateContracts.cs:217: if (lockName == "worker-instance.lock") throw new WorkerAlreadyRunningException(error);
+[mutex] src\Updating\UpdateWriteMarker.cs:20: public static string PathFor(string root) => ManagerIdentity.Runtime(root, "updating.lock");
+[pack] src\Loc.GeneratedTerms.cs:7: new("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and pre
+[pack] src\Overview\PackPublisher.cs:421: internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied 
+[pack] src\Overview\PublishFilePreview.cs:163: bool profileResource = ModConfigEnhance.Updating.ManagerIdentity.IndexOfPackSubfolder("/" + normalized, "profiles", out _) >= 0 || normalized.StartsWith("plugins/MCEPack/profiles/", StringComparison.OrdinalIgnoreCase);
+[pack] src\Overview\StoredPackDetails.cs:86: report.Files = pack.Files.Select(f => new PackReportFile { Path = f.Path.Replace((char)92, '/'), Group = f.Path.StartsWith("config/", StringComparison.OrdinalIgnoreCase) ? "配置文件" : f.Path.StartsWith("patchers/", StringCo
+[pack] src\Updating\ManagerIdentity.cs:63: internal const string LegacyPackFolder = "MCEPack";
+[pkgkey] src\Overview\ShopInstallationState.cs:57: internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : ModConfigEnhance.Updating.ManagerIdentity.IsManagerPackage(key) || key.E
+[pkgkey] src\Updating\ManagerIdentity.cs:29: internal const string LegacyPackageKey = "AiAeT-ModConfigEnhance";
+[ua] Updater\StoreClient.cs:27: http.DefaultRequestHeaders.UserAgent.ParseAdd("IGMM.UpdateWorker/" + typeof(StoreClient).Assembly.GetName().Version!.ToString(3));
+[ua] src\Overview\ShopNetwork.cs:100: client.DefaultRequestHeaders.UserAgent.ParseAdd(ModConfigEnhance.Updating.ManagerIdentity.AssemblyName + "/" + Plugin.PluginVersion);

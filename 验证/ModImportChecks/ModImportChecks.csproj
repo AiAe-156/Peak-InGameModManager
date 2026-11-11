@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Updater/ModImportPreview.cs" Link="ModImportPreview.cs" />
+    <Compile Include="../../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" />
     <Compile Include="../../src/Updating/ModImportContracts.cs" Link="ModImportContracts.cs" />
     <Reference Include="Mono.Cecil"><HintPath>../../../../BepInEx/core/Mono.Cecil.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>

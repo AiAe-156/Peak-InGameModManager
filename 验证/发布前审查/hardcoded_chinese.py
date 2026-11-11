@@ -35,6 +35,7 @@ LOG_ONLY = {
     'PackContracts.cs', 'IntroductionDocument.cs', 'OverviewRepository.Diagnostics.cs', 'ModConfigSupport.cs', 'LogRepeatIndex.cs',
 }
 ALLOWED = {
+    '"Language changes / 语言变更详情"': 'log channel name shown bilingually in the log window source list (unchanged since 2.x; line moved by the 1.0.0 rename)',
     'Loc.T(tag, ': 'English is the store tag itself (variable); three languages given',
     'Loc.T(EnablementNote, ': 'English comes from a constant; three languages given',
     'KeyCode / 按键名清单': 'translation-export file header writes both Chinese variants on purpose',

@@ -125,7 +125,7 @@ internal sealed class OverviewDocumentView : IDisposable
         {
             if(!TrySave())return false;Commit();string source=SourceText;string root=_repository.EnsureLocalPackCopy();
             string exportRoot=Path.Combine(Loc.PackOutputDirectory,"introduction",DateTime.Now.ToString("yyyyMMdd_HHmmss")+"_"+Guid.NewGuid().ToString("N").Substring(0,6));
-            string package=Path.Combine(exportRoot,"plugins","MCEPack");Directory.CreateDirectory(package);
+            string package=Path.Combine(exportRoot,"plugins",ModConfigEnhance.Updating.ManagerIdentity.PackFolder);Directory.CreateDirectory(package);
             // A complete author-state snapshot includes grouping, aliases and global/per-mod update permissions.
             JObject metadata=JObject.Parse(JsonConvert.SerializeObject(_repository.State));
             metadata["pack"]!["introFile"]="introduction.md";metadata["pack"]!["introEnabled"]=_repository.State.pack.introEnabled;
@@ -151,13 +151,13 @@ internal sealed class OverviewDocumentView : IDisposable
             }
             File.WriteAllText(Path.Combine(package,"introduction.md"),source,new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(package,"packinfo.json"),metadata.ToString(Formatting.Indented),new UTF8Encoding(false));
-            string languageRoot=Path.Combine(exportRoot,"config","ModConfigEnhance","language");
+            string languageRoot=Path.Combine(exportRoot,"config",ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory,"language");
             if(Directory.Exists(Loc.LanguageDirectory))foreach(string file in OverviewRepository.SafeFiles(Loc.LanguageDirectory).Where(f=>f.EndsWith(".txt",StringComparison.OrdinalIgnoreCase)))
             {
                 string relative=file.Substring(Path.GetFullPath(Loc.LanguageDirectory).TrimEnd(Path.DirectorySeparatorChar).Length+1);
                 string destination=OverviewRepository.SafePath(languageRoot,relative);if(destination.Length==0)throw new IOException(Loc.T("Invalid language file path", "语言文件路径无效", "語言文件路徑無效"));Directory.CreateDirectory(Path.GetDirectoryName(destination)!);File.Copy(file,destination,false);
             }
-            string fontsRoot=Path.Combine(exportRoot,"config","ModConfigEnhance","fonts");
+            string fontsRoot=Path.Combine(exportRoot,"config",ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory,"fonts");
             if(Directory.Exists(IntroductionFontRegistry.FontsDirectory))foreach(string file in OverviewRepository.SafeFiles(IntroductionFontRegistry.FontsDirectory).Where(f=>f.EndsWith(".ttf",StringComparison.OrdinalIgnoreCase)||f.EndsWith(".otf",StringComparison.OrdinalIgnoreCase)))
             {
                 string relative=file.Substring(Path.GetFullPath(IntroductionFontRegistry.FontsDirectory).TrimEnd(Path.DirectorySeparatorChar).Length+1);

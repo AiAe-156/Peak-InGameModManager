@@ -8,14 +8,14 @@
     <EmbeddedResource Include="Help\zh-tw\*.md" LogicalName="MCE.Help.zh-tw.%(Filename)%(Extension)" />
   </ItemGroup>
   <PropertyGroup>
-    <AssemblyName>ModConfigEnhance</AssemblyName>
+    <AssemblyName>InGameModManager</AssemblyName>
     <RootNamespace>ModConfigEnhance</RootNamespace>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <DefaultItemExcludes>$(DefaultItemExcludes);备份\**;验证\**;发布\**;Updater\bin\**;Updater\obj\**;Desktop\**</DefaultItemExcludes>
-    <Version>2.5.5</Version>
+    <Version>1.0.0</Version>
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>12.0</LangVersion>
@@ -25,7 +25,7 @@
     <BepInExCoreDir>$(GameDir)BepInEx\core\</BepInExCoreDir>
     <PluginsDir>$(GameDir)BepInEx\plugins\</PluginsDir>
     <!-- 沿用用户确认的当前安装位置，一个模组一个独立目录。2026-11-09 用户执行目录整理后随之移到 0基础模组。 -->
-    <DeployDir>$(PluginsDir)0基础模组\ModManager_InGame_2.0.0_20261029_215224\</DeployDir>
+    <DeployDir>$(PluginsDir)0基础模组\[界面]游戏内模组管理器-InGameModManager\</DeployDir>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
@@ -66,23 +66,23 @@
     </Reference>
   </ItemGroup>
   <Target Name="PrepareDesktopBundle">
-    <Error Condition="!Exists('$(ProjectDir)Desktop\bin\Release\net48\MCE.Desktop.exe')" Text="请先构建 Desktop/MCE.Desktop.csproj -c Release。" />
-    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe')" Text="请先发布 Framework 更新助手。" />
-    <Copy SourceFiles="$(ProjectDir)Desktop/bin/Release/net48/MCE.Desktop.exe;$(ProjectDir)Desktop/bin/Release/net48/MCE.Desktop.exe.config" DestinationFolder="$(ProjectDir)Updater/bin/framework-bundle" />
-    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
+    <Error Condition="!Exists('$(ProjectDir)Desktop\bin\Release\net48\IGMM.Desktop.exe')" Text="请先构建 Desktop/MCE.Desktop.csproj -c Release。" />
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\IGMM.UpdateWorker.exe')" Text="请先发布 Framework 更新助手。" />
+    <Copy SourceFiles="$(ProjectDir)Desktop/bin/Release/net48/IGMM.Desktop.exe;$(ProjectDir)Desktop/bin/Release/net48/IGMM.Desktop.exe.config" DestinationFolder="$(ProjectDir)Updater/bin/framework-bundle" />
+    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\IGMM.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
   </Target>
   <Target Name="CollectReleaseFiles" DependsOnTargets="ResolveReferences;PrepareDesktopBundle">
-    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe')" Text="请先发布独立更新助手：dotnet publish Updater/MCE.UpdateWorker.csproj -c Release -o Updater/bin/framework-bundle -p:EnableDeployment=false" />
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\IGMM.UpdateWorker.exe')" Text="请先发布独立更新助手：dotnet publish Updater/MCE.UpdateWorker.csproj -c Release -o Updater/bin/framework-bundle -p:EnableDeployment=false" />
     <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\Mono.Cecil.LICENSE.txt') Or !Exists('$(ProjectDir)Updater\bin\framework-bundle\Runtime-LICENSE.TXT') Or !Exists('$(ProjectDir)Updater\bin\framework-bundle\Runtime-THIRD-PARTY-NOTICES.TXT')" Text="更新助手许可证文件缺失，请重新发布完整助手。" />
     <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\worker-protocol.manifest')" Text="助手协议清单缺失，请重新发布。" />
-    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe&quot; --validate-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
+    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\IGMM.UpdateWorker.exe&quot; --validate-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
     <ItemGroup>
       <OverviewRuntimeDependencies Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Markdig' Or '%(Filename)' == 'YamlDotNet'" />
       <OverviewDemoFiles Include="$(ProjectDir)Demo\**\*.*" />
       <HelpAssetFiles Include="$(ProjectDir)Help\**\*.*" Exclude="$(ProjectDir)Help\**\*.md;$(ProjectDir)Help\**\*.json;$(ProjectDir)Help\**\*.partial;$(ProjectDir)Help\**\*.bak" />
       <UpdateWorkerBundle Include="$(ProjectDir)Updater\bin\framework-bundle\**\*" />
       <ReleaseDocumentation Include="$(ProjectDir)README.md;$(ProjectDir)CHANGELOG.md;$(ProjectDir)THIRD-PARTY-NOTICES.md;$(ProjectDir)LICENSE.txt;$(ProjectDir)manifest.json;$(ProjectDir)icon.png" />
-      <ReleasePayload Include="$(TargetPath)" TargetPath="ModConfigEnhance.dll" />
+      <ReleasePayload Include="$(TargetPath)" TargetPath="InGameModManager.dll" />
       <ReleasePayload Include="@(OverviewRuntimeDependencies)" TargetPath="%(Filename)%(Extension)" />
       <ReleasePayload Include="@(UpdateWorkerBundle)" TargetPath="Tools\Updater\%(RecursiveDir)%(Filename)%(Extension)" />
       <ReleasePayload Include="@(OverviewDemoFiles)" TargetPath="Demo\%(RecursiveDir)%(Filename)%(Extension)" />

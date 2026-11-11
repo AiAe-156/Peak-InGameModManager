@@ -80,7 +80,7 @@ internal sealed class OverviewNetworkSettings : IDisposable
         try
         {
             _result.text = Loc.T("Testing store and download connections…", "正在测试商店与下载连接……", "正在測試商店與下載連線……");
-            string id = Guid.NewGuid().ToString("N"), directory = OverviewProfileAssets.CheckedPath(BepInEx.Paths.BepInExRootPath, "MCE/probes"); Directory.CreateDirectory(directory);
+            string id = Guid.NewGuid().ToString("N"), directory = OverviewProfileAssets.CheckedPath(BepInEx.Paths.BepInExRootPath, ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/probes"); Directory.CreateDirectory(directory);
             var request = new ProbeRequest { Network = new UpdateNetworkOptions { Mode = _mode, ProxyAddress = _mode == "custom" ? _address.text.Trim() : "" }, Namespace = "PEAKModding", Package = "PEAKLib_Core" };
             OverviewRepository.AtomicWrite(Path.Combine(directory, id + ".request.json"), JsonConvert.SerializeObject(request));
             _probe = OverviewUpdateQueue.StartProbe(id);

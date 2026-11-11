@@ -38,7 +38,7 @@ public static partial class UpdateMessages
         new UpdateMessageTerm("rollback-backup-incomplete", "回退备份不完整：", "Rollback backup is incomplete: ", "回復備份不完整："),
         new UpdateMessageTerm("prepared-file-changed", "准备文件发生变化：", "A prepared file has changed: ", "準備檔案有所變更："),
         new UpdateMessageTerm("store-cache-invalid", "商店缓存格式异常。", "The store cache has an invalid format.", "商店快取格式異常。"),
-        new UpdateMessageTerm("worker-usage", "用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--once]", "Usage: MCE.UpdateWorker.exe --root <BepInEx directory> [--once]", "用法：MCE.UpdateWorker.exe --root <BepInEx目錄> [--once]"),
+        new UpdateMessageTerm("worker-usage", "用法：IGMM.UpdateWorker.exe --root <BepInEx目录> [--once]", "Usage: IGMM.UpdateWorker.exe --root <BepInEx directory> [--once]", "用法：IGMM.UpdateWorker.exe --root <BepInEx目錄> [--once]"),
         new UpdateMessageTerm("queue-schema-unsupported", "更新队列版本不受支持，保留原队列。", "The update queue version is unsupported; the queue was preserved.", "更新佇列版本不受支援，已保留原佇列。"),
         new UpdateMessageTerm("queue-job-id-invalid", "队列任务编号无效。", "The queued job ID is invalid.", "佇列工作編號無效。"),
         new UpdateMessageTerm("recovering-interrupted-job", "正在恢复中断的任务。", "Recovering an interrupted task.", "正在復原中斷的工作。"),

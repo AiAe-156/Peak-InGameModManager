@@ -21,8 +21,8 @@ internal static class PackPreviewLanguage
         if (task.Proposed.AuthorRoot.Length > 0) directories.Add(OverviewProfileAssets.CheckedPath(root, task.Proposed.AuthorRoot + "/language"));
         foreach (string p in task.Proposed.Files.Select(f => f.Path.Replace((char)92, '/')))
         {
-            int at = p.IndexOf("/MCEPack/language/", StringComparison.OrdinalIgnoreCase);
-            if (at >= 0) directories.Add(OverviewProfileAssets.CheckedPath(root, p[..(at + "/MCEPack/language".Length)]));
+            int at = ModConfigEnhance.Updating.ManagerIdentity.IndexOfPackSubfolder(p, "language", out int marker);
+            if (at >= 0) directories.Add(OverviewProfileAssets.CheckedPath(root, p[..(at + marker - 1)]));
         }
         if (task.Request.Operation == "view-stored") directories.Add(OverviewProfileAssets.CheckedPath(PackLibrary.Home, task.Proposed.Id + "/workspace/language"));
         foreach (string directory in directories.Distinct(StringComparer.OrdinalIgnoreCase).Where(Directory.Exists))

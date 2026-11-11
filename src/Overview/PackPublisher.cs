@@ -66,7 +66,7 @@ internal static partial class PackPublisher
         }
         foreach (var item in new DirectoryInfo(Paths.BepInExRootPath).EnumerateFileSystemInfos())
         {
-            if ((item.Attributes & FileAttributes.ReparsePoint) != 0 || new[] { "plugins", "config", "core", "patchers", "monomod", "MCE" }.Contains(item.Name, StringComparer.OrdinalIgnoreCase)) continue;
+            if ((item.Attributes & FileAttributes.ReparsePoint) != 0 || new[] { "plugins", "config", "core", "patchers", "monomod", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory }.Contains(item.Name, StringComparer.OrdinalIgnoreCase)) continue;
             string relative = "BepInEx/" + item.Name; if (Keep(relative)) result.Add((relative, relative));
         }
         foreach (string folder in new[] { "core", "patchers", "monomod" })
@@ -87,7 +87,7 @@ internal static partial class PackPublisher
         var mods = catalogue.Scan(repo);
         mods.AddRange(catalogue.PublicationCache(repo));
         var containers = ContainerRoots();
-        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config","MCE","cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)).Select(p => p!))
+        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)).Select(p => p!))
         foreach (string file in OverviewRepository.SafeFiles(Path.Combine(Paths.BepInExRootPath, route)).Where(p => Path.GetFileName(p) == "manifest.json"))
         {
             string root = Path.GetDirectoryName(file)!;
@@ -138,7 +138,7 @@ internal static partial class PackPublisher
     }
     private static bool ExtraConfigAllowed(string relative) => Keep(relative) && !Path.IsPathRooted(relative)
         && !relative.Replace('\\', '/').Split('/').Any(p => p == "..")
-        && !relative.Replace('\\', '/').StartsWith("ModConfigEnhance/", StringComparison.OrdinalIgnoreCase)
+        && !ModConfigEnhance.Updating.ManagerIdentity.IsConfigDirectory(relative.Replace('\\', '/').Split('/')[0])
         && !relative.Equals(Plugin.PluginGuid + ".cfg", StringComparison.OrdinalIgnoreCase);
     private static string PackageSource(OverviewMod mod) => Directory.Exists(mod.PackageRoot) || File.Exists(mod.PackageRoot) ? mod.PackageRoot
         : mod.AssemblyPaths.FirstOrDefault(path => File.Exists(path) && !OverviewCatalogue.IsUpdateCandidate(path)
@@ -152,7 +152,7 @@ internal static partial class PackPublisher
         var goals = profile?.mods.GroupBy(m => m.guid, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Last().enabled, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string,bool>();
         void AddTree(string source, string prefix, Func<string,bool>? include = null)
         { foreach (string file in OverviewRepository.SafeFiles(source)) { string relative = Relative(source, file).Replace('\\','/'); if (file.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase) && File.Exists(file.Substring(0, file.Length - 4))) continue; if (source == Paths.PluginPath && CompleteMode(request.Mode)) { if (!KeepPluginFile(file, relative, mods)) continue; relative = ProjectPluginRelative(file, relative, mods, goals); } if (KeepCopiedFile(file, relative) && (include == null || include(relative))) files.Add(prefix + relative); } }
-        string payload = request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + request.Name + "/MCEPack/";
+        string payload = request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/";
         foreach (string name in new[] { "profiles.json", "release.json", "sources.json", "conflicts.json" }) files.Add(payload + name);
         if (request.Sign) files.Add(payload + "signature.json");
         foreach (string language in request.Languages) files.Add(payload + "language/" + language + ".txt");
@@ -329,7 +329,7 @@ internal static partial class PackPublisher
             dependencies.Clear(); dependencies.UnionWith(resolved);
         }
         // All output is new. Live configs, plugins and author originals are never rewritten.
-        string payload = Path.Combine(export, "plugins", "MCEPack");
+        string payload = Path.Combine(export, "plugins", ModConfigEnhance.Updating.ManagerIdentity.PackFolder);
         string id = PackId();
         PackConflictStore.WritePublished(payload, request.Conflicts, mods);
         foreach (string file in OverviewRepository.SafeFiles(payload).Where(p => Path.GetFileName(p) == "profile.json"))
@@ -356,11 +356,11 @@ internal static partial class PackPublisher
             ["enhanceDefaults"] = enhance, ["containers"] = new JArray(ContainerRoots().Select(p => Relative(Paths.BepInExRootPath, p).Replace('\\', '/')))
             , ["warnings"] = new JArray(MissingTargets(repo,request,mods).Concat(request.ExcludedExtras.Select(p=>"Excluded attachment / 已确认排除附带内容："+p.Key+" — "+p.Value)))
         }.ToString(Formatting.Indented));
-        PublicationDrafts.Apply(request, payload, request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + request.Name + "/MCEPack/");
+        PublicationDrafts.Apply(request, payload, request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
         if (request.Sign) { PublishedPack.Sign(payload, request.SigningKeyPath); PublishedPack.Verify(payload, true); }
         if (request.Mode == PublishMode.Data) return export;
         string output = Path.Combine(export, CompleteMode(request.Mode) ? "Local" : "Thunderstore"); Directory.CreateDirectory(output);
-        CopyTree(payload, Path.Combine(output, "BepInEx", "plugins", request.Name, "MCEPack"), preservePublishedFiles: true);
+        CopyTree(payload, Path.Combine(output, "BepInEx", "plugins", request.Name, ModConfigEnhance.Updating.ManagerIdentity.PackFolder), preservePublishedFiles: true);
         if (CompleteMode(request.Mode))
         {
             foreach (var entry in EnvironmentPlan(request, mods, defaults))
@@ -412,13 +412,13 @@ internal static partial class PackPublisher
         if (CompleteMode(request.Mode)) OverviewRepository.AtomicWrite(Path.Combine(output, "README.md"), Readme(request));
         var missing=MissingTargets(repo,request,mods).Concat(request.ExcludedExtras.Select(p=>"Excluded attachment / 已确认排除附带内容："+p.Key+" — "+p.Value)).ToList();
         if(missing.Count>0) File.AppendAllText(Path.Combine(output,"README.md"),"\n\n"+string.Join("\n",missing.Select(m=>"- "+m))+"\n",new UTF8Encoding(false));
-        PublicationDrafts.Apply(request, output, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/MCEPack/");
+        PublicationDrafts.Apply(request, output, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
         if (CompleteMode(request.Mode)) WriteEnvironmentDescription(output, request, defaults, mods);
         string zip = Path.Combine(export, ExportName(request) + ".zip");
         string partial = zip + ".partial"; ZipFile.CreateFromDirectory(output, partial, CompressionLevel.Optimal, false); File.Move(partial, zip);
         return zip;
     }
-    internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and MCEPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in MCEPack; personal changes are in config/ModConfigEnhance.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 MCEPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 MCEPack，个人修改位于 config/ModConfigEnhance。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 MCEPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 MCEPack，個人修改位於 config/ModConfigEnhance。\n");
+    internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and IGMMPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in IGMMPack; personal changes are in config/InGameModManager.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 IGMMPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 IGMMPack，个人修改位于 config/InGameModManager。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 IGMMPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 IGMMPack，個人修改位於 config/InGameModManager。\n");
     internal static string Changelog(PublishRequest request) => "# " + request.Version + "\n\n" + request.Description + "\n";
     internal static bool IsIcon(string path)
     {

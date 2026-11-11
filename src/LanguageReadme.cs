@@ -35,7 +35,7 @@ internal static class LanguageReadme
         - `//` starts a comment. The first line `// display: Name` sets the name shown in the language dropdown.
         - Inside text, `\n` is a line break and `\=` an equals sign. Keep `{0}` `{1}` placeholders.
         - **Never change the left side of `=`**: it must match the on-screen text character for character.
-        - `MCE_KEY=text` lines change this manager's own interface text (the key is a fixed ID; translate the right side only). Leave them out to use the built-in text.
+        - `IGMM_KEY=text` lines change this manager's own interface text (the key is a fixed ID; translate the right side only). Leave them out to use the built-in text.
         - Empty right side = not translated, the original shows.
 
         ### Regex rules
@@ -107,7 +107,7 @@ internal static class LanguageReadme
         - `//` 开头是注释。首行 `// display: 名字` 决定语言下拉框里显示的名字。
         - 文字里 `\n` 是换行，`\=` 是等号；`{0}` `{1}` 占位符原样保留。
         - **等号左边一个字都别改**：它要和屏幕上的原文逐字一致才对得上。
-        - `MCE_键=文字` 的行用来改本管理器自己的界面文字（键是固定 ID，只改右边）。不写就用内置文字。
+        - `IGMM_键=文字` 的行用来改本管理器自己的界面文字（键是固定 ID，只改右边）。不写就用内置文字。
         - 等号右边留空 = 未翻，显示原文。
 
         ### 正则规则
@@ -179,7 +179,7 @@ internal static class LanguageReadme
         - `//` 開頭是註解。首行 `// display: 名字` 決定語言下拉選單裡顯示的名字。
         - 文字裡 `\n` 是換行，`\=` 是等號；`{0}` `{1}` 佔位符原樣保留。
         - **等號左邊一個字都別改**：它要和螢幕上的原文逐字一致才對得上。
-        - `MCE_鍵=文字` 的行用來改本管理器自己的介面文字（鍵是固定 ID，只改右邊）。不寫就用內建文字。
+        - `IGMM_鍵=文字` 的行用來改本管理器自己的介面文字（鍵是固定 ID，只改右邊）。不寫就用內建文字。
         - 等號右邊留空 = 未翻，顯示原文。
 
         ### 正則規則

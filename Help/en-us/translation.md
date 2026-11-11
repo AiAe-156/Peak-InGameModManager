@@ -24,9 +24,9 @@ Preserve escapes and placeholders including `\=`, `\n` and `{0}`. Do not add, re
 
 ## Dictionary organization {#files}
 
-Author dictionaries live in `BepInEx/plugins/<modpack>/MCEPack/language/`. Personal dictionaries live in `BepInEx/config/ModConfigEnhance/language/`, one file per language.
+Author dictionaries live in `BepInEx/plugins/<modpack>/IGMMPack/language/`. Personal dictionaries live in `BepInEx/config/InGameModManager/language/`, one file per language.
 
-Display precedence is **personal translation → author translation → built-in language → English source**. Within one file, an exact line wins over a regex rule. Lines starting with `MCE_` change the manager's own interface text; leave them out to keep the built-in wording.
+Display precedence is **personal translation → author translation → built-in language → English source**. Within one file, an exact line wins over a regex rule. Lines starting with `IGMM_` change the manager's own interface text; leave them out to keep the built-in wording.
 
 The guide includes Simplified Chinese, English and Traditional Chinese articles, selected by interface language; other languages currently use English. Articles are read-only by default. Enable Allow editing user guide in the manager's settings to edit and save local overrides per language; personal overrides take precedence. Restoring the built-in page first backs up the override. See [Edit the guide](authoring#guide-edit).
 
@@ -36,14 +36,14 @@ Part files are still read: `zh-cn_extra.txt` joins the `zh-cn` group, after the 
 
 ## Where the files are {#folders}
 
-Everything the manager keeps for you is under `BepInEx/config/ModConfigEnhance/`, in four folders:
+Everything the manager keeps for you is under `BepInEx/config/InGameModManager/`, in four folders:
 
 - `language/`: your language files.
 - `profiles/`: configuration profiles, the modpack introduction and its media.
 - `output/`: things you export. `translation/` holds Export translations and Missing translations, `packs/` holds published modpacks and introduction exports, `logs/` holds log exports when the Save As window is unavailable.
 - `data/`: the manager's own data. `runtime/` is state and store caches, `backups/` all automatic backups, `help/` your edits to this guide, `legacy/` data from versions before October 2026.
 
-Installed modpacks and the update helper's queue and backups are in `BepInEx/MCE/`. Versions before 2.5.2 kept these folders side by side; the first launch moves them into place and backs up the state files to `BepInEx/MCE/layout-backups/<time>/` first.
+Installed modpacks and the update helper's queue and backups are in `BepInEx/IGMM/`. Versions before 2.5.2 kept these folders side by side; the first launch moves them into place and backs up the state files to `BepInEx/IGMM/layout-backups/<time>/` first.
 
 ## Regex rules {#regex}
 

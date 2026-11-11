@@ -111,8 +111,7 @@ internal static partial class Loc
     private static bool IsPlaceholder(string key, string value)
     {
         if (string.Equals(key.Trim(), value.Trim(), StringComparison.Ordinal)) return true;
-        if (!key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase)) return false;
-        string id = key.Substring(KeyPrefix.Length).ToUpperInvariant();
+        if (!TryStripTermPrefix(key, out string id)) return false;
         foreach (Term term in Terms)
             if (term.Key == id) return string.Equals(term.English, value, StringComparison.Ordinal);
         return false;
@@ -213,8 +212,8 @@ internal static class LanguageMigration
                     int eq = Loc.FindUnescapedEquals(line);
                     if (eq <= 0) return false;
                     string key = Loc.Unescape(line.Substring(0, eq)).Trim();
-                    bool termKey = key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase);
-                    if (termKey) key = key.Substring(Loc.KeyPrefix.Length).ToUpperInvariant();
+                    bool termKey = Loc.TryStripTermPrefix(key, out string termId);
+                    if (termKey) key = termId;
                     // 2.5.4（二次审查）：只删 MCE 自己的退役词条与旧版 MCE 的 cfg 原文（精确清单），不按「含 XUnity」模糊删，
                     // 免得误删新提醒文字、别的模组提到 XUnity 的选项、或用户给 XUnity 起的译名。
                     return termKey ? Loc.RetiredTerm(key) : RetiredOriginal(key);
@@ -283,8 +282,8 @@ internal static class LanguageMigration
         foreach (string key in order)
         {
             string value = values[key];
-            if (key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase) && Loc.SameAsBuiltIn(key.Substring(Loc.KeyPrefix.Length).ToUpperInvariant(), value, code)) continue;
-            if (!key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase) && !Loc.IsRegexKey(key) && Loc.SameAsBuiltInConfig(key, value, code)) continue;
+            if (Loc.TryStripTermPrefix(key, out string termId) && Loc.SameAsBuiltIn(termId, value, code)) continue;
+            if (!Loc.HasTermPrefix(key) && !Loc.IsRegexKey(key) && Loc.SameAsBuiltInConfig(key, value, code)) continue;
             sb.Append(Loc.Escape(key)).Append('=').Append(Loc.Escape(value)).Append('\n');
             kept++;
         }

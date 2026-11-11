@@ -37,7 +37,7 @@ internal static class OverviewUpdateQueue
     /// <see cref="Snapshot"/> is the empty placeholder, which must not be mistaken for "the queue is empty".</summary>
     private static bool _hasRead;
     internal static bool HasRead { get { lock (Gate) return _hasRead; } }
-    internal static string Root => Path.Combine(Paths.BepInExRootPath, "MCE");
+    internal static string Root => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath);
     internal static UpdateSnapshot Snapshot { get { Poll(); return _snapshot; } }
     /// <summary>Network settings for any thread. Unlike <see cref="Snapshot"/> it never schedules a queue read (Poll
     /// captures Unity-owned state and is UI-thread only); it returns the last published value.</summary>
@@ -264,7 +264,7 @@ internal static class OverviewUpdateQueue
             try { using var probe = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
             catch (IOException) { return; }
             lock(Gate) { if (DateTime.UtcNow < _launchAt) return; }
-            var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + bepRoot.TrimEnd('\\', '/') + "\" --game-root \"" + Paths.GameRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --language " + Loc.T("en-us", "zh-cn", "zh-tw") + (Plugin.DebugLogging.Value ? " --debug" : "")) {
+            var start = new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root \"" + bepRoot.TrimEnd('\\', '/') + "\" --game-root \"" + Paths.GameRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --language " + Loc.T("en-us", "zh-cn", "zh-tw") + (Plugin.DebugLogging.Value ? " --debug" : "")) {
                 UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools
             };
             Diagnostics.ManagerLog.Debug("启动更新助手：" + Path.GetFileName(start.FileName) + " " + start.Arguments);
@@ -298,7 +298,7 @@ internal static class OverviewUpdateQueue
     {
         if (!Guid.TryParseExact(id, "N", out _)) throw new ArgumentException("Invalid probe ID");
         string tools = PrepareWorkerTools();
-        var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + Paths.BepInExRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --probe " + id) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools };
+        var start = new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root \"" + Paths.BepInExRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --probe " + id) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools };
         start.EnvironmentVariables["DOTNET_BUNDLE_EXTRACT_BASE_DIR"] = Path.Combine(Root, "tools", ".extract");
         return Process.Start(start) ?? throw new IOException("Could not start the connection test.");
     }

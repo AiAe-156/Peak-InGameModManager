@@ -131,7 +131,7 @@ internal sealed class ShopWindow : MonoBehaviour
     private string _openPackage="";
     private float _sentAt;
     private string _sentTaskKey="";
-    private string Home=>Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop");
+    private string Home=>ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop");
     private string FavoritePath=>Path.Combine(Loc.RuntimeDirectory,"shop-favorites.json");
     internal static void Open(OverviewRepository repo,IReadOnlyList<OverviewMod> installed,bool showTask=false,string packageKey="",bool uninstall=false)
     {
@@ -397,7 +397,7 @@ internal sealed class ShopWindow : MonoBehaviour
     }
     internal static void ResumeGrouping(OverviewRepository repo)
     {
-        string home=Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop"),file=Path.Combine(home,"task.json");
+        string home=ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop"),file=Path.Combine(home,"task.json");
         if(!File.Exists(file))return;
         try
         {

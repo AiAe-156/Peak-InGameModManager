@@ -1,0 +1,27 @@
+[A] copied 9818 files, retargeted 255 json
+PASS [A] cfg copied
+PASS [A] new cfg byte-identical to old cfg
+  skipped: C:\Users\AiAe\AppData\Local\Temp\igmm-split-ae44c9f1\BepInEx\config\ModConfigEnhance\exports: old pack exports are not copied; move them yourself if needed
+  skipped: C:\Users\AiAe\AppData\Local\Temp\igmm-split-ae44c9f1\BepInEx\config\ModConfigEnhance\output\packs: old pack exports are not copied; move them yourself if needed
+  copied 278, rewritten 476, skipped 2
+PASS [A] personal data copied to config/InGameModManager
+PASS [A] old config/ModConfigEnhance left byte-identical for ModConfig Enhance
+PASS [A] every non-excluded file arrived (278); missing 0
+PASS [A] non-JSON files copied byte-identical
+PASS [A] old pack exports (output/packs, exports) not copied
+PASS [A] marker written in data/
+PASS [A] no JSON under the new folder still points at config/ModConfigEnhance
+PASS [A] BepInEx/MCE renamed to BepInEx/IGMM
+PASS [A] every runtime file kept after rename (8390)
+PASS [A] queue/history JSON no longer point at BepInEx/MCE
+PASS [A] queue.json WorkDirectory now under BepInEx/IGMM
+PASS [A] stale MCE-Recovery entry set aside
+PASS [A] signing identity copied, original kept
+PASS [A] pack index keeps MCEPack folder names (\MCE boundary)
+PASS [A] second run does nothing
+PASS [B] existing new folder is never overwritten
+PASS [C] worker busy: data copied, runtime folder left for next launch
+PASS [C] next launch renames the runtime folder
+PASS [D] rewrites \\, / and end-of-string forms; leaves MCEPack alone
+PASS [E] existing new cfg is never overwritten
+ALL PASS

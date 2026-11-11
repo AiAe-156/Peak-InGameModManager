@@ -53,7 +53,7 @@ internal static class MceDirectories
     }
 
     /// <summary>从 BepInEx 根（助手的 <c>--root</c>）算 config\ModConfigEnhance。</summary>
-    internal static string RootFromBepInEx(string bepInExRoot) => Path.Combine(bepInExRoot, "config", "ModConfigEnhance");
+    internal static string RootFromBepInEx(string bepInExRoot) => Path.Combine(bepInExRoot, "config", ManagerIdentity.ConfigDirectory);
 
     /// <summary>旧布局 → 新布局（相对 config\ModConfigEnhance）。顺序有意义：先搬整目录，再并入。</summary>
     internal static readonly (string Old, string New)[] Moves =

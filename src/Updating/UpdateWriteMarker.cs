@@ -17,7 +17,7 @@ public static class UpdateWriteMarker
 {
     public static readonly TimeSpan MaximumAge = TimeSpan.FromMinutes(5);
 
-    public static string PathFor(string root) => Path.Combine(root, "MCE", "updating.lock");
+    public static string PathFor(string root) => ManagerIdentity.Runtime(root, "updating.lock");
 
     public static void Write(string root, string job, string name)
     {

@@ -30,7 +30,7 @@ namespace ModConfigEnhance.Updating
         public string BepInExAbsolutePath = "";
         public int MaximumFullPathLength = 240;
         public string UngroupedFolderName = "Ungrouped";
-        public string ManagerGuid = "com.aiae.modconfigenhance";
+        public string ManagerGuid = ManagerIdentity.Guid;
         public List<FolderGroup> Groups = new List<FolderGroup>();
         public List<FolderEntry> Entries = new List<FolderEntry>();
         public List<FolderRow> Rows = new List<FolderRow>();
@@ -83,7 +83,7 @@ namespace ModConfigEnhance.Updating
         {
             var parts = Normalize(path).Split('/');
             if (parts.Length < 2 || !parts[0].Equals("plugins", StringComparison.OrdinalIgnoreCase)) return false;
-            return parts[1].Equals("MMHOOK", StringComparison.OrdinalIgnoreCase) || parts[1].StartsWith("MCEPack_", StringComparison.OrdinalIgnoreCase);
+            return parts[1].Equals("MMHOOK", StringComparison.OrdinalIgnoreCase) || ManagerIdentity.IsPackFolderPrefixed(parts[1]);
         }
 
         /// <summary>A group name as a folder name: characters Windows does not allow are dropped (not replaced).</summary>

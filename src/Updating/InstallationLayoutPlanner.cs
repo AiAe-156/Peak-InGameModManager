@@ -55,7 +55,7 @@ namespace ModConfigEnhance.Updating
                 if (unit.IsCoreOrPatcher) reasons.Add("CoreOrPatcherExcluded");
                 // The manager moves like any package: it runs from its cached tools, and the move happens after the game exits.
                 var notes = new List<string>();
-                if (unit.IsProtectedManager || unit.Plugins.Any(p => p != null && IgnoreCase.Equals(p.Id, "com.aiae.modconfigenhance"))) notes.Add("ManagerMovedLast");
+                if (unit.IsProtectedManager || unit.Plugins.Any(p => p != null && ManagerIdentity.IsManagerGuid(p.Id))) notes.Add("ManagerMovedLast");
                 if (!input.InventoryComplete) reasons.Add("InventoryIncomplete");
                 if (!unit.OwnershipComplete || !unit.FileInventoryComplete || unit.Files.Count == 0) reasons.Add("OwnershipOrFilesIncomplete");
                 if (unit.HasLinks != LayoutFact.No || unit.Files.Any(f => f.HasLinks != LayoutFact.No)) reasons.Add("LinkFactsUnknown");

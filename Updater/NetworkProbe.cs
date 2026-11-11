@@ -14,7 +14,7 @@ internal static class NetworkProbe
         if (!Regex.IsMatch(id, "^[a-fA-F0-9]{32}$")) throw new IOException("探测编号必须为 32 位十六进制字符。");
         Files.ValidateRoot(root);
         string game = Directory.GetParent(root)!.FullName;
-        string home = Path.Combine(root, "MCE");
+        string home = ManagerIdentity.Runtime(root);
         string directory = Path.Combine(home, "probes");
         Directory.CreateDirectory(directory);
         Files.RejectLinks(game, home);

@@ -10,8 +10,8 @@ namespace ModConfigEnhance.Overview;
 /// <summary>Recovery-only launcher. Independent of the installed plugin and normal worker queue.</summary>
 internal static class RecoveryLauncher
 {
-    internal const string ScriptName = "MCE-Recovery.ps1";
-    internal const string EntryName = "MCE-Recovery.cmd";
+    internal const string ScriptName = ModConfigEnhance.Updating.ManagerIdentity.RecoveryScript;
+    internal const string EntryName = ModConfigEnhance.Updating.ManagerIdentity.RecoveryEntry;
 
     internal static string Write(string home, string validatedCache, string gameRoot)
     {
@@ -44,7 +44,7 @@ internal static class RecoveryLauncher
         // Do not prepare from current plugins: an interrupted switch may have removed them.
         string script = Path.Combine(Path.GetFullPath(home), ScriptName);
         WorkerProtocol.RejectLinks(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(home)))!, script);
-        if (!File.Exists(script)) throw new IOException("Recovery launcher is not prepared. A verified MCE/tools cache is required.");
+        if (!File.Exists(script)) throw new IOException("Recovery launcher is not prepared. A verified IGMM/tools cache is required.");
         string bootstrap = "& ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" + Convert.ToBase64String(Encoding.UTF8.GetBytes(script)) + "')))";
         Process.Start(new ProcessStartInfo("powershell.exe", "-NoProfile -STA -ExecutionPolicy Bypass -EncodedCommand " + Convert.ToBase64String(Encoding.Unicode.GetBytes(bootstrap)))
         { UseShellExecute = false, CreateNoWindow = true })?.Dispose();
@@ -55,7 +55,7 @@ param([switch]$Headless)
 $ErrorActionPreference='Stop'
 $script:root=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('ROOT_BASE64'))
 $script:gameRoot=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('GAMEDIR_BASE64'))
-$script:mceHome=Join-Path $script:root 'MCE'
+$script:mceHome=Join-Path $script:root 'IGMM'
 function Assert-NoLink([string]$path) {
  $p=[IO.Path]::GetFullPath($path)
  $boundary=[IO.Path]::GetDirectoryName($script:root)
@@ -108,7 +108,7 @@ function Test-RecoveryTools([string]$directory) {
    $files.Add($relative,(Get-Sha256 $file))
   }
  }
- foreach($required in @('MCE.UpdateWorker.exe','Mono.Cecil.LICENSE.txt','Runtime-LICENSE.TXT','Runtime-THIRD-PARTY-NOTICES.TXT')){if(!$files.ContainsKey($required)){throw "Incomplete tool release: $required"}}
+ foreach($required in @('IGMM.UpdateWorker.exe','Mono.Cecil.LICENSE.txt','Runtime-LICENSE.TXT','Runtime-THIRD-PARTY-NOTICES.TXT')){if(!$files.ContainsKey($required)){throw "Incomplete tool release: $required"}}
  $payload=(@($files.GetEnumerator()|ForEach-Object {$_.Key+'|'+$_.Value}) -join "`n")
  $sha=[Security.Cryptography.SHA256]::Create()
  try{$build=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload)))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
@@ -138,7 +138,7 @@ function Get-RecoveryArguments([string]$mode,[string]$selector='') {
 function Start-RecoveryProcess([string]$mode,[string]$selector='') {
  $tools=Find-RecoveryTools
  $info=New-Object Diagnostics.ProcessStartInfo
- $info.FileName=Join-Path $tools 'MCE.UpdateWorker.exe';$info.Arguments=Get-RecoveryArguments $mode $selector
+ $info.FileName=Join-Path $tools 'IGMM.UpdateWorker.exe';$info.Arguments=Get-RecoveryArguments $mode $selector
  $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.WorkingDirectory=$tools
  $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
  $info.EnvironmentVariables['DOTNET_BUNDLE_EXTRACT_BASE_DIR']=Join-Path $script:mceHome 'tools\.extract'
@@ -157,7 +157,7 @@ if($Headless){return}
 try{
  Add-Type -AssemblyName System.Windows.Forms
  Add-Type -AssemblyName System.Drawing
- $form=New-Object Windows.Forms.Form;$form.Text='MCE Recovery / 仅恢复既有未完成事务';$form.Size=New-Object Drawing.Size(820,580);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
+ $form=New-Object Windows.Forms.Form;$form.Text='In-Game Mod Manager Recovery / 仅恢复既有未完成事务';$form.Size=New-Object Drawing.Size(820,580);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
  $label=New-Object Windows.Forms.Label;$label.Location=New-Object Drawing.Point(16,16);$label.Size=New-Object Drawing.Size(770,65);$label.Text='Recovery only: no new commands, switch retries or migrations. Exit PEAK first. Select a listed unfinished transaction and confirm. / 不处理新命令、重试或迁移；请先退出游戏。';$form.Controls.Add($label)
  $details=New-Object Windows.Forms.TextBox;$details.Location=New-Object Drawing.Point(16,88);$details.Size=New-Object Drawing.Size(770,335);$details.Multiline=$true;$details.ReadOnly=$true;$details.ScrollBars='Both';$details.Anchor='Top,Bottom,Left,Right';$form.Controls.Add($details)
  $list=New-Object Windows.Forms.ComboBox;$list.Location=New-Object Drawing.Point(16,440);$list.Size=New-Object Drawing.Size(770,28);$list.DropDownStyle='DropDownList';$list.Anchor='Bottom,Left,Right';$form.Controls.Add($list)
@@ -213,6 +213,6 @@ try{
  $form.Add_FormClosing({param($sender,$eventArgs) if($script:active -or $script:starting){$eventArgs.Cancel=$true;[Windows.Forms.MessageBox]::Show('Recovery worker is running. Wait for it to finish; do not interrupt file recovery. / 恢复进程仍在运行，请等待。')|Out-Null}})
  $form.Add_Shown({Begin-Recovery '--recovery-status'})
  $timer.Start();[Windows.Forms.Application]::Run($form);$timer.Dispose()
-}catch{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show($_.Exception.ToString(),'MCE Recovery FAILED / 未完成','OK','Error')|Out-Null}
+}catch{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show($_.Exception.ToString(),'In-Game Mod Manager Recovery FAILED / 未完成','OK','Error')|Out-Null}
 """;
 }

@@ -23,7 +23,7 @@ On this page: [Choose an export type](#types) · [Publishing steps](#steps) · [
 6. Select extra files and signing. A complete local package generates config only from parameters recorded by the profile selected as the package default; explicitly select any other config files under Additional config files and inspect the preview. Authors should review their personal connection details themselves before sharing, then preview files, profiles and dependencies.
 7. Confirm generation and wait for the final output location. The author performs local installation or store upload.
 
-Normal exports are under `BepInEx/config/ModConfigEnhance/output/packs/<timestamp>/`. Each generation uses a new directory; the completion prompt gives the actual location.
+Normal exports are under `BepInEx/config/InGameModManager/output/packs/<timestamp>/`. Each generation uses a new directory; the completion prompt gives the actual location.
 
 ## Package contents {#contents}
 
@@ -35,7 +35,7 @@ Caches, logs, backups, old exports and the manager's personal runtime state are 
 
 ## Author identity and signing {#signing}
 
-Sign author material verifies the integrity of author profiles, dictionaries, introductions and referenced resources. The signing identity is kept outside the game and manager profiles at `%LOCALAPPDATA%/ModConfigEnhance/signing/`.
+Sign author material verifies the integrity of author profiles, dictionaries, introductions and referenced resources. The signing identity is kept outside the game and manager profiles at `%LOCALAPPDATA%/InGameModManager/signing/`.
 
 After generating the first signed package, use Back up publication signing identity. Use Import publication signing identity when moving to another computer. The backup contains a private key; store it separately.
 

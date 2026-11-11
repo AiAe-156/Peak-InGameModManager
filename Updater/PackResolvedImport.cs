@@ -119,7 +119,7 @@ internal static class PackResolvedImport
                 string relative = file.Key.Replace('\\', '/');
                 if (!relative.Contains('/') && (relative.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || relative.Equals("icon.png", StringComparison.OrdinalIgnoreCase) || Packages.Documentation(relative))) continue;
                 if (relative.StartsWith("BepInEx/", StringComparison.OrdinalIgnoreCase)) relative = relative[8..];
-                if (relative.StartsWith("PEAK_Data/", StringComparison.OrdinalIgnoreCase) || relative.StartsWith("MCE/", StringComparison.OrdinalIgnoreCase) || relative.StartsWith("monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(relative, Files.Compare)) throw new IOException("依赖 ZIP 包含非环境内容：" + relative);
+                if (relative.StartsWith("PEAK_Data/", StringComparison.OrdinalIgnoreCase) || ManagerIdentity.UnderRuntime(relative) || relative.StartsWith("monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(relative, Files.Compare)) throw new IOException("依赖 ZIP 包含非环境内容：" + relative);
                 relative = ShopQueue.Route(relative, entry.Key);
                 if (!PackStorage.ManagedPath(relative, 2) || new[] { ".ps1", ".bat", ".cmd", ".sh" }.Any(e => relative.EndsWith(e, StringComparison.OrdinalIgnoreCase))) throw new IOException("依赖 ZIP 路径越界：" + relative);
                 string target = Files.Child(content, relative); Files.RejectLinks(content, target);

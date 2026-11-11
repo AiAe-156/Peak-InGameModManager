@@ -196,7 +196,7 @@ internal static class InstallPlanner
         try
         {
             var storage = new PackStorage(root); string active = storage.Read().ActivePackId;
-            string ledgerPath = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(root, "MCE", "shop", "installed-unmanaged.json");
+            string ledgerPath = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(root, "shop", "installed-unmanaged.json");
             var owned = File.Exists(ledgerPath) ? Files.Read<ShopLedger>(ledgerPath).Packages.FirstOrDefault(p => Files.Compare.Equals(p.Key, key)) : null;
             foreach (var file in owned?.Files ?? new List<PackFile>())
             {

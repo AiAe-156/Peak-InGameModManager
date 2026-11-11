@@ -1,6 +1,6 @@
 using Mono.Cecil;
 string project=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../"));
-using var module=ModuleDefinition.ReadModule(Path.Combine(project,"bin/Release/netstandard2.1/ModConfigEnhance.dll"));
+using var module=ModuleDefinition.ReadModule(Path.Combine(project,"bin/Release/netstandard2.1/InGameModManager.dll"));
 int checks=0;
 void Check(bool condition,string message){if(!condition)throw new Exception(message);checks++;}
 foreach(string name in new[]{"NativeConfigurationDraft","ConfigurationNotificationGate","ConfigurationRoundBoundary","ConfigurationPresetFile","PackWorkspaceInformation"})

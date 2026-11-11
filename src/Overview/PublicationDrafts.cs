@@ -41,7 +41,7 @@ internal sealed class PublicationDrafts : IContentFiles
         "修改僅用於本次發布，原方案維持原樣。關閉管理中心後不會還原本次草稿，請先產生 ZIP 留存。");
     internal PublicationDrafts(OverviewRepository repo, PublishRequest request)
     { _repo = repo; _request = request; Root = OverviewProfileAssets.CheckedPath(repo.ConfigRootDirectory, "data/runtime/publication-drafts/" + Guid.NewGuid().ToString("N")); }
-    internal string PayloadPrefix => _request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + _request.Name + "/MCEPack/";
+    internal string PayloadPrefix => _request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + _request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/";
     public bool IsIntroduction(string relative) => relative.StartsWith(PayloadPrefix + "profiles/" + OverviewProfileExport.PortableId(_repo.ViewedProfile.publicationId.Length > 0 ? _repo.ViewedProfile.publicationId : _repo.ViewedProfileId) + "/", StringComparison.OrdinalIgnoreCase)
         && (relative.EndsWith("/introduction.md", StringComparison.OrdinalIgnoreCase) || relative.EndsWith("/introduction.mcedoc.json", StringComparison.OrdinalIgnoreCase));
     public bool CanEdit(string relative) => !relative.StartsWith(PayloadPrefix, StringComparison.OrdinalIgnoreCase)

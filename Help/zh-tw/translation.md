@@ -24,9 +24,9 @@
 
 ## 詞典怎樣組織 {#files}
 
-作者詞典位於 `BepInEx/plugins/<整合包>/MCEPack/language/`；個人詞典位於 `BepInEx/config/ModConfigEnhance/language/`，一種語言一個檔案。
+作者詞典位於 `BepInEx/plugins/<整合包>/IGMMPack/language/`；個人詞典位於 `BepInEx/config/InGameModManager/language/`，一種語言一個檔案。
 
-顯示時依次採用：**個人譯文 → 作者譯文 → 內建對應語言 → 英文原文**。同一個檔案裡，整句譯文優先於正則規則。`MCE_` 開頭的行改管理器自己的介面文字，不寫就用內建措辭。
+顯示時依次採用：**個人譯文 → 作者譯文 → 內建對應語言 → 英文原文**。同一個檔案裡，整句譯文優先於正則規則。`IGMM_` 開頭的行改管理器自己的介面文字，不寫就用內建措辭。
 
 使用說明內建簡中、英文和繁中正文，跟隨目前介面語言選擇；其他語言暫顯示英文。說明正文預設唯讀；開啟設定中的「允許編輯功能說明」後，可按語言編輯並儲存本機覆蓋，個人覆蓋優先顯示。恢復本頁內建內容前會先備份覆蓋檔案。詳見[編輯說明](authoring#guide-edit)。
 
@@ -36,14 +36,14 @@
 
 ## 檔案放在哪 {#folders}
 
-管理器替你儲存的東西都在 `BepInEx/config/ModConfigEnhance/` 下，分四個資料夾：
+管理器替你儲存的東西都在 `BepInEx/config/InGameModManager/` 下，分四個資料夾：
 
 - `language/`：你的語言檔案。
 - `profiles/`：設定方案、整合包介紹和介紹裡的素材。
 - `output/`：你匯出的東西。`translation/` 放「匯出翻譯」「補漏翻」的檔案，`packs/` 放發佈的整合包和介紹匯出，`logs/` 放「另存新檔」視窗打不開時的日誌匯出。
 - `data/`：管理器自己的資料。`runtime/` 是執行狀態和商店快取，`backups/` 是全部自動備份，`help/` 是你改過的使用說明，`legacy/` 是 2026 年 10 月以前版本的舊資料。
 
-已裝的整合包、更新助手的佇列和備份在 `BepInEx/MCE/`。2.5.2 以前這些資料夾是平鋪的，第一次啟動時會自動搬好，搬之前先把狀態檔案備份到 `BepInEx/MCE/layout-backups/<時間>/`。
+已裝的整合包、更新助手的佇列和備份在 `BepInEx/IGMM/`。2.5.2 以前這些資料夾是平鋪的，第一次啟動時會自動搬好，搬之前先把狀態檔案備份到 `BepInEx/IGMM/layout-backups/<時間>/`。
 
 ## 正則規則 {#regex}
 

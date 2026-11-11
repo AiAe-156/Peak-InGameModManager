@@ -19,16 +19,16 @@ namespace ModConfigEnhance;
 [BepInDependency(XUnityBridge.Guid, BepInDependency.DependencyFlags.SoftDependency)] // 2.5.0：只为加载顺序（启动时读它的 ini 提醒机翻），不再联动
 public class Plugin : BaseUnityPlugin
 {
-    public const string PluginGuid = "com.aiae.modconfigenhance";
+    public const string PluginGuid = Updating.ManagerIdentity.Guid;
     public const string PluginName = "In-Game Mod Manager";
-    public const string PluginVersion = "2.5.5";
+    public const string PluginVersion = "1.0.0";
 
     internal static ManualLogSource Log { get; private set; } = null!;
 
     // cfg 说明原文（Loc.ConfigTerms 用同一份字符串做译文的键）
     internal const string DescTreeSidebar = "A vertical mod list on the left; the selected mod's sections expand beneath it, options on the right. Restart to apply.";
     internal const string DescDescriptionPanel = "A panel at the top right shows the hovered option's description, default value and allowed range or choices. Requires the tree sidebar. Restart to apply.";
-    internal const string DescUiLocalization = "Localize ModConfig's UI and this mod's buttons and notices. English is the source text; Simplified and Traditional Chinese are built in. Optional language files in config\\ModConfigEnhance\\language\\ override the built-in text. Pick a language above the mod list. Restart to apply this switch.";
+    internal const string DescUiLocalization = "Localize ModConfig's UI and this mod's buttons and notices. English is the source text; Simplified and Traditional Chinese are built in. Optional language files in config\\InGameModManager\\language\\ override the built-in text. Pick a language above the mod list. Restart to apply this switch.";
     internal const string DescHideLocalizationButtons = "Above the mod list, hide the export and translation-tool button rows; only the language dropdown + Refresh stay, the list moves up and the Export column hides (ticks remembered). Applies at once.";
     internal const string DescWarnXUnity = "When XUnity AutoTranslator is installed with online machine translation on (Endpoint in AutoTranslatorConfig.ini is not empty), remind once per launch the first time the overview opens, with a one-click option to turn its machine translation off. Translation is done by this mod's own language files; XUnity is no longer linked.";
 
@@ -60,6 +60,10 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
+        // 1.0.0 拆分：第一次启动先把旧 cfg 复制成新 cfg（必须在任何 Config.Bind 之前，绑定时读到的就是旧设置）
+        var split = new ManagerSplitMigration.Report();
+        bool configCopied = ManagerSplitMigration.CopyConfig(BepInEx.Paths.ConfigPath, split);
+        if (configCopied) Config.Reload();
         Diagnostics.RuntimeLogCapture.Start();
         Overview.PublishedPack.AuthorRootsProvider = Overview.PackLibrary.AuthorRoots;
         Overview.PublishedPack.RuntimeRootProvider = () => Overview.PackLibrary.RuntimeRoot;
@@ -67,6 +71,7 @@ public class Plugin : BaseUnityPlugin
         BindConfig();
         Diagnostics.ManagerLog.Initialize(Log, DebugLogging);
         WaitForPendingUpdateWrite();
+        RunSplitMigration(split);
         // 2.5.4：等更新写完再整理 config\ModConfigEnhance；助手还在跑就推迟到下次启动（没搬的目录继续用旧位置，见 MceDirectories）。
         // 放在这里仍早于一切读写这些目录的代码（上面只绑定了 MCE 自己的 cfg，它在 config 根目录）。
         MceDirectoryMigration.Run(WorkerRunning);
@@ -141,7 +146,38 @@ public class Plugin : BaseUnityPlugin
     {
         try
         {
-            string path = System.IO.Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "worker-instance.lock");
+            string path = Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "worker-instance.lock");
+            if (!System.IO.File.Exists(path)) return false;
+            using var probe = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+            return false;
+        }
+        catch (System.IO.IOException) { return true; }
+        catch (System.Exception) { return false; }
+    }
+
+    /// <summary>1.0.0 拆分：复制个人数据与签名身份、把 BepInEx\MCE 改名为 BepInEx\IGMM（见 <see cref="ManagerSplitMigration"/>）。</summary>
+    private static void RunSplitMigration(ManagerSplitMigration.Report report)
+    {
+        try
+        {
+            string bep = BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/');
+            bool busy = WorkerRunning() || LegacyWorkerRunning(bep) || Updating.UpdateWriteMarker.IsActive(bep)
+                || System.IO.File.Exists(System.IO.Path.Combine(Updating.ManagerIdentity.LegacyRuntime(bep), "updating.lock"));
+            var result = ManagerSplitMigration.Run(bep, BepInEx.Paths.ConfigPath, System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), busy);
+            result.Skipped.InsertRange(0, report.Skipped);
+            if (report.Config || result.Data || result.Runtime || result.Signing || result.Skipped.Count > 0 || result.Note.Length > 0)
+                Log.LogInfo($"[拆分] 从 ModConfig Enhance 接管：设置 {(report.Config ? "已复制" : "无需")} · 个人数据 {(result.Data ? $"已复制 {result.Copied} 个文件" : "无需")} · 运行目录 {(result.Runtime ? "BepInEx\\MCE → BepInEx\\IGMM" : "无需")} · 签名身份 {(result.Signing ? "已复制" : "无需")} · 改写路径 {result.Rewritten} 处{(result.Note.Length > 0 ? " · " + result.Note : "")}");
+            foreach (string skipped in System.Linq.Enumerable.Take(result.Skipped, 20)) Log.LogWarning("[拆分] " + skipped);
+        }
+        catch (System.Exception ex) { Log.LogWarning("[拆分] 接管旧数据未完成，下次启动再试：" + ex.Message); }
+    }
+
+    /// <summary>旧版（2.x）助手的实例锁在 BepInEx\MCE 下；还在跑就不动运行目录。</summary>
+    private static bool LegacyWorkerRunning(string bep)
+    {
+        try
+        {
+            string path = System.IO.Path.Combine(Updating.ManagerIdentity.LegacyRuntime(bep), "worker-instance.lock");
             if (!System.IO.File.Exists(path)) return false;
             using var probe = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
             return false;

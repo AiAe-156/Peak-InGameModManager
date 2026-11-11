@@ -7,18 +7,18 @@ internal static class WorkerRecovery
     internal static string BuildIdentity => typeof(WorkerRecovery).Assembly.ManifestModule.ModuleVersionId.ToString("N");
     internal static void ValidateIndex(string root)
     {
-        string path = Path.Combine(root, "MCE", "packs", "index.json"); Files.RejectLinks(root, path);
+        string path = ManagerIdentity.Runtime(root, "packs", "index.json"); Files.RejectLinks(root, path);
         if (!File.Exists(path)) return;
         using var document = JsonDocument.Parse(File.ReadAllText(path)); var index = document.RootElement;
         WorkerProtocol.RequireProtocol(index.TryGetProperty("SchemaVersion", out var schema) ? schema.GetInt32() : 1,
             index.TryGetProperty("MinimumWorkerProtocol", out var minimum) ? minimum.GetInt32() : 1);
     }
     internal sealed record Entry(string Kind, string Id, string Journal, string Phase, int SourceProcessId);
-    static void Checked(string root, string path) { if (!Files.Within(Path.Combine(root, "MCE"), path)) throw new IOException("Recovery path outside management tree."); Files.RejectLinks(root, path); }
+    static void Checked(string root, string path) { if (!Files.Within(ManagerIdentity.Runtime(root), path)) throw new IOException("Recovery path outside management tree."); Files.RejectLinks(root, path); }
     internal static List<Entry> Scan(string root)
     {
         Files.ValidateRoot(root); ValidateIndex(root); var entries = new List<Entry>();
-        string home = Path.Combine(root, "MCE"); Checked(root, Path.Combine(home, "queue.json"));
+        string home = ManagerIdentity.Runtime(root); Checked(root, Path.Combine(home, "queue.json"));
         string queue = Path.Combine(home, "queue.json");
         if (File.Exists(queue))
         {
@@ -121,16 +121,16 @@ internal sealed partial class QueueWorker
             {
                 var storage = new PackStorage(root); var plan = Files.Read<PackSwitchPlan>(entry.Journal);
                 PackTransactions.Rollback(storage, plan);
-                string path = Path.Combine(root, "MCE", "pack-task.json"); var task = Files.Read<PackTask>(path);
+                string path = ManagerIdentity.Runtime(root, "pack-task.json"); var task = Files.Read<PackTask>(path);
                 task.State = "failed"; task.Message = "Existing interrupted transaction recovered; preview again to retry."; Files.Save(path, task);
             }
             else if (entry.Kind == "shop") ShopQueue.RecoverExistingOnly(root, entry.Id);
             else if(entry.Kind=="operation")ShopQueue.RecoverIndependentOnly(root,entry.Id);
             else
             {
-                string path = Path.Combine(root, "MCE", "queue.json"); var snapshot = Files.Read<UpdateSnapshot>(path);
+                string path = ManagerIdentity.Runtime(root, "queue.json"); var snapshot = Files.Read<UpdateSnapshot>(path);
                 var job = snapshot.Jobs.Single(j => j.Id == entry.Id);
-                job.WorkDirectory = Path.Combine(root, "MCE", "jobs", job.Id); job.BackupDirectory = Path.Combine(root, "MCE", "backups", job.Id);
+                job.WorkDirectory = ManagerIdentity.Runtime(root, "jobs", job.Id); job.BackupDirectory = ManagerIdentity.Runtime(root, "backups", job.Id);
                 var plan = Files.Read<Transaction>(entry.Journal); Installer.Rollback(job, plan, null, Array.Empty<string>());
                 job.State = UpdateStates.RolledBack; job.RecoveryRequired = false; snapshot.Revision++; Files.Save(path, snapshot);
             }
@@ -144,7 +144,7 @@ internal sealed partial class ShopQueue
     ShopQueue(string root, bool recoveryOnly) { storage = new PackStorage(root); }
     internal static void RecoverIndependentOnly(string root,string id)
     {
-        var queue=new ShopQueue(root,Path.Combine(root,"MCE","operations",id,"shop"),executeIndependent:true);
+        var queue=new ShopQueue(root,ManagerIdentity.Runtime(root,"operations",id,"shop"),executeIndependent:true);
         var task=queue.Read()??throw new IOException("Missing operation recovery task.");
         var plan=WorkerRecovery.ReadJournal<ShopTransaction>(Path.Combine(queue.Work(task),"transaction.json"),"Phase","Before","After","PackBefore","PackAfter","Placed","Removed");
         queue.Rollback(task,plan);task.State="failed";task.Message="Existing transaction recovered; preview again to retry.";queue.Save(task);

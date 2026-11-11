@@ -40,7 +40,7 @@ internal static class ShopDependencyValidation
         var oldIssues = new HashSet<string>(Validate(baseline), StringComparer.Ordinal);
         result.Warnings.AddRange(Validate(plugins).Where(i => !oldIssues.Contains(i) && !result.Hard.Contains(i)));
         var assemblyIssues = CheckAssemblyConsumers(root,stage,originals,desired);
-        var required = new HashSet<string>(Files.Compare) { "com.aiae.modconfigenhance" };
+        var required = new HashSet<string>(Files.Compare) { ManagerIdentity.Guid, ManagerIdentity.LegacyGuid };
         bool changed;
         do { changed = false; foreach (var plugin in baseline.Where(p => required.Contains(p.Guid)))
             foreach (var dependency in plugin.Dependencies.Where(d => !d.Optional)) changed |= required.Add(dependency.Guid); } while(changed);

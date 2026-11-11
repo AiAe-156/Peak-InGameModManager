@@ -24,7 +24,7 @@ internal sealed class StoreClient : IDisposable
         else if (options.Mode != "direct") throw new IOException("联网方式须为 system、direct 或 custom。");
         if (testHandler != null) handler.Dispose();
         http = new HttpClient(testHandler ?? handler) { Timeout = Timeout.InfiniteTimeSpan };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("MCE.UpdateWorker/" + typeof(StoreClient).Assembly.GetName().Version!.ToString(3));
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("IGMM.UpdateWorker/" + typeof(StoreClient).Assembly.GetName().Version!.ToString(3));
     }
     public void Dispose() => http.Dispose();
     internal async Task<StoreVersion> Resolve(UpdateJob job, string version, CancellationToken cancellation)

@@ -157,7 +157,7 @@ internal sealed class WorkerWindow : IDisposable
         clearButton = Make(footer, T("Clear finished", "清空已结束", "清空已結束"), () => Raise("clear-finished", ""));
         clearButton.IsEnabled = false;
         stopButton = Make(footer, T("Stop after current safe step", "完成当前安全步骤后停止", "完成目前安全步驟後停止"), RequestStop);
-        Make(footer, T("Open data folder", "打开数据目录", "開啟資料目錄"), () => OpenFolder(Path.Combine(root, "MCE")));
+        Make(footer, T("Open data folder", "打开数据目录", "開啟資料目錄"), () => OpenFolder(ModConfigEnhance.Updating.ManagerIdentity.Runtime(root)));
         Make(footer, T("Copy details", "复制详情", "複製詳情"), () => { try { Clipboard.SetText(Report()); Status(T("Copied.", "已复制。", "已複製。")); } catch (Exception e) { Status(e.Message); } });
 
         shell.Closing += (_, e) => { if (!disposed && !finished) { e.Cancel = true; RequestStop(); } };

@@ -160,12 +160,12 @@ internal sealed class PublishFilePreview
     {
         string normalized = path.Replace('\\', '/');
         if (_request.ExtraFiles.Any(extra => normalized.Equals(extra.TrimEnd('/') , StringComparison.OrdinalIgnoreCase) || normalized.StartsWith(extra.TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))) return CategoryNames[4];
-        bool profileResource = normalized.IndexOf("/MCEPack/profiles/", StringComparison.OrdinalIgnoreCase) >= 0 || normalized.StartsWith("plugins/MCEPack/profiles/", StringComparison.OrdinalIgnoreCase);
+        bool profileResource = ModConfigEnhance.Updating.ManagerIdentity.IndexOfPackSubfolder("/" + normalized, "profiles", out _) >= 0;
         if (profileResource && (OverviewProfileAssets.SupportedMedia(normalized) || normalized.IndexOf("/fonts/", StringComparison.OrdinalIgnoreCase) >= 0)) return CategoryNames[4];
         if (normalized.StartsWith("BepInEx/config/", StringComparison.OrdinalIgnoreCase)) return CategoryNames[2];
         if (normalized.StartsWith("BepInEx/core/", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("BepInEx/patchers/", StringComparison.OrdinalIgnoreCase)
             || normalized.StartsWith("BepInEx/monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(normalized, StringComparer.OrdinalIgnoreCase)) return CategoryNames[3];
-        if (normalized.Contains("/MCEPack/", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("plugins/MCEPack/", StringComparison.OrdinalIgnoreCase)) return CategoryNames[1];
+        if (ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder("/" + normalized)) return CategoryNames[1];
         if (normalized is "manifest.json" or "README.md" or "icon.png") return CategoryNames[1];
         return CategoryNames[0];
     }

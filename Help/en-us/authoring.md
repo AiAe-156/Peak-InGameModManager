@@ -33,7 +33,7 @@ Before publishing, inspect text, links, images and video in reading mode. Save t
 
 Enable **Allow editing user guide** under **5. Authoring** in the manager's settings. The default is off. All guide chapters and the changelog use the same toolbar as introductions, including formatting, links, images, video, fonts and Markdown source.
 
-Changes are saved per language in `config/ModConfigEnhance/data/help/<language>/`, independently of profiles. Save before changing chapters or leaving; unsaved work offers Save, Discard or Continue editing. Disabling editing keeps saved changes visible. **Restore this page** restores the current language and chapter, moving its override into backups.
+Changes are saved per language in `config/InGameModManager/data/help/<language>/`, independently of profiles. Save before changing chapters or leaving; unsaved work offers Save, Discard or Continue editing. Disabling editing keeps saved changes visible. **Restore this page** restores the current language and chapter, moving its override into backups.
 
 Choose **More → Export guide data** to export all three languages, rich documents and assets. Copy the exported `Help/` into the manager's project for the next build. Body text is embedded; media and fonts are distributed with the manager plugin. Heading anchors survive title edits and export. The edit switch is personal and is not enabled by modpack defaults.
 
@@ -43,5 +43,5 @@ Related: [Modpack features](packs) · [Export and publish](export) · [Media iss
 
 In author mode, open **Management center → Publish → Modpack conflict presets**. Add a rule, select at least two independently toggled mod packages, and explain the problem. Mods bundled together appear as one toggle unit. Missing saved members stay in the rule.
 
-**Any two enabled** warns for A+B, A+C, B+C or all three. **All enabled together** warns only for A+B+C. These are advisory rules: players may always continue applying. Saved rule drafts are pack-wide and survive closing the management center. Export distributes them to all profiles through `MCEPack/conflicts.json`, including author-data signing. Personal-profile exports and local ignore choices remain separate.
+**Any two enabled** warns for A+B, A+C, B+C or all three. **All enabled together** warns only for A+B+C. These are advisory rules: players may always continue applying. Saved rule drafts are pack-wide and survive closing the management center. Export distributes them to all profiles through `IGMMPack/conflicts.json`, including author-data signing. Personal-profile exports and local ignore choices remain separate.
 
