@@ -155,8 +155,10 @@ internal static class LanguageMigration
                     string target = Path.Combine(language, stem + ".txt"), staged = target + ".mce-merge.tmp";
                     if (kept > 0) File.WriteAllText(staged, content, new UTF8Encoding(false));
                     foreach (string file in files) { File.Copy(file, Path.Combine(backup, Path.GetFileName(file)), true); }
-                    foreach (string file in files) { File.Delete(file); moved++; }
-                    if (kept > 0) { File.Move(staged, target); merged++; }
+                    // 复查：先把合并结果换上（目标是同组基础文件，覆盖它），再删其余分包。中途被占用时已删的分包内容都在合并结果里，
+                    // 不会只剩在备份目录；下次重跑时合并结果作为基础文件参与，不丢译文。
+                    if (kept > 0) { File.Copy(staged, target, true); File.Delete(staged); merged++; }
+                    foreach (string file in files.Where(f => !f.Equals(target, StringComparison.OrdinalIgnoreCase) || kept == 0)) { File.Delete(file); moved++; }
                 }
             }
 
@@ -189,6 +191,8 @@ internal static class LanguageMigration
     }
 
     private const string RetiredMarker = ".mce-language-v3";
+    /// <summary>退役清单代次：<see cref="Loc.RetiredTerms"/> 或 <c>RetiredOriginal</c> 增加条目时加一。</summary>
+    private const string RetiredGeneration = "g3";
 
     /// <summary>
     /// 2.5.1：个人语言文件里删掉含义已改的旧界面词条（<see cref="Loc.RetiredTerms"/>）和提到 XUnity 联动的旧 cfg 说明原文——
@@ -196,7 +200,9 @@ internal static class LanguageMigration
     /// </summary>
     private static void DropRetired(string language)
     {
-        if (File.Exists(Path.Combine(language, RetiredMarker))) return;
+        // 复查：标记里记退役清单的代次，清单增加（2.5.4 的 NOTICE_IMPORTED、2.5.5 的 TIP_OPEN_DIR_V2）后已升级的用户再清一次
+        string marker = Path.Combine(language, RetiredMarker);
+        if (File.Exists(marker) && File.ReadAllText(marker).StartsWith(RetiredGeneration + " ", StringComparison.Ordinal)) return;
         try
         {
             string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
@@ -225,7 +231,7 @@ internal static class LanguageMigration
                 removed += before - lines.Count;
             }
 
-            File.WriteAllText(Path.Combine(language, RetiredMarker), "2.5.1 " + stamp + "\n", new UTF8Encoding(false));
+            File.WriteAllText(marker, RetiredGeneration + " " + stamp + "\n", new UTF8Encoding(false));
             if (removed > 0) Plugin.Log.LogInfo($"[语言] 2.5.1 清掉个人语言文件里 {removed} 行过时词条（XUnity 旧说法），原文件备份在 {backup}");
         }
         catch (Exception ex) { Plugin.Log.LogWarning("[语言] 清理过时词条未完成，下次启动重试：" + ex.Message); }

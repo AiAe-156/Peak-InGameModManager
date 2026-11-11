@@ -170,6 +170,10 @@ internal static class MceDirectoryMigration
         }
 
         Directory.CreateDirectory(target);
+        // 复查：逐个搬期间新目录先挂「未搬完」标记，MceDirectories 看到它继续用旧目录；旧目录清空才摘掉
+        string marker = Path.Combine(target, MceDirectories.IncompleteMarker);
+        bool top = !File.Exists(marker);
+        try { if (top) File.WriteAllText(marker, DateTime.Now.ToString("O")); } catch { }
         foreach (string file in Directory.GetFiles(source))
         {
             try { MoveFile(file, Path.Combine(target, Path.GetFileName(file)), report); }
@@ -183,6 +187,7 @@ internal static class MceDirectoryMigration
         }
 
         try { if (!Directory.EnumerateFileSystemEntries(source).Any()) Directory.Delete(source); } catch { }
+        try { if (!Directory.Exists(source) && File.Exists(marker)) File.Delete(marker); } catch { }
     }
 
     private static void MoveFile(string source, string target, Report report)
@@ -199,8 +204,11 @@ internal static class MceDirectoryMigration
         bool sourceNewer = File.GetLastWriteTimeUtc(source) > File.GetLastWriteTimeUtc(target);
         if (sourceNewer)
         {
-            File.Move(target, Unique(target));
-            File.Move(source, target);
+            // 复查：先把新位置那份挪开、再搬进来；第二步失败就挪回去，新位置不会缺文件
+            string aside = Unique(target);
+            File.Move(target, aside);
+            try { File.Move(source, target); }
+            catch { try { File.Move(aside, target); } catch { } throw; }
         }
         else File.Move(source, Unique(target));
         report.Moved++; report.Renamed++;
