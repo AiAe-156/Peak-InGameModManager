@@ -1,0 +1,64 @@
+# english	zh-cn	zh-tw (reviewed, Taiwan wording; matches the existing catalogue's choices: 儲存/套用/載入/檔案/設定/預設/群組→分組 kept as 分組)
+ and its subgroups	和子分组	和子分組
+ move up to 	会上移到「	會上移到「
+ · Edits take effect only after saving.	 · 修改保存后才生效。	 · 修改儲存後才生效。
+.	」。	」。
+. Nested groups are recommended instead of nesting mod folders; folder organization moves it out.	」。建议用嵌套分组代替文件夹嵌套；目录整理会把它拆出来。	」。建議用巢狀分組代替資料夾巢狀；目錄整理會把它拆出來。
+A group cannot go inside its own subgroup.	分组不能放进它自己的子分组里。	分組不能放進它自己的子分組裡。
+Actual current binding. Click to record a draft binding; save hotkeys to commit.	这是实际当前按键；点击直接录制草稿，保存快捷键后提交。	這是實際目前按鍵；點擊直接錄製草稿，儲存快捷鍵後提交。
+All unread notification badges marked as read. Update availability and unsaved drafts are retained.	所有未读小角标已标记为已读；可更新提示和未保存草稿保留。	所有未讀小角標已標記為已讀；可更新提示和未儲存草稿保留。
+Already a top-level group.	已经是顶层分组。	已經是頂層分組。
+Amber: nested inside 	琥珀色：内嵌于「	琥珀色：內嵌於「
+Configuration file or legacy directory	配置文件路径或旧格式目录	設定檔路徑或舊格式目錄
+Configuration imported into the draft. Save to use it.	配置已导入草稿，保存后使用。	設定已匯入草稿，儲存後使用。
+Configurations exported: 	配置已导出：	設定已匯出：
+Continue saving despite dependency warnings? Affected mods may not work. Required manager components remain protected.	是否忽略依赖警告继续保存？受影响的模组可能无法工作，管理器必需组件仍受保护。	是否忽略相依警告繼續儲存？受影響的模組可能無法運作，管理器必需組件仍受保護。
+Delete group	删除分组	刪除分組
+Dependency warning	依赖影响提醒	相依影響提醒
+Drop on another group heading to make it a subgroup there.	拖到另一个分组标题上松开，即可挂到它下面。	拖到另一個分組標題上放開，即可掛到它下面。
+Edit the target binding, then save hotkeys to use it.	修改目标按键，点击保存快捷键后使用。	修改目標按鍵，點擊儲存快捷鍵後使用。
+Files are backed up; loaded components wait for game exit.	文件先备份；已加载组件等待游戏退出后处理。	檔案先備份；已載入組件等待遊戲結束後處理。
+Group deleted; its contents moved up one level.	分组已删除，内容已上移一层。	分組已刪除，內容已上移一層。
+Group draft retained; save configuration to commit.	分组草稿已保留，保存配置后提交。	分組草稿已保留，儲存設定後提交。
+Group not found.	找不到该分组。	找不到該分組。
+Group removed; its contents moved up one level.	分组已删除，内容已上移一层。	分組已刪除，內容已上移一層。
+Groups nest at most three levels.	分组最多嵌套三层。	分組最多巢狀三層。
+Groups nest at most three levels; this move would go deeper.	分组最多嵌套三层，这样移动会超过三层。	分組最多巢狀三層，這樣移動會超過三層。
+Groups nest at most three levels; this parent would go deeper.	分组最多嵌套三层，选这个上级会超过三层。	分組最多巢狀三層，選這個上級會超過三層。
+Hide store tags	收起官方标签	收起官方標籤
+Hotkey draft edited; save hotkeys to use it.	快捷键草稿已修改，保存后使用。	快捷鍵草稿已修改，儲存後使用。
+Ignore and save	忽略并保存	忽略並儲存
+Installed state	当前安装状态	目前安裝狀態
+Its mods	它的模组	它的模組
+Its mods and subgroups move up one level (to Ungrouped when it is a top-level group). No plugin files are removed.	组内模组和子分组会上移一层（顶层分组的模组移到未分组），不删除任何插件文件。	組內模組和子分組會上移一層（頂層分組的模組移到未分組），不刪除任何插件檔案。
+Keep your edited value and save? Cancel keeps the external value and your draft for review.	是否保留我的修改并保存？取消将保留外部值和当前草稿，供继续核对。	是否保留我的修改並儲存？取消將保留外部值和目前草稿，供繼續核對。
+Legacy profile imported: 	旧格式方案已导入：	舊格式方案已匯入：
+Log level	日志等级	日誌等級
+Mark all notification badges as read	所有小角标标记为已读	所有小角標標記為已讀
+Mod filters	模组筛选	模組篩選
+Move to top level	移到顶层	移到頂層
+Moved to the top level.	已移到顶层。	已移到頂層。
+New subgroup	新建子分组	新增子分組
+No files are changed.	不会改动任何文件。	不會變更任何檔案。
+None (top level)	无（顶层）	無（頂層）
+Now a subgroup of 	已挂到「	已掛到「
+Original preset restored to draft. Save configuration to use it.	原版预设已恢复到草稿，保存配置后使用。	原版預設已還原到草稿，儲存設定後使用。
+Parent group	上级分组	上級分組
+Pink: loose DLL directly in plugins/. Folder organization moves it into a folder of its own.	粉色：直接放在 plugins 根下的单个 DLL。目录整理会把它收进一个单独的文件夹。	粉色：直接放在 plugins 根目錄下的單一 DLL。目錄整理會把它收進一個獨立的資料夾。
+Remove pending: 	撤销待办：	撤銷待辦：
+Restore original preset to draft	恢复原版预设到草稿	還原原版預設到草稿
+Save configuration and mod operations	保存配置与模组变更	儲存設定與模組變更
+Save hotkeys	保存快捷键	儲存快捷鍵
+Save remaining settings	保存其他设置	儲存其他設定
+Saved available changes	已保存有效修改	已儲存有效修改
+Showing mods involved in the check. Open tag filters to clear this view.	仅显示检查涉及的模组；修改标签筛选可清除此临时视图。	僅顯示檢查涉及的模組；修改標籤篩選可清除此暫時檢視。
+Skip enablement and save	跳过启停并保存	略過啟停並儲存
+Skip these enablement changes and save the other settings? Skipped targets remain unsaved.	是否跳过本次启停并保存其他设置？跳过的启停目标仍保留为未保存。	是否略過本次啟停並儲存其他設定？略過的啟停目標仍保留為未儲存。
+Store tags…	官方标签…	官方標籤…
+Submit on save	保存后提交	儲存後提交
+Switching only previews. Save configuration commits the settings and next-launch plugin states.	切换只是预览；保存配置才会提交参数与下次启动的插件启停。	切換只是預覽；儲存設定才會提交參數與下次啟動的插件啟停。
+Teal: resource pack — a package with no DLL (bundles, textures or data used by other mods). It is installed; enabling or disabling renames its manifest.	青色：资源包——没有 DLL 的包（给其他模组用的资源、贴图或数据）。它已安装；启停会改名它的 manifest。	青色：資源包——沒有 DLL 的包（給其他模組用的資源、貼圖或資料）。它已安裝；啟停會改名它的 manifest。
+That parent group no longer exists.	该上级分组已不存在。	該上級分組已不存在。
+The outer mod is disabled: 	外层模组已停用：	外層模組已停用：
+Unsaved changes	有变更	有變更
+Unsaved mod operations	未保存的模组变更	未儲存的模組變更

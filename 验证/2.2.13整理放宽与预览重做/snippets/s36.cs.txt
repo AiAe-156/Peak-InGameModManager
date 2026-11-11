@@ -1,0 +1,45 @@
+
+// S36 (2.2.13): a package whose DLL sits in a subfolder ("plugins/Nested.dll", like most store packages) is confirmed and
+// moved: the old-path lookup kept only the file name and failed every such confirm. A category folder named differently
+// from its group is recognized by its packages' groups; the manager's own folder moves, and moves last; a ".dll.old" copy
+// beside the ".dll" no longer keeps the package in place.
+{
+    var (root, core) = NewRoot("s36");
+    string nested = Path.Combine(root, "plugins", "Nested-Nested");
+    Directory.CreateDirectory(Path.Combine(nested, "plugins"));
+    File.WriteAllBytes(Path.Combine(nested, "plugins", "Nested.dll"), Fixtures.Plugin(core, "Nested", "team.nested", "Nested", "1.0.0"));
+    File.WriteAllText(Path.Combine(nested, "manifest.json"), Fixtures.Manifest("Nested", "1.0.0"));
+    string a = Installed(root, "0核心&基础模组/Alpha-Alpha", "Alpha", "1.0.0", Fixtures.Plugin(core, "Alpha", "team.alpha", "Alpha", "1.0.0"), "Alpha.dll");
+    string b = Installed(root, "0核心&基础模组/Beta-Beta", "Beta", "1.0.0", Fixtures.Plugin(core, "Beta", "team.beta", "Beta", "1.0.0"), "Beta.dll");
+    string manager = Installed(root, "Manager-MCE", "MCE", "1.0.0", Fixtures.Plugin(core, "MCE", "com.aiae.modconfigenhance", "MCE", "1.0.0"), "MCE.dll");
+    string doubled = Installed(root, "Doubled-Doubled", "Doubled", "1.0.0", Fixtures.Plugin(core, "Doubled", "team.doubled", "Doubled", "1.0.0"), "Doubled.dll");
+    File.Copy(Path.Combine(doubled, "Doubled.dll"), Path.Combine(doubled, "Doubled.dll.old"));
+    using var worker = new QueueWorker(root);
+    void PostLayout(LayoutQueueRequest request) { string id = Guid.NewGuid().ToString("N"); Files.Save(Path.Combine(root, "MCE", "commands", id + ".json"), new UpdateCommand { Id = id, Action = "layout", Layout = request }); worker.ProcessCommands(); }
+    PostLayout(new LayoutQueueRequest
+    {
+        Mode = InstallationLayoutMode.GroupOnly,
+        Groups = new() { new LayoutQueueGroup { Id = "core", Name = "0基础模组" }, new LayoutQueueGroup { Id = "tools", Name = "Tools" } },
+        Mods = new() { new LayoutQueueMod { Guid = "team.alpha", GroupId = "core" }, new LayoutQueueMod { Guid = "team.beta", GroupId = "core" },
+            new LayoutQueueMod { Guid = "com.aiae.modconfigenhance", GroupId = "core" }, new LayoutQueueMod { Guid = "team.nested", GroupId = "tools" }, new LayoutQueueMod { Guid = "team.doubled", GroupId = "tools" } }
+    });
+    var preview = Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json"));
+    Check("S36 预览就绪无阻断", preview.State == "ready" && preview.Blockers.Count == 0, preview.State + " " + preview.Error + " " + string.Join(" | ", preview.Blockers));
+    Check("S36 改名的分类目录按包的分组识别", preview.Details.Any(d => d.Contains("分组目录") && d.Contains("0核心&基础模组")) && preview.Tree.Any(n => n.Folder == "Alpha-Alpha" && n.Disposition == InstallationLayoutDisposition.Unchanged), string.Join(" | ", preview.Details));
+    Check("S36 管理器目录参与整理并标记", preview.Tree.Any(n => n.Manager && n.Disposition == InstallationLayoutDisposition.Move && n.Group == "0核心&基础模组"), string.Join(" | ", preview.Tree.Select(n => n.Folder + ":" + n.Disposition + ":" + n.Reasons)));
+    Check("S36 .dll 与 .dll.old 同目录不再跳过", preview.Tree.Any(n => n.Folder == "Doubled-Doubled" && n.Disposition == InstallationLayoutDisposition.Move && n.Notes.Contains("DuplicatePluginId")), string.Join(" | ", preview.Tree.Select(n => n.Folder + ":" + n.Disposition + ":" + n.Reasons)));
+    var plan = LayoutPlanner.Read(Path.Combine(root, "MCE", "shop", "tasks", preview.Id))!;
+    Check("S36 管理器目录最后移动", plan.Moves.Count == 3 && plan.Moves[^1].From == "plugins/Manager-MCE", string.Join(" | ", plan.Moves.Select(m => m.From)));
+    PostLayout(new LayoutQueueRequest { Operation = "confirm", PreviewId = preview.Id, PlanToken = preview.PlanToken });
+    var job = worker.Current.Jobs.SingleOrDefault(j => j.Layout);
+    Check("S36 子目录里有 DLL 的包可以确认（原先确认即失败）", job != null && File.Exists(Path.Combine(root, "MCE", "shop", "task.json")) && Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).State == "completed", job == null ? "no job · " + Files.Read<ShopTask>(Path.Combine(root, "MCE", "shop", "task.json")).Error : job.State);
+    if (job != null)
+    {
+        await Drive(worker);
+        string tools = Path.Combine(root, "plugins", "Tools");
+        Check("S36 整理后文件都在新位置", job.State == UpdateStates.PendingRestart && File.Exists(Path.Combine(tools, "Nested-Nested", "plugins", "Nested.dll")) && File.Exists(Path.Combine(tools, "Doubled-Doubled", "Doubled.dll.old"))
+            && File.Exists(Path.Combine(root, "plugins", "0核心&基础模组", "Manager-MCE", "MCE.dll")) && File.Exists(Path.Combine(a, "Alpha.dll")) && !Directory.Exists(nested) && !Directory.Exists(manager), job.State + " " + job.Error);
+        Post(root, worker, new UpdateCommand { Action = "rollback", JobId = job.Id }); await Drive(worker);
+        Check("S36 回退后子目录文件回到原处", job.State == UpdateStates.RolledBack && File.Exists(Path.Combine(nested, "plugins", "Nested.dll")) && File.Exists(Path.Combine(manager, "MCE.dll")) && File.Exists(Path.Combine(doubled, "Doubled.dll.old")) && File.Exists(Path.Combine(b, "Beta.dll")), job.State + " " + job.Error);
+    }
+}

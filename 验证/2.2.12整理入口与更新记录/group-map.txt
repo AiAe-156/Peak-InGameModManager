@@ -1,0 +1,66 @@
+['id', 'alias', 'description', 'versionLabel', 'descriptionOverridden', 'groupId', 'order', 'updateAllowed', 'updateOverridden', 'sourceNamespace', 'sourceName']
+chuxiaaaa.Aiae.BetterPeakVoiceFix -> folder-core
+ClearComms -> 
+club.freewifi.void.SimpleUnlocker -> folder-extension
+com.aiae.better_micindicator -> folder-core
+com.aiae.betterping -> folder-core
+com.github.PEAKModding.PEAKLib.Core -> folder-dependencies
+com.github.MiiMii1205.TimeTheme -> folder-extension
+com.AiAe.betterplayerdistance -> folder-extension
+com.atomic.profileviewer -> folder-core
+Foothold-Forked -> folder-extra
+com.shuhia.peak.piggybackteammate -> folder-extra
+Murka124.PlantholderOverhaul -> folder-extension
+com.aiae.localfix -> folder-core
+com.github.PEAKModding.PEAKLib.UI -> folder-dependencies
+com.github.PEAKModding.PEAKLib.ModConfig -> folder-core
+gravydevsupreme.xunity.autotranslator -> folder-dependencies
+com.aiae.modconfigenhance -> folder-core
+com.AiAe.peakspectatormode -> folder-extra
+tony4twentys.So_Fly -> folder-extra
+com.aiae.sofly_zh -> folder-extra
+com.aiaemod.plantholderoverhaul_zh -> folder-extension
+com.snosz.photoncustompropsutils -> folder-dependencies
+com.snosz.terrainrandomiser -> folder-gameplay
+com.aiaemod.terrainrandomiser_zh -> folder-gameplay
+com.github.PEAKModding.PEAKLib.Items -> folder-dependencies
+com.CptPICHU.peak.truefinalascent -> folder-gameplay
+com.anthony.randomterrainenhance -> folder-gameplay
+com.framedoctor.peak -> 
+com.github.Boxofbiscuits97.HudHider -> folder-extension
+com.github.cherrycove.ItemInfoDisplay -> folder-extension
+com.github.d5v.HowManyTimesWeClimbedTogether -> 
+com.github.darmuh.PEAKTrails -> folder-extra
+com.github.glarmer.UpscalerLib -> folder-dependencies
+com.github.glarmer.PEAK_Visuals -> folder-extra
+com.github.LengSword.AutoItemMultiplier -> folder-core
+com.github.LengSword.BetterPiggyback -> folder-extension
+com.github.LengSword.ClimbInfoTracker -> folder-core
+com.github.LengSword.FastStart -> folder-extension
+com.snosz.ubimgui -> folder-dependencies
+com.snosz.terraincustomiser -> folder-gameplay
+com.github.LengSword.PeakStatsEx -> folder-extension
+com.github.lllei.ItemSpawnerEnhanced -> folder-extra
+com.github.lllei.ItemSpawnerEnhanced.ChineseSearch -> folder-extra
+com.github.nazo-x1.PerspectiveSwitcher -> folder-extension
+com.github.PEAKModding.SoftDependencyFix -> folder-dependencies
+com.kobbler.nomotionblur -> folder-core
+com.sol.latejoinfix -> folder-core
+com.throwthrow.throwteammate -> folder-extra
+com.YOURNAME.ClearQuit -> folder-core
+com.yourname.peak.recentlyplayedwith -> folder-core
+gravydevsupreme.xunity.resourceredirector -> folder-dependencies
+jill920.LightingTweaks -> folder-extra
+lammas123.PEAKER -> 
+mrbub.eagleseye -> folder-extension
+my.pahsiv.MyBananaDontHurtMe -> folder-core
+nickklmao.easybackpack -> folder-extension
+peaklatejoinfr.RE -> folder-core
+PeakLevelSelect -> folder-core
+peakReconnect -> folder-extension
+Rombusz.CrossplayStutterFix -> folder-core
+voice_volume_saver -> folder-core
+com.aiae.micenhance -> folder-core
+com.aiae.zombietweaks -> folder-gameplay
+com.zhuanban.peak.plushieswap -> folder-extra
+af.pll.library -> folder-gameplay

@@ -1,0 +1,1007 @@
+{
+  "run": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\FrameDoctor-Logs\\2026-10-31_01-34-14",
+  "counts": {
+    "ProfilerCountersAvailable": 1,
+    "MacroSpike": 468,
+    "HeavyCall": 201,
+    "MethodProfile": 405
+  },
+  "windows": [
+    {
+      "start": "01:34:48",
+      "end": "01:35:05",
+      "spikes": 28,
+      "classes": {
+        "main-thread": 11,
+        "GC-bound": 11,
+        "unexplained": 6
+      },
+      "maxMs": 2902.8
+    },
+    {
+      "start": "01:35:05",
+      "end": "01:36:50",
+      "spikes": 148,
+      "classes": {
+        "GC-bound": 69,
+        "unexplained": 61,
+        "main-thread": 18
+      },
+      "maxMs": 297.6
+    },
+    {
+      "start": "01:37:05",
+      "end": "01:39:35",
+      "spikes": 106,
+      "classes": {
+        "GC-bound": 94,
+        "main-thread": 12
+      },
+      "maxMs": 157.5
+    },
+    {
+      "start": "01:40:05",
+      "end": "01:41:20",
+      "spikes": 53,
+      "classes": {
+        "main-thread": 2,
+        "GC-bound": 48,
+        "unexplained": 3
+      },
+      "maxMs": 162.8
+    }
+  ],
+  "heavyCalls": {
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update() <- (not recorded)": {
+      "count": 14,
+      "selfMs": 6627.099999999999,
+      "maxMs": 2893.4
+    },
+    "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean) <- Assembly-CSharp:SettingsTABSButton.Update()": {
+      "count": 48,
+      "selfMs": 5988.899999999999,
+      "maxMs": 154.6
+    },
+    "UBImGui:UBImGui.ImGuiBehaviour.Update() <- (not recorded)": {
+      "count": 32,
+      "selfMs": 4031.1000000000004,
+      "maxMs": 147.2
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update() <- (not recorded)": {
+      "count": 17,
+      "selfMs": 1743.2,
+      "maxMs": 131.9
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewEntry.Update() <- (not recorded)": {
+      "count": 4,
+      "selfMs": 1017.6,
+      "maxMs": 627.6
+    },
+    "Zorro.ControllerSupport:Zorro.ControllerSupport.NavigationContainerHandler.LateUpdate() <- (not recorded)": {
+      "count": 7,
+      "selfMs": 937.4000000000001,
+      "maxMs": 171.7
+    },
+    "BetterPeakVoiceFix:PeakVoiceFix.VoiceFix.Update() <- (not recorded)": {
+      "count": 7,
+      "selfMs": 889.5,
+      "maxMs": 135.6
+    },
+    "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String) <- (not recorded)": {
+      "count": 4,
+      "selfMs": 504.5,
+      "maxMs": 137.2
+    },
+    "com.github.PEAKModding.PEAKLib.ModConfig:PEAKLib.ModConfig.ModConfigPlugin.<Start>g__builderDelegate|17_0(UnityEngine.Transform) <- (not recorded)": {
+      "count": 1,
+      "selfMs": 468.9,
+      "maxMs": 468.9
+    },
+    "UBImGui:UBImGui.ImGuiBehaviour+<RenderInFront>d__24.MoveNext() <- (not recorded)": {
+      "count": 3,
+      "selfMs": 412.6,
+      "maxMs": 144.5
+    },
+    "Foothold-Forked:Foothold.Plugin.Update() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 155.3,
+      "maxMs": 155.3
+    },
+    "Assembly-CSharp:SettingsTABSButton.Update() <- (not recorded)": {
+      "count": 49,
+      "selfMs": 137.99999999999974,
+      "maxMs": 123
+    },
+    "BetterPeakVoiceFix:PeakVoiceFix.VoiceUIManager.Update() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 129.6,
+      "maxMs": 129.6
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListView+<>c__DisplayClass131_2+<<Render>g__BuildModLayers|13>d.MoveNext() <- ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()": {
+      "count": 1,
+      "selfMs": 120.3,
+      "maxMs": 120.3
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListView+<>c__DisplayClass209_1+<<BuildInfrastructure>g__BuildComponentLayers|4>d.MoveNext() <- ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()": {
+      "count": 1,
+      "selfMs": 117.4,
+      "maxMs": 117.4
+    },
+    "Assembly-CSharp:SFX_Player.PlaySFX(SFX_Instance,UnityEngine.Vector3,UnityEngine.Transform,SFX_Settings,System.Single,System.Boolean) <- Assembly-CSharp:SFX_PlayOneShot.PlayOneShot()": {
+      "count": 1,
+      "selfMs": 115.6,
+      "maxMs": 115.6
+    },
+    "PlushieSwap:PlushieSwap.PlushieHost.LateUpdate() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 113.3,
+      "maxMs": 113.3
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 113.1,
+      "maxMs": 113.1
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.AutomaticUpdateChecks.Update() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 111.6,
+      "maxMs": 111.6
+    },
+    "com.github.LengSword.PeakerPlus:PeakerPlus.Features.SteamLobbyLock.FixedUpdate() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 108.5,
+      "maxMs": 108.5
+    },
+    "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean) <- (not recorded)": {
+      "count": 4,
+      "selfMs": 91.6,
+      "maxMs": 27.4
+    },
+    "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyHints+<BuildDeferred>d__74.MoveNext() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 77.3,
+      "maxMs": 77.3
+    },
+    "Assembly-CSharp:SFX_PlayOneShot.PlayOneShot() <- (not recorded)": {
+      "count": 1,
+      "selfMs": 0.1,
+      "maxMs": 0.1
+    }
+  },
+  "methodDeltas": [
+    {
+      "tick": 2,
+      "ts": "01:35:04.608",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 191.2,
+      "deltaCalls": 1837
+    },
+    {
+      "tick": 3,
+      "ts": "01:35:19.614",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 250.9,
+      "deltaCalls": 1316
+    },
+    {
+      "tick": 3,
+      "ts": "01:35:19.614",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 745.0,
+      "deltaCalls": 1316
+    },
+    {
+      "tick": 3,
+      "ts": "01:35:19.614",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 286.0,
+      "deltaCalls": 1316
+    },
+    {
+      "tick": 3,
+      "ts": "01:35:19.614",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 8.1,
+      "deltaCalls": 350
+    },
+    {
+      "tick": 4,
+      "ts": "01:35:34.615",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 516.3,
+      "deltaCalls": 1442
+    },
+    {
+      "tick": 4,
+      "ts": "01:35:34.615",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 960.6,
+      "deltaCalls": 1442
+    },
+    {
+      "tick": 4,
+      "ts": "01:35:34.616",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 1.4,
+      "deltaCalls": 1442
+    },
+    {
+      "tick": 4,
+      "ts": "01:35:34.616",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 4.0,
+      "deltaCalls": 267
+    },
+    {
+      "tick": 5,
+      "ts": "01:35:49.615",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 380.5,
+      "deltaCalls": 1357
+    },
+    {
+      "tick": 5,
+      "ts": "01:35:49.615",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 680.1,
+      "deltaCalls": 1357
+    },
+    {
+      "tick": 5,
+      "ts": "01:35:49.615",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 284.5,
+      "deltaCalls": 1357
+    },
+    {
+      "tick": 5,
+      "ts": "01:35:49.615",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 5.2,
+      "deltaCalls": 227
+    },
+    {
+      "tick": 6,
+      "ts": "01:36:04.616",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 437.2,
+      "deltaCalls": 1658
+    },
+    {
+      "tick": 6,
+      "ts": "01:36:04.616",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 1033.8,
+      "deltaCalls": 1658
+    },
+    {
+      "tick": 6,
+      "ts": "01:36:04.616",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 1.8,
+      "deltaCalls": 1658
+    },
+    {
+      "tick": 6,
+      "ts": "01:36:04.616",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 7,
+      "ts": "01:36:19.666",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 267.2,
+      "deltaCalls": 1529
+    },
+    {
+      "tick": 7,
+      "ts": "01:36:19.666",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 811.6,
+      "deltaCalls": 1529
+    },
+    {
+      "tick": 7,
+      "ts": "01:36:19.666",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 1.5,
+      "deltaCalls": 1529
+    },
+    {
+      "tick": 7,
+      "ts": "01:36:19.666",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 32.3,
+      "deltaCalls": 483
+    },
+    {
+      "tick": 8,
+      "ts": "01:36:34.706",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 424.8,
+      "deltaCalls": 1749
+    },
+    {
+      "tick": 8,
+      "ts": "01:36:34.706",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 1065.8,
+      "deltaCalls": 1749
+    },
+    {
+      "tick": 8,
+      "ts": "01:36:34.706",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 2.0,
+      "deltaCalls": 1749
+    },
+    {
+      "tick": 8,
+      "ts": "01:36:34.706",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 9,
+      "ts": "01:36:49.709",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 233.5,
+      "deltaCalls": 1093
+    },
+    {
+      "tick": 9,
+      "ts": "01:36:49.709",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 621.0,
+      "deltaCalls": 1093
+    },
+    {
+      "tick": 9,
+      "ts": "01:36:49.709",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 16.3,
+      "deltaCalls": 1093
+    },
+    {
+      "tick": 9,
+      "ts": "01:36:49.709",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 47.7,
+      "deltaCalls": 2194
+    },
+    {
+      "tick": 10,
+      "ts": "01:37:04.743",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 10,
+      "ts": "01:37:04.743",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 10,
+      "ts": "01:37:04.743",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 10,
+      "ts": "01:37:04.743",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 394.4,
+      "deltaCalls": 10900
+    },
+    {
+      "tick": 10,
+      "ts": "01:37:04.743",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 249.1,
+      "deltaCalls": 16393
+    },
+    {
+      "tick": 11,
+      "ts": "01:37:19.747",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 11,
+      "ts": "01:37:19.747",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 11,
+      "ts": "01:37:19.747",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 390.3,
+      "deltaCalls": 12235
+    },
+    {
+      "tick": 11,
+      "ts": "01:37:19.747",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 11,
+      "ts": "01:37:19.747",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 20.0,
+      "deltaCalls": 2447
+    },
+    {
+      "tick": 12,
+      "ts": "01:37:34.812",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 12,
+      "ts": "01:37:34.812",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 12,
+      "ts": "01:37:34.812",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 540.6,
+      "deltaCalls": 11805
+    },
+    {
+      "tick": 12,
+      "ts": "01:37:34.812",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 12,
+      "ts": "01:37:34.812",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.4,
+      "deltaCalls": 2361
+    },
+    {
+      "tick": 13,
+      "ts": "01:37:49.816",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 13,
+      "ts": "01:37:49.816",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 13,
+      "ts": "01:37:49.816",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 395.8,
+      "deltaCalls": 11830
+    },
+    {
+      "tick": 13,
+      "ts": "01:37:49.816",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 13,
+      "ts": "01:37:49.817",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 18.6,
+      "deltaCalls": 2366
+    },
+    {
+      "tick": 14,
+      "ts": "01:38:04.820",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 14,
+      "ts": "01:38:04.820",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 14,
+      "ts": "01:38:04.820",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 152.8,
+      "deltaCalls": 11945
+    },
+    {
+      "tick": 14,
+      "ts": "01:38:04.820",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 14,
+      "ts": "01:38:04.820",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 157.1,
+      "deltaCalls": 2389
+    },
+    {
+      "tick": 15,
+      "ts": "01:38:19.822",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 15,
+      "ts": "01:38:19.822",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 15,
+      "ts": "01:38:19.822",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 29.9,
+      "deltaCalls": 12075
+    },
+    {
+      "tick": 15,
+      "ts": "01:38:19.822",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 15,
+      "ts": "01:38:19.822",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 137.2,
+      "deltaCalls": 2415
+    },
+    {
+      "tick": 16,
+      "ts": "01:38:34.824",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 16,
+      "ts": "01:38:34.824",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 16,
+      "ts": "01:38:34.824",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 737.6,
+      "deltaCalls": 12300
+    },
+    {
+      "tick": 16,
+      "ts": "01:38:34.824",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 16,
+      "ts": "01:38:34.824",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.4,
+      "deltaCalls": 2460
+    },
+    {
+      "tick": 17,
+      "ts": "01:38:49.830",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 17,
+      "ts": "01:38:49.830",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 17,
+      "ts": "01:38:49.830",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 503.9,
+      "deltaCalls": 12115
+    },
+    {
+      "tick": 17,
+      "ts": "01:38:49.830",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 17,
+      "ts": "01:38:49.830",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.0,
+      "deltaCalls": 2423
+    },
+    {
+      "tick": 18,
+      "ts": "01:39:04.831",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 18,
+      "ts": "01:39:04.831",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 18,
+      "ts": "01:39:04.831",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 257.9,
+      "deltaCalls": 12245
+    },
+    {
+      "tick": 18,
+      "ts": "01:39:04.831",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 18,
+      "ts": "01:39:04.831",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 20.0,
+      "deltaCalls": 2449
+    },
+    {
+      "tick": 19,
+      "ts": "01:39:19.833",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 19,
+      "ts": "01:39:19.833",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 19,
+      "ts": "01:39:19.833",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 268.5,
+      "deltaCalls": 12210
+    },
+    {
+      "tick": 19,
+      "ts": "01:39:19.833",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 19,
+      "ts": "01:39:19.833",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 20.3,
+      "deltaCalls": 2442
+    },
+    {
+      "tick": 20,
+      "ts": "01:39:34.838",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 20,
+      "ts": "01:39:34.838",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 20,
+      "ts": "01:39:34.838",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 403.2,
+      "deltaCalls": 12200
+    },
+    {
+      "tick": 20,
+      "ts": "01:39:34.838",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.9,
+      "deltaCalls": 2440
+    },
+    {
+      "tick": 20,
+      "ts": "01:39:34.838",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 21,
+      "ts": "01:39:49.898",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 289.5,
+      "deltaCalls": 55
+    },
+    {
+      "tick": 21,
+      "ts": "01:39:49.898",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 22.3,
+      "deltaCalls": 55
+    },
+    {
+      "tick": 21,
+      "ts": "01:39:49.898",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 440.3,
+      "deltaCalls": 10293
+    },
+    {
+      "tick": 21,
+      "ts": "01:39:49.898",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 18.2,
+      "deltaCalls": 2179
+    },
+    {
+      "tick": 21,
+      "ts": "01:39:49.898",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 6.1,
+      "deltaCalls": 55
+    },
+    {
+      "tick": 22,
+      "ts": "01:40:04.939",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 22,
+      "ts": "01:40:04.939",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 22,
+      "ts": "01:40:04.939",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 241.2,
+      "deltaCalls": 6185
+    },
+    {
+      "tick": 22,
+      "ts": "01:40:04.940",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 9.7,
+      "deltaCalls": 1237
+    },
+    {
+      "tick": 22,
+      "ts": "01:40:04.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 23,
+      "ts": "01:40:19.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 23,
+      "ts": "01:40:19.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 23,
+      "ts": "01:40:19.940",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 284.7,
+      "deltaCalls": 11425
+    },
+    {
+      "tick": 23,
+      "ts": "01:40:19.940",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 150.7,
+      "deltaCalls": 2285
+    },
+    {
+      "tick": 23,
+      "ts": "01:40:19.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 24,
+      "ts": "01:40:34.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 24,
+      "ts": "01:40:34.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 24,
+      "ts": "01:40:34.940",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 282.1,
+      "deltaCalls": 11450
+    },
+    {
+      "tick": 24,
+      "ts": "01:40:34.940",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.5,
+      "deltaCalls": 2290
+    },
+    {
+      "tick": 24,
+      "ts": "01:40:34.940",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 25,
+      "ts": "01:40:49.943",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 25,
+      "ts": "01:40:49.943",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 25,
+      "ts": "01:40:49.943",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 535.9,
+      "deltaCalls": 11825
+    },
+    {
+      "tick": 25,
+      "ts": "01:40:49.943",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.8,
+      "deltaCalls": 2365
+    },
+    {
+      "tick": 25,
+      "ts": "01:40:49.943",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 26,
+      "ts": "01:41:04.942",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 26,
+      "ts": "01:41:04.942",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 26,
+      "ts": "01:41:04.942",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 286.1,
+      "deltaCalls": 11315
+    },
+    {
+      "tick": 26,
+      "ts": "01:41:04.942",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.3,
+      "deltaCalls": 2263
+    },
+    {
+      "tick": 26,
+      "ts": "01:41:04.942",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 27,
+      "ts": "01:41:19.947",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewPage.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 27,
+      "ts": "01:41:19.947",
+      "method": "UnityEngine.CoreModule:UnityEngine.GameObject.SetActive(System.Boolean)",
+      "deltaSelfMs": 154.2,
+      "deltaCalls": 11465
+    },
+    {
+      "tick": 27,
+      "ts": "01:41:19.947",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewListPump.Update()",
+      "deltaSelfMs": 0,
+      "deltaCalls": 0
+    },
+    {
+      "tick": 27,
+      "ts": "01:41:19.947",
+      "method": "Unity.TextMeshPro:TMPro.TMP_Text.set_text(System.String)",
+      "deltaSelfMs": 19.6,
+      "deltaCalls": 2293
+    },
+    {
+      "tick": 27,
+      "ts": "01:41:19.947",
+      "method": "ModConfigEnhance:ModConfigEnhance.Overview.OverviewDependencyDriver.Update()",
+      "deltaSelfMs": 0.0,
+      "deltaCalls": 0
+    }
+  ],
+  "note": "MethodProfile outputs may be top-N snapshots; absent methods are not zero. HeavyCall includes GC and uninstrumented descendants. MacroSpike frame can refer to prior-frame timing; do not blindly join by frame."
+}

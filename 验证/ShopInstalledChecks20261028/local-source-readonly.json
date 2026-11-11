@@ -1,0 +1,15 @@
+{
+  "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\config\\ModConfigEnhance\\runtime\\sources.json",
+  "exists": true,
+  "matches": {
+    "com.github.LengSword.PeakStatsEx": {
+      "kind": 1,
+      "ns": "LengSword",
+      "name": "PeakStatsEx",
+      "author": "LengSword",
+      "homepage": "https://codeberg.org/yls-peak-mods/PeakStatsEx",
+      "packageVersion": "",
+      "note": ""
+    }
+  }
+}

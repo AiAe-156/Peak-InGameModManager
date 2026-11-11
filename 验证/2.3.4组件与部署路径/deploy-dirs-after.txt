@@ -1,0 +1,43 @@
+OK   | BetterPing\BetterPing.csproj | BetterPing 1.0.2
+      deploy: BepInEx\plugins\0基础模组\[功能]更好的中键标记-BetterPing
+      live:   0基础模组\[功能]更好的中键标记-BetterPing\BetterPing.dll
+OK   | Better_MicIndicator\Better_MicIndicator.csproj | Better_MicIndicator 1.4.1
+      deploy: BepInEx\plugins\0基础模组\[功能]更好的麦克风指示器(Better_MicIndicator)
+      live:   0基础模组\[功能]更好的麦克风指示器(Better_MicIndicator)\Better_MicIndicator.dll
+OK   | LocalFix\LocalFix.csproj | LocalFix 2.26.0
+      deploy: BepInEx\plugins\0基础模组\[机制]综合本地修复-LocalFix
+      live:   0基础模组\[机制]综合本地修复-LocalFix\LocalFix.dll
+OK   | MicEnhance\MicEnhance.csproj | MicEnhance 1.1.0
+      deploy: BepInEx\plugins\0基础模组\[功能]麦克风增强-MicEnhance
+      live:   0基础模组\[功能]麦克风增强-MicEnhance\MicEnhance.dll
+OK   | ModConfigEnhance\ModConfigEnhance.csproj | ModConfigEnhance 2.3.3
+      deploy: BepInEx\plugins\0基础模组\ModManager_InGame_2.0.0_20261029_215224
+      live:   0基础模组\ModManager_InGame_2.0.0_20261029_215224\ModConfigEnhance.dll
+MISS | PEAKERRpcInfoNativeSkip\PEAKERRpcInfoNativeSkip.csproj | PEAKERRpcInfoNativeSkip 1.0.1
+      deploy: BepInEx\patchers\PEAKERRpcInfoNativeSkip
+OK   | PeakVoiceFixFix\PeakVoiceFix\BetterPeakVoiceFix.csproj | BetterPeakVoiceFix 1.1.9
+      deploy: BepInEx\plugins\0基础模组\[优化]更好的语音修复CN-1.1.8
+      live:   0基础模组\[优化]更好的语音修复CN-1.1.8\BetterPeakVoiceFix.dll
+OK   | RecentlyPlayedWith\RecentlyPlayedWith.csproj | RecentlyPlayedWith 1.0.2
+      deploy: BepInEx\plugins\0基础模组\[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.2
+      live:   0基础模组\[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.2\RecentlyPlayedWith.dll
+OK   | TerrainCustomiserFix\TerrainCustomiserFix.csproj | TerrainCustomiser 1.1.0
+      deploy: BepInEx\3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser
+OK   | ZombieTweaks\ZombieTweaks.csproj | ZombieTweaks 1.3.0
+      deploy: BepInEx\plugins\3玩法模组\[玩法][纯主机]僵尸追猎_快跑吧！-ZombieTweaks
+      live:   3玩法模组\[玩法][纯主机]僵尸追猎_快跑吧！-ZombieTweaks\ZombieTweaks.dll
+OK   | 汉化\BetterReviveTeleport\PeakLateJoinButItActuallyWorks.csproj | BetterReviveOrTeleport 1.4.5
+      deploy: BepInEx\plugins\0基础模组\[机制]更好的手动复活&传送
+      live:   0基础模组\[机制]更好的手动复活&传送\BetterReviveOrTeleport.dll
+MISS | 汉化\FlagSurvival_ZH\FlagSurvival_ZH.csproj | FlagSurvival_ZH 0.1.2.0
+      deploy: BepInEx\plugins\FlagSurvival_ZH
+OK   | 汉化\PlantholderOverhaul_ZH\PlantholderOverhaul_ZH.csproj | PlantholderOverhaul_ZH_v1.54.c 1.1.0
+      deploy: BepInEx\plugins\1拓展模组\[美化]迷你景观台-汉化-PlantholderOverhaul-0.1.7\PlantholderOverhaul_ZH
+OK   | 汉化\SoFly_ZH\SoFly_ZH.csproj | SoFly_ZH 1.0.0
+      deploy: BepInEx\plugins\2额外模组\[调试]飞行模组So_Fly-2.1.0\SoFly_ZH
+      live:   2额外模组\[调试]飞行模组So_Fly-2.1.0\SoFly_ZH\SoFly_ZH.dll
+MISS | 汉化\TerrainCustomiser_ZH\TerrainCustomiser_ZH.csproj | TerrainCustomiser_ZH 1.0.0
+      deploy: BepInEx\plugins\[机制]地形定制器-TerrainCustomiser\TerrainCustomiser_ZH
+OK   | 随机地形增强\RandomTerrainEnhance.csproj | RandomTerrainEnhance 1.0.20
+      deploy: BepInEx\plugins\3玩法模组\[补丁]随机地形增强
+      live:   3玩法模组\[补丁]随机地形增强\RandomTerrainEnhance.dll

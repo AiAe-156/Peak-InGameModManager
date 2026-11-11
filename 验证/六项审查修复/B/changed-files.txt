@@ -1,0 +1,16 @@
+Updater\QueueWorker.cs
+Updater\ResourceBatchValidation.cs
+Updater\ShopCoreBatch.cs
+Updater\ShopDependencyValidation.cs
+Updater\ShopDependencyWarnings.cs
+Updater\ShopLocalImport.cs
+Updater\ShopOwnership.cs
+Updater\ShopQueue.cs
+Updater\WorkerResourceBatch.cs
+src\Updating\LocalImportQueueContracts.cs
+src\Updating\ShopContracts.cs
+src\Updating\UpdateContracts.cs
+src\Overview\OverviewPage.Management.cs
+src\Overview\OverviewUpdateQueue.cs
+src\Overview\ResourceOperationDraft.cs
+Updater\ResourceBatchConsent.cs

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>12</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ApplicationManifest>../../Updater/obj/FrameworkApp.manifest</ApplicationManifest><AppConfig>../../Updater/obj/FrameworkApp.config</AppConfig><AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects><GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType></PropertyGroup><ItemGroup><PackageReference Include="System.Text.Json" Version="10.0.0" /><PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" /><Reference Include="System.Net.Http" /><Reference Include="System.IO.Compression" /><Reference Include="System.IO.Compression.FileSystem" /><Compile Include="../../Updater/*.cs" Exclude="../../Updater/Program.cs" /><Compile Include="../../src/Updating/ComponentDependency*.cs" />
+<Compile Include="../../src/Updating/ShopContracts.cs" />
+<Compile Include="../../src/Updating/WorkerProtocol.cs" />
+<Compile Include="../../src/Updating/UpdateContracts.cs" />
+<Compile Include="../../src/Updating/PackContracts.cs" />
+<Compile Include="../../src/Updating/MaintenanceContracts.cs" />
+<Compile Include="../../src/Updating/PackReportText.cs" />
+<Compile Include="../../src/Updating/PackLanguages.cs" />
+<Compile Include="../../src/Updating/PackEditPolicy.cs" />
+<Compile Include="../../src/Updating/NetworkProbeContracts.cs" />
+<Compile Include="../../src/Updating/UpdateMessage*.cs" /><Compile Include="Checks.cs" /><Compile Include="Extra.cs" /><Reference Include="Mono.Cecil"><HintPath>../../Updater/bin/framework-bundle/Mono.Cecil.dll</HintPath></Reference></ItemGroup></Project>

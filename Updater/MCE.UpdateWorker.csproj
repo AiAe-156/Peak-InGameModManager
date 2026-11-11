@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <Version>2.5.4</Version>
+    <AssemblyName>MCE.UpdateWorker</AssemblyName>
+    <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
+    <SelfContained>false</SelfContained>
+    <AppConfig>$(MSBuildProjectDirectory)/obj/FrameworkApp.config</AppConfig>
+    <ApplicationManifest>$(MSBuildProjectDirectory)/obj/FrameworkApp.manifest</ApplicationManifest>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- UseWPF switches the SDK to the WindowsDesktop implicit-usings set, which omits System.IO. -->
+    <Using Include="System.IO" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Compile Include="../src/Updating/PluginFileNames.cs" Link="PluginFileNames.cs" />
+    <Compile Include="../src/Updating/ManifestCopies.cs" Link="ManifestCopies.cs" />
+    <Compile Include="../src/Updating/MceDirectories.cs" Link="MceDirectories.cs" />
+    <Compile Include="../src/Updating/ComponentDependency*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="../src/Updating/ShopContracts.cs" Link="ShopContracts.cs" />
+    <Compile Include="../src/Updating/ModImportContracts.cs" Link="ModImportContracts.cs" />
+    <Compile Include="../src/Updating/LocalImportQueueContracts.cs" Link="LocalImportQueueContracts.cs" />
+    <Compile Include="../src/Updating/InstallationLayout*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="../src/Updating/GroupFolderPlanner.cs" Link="GroupFolderPlanner.cs" />
+    <Compile Include="../src/Updating/LayoutQueueContracts.cs" Link="LayoutQueueContracts.cs" />
+    <Compile Include="../src/Updating/WorkerProtocol.cs" Link="WorkerProtocol.cs" />
+    <Compile Include="../src/Updating/UpdateContracts.cs" Link="UpdateContracts.cs" />
+    <Compile Include="../src/Updating/UpdateWriteMarker.cs" Link="UpdateWriteMarker.cs" />
+    <Compile Include="../src/Updating/PackContracts.cs" Link="PackContracts.cs" />
+    <Compile Include="../src/Updating/MaintenanceContracts.cs" Link="MaintenanceContracts.cs" />
+    <Compile Include="../src/Updating/ManagerSyncContracts.cs" Link="ManagerSyncContracts.cs" />
+    <Compile Include="../src/Updating/PackReportText.cs" Link="PackReportText.cs" />
+    <Compile Include="../src/Updating/PackLanguages.cs" Link="PackLanguages.cs" />
+    <Compile Include="../src/Updating/PackEditPolicy.cs" Link="PackEditPolicy.cs" />
+    <Compile Include="../src/Updating/NetworkProbeContracts.cs" Link="NetworkProbeContracts.cs" />
+    <Compile Include="../src/Updating/UpdateMessage*.cs" Link="%(Filename)%(Extension)" />
+    <Reference Include="Mono.Cecil"><HintPath>$(GameDir)BepInEx/core/Mono.Cecil.dll</HintPath><Private>true</Private></Reference>
+    <None Update="Mono.Cecil.LICENSE.txt" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="WriteFrameworkConfig" BeforeTargets="PrepareForBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)/obj" />
+    <WriteLinesToFile File="$(ApplicationManifest)" Lines="&lt;assembly manifestVersion='1.0' xmlns='urn:schemas-microsoft-com:asm.v1'&gt;&lt;application xmlns='urn:schemas-microsoft-com:asm.v3'&gt;&lt;windowsSettings&gt;&lt;longPathAware xmlns='http://schemas.microsoft.com/SMI/2016/WindowsSettings'&gt;true&lt;/longPathAware&gt;&lt;/windowsSettings&gt;&lt;/application&gt;&lt;/assembly&gt;" Overwrite="true" />
+    <WriteLinesToFile File="$(AppConfig)" Lines="&lt;configuration&gt;&lt;startup&gt;&lt;supportedRuntime version='v4.0' sku='.NETFramework,Version=v4.8' /&gt;&lt;/startup&gt;&lt;runtime&gt;&lt;AppContextSwitchOverrides value='Switch.System.IO.UseLegacyPathHandling=false%3BSwitch.System.IO.BlockLongPaths=false' /&gt;&lt;/runtime&gt;&lt;/configuration&gt;" Overwrite="true" />
+  </Target>
+  <Target Name="CopyRuntimeNotices" AfterTargets="Publish">
+    <Copy SourceFiles="$(NuGetPackageRoot)system.text.json/10.0.0/THIRD-PARTY-NOTICES.TXT" DestinationFiles="$(PublishDir)Licenses/Microsoft-THIRD-PARTY-NOTICES.TXT" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)Mono.Cecil.LICENSE.txt" DestinationFiles="$(PublishDir)Mono.Cecil.LICENSE.txt" />
+    <!-- Legacy protocol2 names are retained; these describe prerequisites, not a bundled runtime. -->
+    <WriteLinesToFile File="$(PublishDir)Runtime-LICENSE.TXT" Lines="Requires Windows .NET Framework 4.8 (system prerequisite). No .NET runtime is redistributed. Microsoft Framework terms: https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48" Overwrite="true" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\THIRD-PARTY-NOTICES.md" DestinationFiles="$(PublishDir)Runtime-THIRD-PARTY-NOTICES.TXT" />
+    <Exec Command="&quot;$(PublishDir)MCE.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(PublishDir).&quot;" />
+  </Target>
+</Project>

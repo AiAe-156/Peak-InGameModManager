@@ -1,0 +1,91 @@
+{
+  "SchemaVersion": 1,
+  "Id": "c6a35fe3928448049e5a5f2bb1852b16",
+  "State": "completed",
+  "Message": "Store operation completed. Start PEAK to use the result.",
+  "Error": "",
+  "CreatedUtc": "2026-10-27T13:06:21.5444859Z",
+  "PlanToken": "8FAC223D31FBFC382D5E8E02AAEA166BACE9FAD8BD7F0EF3C7646C929201ECAF",
+  "LedgerRevision": 1,
+  "ActivePackId": "9631b6c93b4296ef8da3bbe4be1ea7b7",
+  "Request": {
+    "Operation": "confirm-uninstall",
+    "Namespace": "xtyobmodding",
+    "Package": "WeatherToggle",
+    "Version": "1.0.0",
+    "PreviewId": "",
+    "PlanToken": "",
+    "SourceProcessId": 40300,
+    "GroupId": "",
+    "NewGroupName": "",
+    "NewGroupColor": "#7CC7E6",
+    "RemoveConfiguration": false
+  },
+  "Packages": [
+    {
+      "Key": "xtyobmodding-WeatherToggle",
+      "Version": "1.0.0",
+      "Url": "https://thunderstore.io/package/download/xtyobmodding/WeatherToggle/1.0.0/",
+      "Dependencies": [
+        "BepInEx-BepInExPack_PEAK-5.4.75301"
+      ],
+      "Files": [
+        {
+          "Path": "plugins/xtyobmodding-WeatherToggle/CHANGELOG.md",
+          "Hash": "63CA7CF3DB2E1EB18A036D2D28E54D9D618F0A39E5942DB495A26894174E64AE"
+        },
+        {
+          "Path": "plugins/xtyobmodding-WeatherToggle/icon.png",
+          "Hash": "633D1AE556B3E248C197FFD035940DEBC2023F9CFC3E7774767395653D87079C"
+        },
+        {
+          "Path": "plugins/xtyobmodding-WeatherToggle/manifest.json",
+          "Hash": "9877DC076160ED1117A19085AC87C5DE697681232AB6BE2F953CF2E7EEC76F79"
+        },
+        {
+          "Path": "plugins/xtyobmodding-WeatherToggle/README.md",
+          "Hash": "18A67AA0CC9245CF4DDE17D26ACD05A39401A8C1447FB803C59AC33B0DCFBB30"
+        },
+        {
+          "Path": "plugins/xtyobmodding-WeatherToggle/WeatherToggle.dll",
+          "Hash": "ED5D5A620ABD485D7C033A421E0D2F1D5E5D1AB79E5D8FE50B7D743C8E2FE525"
+        }
+      ],
+      "PluginGuids": [
+        "xtyob.weathertoggle"
+      ],
+      "Reuse": false,
+      "External": false,
+      "InstalledAsDependency": false
+    }
+  ],
+  "Blockers": [],
+  "Details": [],
+  "Desired": [],
+  "Originals": [
+    {
+      "Path": "plugins/xtyobmodding-WeatherToggle/CHANGELOG.md",
+      "Hash": "63CA7CF3DB2E1EB18A036D2D28E54D9D618F0A39E5942DB495A26894174E64AE"
+    },
+    {
+      "Path": "plugins/xtyobmodding-WeatherToggle/icon.png",
+      "Hash": "633D1AE556B3E248C197FFD035940DEBC2023F9CFC3E7774767395653D87079C"
+    },
+    {
+      "Path": "plugins/xtyobmodding-WeatherToggle/manifest.json",
+      "Hash": "9877DC076160ED1117A19085AC87C5DE697681232AB6BE2F953CF2E7EEC76F79"
+    },
+    {
+      "Path": "plugins/xtyobmodding-WeatherToggle/README.md",
+      "Hash": "18A67AA0CC9245CF4DDE17D26ACD05A39401A8C1447FB803C59AC33B0DCFBB30"
+    },
+    {
+      "Path": "plugins/xtyobmodding-WeatherToggle/WeatherToggle.dll",
+      "Hash": "ED5D5A620ABD485D7C033A421E0D2F1D5E5D1AB79E5D8FE50B7D743C8E2FE525"
+    }
+  ],
+  "OrphanCandidates": [],
+  "DownloadedBytes": 0,
+  "TotalBytes": 0,
+  "BlocksWrites": false
+}

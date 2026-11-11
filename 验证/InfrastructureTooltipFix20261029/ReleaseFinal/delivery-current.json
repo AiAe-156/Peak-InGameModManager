@@ -1,0 +1,12 @@
+{
+  "stamp": "20261029_135829",
+  "script": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTooltipFix20261029\\ReleaseFinal\\attempt_delivery_20261029_135829\\deploy_20261029_135829.py",
+  "plan": {
+    "prepared_at": "2026-10-29T13:58:29.726154+08:00",
+    "version": "2.0.0",
+    "zip": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\发布\\ModConfigEnhance_2.0.0_20261029_135829_dependency-card-fix.zip",
+    "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\备份\\部署前_依赖提示布局修复_20261029_135829\\installed",
+    "verification": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTooltipFix20261029\\ReleaseFinal\\summary.json",
+    "preparation_processes": []
+  }
+}

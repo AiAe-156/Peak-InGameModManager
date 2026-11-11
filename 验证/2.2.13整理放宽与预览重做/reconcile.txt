@@ -1,0 +1,27 @@
+preview units 52
+folders with manifest.json 62
+--- packages the preview does not list at all
+   plugins/0核心&基础模组/[界面]ModConfig增强-ModConfigEnhance
+   plugins/AeralisFoundation-PLL_Fog_Resources
+   plugins/AeralisFoundation-Unified_Ray_Tracing
+   plugins/MonoDetour-MonoDetour
+--- preview units that contain other packages inside
+   plugins/0核心&基础模组/[0依赖]Mods -> 6 ['[依赖]PEAKLib核心-PEAKLib_Core', '[依赖]PEAKLib物品-PEAKLib_Items', '[依赖]PEAKLib界面-PEAKLib_UI', '[依赖]光子系统属性工具-PhotonCustomPropsUtils', '[依赖]实时翻译框架-XUnity_AutoTranslator', '[依赖]软依赖修复-SoftDependencyFix']
+   plugins/0核心&基础模组/[功能]ESC队友资料卡Profile_Cards-0.1.5 -> 1 ['plugins']
+   plugins/2额外模组/[画质]Peak_画面调整(低配慎选)-PEAK_Visuals -> 1 ['glarmer-UpscaleLib']
+   plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]地形定制器fix-TerrainCustomiser -> 1 ['Snosz-UBImGui']
+   plugins/3玩法类模组(大多数需要全员安装相同版本)/[玩法]真正的最终天阶-TrueFinalAscent -> 1 ['CptPICHU-TrueFinalAscent']
+--- top-level / container children the preview skipped
+   plugins/AeralisFoundation-PLL_Fog_Resources | files 5 | dll 0 | manifest True
+   plugins/AeralisFoundation-Unified_Ray_Tracing | files 6 | dll 0 | manifest True
+   plugins/MCEPack_6b679869 | files 18 | dll 0 | manifest False
+   plugins/MMHOOK | files 1 | dll 1 | manifest False
+   plugins/MonoDetour-MonoDetour | files 5 | dll 0 | manifest True
+   plugins/[玩法]真正的最终天阶-TrueFinalAscent | files 0 | dll 0 | manifest False
+   plugins/glarmer-PEAK_Unlimited | files 0 | dll 0 | manifest False
+   plugins/glarmer-PEAK_Voice_Volume_Saver | files 0 | dll 0 | manifest False
+   plugins/l10n | files 0 | dll 0 | manifest False
+   plugins/local | files 2 | dll 0 | manifest False
+   plugins/nickklmao-PeakStats | files 0 | dll 0 | manifest False
+   plugins/pixx-StaminaStats | files 0 | dll 0 | manifest False
+   plugins/xtyobmodding-WeatherToggle | files 0 | dll 0 | manifest False

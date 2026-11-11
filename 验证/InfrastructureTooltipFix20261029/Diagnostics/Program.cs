@@ -1,0 +1,61 @@
+using ModConfigEnhance.Overview;
+using ModConfigEnhance.Updating;
+using ModConfigEnhance;
+using Newtonsoft.Json.Linq;
+int count = 0;
+void Check(bool value, string label) { if (!value) throw new Exception(label); Console.WriteLine($"PASS {++count} {label}"); }
+string fixture = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"), "BepInEx");
+Directory.CreateDirectory(fixture);
+string Put(string path, string text) { string full = Path.Combine(fixture, path); Directory.CreateDirectory(Path.GetDirectoryName(full)!); File.WriteAllText(full, text); return full; }
+string Manifest(string path, string name, string? ns = null) => Put(path, new JObject { ["name"] = name, ["version_number"] = "1.0.0", ["dependencies"] = new JArray(), ["namespace"] = ns }.ToString());
+ComponentDependencyCollector.ConfirmedFile Claim(string key, string path) => new() { PackageKey = key, Path = path };
+Manifest("plugins/自定义中文目录/manifest.json", "Example");
+string payload = Put("plugins/自定义中文目录/bin/payload.txt", "fixture");
+var confirmed = new List<ComponentDependencyCollector.ConfirmedFile> { Claim("Team-Example", payload) };
+var graph = InfrastructureDependencyCollector.Collect(fixture, confirmed);
+Check(graph.Components.Any(c => c.PackageKey == "Team-Example" && c.Locations.Any(p => p.EndsWith("manifest.json"))), "standard namespace-free manifest uses confirmed source in custom directory");
+Check(!graph.Failures.Any(), "confirmed custom directory does not become Unconfirmed");
+Manifest("plugins/自定义中文目录/docs/manifest.json", "Documentation");
+graph = InfrastructureDependencyCollector.Collect(fixture, confirmed);
+Check(!graph.Failures.Any() && !graph.Components.Any(c => c.PackageKey.EndsWith("-Documentation")), "nested document manifest is not a package identity");
+Manifest("plugins/自定义中文目录/Child-Package/manifest.json", "Package");
+string child = Put("plugins/自定义中文目录/Child-Package/payload.txt", "child");
+confirmed.Add(Claim("Child-Package", child));
+graph = InfrastructureDependencyCollector.Collect(fixture, confirmed);
+Check(!graph.Failures.Any() && graph.Components.Any(c => c.PackageKey == "Child-Package"), "nearest manifest isolates child identity from parent hints");
+Manifest("plugins/混放/manifest.json", "Mixed");
+string a = Put("plugins/混放/a.txt", "a"), b = Put("plugins/混放/b.txt", "b");
+confirmed.Add(Claim("One-Mixed", a)); confirmed.Add(Claim("Two-Mixed", b));
+graph = InfrastructureDependencyCollector.Collect(fixture, confirmed);
+Check(graph.FailureScopes.Any(f => f.Path.Contains("混放") && f.Reason.Contains("Multiple confirmed")), "multiple packages mixed at one boundary refused with scoped detail");
+Check(!graph.FailureScopes.Any(f => f.Node == "Team-Example"), "unrelated mixed scope does not taint confirmed package");
+Manifest("plugins/Guessed-Unknown/manifest.json", "Unknown");
+Put("plugins/Guessed-Unknown/data.txt", "unconfirmed");
+graph = InfrastructureDependencyCollector.Collect(fixture, confirmed);
+Check(graph.FailureScopes.Any(f => f.Path.Contains("Guessed-Unknown")) && !graph.Components.Any(c => c.PackageKey == "Guessed-Unknown"), "same-name folder is not trusted as confirmed identity");
+var policy = new ComponentDependencyGraph();
+var seed = new ComponentDependencyGraph.Component { Id = "Team-MCE", PackageKey = "Team-MCE" }; seed.PluginGuids.Add(ComponentDependencyGraph.MceGuid); policy.Components.Add(seed);
+policy.Components.Add(new() { Id = "Team-Core", PackageKey = "Team-Core" }); policy.Components.Add(new() { Id = "Team-Other", PackageKey = "Team-Other" });
+policy.Edges.Add(new() { From = "Team-MCE", To = "Team-Core", Evidence = "manifest" });
+string raw = "Manifest evidence Unconfirmed: F:\\Games\\超长中文目录\\manifest.json";
+policy.AddFailure(raw, "Team-Other", "F:\\Games\\超长中文目录\\manifest.json");
+Loc.Language = 1;
+var required = DiagnosticSummary.ForPackage(policy, "Team-Core");
+Check(required.Summary == "此组件是MCE必需依赖，仅可更新" && !required.CanUninstall && required.CanUpdate, "MCE chain concise localized block preserves update");
+Check(DiagnosticSummary.FromCapability(null).Summary == "依赖信息尚未读取", "not read is distinct");
+var scoped = DiagnosticSummary.ForPackage(policy, "Team-Other");
+Check(scoped.Summary == "依赖信息不完整，暂不能卸载" && scoped.Details.Contains(raw), "scoped failure retains verbatim path only in details");
+Check(scoped.CanUninstall && scoped.BlockReason == "", "backend verification-only scope not blanket-disabled by presentation");
+Check(!required.Details.Contains(raw), "unrelated failures not added to confirmed chain details");
+Check(DiagnosticSummary.EnvironmentRequired(raw).Summary == "当前整合包尚未迁移为完整环境" && DiagnosticSummary.OwnershipRequired(raw).Summary == "文件归属尚未核实", "complete-environment and ownership gates are distinct structured statuses");
+foreach (int lang in new[] { 0, 1, 2 }) {
+ Loc.Language = lang;
+ var unknown = DiagnosticSummary.FromCapability(new() { Unknown = true, Reason = raw });
+ Check(unknown.Summary.Length < 100 && !unknown.Summary.Contains("F:") && !unknown.Summary.Contains("Manifest") && unknown.Details.Contains(raw), "bounded localized hints and copyable diagnostics language " + lang);
+}
+string source = File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../../src/Overview/SourceUi.cs")));
+Check(source.Contains("DiagnosticSummary.DetailsLabel") && source.Contains("DependencyDiagnostic(key).BlockReason") && !source.Contains("GetCapability(key).Reason"), "source menu uses structured summaries and explicit details");
+Check(source.Contains("CanInvoke = () => option.Item2 != \"uninstall\"") && source.Contains("Enabled = option.Item2 != \"uninstall\""), "ordinary mod menu disables protected uninstall only and rechecks invocation");
+Check(source.Contains("OverviewUi.ShowText(DiagnosticSummary.DetailsLabel, DependencyDiagnostic(key).Details)"), "details use shared scrollable copyable ShowText viewer");
+Console.WriteLine($"{count} checks passed; isolated fixtures: {fixture}");
+namespace ModConfigEnhance { internal static class Loc { internal static int Language; internal static string T(string en, string zh, string tw) => Language == 1 ? zh : Language == 2 ? tw : en; } }

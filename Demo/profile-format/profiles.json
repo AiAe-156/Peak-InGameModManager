@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    { "id": "example", "name": "示例方案", "directory": "profiles/example" }
+  ]
+}

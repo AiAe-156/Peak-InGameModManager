@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net48</TargetFrameworks>
+    <LangVersion>8.0</LangVersion><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/Updating/InstallationLayoutContracts.cs" Link="InstallationLayoutContracts.cs" />
+    <Compile Include="../../../src/Updating/InstallationLayoutPlanner.cs" Link="InstallationLayoutPlanner.cs" />
+  </ItemGroup>
+</Project>

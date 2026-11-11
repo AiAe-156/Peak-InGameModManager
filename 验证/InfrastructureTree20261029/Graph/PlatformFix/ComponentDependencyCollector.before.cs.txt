@@ -1,0 +1,167 @@
+#nullable enable
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Mono.Cecil;
+
+namespace ModConfigEnhance.Updating;
+
+/// <summary>One read-only metadata pass per snapshot, suitable for a background thread. Never loads assemblies or resolves types.</summary>
+public static class ComponentDependencyCollector
+{
+    public sealed class Manifest
+    {
+        public string Key = "";
+        public string[] Dependencies = Array.Empty<string>();
+    }
+    public sealed class ConfirmedFile
+    {
+        public string PackageKey = "", Path = "";
+    }
+    sealed class Metadata
+    {
+        internal ComponentDependencyGraph.Component Owner = null!;
+        internal readonly List<(string Target, string Kind, bool Hard)> Requirements = new List<(string, string, bool)>();
+    }
+    public static ComponentDependencyGraph Collect(string root, Func<string, Manifest> readManifest, IEnumerable<ConfirmedFile>? confirmedFiles = null)
+    {
+        var graph = new ComponentDependencyGraph();
+        var compare = StringComparer.OrdinalIgnoreCase;
+        var files = new List<string>();
+        void Walk(string directory)
+        {
+            if (!Directory.Exists(directory)) return;
+            if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new IOException("Linked component directory: " + directory);
+            foreach (string file in Directory.GetFiles(directory))
+            {
+                if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) throw new IOException("Linked component file: " + file);
+                files.Add(System.IO.Path.GetFullPath(file));
+            }
+            foreach (string child in Directory.GetDirectories(directory)) Walk(child);
+        }
+        foreach (string area in new[] { "core", "patchers", "plugins" })
+            try { Walk(System.IO.Path.Combine(root, area)); } catch (Exception e) { graph.Failures.Add(e.Message); }
+        var manifests = new Dictionary<string, Manifest>(compare);
+        foreach (string file in files.Where(f => compare.Equals(System.IO.Path.GetFileName(f), "manifest.json")))
+            try
+            {
+                var manifest = readManifest(file);
+                if (!ValidKey(manifest.Key)) throw new IOException("Unconfirmed package identity: " + file);
+                manifests[System.IO.Path.GetDirectoryName(file)!] = manifest;
+            }
+            catch (Exception e) { graph.Failures.Add(e.Message); }
+        var claims = new Dictionary<string, string>(compare);
+        foreach (var claim in confirmedFiles ?? Array.Empty<ConfirmedFile>())
+        {
+            if (!ValidKey(claim.PackageKey)) { graph.Failures.Add("Invalid confirmed package key"); continue; }
+            string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(root, claim.Path));
+            if (!files.Contains(path, compare)) continue; // Only currently installed files, never saved inventory.
+            if (claims.TryGetValue(path, out var previous) && !compare.Equals(previous, claim.PackageKey)) graph.Failures.Add("Conflicting ownership: " + path);
+            else claims[path] = claim.PackageKey;
+        }
+        ComponentDependencyGraph.Component Owner(string file)
+        {
+            var nearest = manifests.Keys.Where(d => file.StartsWith(d + System.IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)).OrderByDescending(d => d.Length).FirstOrDefault();
+            string key = nearest == null ? "" : manifests[nearest].Key;
+            if (claims.TryGetValue(file, out string? claim))
+            {
+                if (key.Length > 0 && !compare.Equals(key, claim)) graph.Failures.Add("Manifest/confirmed ownership conflict: " + file);
+                else key = claim;
+            }
+            string relative = file.Substring(System.IO.Path.GetFullPath(root).TrimEnd('\\', '/').Length + 1).Replace('\\', '/');
+            string id = key.Length > 0 ? key : "file:" + relative;
+            var owner = graph.Components.FirstOrDefault(c => compare.Equals(c.Id, id));
+            if (owner == null) { owner = new ComponentDependencyGraph.Component { Id = id, PackageKey = key }; graph.Components.Add(owner); }
+            if (!owner.Locations.Contains(relative, compare)) owner.Locations.Add(relative);
+            return owner;
+        }
+        var metadata = new List<Metadata>();
+        foreach (string file in files)
+        {
+            var owner = Owner(file); // Package co-resident resources are owned by the same protected node.
+            if (!(file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || file.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase))) continue;
+            try
+            {
+                using var assembly = AssemblyDefinition.ReadAssembly(file, new ReaderParameters { ReadSymbols = false });
+                var data = new Metadata { Owner = owner }; metadata.Add(data);
+                owner.Assemblies.Add(assembly.Name.Name);
+                foreach (var reference in assembly.MainModule.AssemblyReferences)
+                    data.Requirements.Add((reference.Name, "assembly ref", true));
+                foreach (var type in Types(assembly.MainModule.Types))
+                {
+                    var identities = type.CustomAttributes.Where(a => a.AttributeType.FullName == "BepInEx.BepInPlugin").ToList();
+                    foreach (var identity in identities)
+                    {
+                        if (identity.ConstructorArguments.Count != 3) throw new IOException("Invalid BepInPlugin: " + file);
+                        owner.PluginGuids.Add((string)identity.ConstructorArguments[0].Value);
+                    }
+                    if (identities.Count == 0) continue;
+                    foreach (var dependency in type.CustomAttributes.Where(a => a.AttributeType.FullName == "BepInEx.BepInDependency"))
+                    {
+                        string guid = (string)dependency.ConstructorArguments[0].Value;
+                        bool soft = dependency.ConstructorArguments.Count > 1 && !(dependency.ConstructorArguments[1].Value is string) && (Convert.ToInt32(dependency.ConstructorArguments[1].Value) & 2) != 0;
+                        data.Requirements.Add((guid, "BepInDependency", !soft));
+                    }
+                }
+            }
+            catch (BadImageFormatException)
+            {
+                // Only a verified native PE may lack managed metadata. Corrupt/unreadable DLLs are unknown, not safe.
+                if (!NativePe(file)) graph.Failures.Add("Unreadable component metadata: " + file);
+            }
+            catch (Exception e) { graph.Failures.Add(file + ": " + e.Message); }
+        }
+        void Edge(string from, string to, string evidence, bool hard)
+        {
+            if (!graph.Edges.Any(e => compare.Equals(e.From, from) && compare.Equals(e.To, to) && e.Evidence == evidence && e.Hard == hard))
+                graph.Edges.Add(new ComponentDependencyGraph.Edge { From = from, To = to, Evidence = evidence, Hard = hard });
+        }
+        foreach (var manifest in manifests)
+        {
+            var owner = Owner(System.IO.Path.Combine(manifest.Key, "manifest.json"));
+            foreach (string dependency in manifest.Value.Dependencies)
+            {
+                int at = dependency.LastIndexOf('-');
+                if (at < 1 || !Version.TryParse(dependency.Substring(at + 1), out _)) { graph.Failures.Add("Invalid manifest dependency: " + dependency); continue; }
+                Edge(owner.Id, dependency.Substring(0, at), "manifest " + dependency, true);
+            }
+        }
+        foreach (var data in metadata) foreach (var requirement in data.Requirements)
+        {
+            var providers = graph.Components.Where(c => (requirement.Kind == "assembly ref" ? c.Assemblies : c.PluginGuids).Contains(requirement.Target, compare)).ToList();
+            if (providers.Count == 0)
+            {
+                if (requirement.Kind == "assembly ref" && PlatformReference(requirement.Target)) continue;
+                Edge(data.Owner.Id, "missing:" + requirement.Target, requirement.Kind, requirement.Hard);
+            }
+            else foreach (var provider in providers) Edge(data.Owner.Id, provider.Id, requirement.Kind + " " + requirement.Target, requirement.Hard);
+        }
+        return graph;
+    }
+    static bool NativePe(string file)
+    {
+        try
+        {
+            using var stream = File.OpenRead(file); using var reader = new BinaryReader(stream);
+            if (reader.ReadUInt16() != 0x5a4d || stream.Length < 64) return false;
+            stream.Position = 0x3c; int pe = reader.ReadInt32();
+            if (pe < 64 || pe > stream.Length - 256) return false;
+            stream.Position = pe; if (reader.ReadUInt32() != 0x4550) return false;
+            stream.Position = pe + 24; ushort magic = reader.ReadUInt16();
+            int directories = magic == 0x10b ? 96 : magic == 0x20b ? 112 : 0;
+            if (directories == 0) return false;
+            stream.Position = pe + 24 + directories - 4;
+            if (reader.ReadUInt32() < 15) return false;
+            stream.Position = pe + 24 + directories + 14 * 8;
+            return reader.ReadUInt32() == 0 && reader.ReadUInt32() == 0;
+        }
+        catch { return false; }
+    }
+    static bool ValidKey(string key) => System.Text.RegularExpressions.Regex.IsMatch(key, "^[A-Za-z0-9_]+-[A-Za-z0-9_]+$");
+    static bool PlatformReference(string name) => name == "mscorlib" || name == "netstandard" || name == "System" || name.StartsWith("System.", StringComparison.Ordinal) || name == "UnityEngine" || name.StartsWith("UnityEngine.", StringComparison.Ordinal) || name == "Assembly-CSharp";
+    static IEnumerable<TypeDefinition> Types(IEnumerable<TypeDefinition> types)
+    {
+        foreach (var type in types) { yield return type; foreach (var nested in Types(type.NestedTypes)) yield return nested; }
+    }
+}

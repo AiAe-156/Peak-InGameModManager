@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ui",
+    "exitCode": 0
+  },
+  {
+    "name": "queue",
+    "exitCode": 0
+  },
+  {
+    "name": "monodetour",
+    "exitCode": 0
+  },
+  {
+    "name": "integration",
+    "exitCode": 0
+  },
+  {
+    "name": "ui-wiring",
+    "exitCode": 0
+  },
+  {
+    "name": "integration-wiring",
+    "exitCode": 0
+  }
+]

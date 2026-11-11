@@ -1,0 +1,27 @@
+[
+  {
+    "script": "验证/悬停与首开性能20261030/source_checks.py",
+    "exit": 1,
+    "log": "contracts-1-final.log"
+  },
+  {
+    "script": "验证/悬停与首开性能续修/source_checks.py",
+    "exit": 0,
+    "log": "contracts-2-final.log"
+  },
+  {
+    "script": "验证/首开回归与50ms/source_checks.py",
+    "exit": 0,
+    "log": "contracts-3-final.log"
+  },
+  {
+    "script": "验证/常驻列表与任意备份/checks.py",
+    "exit": 0,
+    "log": "contracts-4-final.log"
+  },
+  {
+    "script": "验证/刷新与入口收敛/checks.py",
+    "exit": 0,
+    "log": "contracts-5-final.log"
+  }
+]

@@ -1,0 +1,9 @@
+=== 清理后 MonoDetour 文件（应每份程序集只剩一处）
+  \core\com.github.MonoDetour.Bindings.Reorg.dll
+  \core\com.github.MonoDetour.dll
+  \core\com.github.MonoDetour.Interop.HarmonyX.dll
+  \core\com.github.MonoDetour.Reflection.dll
+  \patchers\0.com.github.MonoDetour.BepInEx.5.dll
+
+=== core/patchers 下仍然重复的 DLL 名（排除加载器/库类）
+  重复名总数: 0

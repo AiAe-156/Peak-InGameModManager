@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "capturedUtc": "2026-10-31T15:26:12.3128165Z",
+  "values": [
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "section": "S",
+      "key": "Number",
+      "type": "System.Int32",
+      "serializedValue": "6",
+      "diskBaselineKnown": true,
+      "diskExists": true,
+      "liveBaselineKnown": false,
+      "liveValue": "",
+      "diskValue": "6",
+      "missing": false,
+      "missingReason": ""
+    },
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "section": "S",
+      "key": "Restart",
+      "type": "System.Int32",
+      "serializedValue": "3",
+      "diskBaselineKnown": true,
+      "diskExists": true,
+      "liveBaselineKnown": false,
+      "liveValue": "",
+      "diskValue": "3",
+      "missing": false,
+      "missingReason": ""
+    },
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "section": "S",
+      "key": "Round",
+      "type": "System.Int32",
+      "serializedValue": "2",
+      "diskBaselineKnown": true,
+      "diskExists": false,
+      "liveBaselineKnown": false,
+      "liveValue": "",
+      "diskValue": "",
+      "missing": false,
+      "missingReason": ""
+    }
+  ],
+  "files": [
+    {
+      "pluginGuid": "test.mod",
+      "configFile": "live.cfg",
+      "loaded": true,
+      "supported": true,
+      "message": ""
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "offline.cfg",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "runtime/applied-profile.json",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "runtime/draft.json",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "runtime/pending-profile.json",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "profile/config-values.json",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "profile/profile.json",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    },
+    {
+      "pluginGuid": "",
+      "configFile": "config/BepInEx.cfg",
+      "loaded": false,
+      "supported": false,
+      "message": "The owner is unknown; the file is excluded from profiles."
+    }
+  ]
+}

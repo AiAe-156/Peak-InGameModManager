@@ -1,0 +1,455 @@
+--- before/OverviewListView.cs
++++ src/Overview/OverviewListView.cs
+@@ -108,6 +108,7 @@
+         _groupEditor = new OverviewGroupEditor(repo, _mods, status, () => { Save(); Render(); _headersChanged(); });
+         _pump.Tick = () => {
+             if (_hint.gameObject.activeSelf) PositionHint();
++            if (_opened) RefreshInfrastructure();
+             FlushInfrastructureRedraw();
+             float width = Width;
+             if (!_building && (Math.Abs(width - _lastWidth) > 2 || _languageRevision != OverviewLanguageBridge.Revision)) Render();
+@@ -121,8 +122,8 @@
+     {
+         try
+         {
++            _mods.Clear(); _mods.AddRange(new OverviewCatalogue().Scan(_repo)); _dependencyHints.Reload();
+             RefreshInfrastructure(true);
+-            _mods.Clear(); _mods.AddRange(new OverviewCatalogue().Scan(_repo)); _dependencyHints.Reload();
+             _updates.ApplyCachedCategories(_mods);
+             _selected.RemoveWhere(id => !_mods.Any(m => m.Id == id));
+             _anchor = -1; Render(); _headersChanged();
+@@ -279,7 +280,7 @@
+             if (!compact) { Label(_header, T("Author", "作者"), xAuthor, 4, authorWidth, 30, 21); Label(_header, T("Description", "说明"), xDescription, 4, Mathf.Max(50, width - xDescription - 20), 30, 21); }
+             float[] edges = (_authorMode ? new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xCheck, xVersion, xAuthor, xDescription, width - 15 } : new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xVersion, xAuthor, xDescription, width - 15 }).Distinct().ToArray();
+             for (int c = 0; c < edges.Length - 1; c++) { var line = OverviewUi.Panel("ColumnLine", _header, new Color(.77f, .76f, .66f, .8f)); line.GetComponent<Image>().raycastTarget = false; OverviewUi.Place(line, edges[c], 37, Mathf.Max(2, edges[c + 1] - edges[c] - 9), 1.5f); }
+-            float y = 0; string? currentGroup = null; int index = 0;
++            float y = BuildInfrastructure(0, width, xEnable, goalWidth, xName, nameWidth, xSettings, xHome, xFolder, xVersion, versionWidth, xAuthor, authorWidth, xDescription, compact); string? currentGroup = null; int index = 0;
+             foreach (OverviewMod mod in layoutRows)
+             {
+                 string groupId = mod.Rule.groupId;
+@@ -381,7 +382,6 @@
+                 foreach (var empty in _repo.State.groups.OrderBy(g => g.order).Where(g => !layoutRows.Any(m => m.Rule.groupId == g.id)))
+                 { y += GroupGapBefore; BuildGroupHeader(empty.id, y, width); y += GroupHeight + GroupGapAfter; }
+             if (layoutRows.Count == 0) { Label(_content, T("No mods to display.", "没有可显示的模组。"), 20, y + 15, width - 50, 45, 24); y += 65; }
+-            y = BuildInfrastructure(y, width);
+             _renderedUpdates = UpdateDisplayKey();
+         }
+         catch (Exception ex)
+--- before/OverviewListView.Infrastructure.cs
++++ src/Overview/OverviewListView.Infrastructure.cs
+@@ -11,27 +11,39 @@
+ internal sealed partial class OverviewListView
+ {
+     private IReadOnlyList<InfrastructureOverviewModel> _infrastructure = Array.Empty<InfrastructureOverviewModel>();
+-    private bool _infrastructureCollapsed, _infrastructureLoading, _infrastructureAgain, _infrastructureRedraw;
++    private bool _infrastructureCollapsed, _infrastructureLoading, _infrastructureRedraw;
+     private string _infrastructureError = "", _searchQuery = "";
+     private int _infrastructureRevision = -1;
+ 
++    private ModConfigEnhance.Updating.ComponentDependencyGraph? _infrastructureGraph;
++    private readonly Dictionary<string, int> _consumerDepth = new(StringComparer.OrdinalIgnoreCase);
++    private int _infrastructureGeneration;
++    private string _infrastructureContext = "";
+     private void RefreshInfrastructure(bool force = false)
+     {
+         int revision = OverviewPageCache.Inventory;
+-        if (!force && revision == _infrastructureRevision) return;
+-        if (_infrastructureLoading) { _infrastructureAgain = true; return; }
+-        _infrastructureRevision = revision; _infrastructureLoading = true;
+-        // Capture the loader root on the UI thread. No filesystem work or Unity access in the worker.
++        string context = SourceUi.DependencyContext;
++        if (!force && revision == _infrastructureRevision && context == _infrastructureContext) return;
++        _infrastructureRevision = revision; _infrastructureContext = context;
++        int generation = ++_infrastructureGeneration;
++        _infrastructureLoading = true; _infrastructureGraph = null;
++        SourceUi.InvalidateDependencyGraph();
++        _infrastructure = Array.Empty<InfrastructureOverviewModel>();
++        // Capture confirmed real file mappings before leaving the main thread.
+         string root = BepInEx.Paths.BepInExRootPath;
+-        _ = Task.Run(() => InfrastructureOverviewModel.Create(InfrastructurePackages.Scan(root))).ContinueWith(task => {
++        var graphconfirmed = _mods.Where(m => m.SourceConfirmed && m.IdentityConflict.Length == 0)
++            .SelectMany(m => (m.AssemblyPaths.Count > 0 ? m.AssemblyPaths : new List<string> { m.Location })
++                .Select(path => new ModConfigEnhance.Updating.ComponentDependencyCollector.ConfirmedFile { PackageKey = m.SourceKey, Path = path })).ToArray();
++        _ = Task.Run(() => (Rows: InfrastructureOverviewModel.Create(InfrastructurePackages.Scan(root)),
++            Graph: InfrastructureDependencyCollector.Collect(root, graphconfirmed))).ContinueWith(task => {
+             _pump.Enqueue(() => {
+-                if (_disposed) return;
++                if (_disposed || generation != _infrastructureGeneration) return;
++                if (revision != OverviewPageCache.Inventory || context != SourceUi.DependencyContext) { RefreshInfrastructure(true); return; }
+                 _infrastructureLoading = false;
+-                if (task.IsFaulted) _infrastructureError = task.Exception?.GetBaseException().Message ?? "";
+-                else { _infrastructure = task.Result; _infrastructureError = ""; }
+-                // Inventory changes cause one completion redraw, never a periodic rebuild.
++                if (task.IsFaulted || task.IsCanceled) _infrastructureError = task.Exception?.GetBaseException().Message ?? "Component scan cancelled";
++                else { _infrastructure = task.Result.Rows; _infrastructureGraph = task.Result.Graph; _infrastructureError = "";
++                    SourceUi.PublishDependencyGraph(task.Result.Graph, context, revision); }
+                 _infrastructureRedraw = true;
+-                if (_infrastructureAgain) { _infrastructureAgain = false; RefreshInfrastructure(true); }
+             });
+         }, TaskScheduler.Default);
+     }
+@@ -53,11 +65,12 @@
+         OverviewUi.Place((RectTransform)search.transform, 8, 0, 130, 26);
+         AddHint(search.gameObject, caption);
+     }
+-    private float BuildInfrastructure(float y, float width)
++    private float BuildInfrastructure(float y, float width, float xEnable, float goalWidth, float xName, float nameWidth,
++        float xSettings, float xHome, float xFolder, float xVersion, float versionWidth, float xAuthor, float authorWidth, float xDescription, bool compact)
+     {
+         _infrastructureRedraw = false;
+         var rows = _infrastructure.Where(p => p.Matches(_searchQuery)).ToArray();
+-        y += GroupGapBefore;
++        y += 2;
+         var header = OverviewUi.Panel("InfrastructureGroup", _content, new Color(.12f,.18f,.21f,.95f));
+         OverviewUi.Place(header, 0, y, width - 15, GroupHeight);
+         bool collapsed = _infrastructureCollapsed && _searchQuery.Length == 0;
+@@ -65,41 +78,83 @@
+             _infrastructureCollapsed = !_infrastructureCollapsed; Render();
+         }, 22, 26);
+         OverviewUi.Place((RectTransform)arrow.transform, 7, 4, 22, 26);
+-        var title = Label(header, Loc.T("Core components / startup patchers", "基础组件／启动补丁", "基礎組件／啟動補丁") + " · " + rows.Length,
+-            35, 0, width - 65, GroupHeight, 21);
+-        AddHint(title.gameObject, Loc.T("Separate from mods and profiles. Core is read-only; patcher actions are available only in the store.",
+-            "独立于模组和方案；共享核心只读，启动补丁操作仅在商店提供。", "獨立於模組與方案；共用核心唯讀，啟動補丁操作僅在商店提供。"));
++        var title = Label(header, InfrastructureOverviewModel.GroupTitle + " · " + rows.Length, 35, 0, width - 65, GroupHeight, 21);
++        AddHint(title.gameObject, Loc.T("Fixed group, outside profiles and exports. Expand a name to see mods that depend on it.",
++            "固定分组，不进入方案或导出。展开名称可查看依赖此组件的模组。", "固定分組，不進入方案或匯出。展開名稱可查看依賴此組件的模組。"));
+         y += GroupHeight + GroupGapAfter;
+         if (collapsed) return y;
+         int index = 0;
+         foreach (var package in rows)
+         {
++            int depth = _consumerDepth.TryGetValue(package.Identity, out int saved) ? saved : 0;
++            var tree = _infrastructureGraph == null || depth == 0 ? Array.Empty<ModConfigEnhance.Updating.ComponentDependencyGraph.TreeEntry>()
++                : package.Consumers(_infrastructureGraph, depth, 24).Skip(1).ToArray();
++            bool more = tree.Any(t => t.Truncated) && depth < 16;
++            float height = RowHeight + tree.Length * 24 + (depth > 0 && (more || tree.Length == 0) ? 24 : 0);
+             var row = OverviewUi.Panel("Infrastructure_" + index, _content, new Color(.1f,.11f,.13f,index++ % 2 == 0 ? .5f : .28f));
+-            OverviewUi.Place(row, 0, y, width - 15, 62);
+-            float storeWidth = 125, folderX = width - storeWidth - 65, nameWidth = Mathf.Max(160, width * .36f);
+-            var name = Label(row, EscapeRich(package.Key), 12, 1, nameWidth, 31, 20);
+-            string area = package.Area == "core" ? Loc.T("Core components", "核心组件", "核心組件") : Loc.T("Startup patchers", "启动补丁", "啟動補丁");
+-            string deps = Loc.T("Dependencies: ", "依赖：", "依賴：") + (package.Dependencies.Count == 0 ? Loc.T("None declared", "未声明", "未宣告") : string.Join(", ", package.Dependencies));
+-            AddHint(name.gameObject, EscapeRich(package.Key + "\n" + area + " · " + package.Version + "\n" + package.Path + "\n" + deps));
+-            var version = Label(row, EscapeRich(area + " · " + package.Version), nameWidth + 25, 1, Mathf.Max(100, folderX - nameWidth - 30), 31, 18);
+-            AddHint(version.gameObject, EscapeRich(area + " · " + package.Version));
+-            var dependencies = Label(row, EscapeRich(deps), 12, 31, folderX - 18, 29, 16); dependencies.color = OverviewUi.Muted;
+-            AddHint(dependencies.gameObject, EscapeRich(deps));
+-            var folder = OverviewUi.IconButton(row, "folder", () => OpenFolder(package.Path), 30, 30);
+-            OverviewUi.Place((RectTransform)folder.transform, folderX, 14, 30, 30); AddHint(folder.gameObject, EscapeRich(package.Path));
+-            var store = FlatListRow.Create(row, () => ShopWindow.Open(_repo, _mods, false, package.Key),
+-                storeWidth, 30, new Color(.17f,.26f,.3f,.85f));
+-            var storeText = Label(store.transform, Loc.T("View in store", "查看商店", "查看商店"), 4, 0, storeWidth - 8, 30, 17);
+-            storeText.alignment = TextAlignmentOptions.Midline; storeText.raycastTarget = false;
+-            OverviewUi.Place((RectTransform)store.transform, width - storeWidth - 23, 14, storeWidth, 30);
+-            y += 64;
++            OverviewUi.Place(row, 0, y, width - 15, height - 2);
++            // Deliberately no checkbox, editable frame, drag target or OverviewMod identity.
++            var placeholder = Label(row, "—", xEnable, 4, goalWidth, 32, 20); placeholder.alignment = TextAlignmentOptions.Midline;
++            AddHint(placeholder.gameObject, Loc.T("Component enablement is not a profile mod target.", "组件启停不作为方案模组目标。", "組件啟停不作為方案模組目標。"));
++            var settings = OverviewUi.IconButton(row, "gear", () => { });
++            OverviewUi.Place((RectTransform)settings.transform, xSettings + 2, 5, 30, 30);
++            settings.interactable = false; Tint(settings, OverviewUi.Muted);
++            AddHint(settings.gameObject, Loc.T("No ModConfig settings.", "没有 ModConfig 设置项。", "沒有 ModConfig 設定項。"));
++            void Menu() => SourceUi.ComponentMenu(_repo, _mods, package, row);
++            var home = OverviewUi.IconButton(row, "home", Menu);
++            OverviewUi.Place((RectTransform)home.transform, xHome + 2, 5, 30, 30); Tint(home, OverviewUi.Blue);
++            string reason = _infrastructureGraph == null ? Loc.T("Reading dependency protection…", "正在读取依赖保护……", "正在讀取依賴保護……") : package.Capability(_infrastructureGraph).Reason;
++            string hint = package.Key + "\n" + package.TypeTitle + " · " + package.Version + "\n" + package.Path
++                + "\n" + (reason.Length > 0 ? Loc.T("Uninstall unavailable: ", "无法卸载：", "無法解除安裝：") + reason : Loc.T("Source menu: uninstall preview / version operations", "来源菜单：卸载预览／版本操作", "來源選單：解除安裝預覽／版本操作"));
++            AddHint(home.gameObject, EscapeRich(hint));
++            var folder = OverviewUi.IconButton(row, "folder", () => OpenFolder(package.Path));
++            OverviewUi.Place((RectTransform)folder.transform, xFolder + 2, 5, 30, 30); AddHint(folder.gameObject, EscapeRich(package.Path));
++            var expand = OverviewUi.IconButton(row, depth == 0 ? "triangle-right" : "triangle-down", () => {
++                _consumerDepth[package.Identity] = depth == 0 ? 1 : 0; Render();
++            }, 18, 24);
++            OverviewUi.Place((RectTransform)expand.transform, xName, 8, 18, 24);
++            if (reason.Length > 0) {
++                var locked = Label(row, "⊘", xName + nameWidth - 20, 4, 18, 34, 16); locked.color = OverviewUi.Muted; AddHint(locked.gameObject, EscapeRich(reason));
++            }
++            float titleWidth = Mathf.Max(20, nameWidth - (reason.Length > 0 ? 46 : 26));
++            var name = Label(row, EscapeRich(package.Name), xName + 22, 4, titleWidth, 34, 19);
++            OverviewUi.PlaceClipped(name, xName + 22, 4, titleWidth, 34);
++            AddHint(name.gameObject, EscapeRich(hint)); name.gameObject.AddComponent<OverviewTextClick>().Clicked = _ => Menu();
++            var version = Label(row, EscapeRich(package.Version), xVersion, 4, versionWidth - 7, 34, 20);
++            AddHint(version.gameObject, EscapeRich(hint)); version.gameObject.AddComponent<OverviewTextClick>().Clicked = _ => Menu();
++            var author = Label(row, EscapeRich(package.Author), xAuthor, 4, Mathf.Max(1, authorWidth - 8), 34, 18); author.gameObject.SetActive(!compact); AddHint(author.gameObject, EscapeRich(package.Author));
++            string description = package.TypeTitle + (package.Description.Length > 0 ? " · " + package.Description : "");
++            var desc = Label(row, EscapeRich(description), xDescription, 4, Mathf.Max(40, width - xDescription - 28), 34, 16); desc.color = OverviewUi.Muted; desc.gameObject.SetActive(!compact); AddHint(desc.gameObject, EscapeRich(description));
++            float ty = RowHeight;
++            foreach (var entry in tree)
++            {
++                float indent = Mathf.Min(entry.Depth, 8) * 12;
++                var consumer = _mods.FirstOrDefault(m => m.SourceKey.Equals(entry.Id, StringComparison.OrdinalIgnoreCase) || m.Guid.Equals(entry.Id, StringComparison.OrdinalIgnoreCase));
++                var component = _infrastructure.FirstOrDefault(p => p.Key.Equals(entry.Id, StringComparison.OrdinalIgnoreCase));
++                string identity = consumer != null ? consumer.Name + " · " + (consumer.PackageVersion.Length > 0 ? consumer.PackageVersion : consumer.PluginVersion)
++                    : component != null ? component.Name + " · " + component.Version : entry.Id + " [unknown version]";
++                string caption = "├─ " + identity + " · " + InfrastructureOverviewModel.TreeCaption(entry);
++                // A small vertical rail keeps the hierarchy legible inside the name column.
++                var line = OverviewUi.Panel("ConsumerBranch", row, OverviewUi.Muted);
++                OverviewUi.Place(line, xName + indent - 4, ty, 1, 24); line.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
++                var node = Label(row, EscapeRich(caption), xName + indent, ty, Mathf.Max(20, nameWidth - indent - 4), 24, 16);
++                OverviewUi.PlaceClipped(node, xName + indent, ty, Mathf.Max(20, nameWidth - indent - 4), 24);
++                node.color = OverviewUi.Muted; AddHint(node.gameObject, EscapeRich(caption)); ty += 24;
++            }
++            if (depth > 0 && (more || tree.Length == 0))
++            {
++                string caption = more ? Loc.T("More levels… (24-row limit)", "展开更多层级…（上限24行）", "展開更多層級…（上限24行）")
++                    : Loc.T("No known consumers", "没有已知反向依赖", "沒有已知反向依賴");
++                var text = Label(row, caption, xName + 12, ty, nameWidth - 16, 24, 16); text.color = OverviewUi.Muted;
++                if (more) text.gameObject.AddComponent<OverviewTextClick>().Clicked = _ => { _consumerDepth[package.Identity] = Math.Min(16, depth + 1); Render(); };
++            }
++            y += height;
+         }
+         if (rows.Length == 0)
+         {
+             string message = _infrastructureLoading ? Loc.T("Reading components…", "正在读取组件……", "正在讀取組件……")
+                 : _infrastructureError.Length > 0 ? Loc.T("Could not read components: ", "组件读取失败：", "組件讀取失敗：") + _infrastructureError
+-                : Loc.T("No matching packages with a verifiable manifest. Unidentified loader files are not listed.",
+-                    "没有匹配且清单身份可核实的包；未识别的加载器文件不列为模组。", "沒有符合且清單身分可核實的套件；未識別的載入器檔案不列為模組。");
++                : Loc.T("No matching components with a verified manifest.", "没有匹配且清单身份可核实的组件。", "沒有符合且清單身分可核實的組件。");
+             var empty = Label(_content, message, 12, y, width - 40, 36, 17); AddHint(empty.gameObject, EscapeRich(message)); y += 38;
+         }
+         return y;
+--- before/InfrastructureOverviewModel.cs
++++ src/Overview/InfrastructureOverviewModel.cs
+@@ -11,6 +11,10 @@
+     internal string Key { get; }
+     internal string Name { get; }
+     internal string Area { get; }
++    internal string Author { get; }
++    internal string Description { get; }
++    internal static string GroupTitle => Loc.T("Core/Patcher", "基础组件(Core/Patcher)", "基礎組件(Core/Patcher)");
++    internal string TypeTitle => Area=="core" ? Loc.T("Core", "核心组件(Core)", "核心組件(Core)") : Loc.T("Patcher", "启动补丁(Patcher)", "啟動補丁(Patcher)");
+     internal string Version { get; }
+     internal string Path { get; }
+     internal IReadOnlyList<string> Dependencies { get; }
+@@ -19,6 +23,7 @@
+     private InfrastructureOverviewModel(InfrastructurePackages.Package package)
+     {
+         Key=package.Key; Name=package.Name; Area=package.Area; Version=package.Version;
++        Author=package.Author; Description=package.Description;
+         Path=package.Path; Dependencies=Array.AsReadOnly(package.Dependencies.ToArray());
+     }
+     internal static IReadOnlyList<InfrastructureOverviewModel> Create(IEnumerable<InfrastructurePackages.Package> packages)
+@@ -31,7 +36,12 @@
+         => graph.GetCapability(Key);
+     internal IReadOnlyList<ModConfigEnhance.Updating.ComponentDependencyGraph.TreeEntry> Consumers(ModConfigEnhance.Updating.ComponentDependencyGraph graph)
+         => graph.ReverseTree(Key);
+-    internal bool Matches(string query) => MatchesText(query,Key,Name,Area,Version,Path,
++    internal IReadOnlyList<ModConfigEnhance.Updating.ComponentDependencyGraph.TreeEntry> Consumers(ModConfigEnhance.Updating.ComponentDependencyGraph graph, int depth, int limit)
++        => graph.ReverseTree(Key, depth, limit);
++    internal static string TreeCaption(ModConfigEnhance.Updating.ComponentDependencyGraph.TreeEntry entry)
++        => entry.Id + (entry.Cycle ? " [cycle]" : "") + (entry.Shared ? " [shared]" : "")
++            + (entry.Missing ? " [unknown]" : "") + (entry.Truncated ? " […]" : "") + " · " + entry.Evidence;
++    internal bool Matches(string query) => MatchesText(query,Key,Name,Area,Version,Path,Author,Description,
+         Area=="core" ? "Core components 核心组件 核心組件" : "Startup patchers 启动补丁 啟動補丁",string.Join(" ",Dependencies));
+     internal static bool MatchesText(string query,params string[] values)
+         => query.Split(new[]{' ','\t','\r','\n'},StringSplitOptions.RemoveEmptyEntries)
+--- before/InfrastructurePackages.cs
++++ src/Overview/InfrastructurePackages.cs
+@@ -10,7 +10,7 @@
+ {
+     internal sealed class Package
+     {
+-        internal string Team="",Name="",Version="",Path="",Area="",Latest="";
++        internal string Team="",Name="",Version="",Path="",Area="",Latest="",Author="",Description="";
+         internal string[] Dependencies=Array.Empty<string>();
+         internal string Key=>Team+"-"+Name;
+     }
+@@ -35,9 +35,10 @@
+                         &&p.StartsWith(System.IO.Path.GetDirectoryName(m)+System.IO.Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))))continue;
+                 int split=item.Key.IndexOf('-');
+                 string[] dependencies=Array.Empty<string>();
+-                try { dependencies=(JObject.Parse(File.ReadAllText(file))["dependencies"] as JArray)?.Values<string>().Where(d=>!string.IsNullOrWhiteSpace(d)).Select(d=>d!).ToArray()??Array.Empty<string>(); }
++                string author=item.Key.Substring(0,split), description="";
++                try { var manifest=JObject.Parse(File.ReadAllText(file)); dependencies=(manifest["dependencies"] as JArray)?.Values<string>().Where(d=>!string.IsNullOrWhiteSpace(d)).Select(d=>d!).ToArray()??Array.Empty<string>(); author=(string?)manifest["author"]??author; description=(string?)manifest["description"]??""; }
+                 catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException or ArgumentException or InvalidCastException or FormatException) { }
+-                result.Add(new Package{Team=item.Key.Substring(0,split),Name=item.Key.Substring(split+1),Version=item.Version,Path=item.Path,Area=area,Dependencies=dependencies});
++                result.Add(new Package{Team=item.Key.Substring(0,split),Name=item.Key.Substring(split+1),Version=item.Version,Path=item.Path,Area=area,Dependencies=dependencies,Author=author,Description=description});
+             }
+         }
+         return result;
+--- before/SourceUi.cs
++++ src/Overview/SourceUi.cs
+@@ -11,6 +11,56 @@
+ 
+ internal static class SourceUi
+ {
++    private static ModConfigEnhance.Updating.ComponentDependencyGraph? _dependencyGraph;
++    private static string _dependencyContext = "";
++    private static int _dependencyRevision = -1;
++    internal static string DependencyContext {
++        get {
++            var active=PackLibrary.Active;
++            return System.IO.Path.GetFullPath(active!=null ? PackLibrary.Workspace : BepInEx.Paths.BepInExRootPath)
++                + "|" + (active?.RevisionStateHash ?? "");
++        }
++    }
++    internal static void InvalidateDependencyGraph() => _dependencyGraph = null;
++    internal static void PublishDependencyGraph(ModConfigEnhance.Updating.ComponentDependencyGraph graph, string context, int revision)
++    { _dependencyGraph = graph; _dependencyContext = context; _dependencyRevision = revision; }
++    internal static string UninstallReason(string key)
++        => _dependencyGraph == null || _dependencyContext != DependencyContext || _dependencyRevision != OverviewPageCache.Inventory
++            ? Loc.T("Dependency protection is being read or is unavailable; uninstall is disabled.", "依赖保护正在读取或不可用，暂不能卸载。", "依賴保護正在讀取或不可用，暫不能解除安裝。")
++            : _dependencyGraph.GetCapability(key).Reason;
++    internal static void ComponentMenu(OverviewRepository repo, IReadOnlyList<OverviewMod> mods, InfrastructureOverviewModel package, RectTransform anchor)
++    {
++        string reason = UninstallReason(package.Key);
++        var options = new List<(string, string)> {
++            (Loc.T("View in mod store / version operations", "内置商店查看／版本操作", "內建商店查看／版本操作"), "store"),
++            (Loc.T("Open store in browser", "浏览器打开商店页", "瀏覽器開啟商店頁"), "browser"),
++            (Loc.T("Open folder", "打开文件夹", "開啟資料夾"), "folder"),
++            (reason.Length == 0 ? Loc.T("Uninstall… (safe preview)", "卸载……（安全预览）", "解除安裝……（安全預覽）")
++                : Loc.T("Uninstall unavailable: ", "无法卸载：", "無法解除安裝：") + reason, "uninstall") };
++        void ExecuteComponent(string action) {
++            if (action == "folder") { OverviewListView.OpenFolder(package.Path, _ => { }); return; }
++            if (action == "browser") { int split = package.Key.IndexOf('-'); Application.OpenURL(ThunderstoreUpdateService.HomeUrl(package.Key.Substring(0, split), package.Key.Substring(split + 1))); return; }
++            if (action == "uninstall") {
++                string current = UninstallReason(package.Key);
++                if (current.Length > 0) { OverviewUi.ShowText(Loc.T("Uninstall unavailable", "无法卸载", "無法解除安裝"), current); return; }
++                // Core must use the store's staged official-old-ZIP consent flow, not the legacy auto-confirm dialog.
++                ShopWindow.Open(repo, mods, false, package.Key, true); return;
++            }
++            ShopWindow.Open(repo, mods, false, package.Key);
++        }
++        var entries = options.Select(option => new UiMenuEntry {
++            Label = option.Item1, Enabled = option.Item2 != "uninstall" || reason.Length == 0,
++            Role = option.Item2 == "uninstall" ? UiActionRole.Danger : UiActionRole.Neutral,
++            CanInvoke = () => option.Item2 != "uninstall" || UninstallReason(package.Key).Length == 0,
++            Invoke = () => ExecuteComponent(option.Item2)
++        }).ToList();
++        // A readable explanation survives the disabled action and can be opened in full.
++        if (reason.Length > 0) entries.Add(new UiMenuEntry {
++            Label = Loc.T("Why is uninstall unavailable?", "为什么不能卸载？", "為什麼不能解除安裝？"),
++            Invoke = () => OverviewUi.ShowText(package.Name, UninstallReason(package.Key)) });
++        OverviewUi.Dropdown(anchor, package.Name, entries, 480);
++    }
++
+     internal static void Menu(OverviewRepository repo, OverviewMod mod, Action refresh, Action<string> status)
+         => OverviewUi.Choose(mod.Name, Options(mod), "", action => Execute(repo, mod, refresh, status, action),
+             action => action == "project" || action == "store" || action == "find" ? UiActionRole.Neutral : UiActionRole.Edit);
+@@ -33,12 +83,16 @@
+         options.Add((Loc.T("Enter store address", "手动填写商店地址", "手動填寫商店位址"), "address"));
+         options.Add((Loc.T("Mark as local", "标记为本地", "標記為本機"), "local"));
+         options.Add((Loc.T("Automatic classification", "恢复自动识别", "恢復自動識別"), "auto"));
+-        options.Add((Loc.T("Uninstall mod...","卸载模组……","解除安裝模組……"),"uninstall"));
++        string reason = UninstallReason(mod.SourceKey);
++        options.Add((reason.Length == 0 ? Loc.T("Uninstall mod...","卸载模组……","解除安裝模組……")
++            : Loc.T("Uninstall unavailable: ", "无法卸载：", "無法解除安裝：") + reason,"uninstall"));
+         return options;
+     }
+     private static void Execute(OverviewRepository repo, OverviewMod mod, Action refresh, Action<string> status, string action)
+     {
+             if(action=="uninstall"){
++                string reason=UninstallReason(mod.SourceKey);
++                if(reason.Length>0){OverviewUi.ShowText(Loc.T("Uninstall unavailable","无法卸载","無法解除安裝"),reason);return;}
+                 string ledgerPath=PackLibrary.Managed?System.IO.Path.Combine(PackLibrary.Workspace,"shop-installed.json"):System.IO.Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop","installed-unmanaged.json");
+                 var ledger=System.IO.File.Exists(ledgerPath)?Newtonsoft.Json.JsonConvert.DeserializeObject<ModConfigEnhance.Updating.ShopLedger>(System.IO.File.ReadAllText(ledgerPath)):null;
+                 var owned=ledger?.Packages.FirstOrDefault(p=>p.PluginGuids.Contains(mod.Guid,StringComparer.OrdinalIgnoreCase));
+--- before/ShopInstallationState.cs
++++ src/Overview/ShopInstallationState.cs
+@@ -52,7 +52,8 @@
+         return "";
+     }
+     internal bool CanInstall(string key)=>BlockReason(key).Length==0;
+-    internal string UninstallBlockReason(string key)=>key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
++    internal Func<string,string>? DependencyUninstallReason { get; set; }
++    internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
+         ? "Required BepInEx/MCE management host cannot be uninstalled independently." : BlockReason(key);
+     internal bool CanUninstall(string key,bool owned)=>UninstallBlockReason(key).Length==0&&Snapshot.Has(key)&&
+         (owned||Snapshot.Packages[key].All(r=>r.Area=="plugins"||r.Area=="patchers"||r.Area=="core"&&CompleteCurrentPack));
+--- before/ShopWindow.cs
++++ src/Overview/ShopWindow.cs
+@@ -43,7 +43,11 @@
+     private TextMeshProUGUI? _localInstallationText;
+     private Button? _installButton,_uninstallButton;
+     private Button _inventoryRetry=null!;
+-    private Task<ShopInstalled.Snapshot>? _inventory;
++    private Task<(ShopInstalled.Snapshot Snapshot, ComponentDependencyGraph Graph)>? _inventory;
++    private int _pendingRevision;
++    private string _pendingDependencyContext="";
++    private bool _openUninstall;
++    private string _uninstallPackage="";
+     private string _inventoryContext="";
+     private float _inventoryAt;
+     private int _pendingGeneration;
+@@ -65,7 +69,9 @@
+         var confirmed=_installed.Where(m=>m.SourceConfirmed&&m.IdentityConflict.Length==0).SelectMany(m=>(m.AssemblyPaths.Count>0?m.AssemblyPaths:new List<string>{m.Location}).Select(path=>new ShopInstalled.Evidence{Key=m.SourceKey,Version=m.PackageVersion.Length>0?m.PackageVersion:m.PluginVersion,Path=path})).ToArray();
+         string root=BepInEx.Paths.BepInExRootPath;
+         _pendingGeneration=_installationState.Generation;_pendingContext=context;
+-        _inventory=Task.Run(()=>ShopInstalled.Build(root,context,context,confirmed));
++        _pendingRevision=OverviewPageCache.Inventory;_pendingDependencyContext=SourceUi.DependencyContext;
++        var graphconfirmed=confirmed.Select(c=>new ComponentDependencyCollector.ConfirmedFile{PackageKey=c.Key,Path=c.Path}).ToArray();
++        _inventory=Task.Run(()=>(ShopInstalled.Build(root,context,context,confirmed), InfrastructureDependencyCollector.Collect(root,graphconfirmed)));
+         _inventoryAt=Time.unscaledTime+5;
+     }
+     private string InstallationText(ShopListing p)
+@@ -111,7 +117,7 @@
+         }
+         if(_uninstallButton!=null)_uninstallButton.interactable=_installationState.CanUninstall(p.Key,ReadLedger().Packages.Any(x=>x.Key==p.Key));
+         if(_localInstallationText!=null){
+-            string text=InstallationText(p);string reason=_installationState.BlockReason(p.Key);if(reason.Length>0)text+="\n"+Loc.LocalizeMessage(reason);else if(Installed(p)&&!_installationState.CanUninstall(p.Key,ReadLedger().Packages.Any(x=>x.Key==p.Key)))text+="\n"+T("Uninstall unavailable: independent package ownership could not be verified.","无法卸载：尚未核实独立包文件归属。");else if(Installed(p))text+="\n"+T("Uninstall first previews exact ownership and hard dependencies; nothing is removed before confirmation.","卸载将先核对精确文件归属和硬依赖，确认前不删除文件。");_localInstallationText.text=text;
++            string text=InstallationText(p);string reason=_installationState.UninstallBlockReason(p.Key);if(reason.Length>0)text+="\n"+Loc.LocalizeMessage(reason);else if(Installed(p)&&!_installationState.CanUninstall(p.Key,ReadLedger().Packages.Any(x=>x.Key==p.Key)))text+="\n"+T("Uninstall unavailable: independent package ownership could not be verified.","无法卸载：尚未核实独立包文件归属。");else if(Installed(p))text+="\n"+T("Uninstall first previews exact ownership and hard dependencies; nothing is removed before confirmation.","卸载将先核对精确文件归属和硬依赖，确认前不删除文件。");_localInstallationText.text=text;
+             _localInstallationText.rectTransform.sizeDelta=new Vector2(_localInstallationText.rectTransform.sizeDelta.x,Math.Max(120,text.Split('\n').Length*30));
+             var parent=(RectTransform)_localInstallationText.transform.parent;
+             parent.sizeDelta=new Vector2(parent.sizeDelta.x,Math.Max(_body.rect.height-156,_localInstallationText.rectTransform.sizeDelta.y+20));
+@@ -127,11 +133,11 @@
+     private string _sentTaskKey="";
+     private string Home=>Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop");
+     private string FavoritePath=>Path.Combine(Loc.RootDirectory,"shop-favorites.json");
+-    internal static void Open(OverviewRepository repo,IReadOnlyList<OverviewMod> installed,bool showTask=false,string packageKey="")
++    internal static void Open(OverviewRepository repo,IReadOnlyList<OverviewMod> installed,bool showTask=false,string packageKey="",bool uninstall=false)
+     {
+         _lastRepo=repo;_lastInstalled=installed.ToArray();
+         var panel=OverviewUi.CreateModalPanel("MCE_ModStore",1500,940);if(panel==null)return;
+-        var view=panel.gameObject.AddComponent<ShopWindow>();view._repo=repo;view._installed=installed.ToArray();view._panel=panel;view._requestedTask=showTask;view._openPackage=packageKey;view.Build();
++        var view=panel.gameObject.AddComponent<ShopWindow>();view._repo=repo;view._installed=installed.ToArray();view._panel=panel;view._requestedTask=showTask;view._openPackage=packageKey;view._openUninstall=uninstall;view._uninstallPackage=uninstall?packageKey:"";view._installationState.DependencyUninstallReason=SourceUi.UninstallReason;view.Build();
+     }
+     private string T(string en,string zh)=>Loc.T(en,zh,zh);
+     private Button Button(Transform host,string text,Action action,float x,float y,float width=120,UiActionRole role=UiActionRole.Neutral)
+@@ -299,9 +305,9 @@
+     private void Preview(bool uninstall)
+     {
+         if(_selected==null||!_installationState.CanInstall(_selected.Key)||uninstall&&!_installationState.CanUninstall(_selected.Key,ReadLedger().Packages.Any(x=>x.Key==_selected.Key)))return;
+-        if(uninstall&&!(_installation.Packages.TryGetValue(_selected.Key,out var installedRows)&&installedRows.Any(r=>r.Area=="core"))){var selected=_selected!;UninstallDialog.Open(selected.Name,new ShopRequest{Namespace=selected.Team,Package=selected.Name,Version=_version},_panel);return;}
++        if(uninstall&&!(_installation.Packages.TryGetValue(_selected.Key,out var installedRows)&&installedRows.Any(r=>r.Area=="core"))){var selected=_selected!;UninstallDialog.Open(selected.Name,new ShopRequest{Namespace=selected.Team,Package=selected.Name,Version=_installation.Version(selected.Key)},_panel);return;}
+         _sentAt=Time.unscaledTime;_sentTaskKey=_taskKey;
+-        var p=_selected!;OverviewUpdateQueue.SendShop(new ShopRequest{Operation=uninstall?"preview-uninstall":"preview-install",Namespace=p.Team,Package=p.Name,Version=_version,GroupId=_group,NewGroupName=_newGroup,NewGroupColor=_groupColor});_requestedTask=true;_showingTask=true;_status.text=T("Preparing operation...","正在生成操作计划……");
++        var p=_selected!;OverviewUpdateQueue.SendShop(new ShopRequest{Operation=uninstall?"preview-uninstall":"preview-install",Namespace=p.Team,Package=p.Name,Version=uninstall?_installation.Version(p.Key):_version,GroupId=_group,NewGroupName=_newGroup,NewGroupColor=_groupColor});_requestedTask=true;_showingTask=true;_status.text=T("Preparing operation...","正在生成操作计划……");
+     }
+     private void ShowTask()
+     {
+@@ -405,13 +411,21 @@
+         if(InventoryContext!=_inventoryContext){_inventoryContext=InventoryContext;_installationState.Reset(_inventoryContext);ReloadInstalledRows();_inventoryAt=0;InstallationChanged();}
+         if(_inventory?.IsCompleted==true){
+             bool changed=_installationState.Complete(_pendingGeneration,_pendingContext,
+-                _inventory.IsCompletedSuccessfully?_inventory.Result:null,
++                _inventory.IsCompletedSuccessfully?_inventory.Result.Snapshot:null,
+                 _inventory.IsCompletedSuccessfully?"":_inventory.Exception?.GetBaseException().Message??"Inventory scan cancelled.");
++            if(_inventory.IsCompletedSuccessfully&&_installationState.Current(_pendingGeneration,_pendingContext)
++                &&_pendingDependencyContext==SourceUi.DependencyContext&&_pendingRevision==OverviewPageCache.Inventory)
++                SourceUi.PublishDependencyGraph(_inventory.Result.Graph,_pendingDependencyContext,_pendingRevision);
+             _inventory=null;
+-            if(changed)InstallationChanged();
++            if(changed)InstallationChanged();else if(_selected!=null&&!_showingTask)UpdateInstallationDetails();
+         }
+         if(_inventory==null&&Time.unscaledTime>=_inventoryAt)RefreshInstallation();
+         if(_openPackage.Length>0&&_catalog.Count>0){var package=_catalog.FirstOrDefault(p=>p.Key==_openPackage);_openPackage="";if(package!=null){_selected=package;_version=package.Version;_tab="intro";_markdownKey="";Draw();}else _status.text=T("Package not found in the cached catalog.","当前目录未找到对应商店包。" );}
++        if(_openUninstall&&_openPackage.Length==0&&_selected!=null&&_installationState.Status==ShopInstallationState.Phase.Ready){
++            _openUninstall=false;string reason=_installationState.UninstallBlockReason(_selected.Key);
++            if(_selected.Key!=_uninstallPackage)_status.text=T("Selection changed; uninstall was not started.","选择已变化，未开始卸载。");
++            else if(reason.Length>0)_status.text=Loc.LocalizeMessage(reason);else Preview(true);
++        }
+         if(_sentAt>0&&Time.unscaledTime-_sentAt>1){OverviewUpdateQueue.Poll();string error=OverviewUpdateQueue.LastError;if(error.Length>0){_status.text=T("Request failed: ","请求失败：")+Loc.LocalizeMessage(error);_submissionPending=false;_sentAt=0;}else if(Time.unscaledTime-_sentAt>15){_status.text=T("The helper has not acknowledged this request. No new operation was confirmed.","助手尚未确认此请求，请查看下载队列错误；没有确认新的文件操作。" );_submissionPending=false;_sentAt=0;}}
+         if(_reader!=null&&_document?.MediaChanged()==true)_reader.Reload();
+         if(_searchPending&&Time.unscaledTime>=_searchAt&&string.IsNullOrEmpty(Input.compositionString)){_searchPending=false;_query=_search.text;_page=0;_selected=null;Draw();}
+@@ -419,7 +433,7 @@
+         if(!_showingTask&&_markdown?.IsCompleted==true&&_reader==null&&_selected!=null&&_tab is "intro" or "changelog" && _markdownDrawn!=_markdownKey){_markdownDrawn=_markdownKey;Draw();}
+         if(Time.unscaledTime<_poll)return;_poll=Time.unscaledTime+.7f;
+         try{string file=Path.Combine(Home,"task.json");if(!File.Exists(file))return;var task=JsonConvert.DeserializeObject<ShopTask>(File.ReadAllText(file));if(task==null)return;string key=task.Id+task.State+task.Error;if(key!=_taskKey){if(task.State=="completed")ApplyCompletedGroup(task);_sentAt=0;_submissionPending=false;_taskKey=key;_task=task;_status.text=ShopText(task.Message)+(task.Error.Length>0?" · "+ShopText(task.Error):"");if(_showingTask&&task.Id==_task?.Id&&key==_taskKey){_task=task;}
+-            if((_requestedTask||_showingTask)&&!task.Request.Operation.Contains("uninstall")&&(task.State is "preview" or "ready" or "uninstall-preview" or "recovery-required" or "failed" or "waiting-exit" or "downloading" or "committing" || task.State=="completed"&&task.OrphanCandidates.Count>0)){_requestedTask=false;ShowTask();}}}catch(Exception ex) when(ex is IOException or JsonException or InvalidOperationException){_status.text=T("Grouping/task read failed; pending grouping retained: ","分组或任务读取失败，保留待处理分组：")+ex.Message;}
++            if((_requestedTask||_showingTask)&&(task.State is "preview" or "ready" or "uninstall-preview" or "recovery-required" or "failed" or "waiting-exit" or "downloading" or "committing" || task.State=="completed"&&task.OrphanCandidates.Count>0)){_requestedTask=false;ShowTask();}}}catch(Exception ex) when(ex is IOException or JsonException or InvalidOperationException){_status.text=T("Grouping/task read failed; pending grouping retained: ","分组或任务读取失败，保留待处理分组：")+ex.Message;}
+     }
+     private void OnDestroy(){_cancel.Cancel();_reader?.Dispose();_cancel.Dispose();}
+ }

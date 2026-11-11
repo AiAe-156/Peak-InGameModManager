@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>HistoryChecks</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The real grouping; UpdateJob is stubbed with only the fields it reads (the real contract pulls in every request type). -->
+    <Compile Include="../../../src/Overview/UpdateHistoryBatches.cs" Link="UpdateHistoryBatches.cs" />
+  </ItemGroup>
+</Project>

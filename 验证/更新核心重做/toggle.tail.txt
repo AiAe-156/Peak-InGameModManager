@@ -1,0 +1,5 @@
+PASS any suffix beside active DLL is backup .disabled-by-mce
+PASS active DLL is unique target .disabled-by-mce
+PASS foreign tool marker never restored
+PASS arbitrary disabled suffix and staging exclusion retained
+RESULT 70 filesystem / real production-rule checks passed

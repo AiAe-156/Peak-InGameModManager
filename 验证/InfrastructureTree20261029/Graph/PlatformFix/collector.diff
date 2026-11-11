@@ -1,0 +1,109 @@
+--- "\351\252\214\350\257\201/InfrastructureTree20261029/Graph/PlatformFix/ComponentDependencyCollector.before.cs.txt"	2026-10-29 02:15:09.692023900 +0800
++++ src/Updating/ComponentDependencyCollector.cs	2026-10-29 02:15:26.671049000 +0800
+@@ -19,15 +19,63 @@
+     {
+         public string PackageKey = "", Path = "";
+     }
++    sealed class AssemblyIdentity
++    {
++        internal readonly string Name, Token;
++        internal readonly Version Version;
++        internal AssemblyIdentity(AssemblyNameReference name)
++        {
++            Name = name.Name; Version = name.Version;
++            Token = BitConverter.ToString(name.PublicKeyToken ?? Array.Empty<byte>());
++        }
++        internal bool Matches(AssemblyIdentity other) => StringComparer.OrdinalIgnoreCase.Equals(Name, other.Name)
++            && Version.Equals(other.Version) && StringComparer.OrdinalIgnoreCase.Equals(Token, other.Token);
++        public override string ToString() => Name + ", Version=" + Version + ", PublicKeyToken=" + (Token.Length == 0 ? "null" : Token.Replace("-", "").ToLowerInvariant());
++    }
+     sealed class Metadata
+     {
+         internal ComponentDependencyGraph.Component Owner = null!;
+-        internal readonly List<(string Target, string Kind, bool Hard)> Requirements = new List<(string, string, bool)>();
++        internal readonly List<(string Target, string Kind, bool Hard, AssemblyIdentity? Identity)> Requirements = new List<(string, string, bool, AssemblyIdentity?)>();
+     }
+     public static ComponentDependencyGraph Collect(string root, Func<string, Manifest> readManifest, IEnumerable<ConfirmedFile>? confirmedFiles = null)
+     {
+         var graph = new ComponentDependencyGraph();
+         var compare = StringComparer.OrdinalIgnoreCase;
++        // Resolve only the current game's direct Managed files, never the working directory,
++        // inventory, arbitrary search paths, or assemblies loaded into this process.
++        string loaderRoot = System.IO.Path.GetFullPath(root).TrimEnd('\\', '/');
++        string gameRoot = compare.Equals(System.IO.Path.GetFileName(loaderRoot), "BepInEx")
++            ? System.IO.Path.GetDirectoryName(loaderRoot)! : loaderRoot;
++        string dataRoot = System.IO.Path.Combine(gameRoot, "PEAK_Data");
++        string managedRoot = System.IO.Path.Combine(dataRoot, "Managed");
++        var platform = new Dictionary<string, (AssemblyIdentity? Identity, string Error)>(compare);
++        bool PlatformReference(AssemblyIdentity required, out string reason)
++        {
++            if (!platform.TryGetValue(required.Name, out var candidate))
++            {
++                try
++                {
++                    // A metadata name must not be usable as a relative path. Reject linked
++                    // platform directories/files too: they are not evidence from this game.
++                    if (required.Name.Length == 0 || required.Name.IndexOfAny(new[] { '/', '\\', ':' }) >= 0
++                        || required.Name.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0)
++                        throw new IOException("Invalid platform assembly name");
++                    foreach (string directory in new[] { gameRoot, dataRoot, managedRoot })
++                        if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
++                            throw new IOException("Linked platform directory: " + directory);
++                    string path = System.IO.Path.Combine(managedRoot, required.Name + ".dll");
++                    if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
++                        throw new IOException("Linked platform assembly: " + path);
++                    using var assembly = AssemblyDefinition.ReadAssembly(path, new ReaderParameters { ReadSymbols = false });
++                    candidate = (new AssemblyIdentity(assembly.Name), "");
++                }
++                catch (Exception e) { candidate = (null, e.Message); }
++                platform[required.Name] = candidate;
++            }
++            if (candidate.Identity == null) { reason = "platform unavailable for " + required + ": " + candidate.Error; return false; }
++            if (!required.Matches(candidate.Identity)) { reason = "platform identity mismatch: required " + required + "; found " + candidate.Identity; return false; }
++            reason = ""; return true;
++        }
+         var files = new List<string>();
+         void Walk(string directory)
+         {
+@@ -87,7 +135,7 @@
+                 var data = new Metadata { Owner = owner }; metadata.Add(data);
+                 owner.Assemblies.Add(assembly.Name.Name);
+                 foreach (var reference in assembly.MainModule.AssemblyReferences)
+-                    data.Requirements.Add((reference.Name, "assembly ref", true));
++                    data.Requirements.Add((reference.Name, "assembly ref", true, new AssemblyIdentity(reference)));
+                 foreach (var type in Types(assembly.MainModule.Types))
+                 {
+                     var identities = type.CustomAttributes.Where(a => a.AttributeType.FullName == "BepInEx.BepInPlugin").ToList();
+@@ -101,7 +149,7 @@
+                     {
+                         string guid = (string)dependency.ConstructorArguments[0].Value;
+                         bool soft = dependency.ConstructorArguments.Count > 1 && !(dependency.ConstructorArguments[1].Value is string) && (Convert.ToInt32(dependency.ConstructorArguments[1].Value) & 2) != 0;
+-                        data.Requirements.Add((guid, "BepInDependency", !soft));
++                        data.Requirements.Add((guid, "BepInDependency", !soft, null));
+                     }
+                 }
+             }
+@@ -132,8 +180,13 @@
+             var providers = graph.Components.Where(c => (requirement.Kind == "assembly ref" ? c.Assemblies : c.PluginGuids).Contains(requirement.Target, compare)).ToList();
+             if (providers.Count == 0)
+             {
+-                if (requirement.Kind == "assembly ref" && PlatformReference(requirement.Target)) continue;
+-                Edge(data.Owner.Id, "missing:" + requirement.Target, requirement.Kind, requirement.Hard);
++                string evidence = requirement.Kind;
++                if (requirement.Identity != null)
++                {
++                    if (PlatformReference(requirement.Identity, out string reason)) continue;
++                    evidence += " [" + reason + "]";
++                }
++                Edge(data.Owner.Id, "missing:" + requirement.Target, evidence, requirement.Hard);
+             }
+             else foreach (var provider in providers) Edge(data.Owner.Id, provider.Id, requirement.Kind + " " + requirement.Target, requirement.Hard);
+         }
+@@ -159,7 +212,6 @@
+         catch { return false; }
+     }
+     static bool ValidKey(string key) => System.Text.RegularExpressions.Regex.IsMatch(key, "^[A-Za-z0-9_]+-[A-Za-z0-9_]+$");
+-    static bool PlatformReference(string name) => name == "mscorlib" || name == "netstandard" || name == "System" || name.StartsWith("System.", StringComparison.Ordinal) || name == "UnityEngine" || name.StartsWith("UnityEngine.", StringComparison.Ordinal) || name == "Assembly-CSharp";
+     static IEnumerable<TypeDefinition> Types(IEnumerable<TypeDefinition> types)
+     {
+         foreach (var type in types) { yield return type; foreach (var nested in Types(type.NestedTypes)) yield return nested; }

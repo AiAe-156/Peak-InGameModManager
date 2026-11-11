@@ -1,0 +1,15 @@
+counts: {'A': 55, 'B': 1, 'C': 4, 'D': 2, 'G': 3}
+
+== C (4)
+   0基础模组\[功能]ESC队友资料卡Profile_Cards-0.1.5
+   3玩法模组\AeralisFoundation-PLL_Fog_Resources
+   3玩法模组\AeralisFoundation-Unified_Ray_Tracing
+   MonoDetour-MonoDetour
+
+== B (1)
+   0基础模组\[界面]ModConfig增强-ModConfigEnhance
+
+== G (3)
+   3玩法模组\[依赖]PLL地图与群系库-PLL_Library   [manifest.old, all plugin DLLs disabled]
+   3玩法模组\[玩法]地形定制器fix-TerrainCustomiser   [all plugin DLLs disabled]
+   依赖模组\Snosz-UBImGui   [all plugin DLLs disabled]

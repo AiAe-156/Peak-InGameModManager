@@ -1,0 +1,8 @@
+com.CptPICHU.peak.truefinalascent | Daily Map / Run Timer Key = F8 (UnityEngine.InputSystem.Key)
+com.CptPICHU.peak.truefinalascent | Extras / Kick Key = V (UnityEngine.InputSystem.Key)
+com.github.darmuh.PEAKTrails | Controls / Visibility Toggle Key = /Keyboard/v (System.String)
+com.github.glarmer.PEAK_Visuals | General / Config Menu Key = <Keyboard>/f11 (System.String)
+com.github.LengSword.PeakerPlus | Keybinds / GUIKey = F9 (UnityEngine.InputSystem.Key)
+com.github.lllei.ItemSpawnerEnhanced | Controls / Keyboard Toggle Path = <Keyboard>/f5 (System.String)
+com.shuhia.peak.piggybackteammate | General / AttachDetachHotkey = T (UnityEngine.InputSystem.Key)
+peakReconnect | Keybinds / keyboardKey = K (UnityEngine.InputSystem.Key)

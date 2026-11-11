@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模组管理 · 游戏内模组管理器</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="index.html"><img src="assets/icon.png" alt=""><span>游戏内模组管理器</span></a>
+  <nav class="nav" aria-label="板块"><a href="index.html">首页</a><a href="mods.html" aria-current="page" style="--c:var(--mods)">模组管理</a><a href="config.html">模组配置</a><a href="profiles.html">多配置切换</a><a href="packs.html">整合包</a><a href="language.html">多语言翻译</a></nav>
+</div></header>
+<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L0 20 L110 12 L200 22 L320 4 L420 18 L540 8 L640 24 L760 2 L880 20 L990 10 L1090 22 L1200 14 L1200 34 Z" fill="#1b3d5c"/><path d="M0 34 L0 28 L150 24 L300 30 L460 22 L620 30 L780 24 L940 30 L1100 25 L1200 28 L1200 34 Z" fill="#e6ecef"/></svg>
+<main>
+<header class="page-head" style="--c:var(--mods)"><div><span class="tag">模组管理</span><h1>一页看全所有模组</h1><p class="lede">哪个有更新、哪个没生效、谁依赖谁，打开模组概览一眼就知道。启停、更新、卸载也在这一页做。</p></div></header>
+<section style="padding-top:28px">
+<figure class="figure"><img src="assets/overview-blue.jpg" alt="模组概览截图：顶部工具条，下面按分组列出模组；鼠标停在名称上显示依赖卡" loading="lazy"><figcaption>模组概览。鼠标停在名称上会弹出依赖卡，列出它依赖的库和谁依赖它。</figcaption></figure>
+  <h2 style="margin-top:34px">看懂一行</h2>
+  <p>从左到右：启用方框、序号、名称（右上角是状态角标）、齿轮（打开设置）、主页（项目页和商店页）、文件夹（打开所在位置）、版本、作者、简介。鼠标停在名称上会显示依赖卡：它需要哪些模组、哪些模组需要它。</p>
+<figure class="figure"><img src="assets/chips.png" alt="七种名称列角标：未读变动、有新版本、未保存、待重启、嵌套模组、资源包、散放 DLL" loading="lazy" style="max-width:900px"><figcaption>七种角标各一个颜色，位置固定，同一种角标在每一行都在同一个地方。</figcaption></figure>
+</section>
+<section>
+  <h2>主要功能</h2>
+<ul class="points" style="--c:var(--mods)"><li><b>分组</b><span>分组可以嵌套三层，拖动标题就能挂到别的分组下。删除分组不删文件，组里的模组上移一层。</span></li><li><b>首次自动分组</b><span>第一次打开时，按你 plugins 里现有的分类文件夹生成分组建议，确认才保存。</span></li><li><b>勾选启停</b><span>勾选或取消就行，不用手动改文件名。改动先进草稿，保存后下次启动生效。</span></li><li><b>同一个模组装了两份</b><span>每份单独一行，勾选其中一份会自动停用其他副本。</span></li><li><b>检查更新</b><span>在主菜单和机场自动检查，只检查不下载。有新版时名称和版本号旁出现绿色角标。</span></li><li><b>更新、安装、卸载</b><span>点了就进更新队列，不用保存配置。缺的依赖会一起装上。</span></li><li><b>等退出再替换</b><span>只有要替换正在运行的文件时才等你退出游戏；新装的模组游戏运行时就能装好。</span></li><li><b>回退</b><span>已完成的更新可以回退到更新前的文件，默认保留你现在的参数。</span></li><li><b>搜索与筛选</b><span>按名称、作者、版本、简介搜索；按可更新、重复、异常、有变更等状态筛选。</span></li><li><b>基础组件</b><span>BepInEx 的 core、patchers 里的共用运行库也列出来，可以改译名、启停、卸载。</span></li><li><b>资源包和特殊情况</b><span>只有 manifest 没有 DLL 的资源包、嵌套在别的模组文件夹里的模组、散放的 DLL，都会单独标出。</span></li><li><b>目录整理</b><span>按分组把 plugins 文件夹整理好。只移动不改名，先看预览树，空文件夹可以一起放进回收站。</span></li></ul>
+</section>
+<section>
+  <h2>来源：这个模组在商店里是哪个包</h2>
+  <div class="two">
+    <div><p>确认了来源，才能检查更新、在发布整合包时写对依赖。自动识别用模组的原名去商店找，名称唯一、作者一致就直接匹配；有疑问的交给你手动选。</p>
+    <p>通过管理器商店装的模组直接按安装记录确认，不用再识别。确实没有商店版本的，标成「本地」，以后不再查。</p></div>
+    <div class="callout"><b>来源只影响更新检查。</b>还没确认来源的模组照样能用、能启停，依赖检查也照常：装了、启用了、版本够就不会报错。</div>
+  </div>
+</section>
+
+<nav class="pager" aria-label="翻页"><a href="index.html" style="--c:var(--pin)"><small>上一页</small>首页</a><a class="next" href="config.html" style="--c:var(--config)"><small>下一页</small>模组配置</a></nav>
+<footer><span>游戏内模组管理器 · In-Game Mod Manager · PEAK 模组</span><span>本介绍依据当前开发版整理，界面以游戏内为准</span></footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "status": "verification-passed",
+  "version": "2.0.0",
+  "fresh_runs": {"Layout":20,"Diagnostics":19,"UI":36,"Overview":28,"Wiring":12},
+  "build": "Release EnableDeployment=false: 0 warnings, 0 errors",
+  "worker": "Release self-contained win-x64 publish and full protocol manifest validation passed",
+  "initial_harness_error": "wiring-initial-compile.log: missing using ModConfigEnhance, corrected; no production assertion failure",
+  "backend_references": "../Final/结论.md: Graph21 PlatformFix30 ScopedFix12 WorkerGraph26 ShopUi7 Shop82 ShopChecks33 Actions82; unchanged backend, not rerun this pass",
+  "visual_acceptance": "NOT performed; Unity live validation pending"
+}

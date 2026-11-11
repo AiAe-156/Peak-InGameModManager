@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Independent review re-run: identical inputs to ../../UpdateFeedbackChecks.csproj,
+       but isolated in its own directory so the parent project's default glob cannot
+       pull QueueChecks/MonoDetourChecks/ReviewBaseline sources into one assembly. -->
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><EnableDeployment>false</EnableDeployment></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Program.cs" Link="Program.cs" />
+    <Compile Include="../../../../src/Overview/OverviewListView.CheckProgress.cs" Link="CheckProgress.cs" />
+    <Compile Include="../../../../src/Overview/RefreshIconFeedbackState.cs" Link="RefreshIconFeedbackState.cs" />
+  </ItemGroup>
+</Project>

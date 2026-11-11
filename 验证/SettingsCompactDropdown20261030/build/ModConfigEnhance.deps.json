@@ -1,0 +1,94 @@
+{
+  "runtimeTarget": {
+    "name": ".NETStandard,Version=v2.1/",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETStandard,Version=v2.1": {},
+    ".NETStandard,Version=v2.1/": {
+      "ModConfigEnhance/2.0.0": {
+        "dependencies": {
+          "BepInEx.AssemblyPublicizer.MSBuild": "0.4.3",
+          "Markdig": "0.37.0",
+          "YamlDotNet": "16.3.0"
+        },
+        "runtime": {
+          "ModConfigEnhance.dll": {}
+        }
+      },
+      "BepInEx.AssemblyPublicizer.MSBuild/0.4.3": {
+        "runtime": {
+          "lib/netstandard2.1/AsmResolver.DotNet.dll": {
+            "assemblyVersion": "5.5.1.0",
+            "fileVersion": "5.5.1.0"
+          },
+          "lib/netstandard2.1/AsmResolver.PE.File.dll": {
+            "assemblyVersion": "5.5.1.0",
+            "fileVersion": "5.5.1.0"
+          },
+          "lib/netstandard2.1/AsmResolver.PE.dll": {
+            "assemblyVersion": "5.5.1.0",
+            "fileVersion": "5.5.1.0"
+          },
+          "lib/netstandard2.1/AsmResolver.dll": {
+            "assemblyVersion": "5.5.1.0",
+            "fileVersion": "5.5.1.0"
+          },
+          "lib/netstandard2.1/BepInEx.AssemblyPublicizer.MSBuild.dll": {
+            "assemblyVersion": "0.4.3.0",
+            "fileVersion": "0.4.3.0"
+          },
+          "lib/netstandard2.1/BepInEx.AssemblyPublicizer.dll": {
+            "assemblyVersion": "0.4.3.0",
+            "fileVersion": "0.4.3.0"
+          }
+        }
+      },
+      "Markdig/0.37.0": {
+        "runtime": {
+          "lib/netstandard2.1/Markdig.dll": {
+            "assemblyVersion": "0.37.0.0",
+            "fileVersion": "0.37.0.0"
+          }
+        }
+      },
+      "YamlDotNet/16.3.0": {
+        "runtime": {
+          "lib/netstandard2.1/YamlDotNet.dll": {
+            "assemblyVersion": "16.0.0.0",
+            "fileVersion": "16.3.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ModConfigEnhance/2.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BepInEx.AssemblyPublicizer.MSBuild/0.4.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Z8Qs3JTTHZG1q0DCqY+HFJ8xp92tkEXWyQ7roeWgUvn20tjv0ZNfAdyy13XrRS1jeEoN/weJc81747TbvvwaDg==",
+      "path": "bepinex.assemblypublicizer.msbuild/0.4.3",
+      "hashPath": "bepinex.assemblypublicizer.msbuild.0.4.3.nupkg.sha512"
+    },
+    "Markdig/0.37.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-biiu4MTPFjW55qw6v5Aphtj0MjDLJ14x8ndZwkJUHIeqvaSGKeqhLY7S7Vu/S3k7/c9KwhhnaCDP9hdFNUhcNA==",
+      "path": "markdig/0.37.0",
+      "hashPath": "markdig.0.37.0.nupkg.sha512"
+    },
+    "YamlDotNet/16.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SgMOdxbz8X65z8hraIs6hOEdnkH6hESTAIUa7viEngHOYaH+6q5XJmwr1+yb9vJpNQ19hCQY69xbFsLtXpobQA==",
+      "path": "yamldotnet/16.3.0",
+      "hashPath": "yamldotnet.16.3.0.nupkg.sha512"
+    }
+  }
+}

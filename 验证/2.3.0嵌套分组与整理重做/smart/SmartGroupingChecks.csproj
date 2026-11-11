@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>SmartGroupingChecks</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The real smart grouping, palette, tree and folder classifier; OverviewGroup stubbed (same fields) in Stubs.cs. -->
+    <Compile Include="../../../src/Overview/SmartGrouping.cs" Link="SmartGrouping.cs" />
+    <Compile Include="../../../src/Overview/GroupPalette.cs" Link="GroupPalette.cs" />
+    <Compile Include="../../../src/Overview/GroupTree.cs" Link="GroupTree.cs" />
+    <Compile Include="../../../src/Updating/GroupFolderPlanner.cs" Link="GroupFolderPlanner.cs" />
+    <Compile Include="../../../src/Updating/InstallationLayoutContracts.cs" Link="InstallationLayoutContracts.cs" />
+    <Compile Include="../group-tree/Stubs.cs" Link="Stubs.cs" />
+  </ItemGroup>
+</Project>

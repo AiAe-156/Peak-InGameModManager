@@ -1,0 +1,24 @@
+using ModConfigEnhance.Overview;using Newtonsoft.Json;using Newtonsoft.Json.Linq;
+int count=0;void Check(bool ok,string message){if(!ok)throw new Exception(message);count++;}
+string home=Path.Combine(AppContext.BaseDirectory,"sandbox-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(home);
+foreach(string scenario in new[]{"invalid","enablement","both","new-external","ordinary","ambiguous","new-same-target","corrupt-evidence"}){
+ string root=Path.Combine(home,scenario);Directory.CreateDirectory(root);var store=new OverviewProfileStore(Path.Combine(root,"profiles"),Path.Combine(root,"plugins"));
+ OverviewConfigSnapshot Snapshot(string value,bool missing=false)=>new(){values=new(){new(){pluginGuid="test.mod",configFile="mod.cfg",section="S",key="Value",type="System.Int32",serializedValue=value,missing=missing,missingReason=missing?"Invalid value; this item was skipped":""},new(){pluginGuid="test.mod",configFile="mod.cfg",section="S",key="Other",type="System.Int32",serializedValue="10"}}};
+ var init=store.Initialize(new(),null,Snapshot("1"),new[]{new OverviewMod{Id="mod",Guid="test.mod",TargetEnabled=true}});var old=Copy(store.Viewed);bool invalid=scenario is "invalid" or "both" or "new-external" or "ambiguous" or "new-same-target" or "corrupt-evidence";bool skipped=scenario is "enablement" or "both";
+ var polluted=store.Save(store.ViewedId,new(),invalid?Snapshot("bad",true):Snapshot("1"),new[]{new OverviewMod{Id="mod",Guid="test.mod",TargetEnabled=!skipped}}).Profile;
+ var draft=Copy(polluted);if(scenario=="ordinary"){draft.config=Snapshot("2");old=Copy(polluted);}var applied=Copy(polluted);if(skipped)applied.mods.Single().enabled=true;
+ Directory.CreateDirectory(store.RuntimeDirectory);File.WriteAllText(Path.Combine(store.RuntimeDirectory,"applied-profile.json"),JsonConvert.SerializeObject(applied));File.WriteAllText(Path.Combine(store.RuntimeDirectory,"pending-profile.json"),JsonConvert.SerializeObject(new{schemaVersion=1,profileId=store.ViewedId,pending=false,restartMods=Array.Empty<object>()}));
+ string recovery=Path.Combine(store.RuntimeDirectory,"drafts",OverviewProfileExport.PortableId(store.ViewedId)+".json");Directory.CreateDirectory(Path.GetDirectoryName(recovery)!);File.WriteAllText(recovery,JsonConvert.SerializeObject(new{schemaVersion=1,profileId=store.ViewedId,state=draft.state,config=draft.config,mods=draft.mods,savedBaseline=old,runtimeBaseline=old.config,restoreSavedBaseline=false}));
+ if(scenario=="new-external"){var external=Copy(polluted.config);external.values[0].serializedValue="7";external.values[0].missing=false;external.values[1].serializedValue="99";store.Save(store.ViewedId,new(),external);}
+ if(scenario=="new-same-target"){Thread.Sleep(30);store.Save(store.ViewedId,new(),polluted.config);}
+ if(scenario=="corrupt-evidence")File.WriteAllText(Path.Combine(store.RuntimeDirectory,"pending-profile.json"),"broken-json");
+ if(scenario=="ambiguous")File.Delete(Path.Combine(store.RuntimeDirectory,"applied-profile.json"));
+ var repo=new OverviewRepository(store);string before=File.ReadAllText(Path.Combine(store.Viewed.directory,"profile.json"));repo.Restore();Check(before==File.ReadAllText(Path.Combine(store.Viewed.directory,"profile.json")),scenario+": opening never rewrites formal preset");
+ if(scenario is "invalid" or "both" or "enablement")Check(repo.ReadWarning.Length>0&&repo.Dirty,scenario+": historical skipped target remains unsaved with warning");
+ repo.Discard();var reopened=new OverviewProfileStore(store.RootDirectory,Path.Combine(root,"plugins"));reopened.Initialize(new(),null,Snapshot("0"),Array.Empty<OverviewMod>());var formal=reopened.Viewed;
+ string expected=scenario=="new-external"?"7":scenario is "ambiguous" or "new-same-target" or "corrupt-evidence"?"bad":"1";Check(formal.config.values.Single(v=>v.key=="Value").serializedValue==expected,scenario+": discard and real ProfileStore reopen correct formal value");Check(formal.mods.Single().enabled,scenario+": skip enablement formal baseline retained/restored");
+ string exported=ConfigurationPresetFile.Export(new[]{formal},Path.Combine(root,"export"));var imported=ConfigurationPresetFile.Read(Directory.GetFiles(exported,"*.mceconfig.json").Single());Check(imported.config.values.Single(v=>v.key=="Value").serializedValue==expected&&imported.mods.Single().enabled,scenario+": production config export/reimport uses corrected committed pair");
+ if(scenario=="new-external")Check(formal.config.values.Single(v=>v.key=="Other").serializedValue=="99","new external unrelated parameter preserved");if(scenario=="ambiguous")Check(File.Exists(recovery+".historical-backup"),"uncertain history evidence retained on explicit discard");
+}
+Console.WriteLine("PASS "+count+" real ProfileStore / recovery / export checks; sandbox="+home);
+static T Copy<T>(T value)=>JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(value))!;

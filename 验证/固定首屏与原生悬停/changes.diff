@@ -1,0 +1,166 @@
+--- before/src/Overview/OverviewPage.Toolbar.cs
++++ src/Overview/OverviewPage.Toolbar.cs
+@@ -11,7 +11,6 @@
+ internal sealed partial class OverviewPage
+ {
+     private Button _more = null!;
+-    private OverviewToolbarReveal? _toolbarReveal;
+     private readonly List<TextMeshProUGUI> _toolSeparators = new();
+     private readonly List<ToolbarTool> _toolbarTools = new();
+     private readonly HashSet<string> _hiddenTools = new();
+@@ -145,8 +144,6 @@
+         movedFocus |= selected != null && selected.transform.IsChildOf(_controls) && !selected.activeInHierarchy;
+         if (movedFocus) EventSystem.current?.SetSelectedGameObject(_more.gameObject.activeSelf ? _more.gameObject : _profileChoice.gameObject);
+         RefreshActiveToolHint();
+-        _toolbarReveal ??= _controls.gameObject.AddComponent<OverviewToolbarReveal>();
+-        _toolbarReveal.Capture(_controls);
+     }
+     private RectTransform ToolAnchor(Button button) => (RectTransform)(button.gameObject.activeInHierarchy ? button.transform : _more.transform);
+     private void ShowToolbarMore()
+--- before/src/Overview/OverviewListView.cs
++++ src/Overview/OverviewListView.cs
+@@ -187,9 +187,67 @@
+             if (_opened) RefreshSharedUpdateCache();
+             WarmVisibleHints();
+             float width = Width;
++            EnsureFixedChrome();
+             if (!_building && (Math.Abs(width - _lastWidth) > 2 || _languageRevision != OverviewLanguageBridge.Revision)) Render();
+         };
++        EnsureFixedChrome();
++        ShowInitialReadState();
+         // 构造期不读数据：页面进入时 OnPageEnter 会统一加载一次，否则首次打开要扫描并建行两遍。
++    }
++    private string _fixedChromeKey = "";
++    private TextMeshProUGUI? _initialReadState;
++    private Button? _compatibilityAdvice;
++    private const string EnablementNote = "Checkboxes set the profile target. Save only keeps it; Apply and restart to change loaded mods.";
++    private string EnablementHint => Loc.T(EnablementNote, "勾选只改方案目标；“仅保存”记住目标，“应用配置”后重启游戏生效。", "勾選只改方案目標；「僅儲存」記住目標，「套用設定」後重新啟動遊戲生效。");
++    private void ShowInitialReadState()
++    {
++        if(_virtualRows.Count>0)return;
++        if(_initialReadState==null)_initialReadState=Label(_content, Loc.T("Reading mods and components…", "正在读取模组与组件……", "正在讀取模組與組件……"),20,15,Width-50,45,24);
++        _content.sizeDelta=new Vector2(0,70);
++    }
++    private void EnsureFixedChrome()
++    {
++        float width=Width;
++        string key=width+":"+_authorMode+":"+OverviewLanguageBridge.Revision+":"+_searchQuery;
++        if(key==_fixedChromeKey)return;
++        _fixedChromeKey=key;
++        Clear(_tools);Clear(_header);_compatibilityAdvice=null;
++        _tools.gameObject.SetActive(true);OverviewUi.Place(_tools,0,0,width,27);
++        BuildOverviewSearch(width);
++        string enablementNote=EnablementHint;
++        var note=Label(_tools,enablementNote,148,0,Mathf.Max(40,width-348),27,17);note.color=OverviewUi.Muted;AddHint(note.gameObject,enablementNote);
++        OverviewUi.Place(_header,0,29,width,39);
++        const float indexWidth = 48, versionWidth = 110;
++        string goalHeading = Loc.T("Enable mod", "启用", "啟用");
++        const float goalWidth = 60;
++        const float stateWidth = 0; // loading state is encoded by the enable checkbox border
++        float xEnable = 8, xIndex = xEnable + goalWidth, xName = xIndex + indexWidth;
++        bool compact = width < 1000;
++        float authorWidth = compact ? 0 : Mathf.Clamp(width * .12f, 90, 180);
++        float iconWidth = 43;
++        float nameWidth = Mathf.Max(80, Mathf.Min(ModNameLayout.ColumnWidth(width), width - xName - stateWidth - iconWidth * (_authorMode ? 4 : 3) - versionWidth - authorWidth - (compact ? 20 : 85)));
++        float xState = xName + nameWidth, xSettings = xState + stateWidth, xHome = xSettings + iconWidth, homeWidth = 43;
++        float xFolder = xHome + homeWidth, folderWidth = 43;
++        float xCheck = xFolder + folderWidth, checkWidth = _authorMode ? 43 : 0, xVersion = xCheck + checkWidth;
++        float xAuthor = xVersion + versionWidth, xDescription = xAuthor + authorWidth;
++        var goalHeader = Label(_header, goalHeading, xEnable, 4, goalWidth, 30, 18); goalHeader.alignment = TextAlignmentOptions.Midline;
++        AddHint(goalHeader.gameObject, enablementNote); Label(_header, "#", xIndex, 4, indexWidth, 30, 20);
++        var settingsHeader = OverviewUi.IconButton(_header, "gear", () => _openSettings?.Invoke(null), 30, 32); OverviewUi.Place((RectTransform)settingsHeader.transform, xSettings + 2, 2, 30, 32); AddHint(settingsHeader.gameObject, T("Mod settings column. Click to open the general mod settings page.", "模组设置列，点击跳转到模组总设置页"));
++        var homeHeader = OverviewUi.IconButton(_header, "home", OpenEnhanceHomepage, 30, 32); Tint(homeHeader, OverviewUi.Ivory); OverviewUi.Place((RectTransform)homeHeader.transform, xHome + (homeWidth - 9 - 30) / 2, 2, 30, 32); AddHint(homeHeader.gameObject, T("Mod homepage column. Click to open the Enhance homepage.", "模组主页列，点击跳转到Enhance主页")); Label(_header, T("Name", "名称"), xName, 4, nameWidth, 30, 21);
++        var folderHeader = OverviewUi.IconButton(_header, "folder", () => OpenFolder(BepInEx.Paths.PluginPath), 30, 32); Tint(folderHeader, OverviewUi.Ivory); OverviewUi.Place((RectTransform)folderHeader.transform, xFolder + (folderWidth - 9 - 30) / 2, 2, 30, 32); AddHint(folderHeader.gameObject, T("Mod folder column. Click to open the plugins folder.", "模组文件夹列，点击打开 plugins 文件夹"));
++        if (_authorMode) BuildUpdateHeader(_header, xCheck, checkWidth);
++        Label(_header, T("Version", "版本"), xVersion, 4, versionWidth, 30, 21);
++        if (!compact) { Label(_header, T("Author", "作者"), xAuthor, 4, authorWidth, 30, 21); Label(_header, T("Description", "说明"), xDescription, 4, Mathf.Max(50, width - xDescription - 20), 30, 21); }
++        float[] edges = (_authorMode ? new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xCheck, xVersion, xAuthor, xDescription, width - 15 } : new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xVersion, xAuthor, xDescription, width - 15 }).Distinct().ToArray();
++        for (int c = 0; c < edges.Length - 1; c++) { var line = OverviewUi.Panel("ColumnLine", _header, new Color(.77f, .76f, .66f, .8f)); line.GetComponent<Image>().raycastTarget = false; OverviewUi.Place(line, edges[c], 37, Mathf.Max(2, edges[c + 1] - edges[c] - 9), 1.5f); }
++    }
++    private void RefreshCompatibilityAdvice(System.Collections.Generic.List<PackConflictMatch> conflicts)
++    {
++        int activeAdvice=conflicts.Count(c=>!c.Ignored);
++        if(_compatibilityAdvice!=null) { _compatibilityAdvice.gameObject.SetActive(false);UnityEngine.Object.Destroy(_compatibilityAdvice.gameObject);_compatibilityAdvice=null; }
++        if(activeAdvice==0)return;
++        _compatibilityAdvice=OverviewUi.Button(_tools,Loc.F("Compatibility · {0}","冲突建议 · {0}","衝突建議 · {0}",activeAdvice),()=> { HideAllHints();PackConflictUi.Show(_repo,conflicts,()=> { Render();_headersChanged(); }); },172,26,UiActionRole.Neutral);
++        OverviewUi.Place((RectTransform)_compatibilityAdvice.transform,Width-192,0,172,26);UiActionStyle.Tint(_compatibilityAdvice,PackConflictUi.AdviceColor);
+     }
+     private float Width => Mathf.Max(700, _root.rect.width);
+     private void RefreshSharedUpdateCache()
+@@ -221,7 +279,7 @@
+     }
+     public void OnOpened(bool automaticCheck = true)
+     {
+-        if (_disposed) return; _opened = true; _cascade.Resume(); _warmSettledFrames=0;_warmFirstAt=Time.unscaledTime+3; _virtualTop=float.NaN;RefreshVirtualRows();
++        if (_disposed) return; EnsureFixedChrome(); _opened = true; _cascade.Resume(); _warmSettledFrames=0;_warmFirstAt=Time.unscaledTime+3; _virtualTop=float.NaN;RefreshVirtualRows();
+         RefreshInfrastructure();
+         if (_renderedUpdates.Length > 0 && _renderedUpdates != UpdateDisplayKey()) Render();
+         // A completed resident generation is not animated/loaded again on re-entry.
+@@ -232,7 +290,7 @@
+     public void OnClosed() { _layerFocus=null; _cascade.PauseForExit(); _opened = false; _reopenPending = false; _round?.Cancel(); _checkProgress.Clear(); HideAllHints(); _groupEditor.Close(); EndDragFeedback(); }
+     /// <summary>由概览页提供：当前向 ModConfig 提供了设置项的插件 GUID。空集合表示未知，不置灰。</summary>
+     internal Func<HashSet<string>>? SettingsOwners;
+-    internal void PlayAppearance() => _cascade.Play(_scroll, AppearanceRows, _header);
++    internal void PlayAppearance() => _cascade.Play(_scroll, AppearanceRows);
+     private IEnumerable<OverviewCascade.Row> AppearanceRows()
+     {
+         foreach (var row in _virtualRows)
+@@ -371,36 +429,18 @@
+             if (oldSelection != null && oldSelection.transform.IsChildOf(_root)) eventSystem!.SetSelectedGameObject(null);
+             HideAllHints(); _dependencyHints.InvalidateDisplay(); _warmRow=0;_warmAfter=Time.unscaledTime+.5f; EndDragFeedback(); _dropAreas.Clear();
+             // Keep the owned insertion marker out of the row-destruction pass.
+-            ResetVirtualRows(); _dropLine.SetParent(_root, false); Clear(_tools); Clear(_header); Clear(_content); _dropLine.SetParent(_content, false);
++            ResetVirtualRows(); _dropLine.SetParent(_root, false); Clear(_content); _dropLine.SetParent(_content, false);
+             cleared = true;
+-            _tools.gameObject.SetActive(true); OverviewUi.Place(_tools, 0, 0, width, 27);
+-            string enablementNote = Loc.T("Checkboxes set the profile target. Save only keeps it; Apply and restart to change loaded mods.", "勾选只改方案目标；“仅保存”记住目标，“应用配置”后重启游戏生效。", "勾選只改方案目標；「僅儲存」記住目標，「套用設定」後重新啟動遊戲生效。");
++            EnsureFixedChrome();
+             var conflicts = PackConflictService.Evaluate(_repo, _mods).Where(c => c.Any).ToList();
+-            int activeAdvice = conflicts.Count(c => !c.Ignored);
+-            float adviceWidth = activeAdvice > 0 ? 180 : 0;
+-            BuildOverviewSearch(width);
+-            var note = Label(_tools, enablementNote, 148, 0, width - 168 - adviceWidth, 27, 17); note.color = OverviewUi.Muted; AddHint(note.gameObject, enablementNote);
+-            if (activeAdvice > 0)
+-            {
+-                var advice = OverviewUi.Button(_tools, Loc.F("Compatibility · {0}", "冲突建议 · {0}", "衝突建議 · {0}", activeAdvice),
+-                    () => { HideAllHints(); PackConflictUi.Show(_repo, conflicts, () => { Render(); _headersChanged(); }); }, adviceWidth - 8, 26, UiActionRole.Neutral);
+-                OverviewUi.Place((RectTransform)advice.transform, width - adviceWidth - 12, 0, adviceWidth - 8, 26); UiActionStyle.Tint(advice, PackConflictUi.AdviceColor);
+-            }
+-            OverviewUi.Place(_header, 0, 29, width, 39);
++            RefreshCompatibilityAdvice(conflicts);
+             var pending = _repo.GetPendingState();
+             HashSet<string> configurable = SettingsOwners?.Invoke() ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+             var layoutRows = _mods.Where(m => InfrastructureOverviewModel.MatchesText(_searchQuery, m.Name, m.Guid, m.SourceKey, OverviewLanguageBridge.GetDisplayName(m), OverviewLanguageBridge.GetDescription(m)) && (!_repo.State.hideDisabled || m.TargetEnabled || m.Loaded || _repo.PlannedEnabled(m)) && Tags.Matches(m) && (_sourceFilter < 0 || (int)m.SourceKind == _sourceFilter)).OrderBy(m => GroupOrder(m.Rule.groupId)).ThenBy(m => m.Rule.order).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
+             _visible = layoutRows.Where(m => Tags.Count > 0 || _searchQuery.Length > 0 || !_repo.State.collapsedGroups.Contains(m.Rule.groupId)).ToList();
+             _displayNumbers.Clear();for(int i=0;i<_visible.Count;i++)_displayNumbers[_visible[i]]=i+1;
+-            float indexWidth = Mathf.Max(34, Measure((_visible.Count + 1).ToString(), 20) + 16);
+-            // Measure the installed/display version only. The newest/prepared version belongs
+-            // in the hint, and its dot gets a separate safe area inside the shared column.
+-            float versionWidth = Mathf.Max(90, _visible.Select(m => Measure(UpdateVersionCaption(m), 20) + 18
+-                    + (m.HasUpdate ? AvailableUpdateDot.VersionReserve : 0))
+-                .Concat(_infrastructure.Select(p => Measure(p.Version, 20) + 18 + AvailableUpdateDot.VersionReserve))
+-                .DefaultIfEmpty(90).Max());
+-            string goalHeading = Loc.T("Enable mod", "启用", "啟用");
+-            float goalWidth = Mathf.Max(60, Measure(goalHeading, 18) + 16);
++            const float indexWidth = 48, versionWidth = 110;
++            const float goalWidth = 60;
+             const float stateWidth = 0; // loading state is encoded by the enable checkbox border
+             float xEnable = 8, xIndex = xEnable + goalWidth, xName = xIndex + indexWidth;
+             bool compact = width < 1000;
+@@ -411,16 +451,6 @@
+             float xFolder = xHome + homeWidth, folderWidth = 43;
+             float xCheck = xFolder + folderWidth, checkWidth = _authorMode ? 43 : 0, xVersion = xCheck + checkWidth;
+             float xAuthor = xVersion + versionWidth, xDescription = xAuthor + authorWidth;
+-            var goalHeader = Label(_header, goalHeading, xEnable, 4, goalWidth, 30, 18); goalHeader.alignment = TextAlignmentOptions.Midline;
+-            AddHint(goalHeader.gameObject, enablementNote); Label(_header, "#", xIndex, 4, indexWidth, 30, 20);
+-            var settingsHeader = OverviewUi.IconButton(_header, "gear", () => _openSettings?.Invoke(null), 30, 32); OverviewUi.Place((RectTransform)settingsHeader.transform, xSettings + 2, 2, 30, 32); AddHint(settingsHeader.gameObject, T("Mod settings column. Click to open the general mod settings page.", "模组设置列，点击跳转到模组总设置页"));
+-            var homeHeader = OverviewUi.IconButton(_header, "home", OpenEnhanceHomepage, 30, 32); Tint(homeHeader, OverviewUi.Ivory); OverviewUi.Place((RectTransform)homeHeader.transform, xHome + (homeWidth - 9 - 30) / 2, 2, 30, 32); AddHint(homeHeader.gameObject, T("Mod homepage column. Click to open the Enhance homepage.", "模组主页列，点击跳转到Enhance主页")); Label(_header, T("Name", "名称"), xName, 4, nameWidth, 30, 21);
+-            var folderHeader = OverviewUi.IconButton(_header, "folder", () => OpenFolder(BepInEx.Paths.PluginPath), 30, 32); Tint(folderHeader, OverviewUi.Ivory); OverviewUi.Place((RectTransform)folderHeader.transform, xFolder + (folderWidth - 9 - 30) / 2, 2, 30, 32); AddHint(folderHeader.gameObject, T("Mod folder column. Click to open the plugins folder.", "模组文件夹列，点击打开 plugins 文件夹"));
+-            if (_authorMode) BuildUpdateHeader(_header, xCheck, checkWidth);
+-            Label(_header, T("Version", "版本"), xVersion, 4, versionWidth, 30, 21);
+-            if (!compact) { Label(_header, T("Author", "作者"), xAuthor, 4, authorWidth, 30, 21); Label(_header, T("Description", "说明"), xDescription, 4, Mathf.Max(50, width - xDescription - 20), 30, 21); }
+-            float[] edges = (_authorMode ? new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xCheck, xVersion, xAuthor, xDescription, width - 15 } : new[] { xEnable, xIndex, xName, xState, xSettings, xHome, xFolder, xVersion, xAuthor, xDescription, width - 15 }).Distinct().ToArray();
+-            for (int c = 0; c < edges.Length - 1; c++) { var line = OverviewUi.Panel("ColumnLine", _header, new Color(.77f, .76f, .66f, .8f)); line.GetComponent<Image>().raycastTarget = false; OverviewUi.Place(line, edges[c], 37, Mathf.Max(2, edges[c + 1] - edges[c] - 9), 1.5f); }
+             float y = BuildInfrastructure(0, width, xEnable, goalWidth, xName, nameWidth, xSettings, xHome, xFolder, xVersion, versionWidth, xAuthor, authorWidth, xDescription, compact); string? currentGroup = null; int index = 0;
+             foreach (OverviewMod mod in layoutRows)
+             {

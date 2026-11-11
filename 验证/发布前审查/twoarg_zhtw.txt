@@ -1,0 +1,11 @@
+two-arg calls: 791; zh-tw rescued by catalogue: 713; shows Simplified in zh-tw: 78
+  OverviewPage.Profiles.cs: 20   e.g. 105: 保存配置与模组变更
+  OverviewListView.Groups.cs: 19   e.g. 100: 新建子分组
+  OverviewGroupEditor.cs: 11   e.g. 157: 上级分组
+  OverviewPage.Management.cs: 7   e.g. 210: 未保存的模组变更
+  OverviewTagFilter.cs: 7   e.g. 40: 模组筛选
+  OverviewListView.cs: 5   e.g. 563: 外层模组已停用：
+  OverviewHotkeyView.cs: 4   e.g. 133: 保存快捷键
+  OverviewConfigView.cs: 2   e.g. 92: 保存参数
+  OverviewPage.SourceTools.cs: 2   e.g. 74: 所有小角标标记为已读
+  LogWindow.cs: 1   e.g. 198: 日志等级

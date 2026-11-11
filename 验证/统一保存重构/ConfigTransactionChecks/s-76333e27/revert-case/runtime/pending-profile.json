@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "profileId": "p",
+  "session": "aac4879fe20541cba24da0857c29b98a",
+  "pending": false,
+  "config": {
+    "schemaVersion": 1,
+    "capturedUtc": "0001-01-01T00:00:00",
+    "values": [],
+    "files": []
+  },
+  "restartParameters": [],
+  "restartMods": [
+    {
+      "guid": "test.mod",
+      "enabled": true,
+      "wasEnabled": false
+    }
+  ],
+  "appliedIntroductionHash": "\n<missing>\n<missing>"
+}

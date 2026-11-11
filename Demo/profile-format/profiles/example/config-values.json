@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "values": [
+    { "pluginGuid": "example.plugin.guid", "configFile": "example.plugin.guid.cfg", "section": "General", "key": "Count", "type": "System.Int32", "serializedValue": "7" },
+    { "pluginGuid": "example.plugin.guid", "configFile": "example.plugin.guid.cfg", "section": "Controls", "key": "Toggle", "type": "BepInEx.Configuration.KeyboardShortcut", "serializedValue": "F6" }
+  ],
+  "files": []
+}

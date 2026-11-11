@@ -1,0 +1,5 @@
+folder-core | 0基础模组 | 对应 plugins 的 0核心&基础模组 文件夹中的常用功能与本地修复；框架和翻译基础组件已另列依赖模组。
+folder-extension | 1拓展模组 | 对应 plugins 的 1拓展模组 文件夹。
+folder-extra | 2额外模组 | 对应 plugins 的 2额外模组 文件夹。
+folder-gameplay | 3玩法模组 | 对应 plugins 的 3玩法类模组 文件夹；大多数需要全员安装相同版本。
+folder-dependencies | 依赖模组 | 供其他模组使用的框架、功能库及翻译基础组件。XUnity AutoTranslator 是翻译工具，与其基础组件一起归入此组。

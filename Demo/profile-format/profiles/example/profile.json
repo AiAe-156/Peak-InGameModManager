@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "example",
+  "name": "示例方案",
+  "kind": "Author",
+  "readOnly": true,
+  "state": {
+    "pack": { "id": "example", "name": "示例整合包", "version": "1.0.0", "author": "示例作者", "introEnabled": false, "introFile": "", "introDocument": "" },
+    "groups": [{ "id": "qol", "name": "生活质量", "color": "#7CC7E6", "description": "示例分组", "order": 0 }],
+    "mods": [{ "id": "example.plugin.guid", "groupId": "qol", "order": 0 }],
+    "profileHotkeysMigrated": true
+  },
+  "mods": [{ "id": "example.plugin.guid", "guid": "example.plugin.guid", "name": "示例模组", "version": "1.0.0", "enabled": true, "installed": true }]
+}

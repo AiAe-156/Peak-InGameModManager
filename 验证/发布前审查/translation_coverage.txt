@@ -1,0 +1,36 @@
+catalogue terms: 2166
+three-arg T/F call sites: 1489  not in catalogue: 329
+two-arg T(en,zh) call sites: 791
+hard-coded Chinese UI lines (no T/F): 48
+zh-tw identical to zh-cn and contains simplified-only chars: 0
+worker language file present: True  desktop lines with Chinese: 29
+
+== not in catalogue, by area (count, 3 samples)
+Overview: 329
+    src\Overview\ComponentDetailsView.cs:100  Uninstall a component MCE runs on
+    src\Overview\ComponentDetailsView.cs:115  Display name for
+    src\Overview\ComponentDetailsView.cs:116  Display name (blank uses the package name)
+
+== two-arg, by area
+Overview: 791
+    src\Overview\LogWindow.cs:91  Runtime logs
+    src\Overview\LogWindow.cs:92  Game log
+
+== hard-coded Chinese (first 15)
+    src\Plugin.cs:108  $" / 工具行: {(HideLocalizationButtons.Value ? "仅语言行" : (XUnityBridge.Installed ? "全开（含 XUnity 联动）" : "全开（无 XUnit
+    src\Diagnostics\LogExport.cs:80  internal static bool Sensitive(string name) => System.Text.RegularExpressions.Regex.IsMatch(name, @"password|p
+    src\Overview\LogWindow.cs:99  _levelButton = Btn("日志等级：全部", PickLevel, w - 536, 100, 160, UiActionRole.Edit);
+    src\Overview\LogWindow.cs:101  _modButton = Btn("模组：全部", PickMod, w - 366, 100, 180, UiActionRole.Edit);
+    src\Overview\LogWindow.cs:338  _pauseButton.GetComponentInChildren<TextMeshProUGUI>().text = _paused ? "继续刷新" : "暂停刷新";
+    src\Overview\LogWindow.cs:339  _followButton.GetComponentInChildren<TextMeshProUGUI>().text = _follow ? "跟随：开" : "跟随：关";
+    src\Overview\LogWindow.cs:344  _activity.text = "新增 " + _addedTotal + " 条 · " + _rate.ToString("0.0") + " 条/秒" + (_repeat > 1 ? " · 连续重复 ×" +
+    src\Overview\LogWindow.cs:350  _levelButton.GetComponentInChildren<TextMeshProUGUI>().text = "日志等级：" + level;
+    src\Overview\LogWindow.cs:352  _modButton.GetComponentInChildren<TextMeshProUGUI>().text = "模组：" + (_modFilter.Length == 0 ? "全部" : _modFilte
+    src\Overview\LogWindow.cs:353  _status.text = (_error.Length > 0 ? _error + "\n" : "") + (_readError.Length > 0 ? _readError + "\n" : "") + (
+    src\Overview\OverviewPage.Packs.cs:83  form.Text("空间管理与整合包回收区", true);
+    src\Overview\OverviewPage.Packs.cs:84  form.Text("展开项目查看文件；删除按项目整体处理，执行前重新核对范围。受保护项目不提供删除操作。");
+    src\Overview\OverviewPage.Packs.cs:85  if (busy) form.Text("整合包任务进行中，删除操作暂不可用。");
+    src\Overview\OverviewPage.Packs.cs:86  if (_storageLoading == null || !_storageLoading.IsCompleted) form.Text("正在后台读取文件树……");
+    src\Overview\OverviewPage.Packs.cs:87  else if (_storageLoading.IsFaulted) { form.Text("读取失败：" + _storageLoading.Exception?.GetBaseException().Messag
+
+== zh-tw copied from zh-cn (first 10)

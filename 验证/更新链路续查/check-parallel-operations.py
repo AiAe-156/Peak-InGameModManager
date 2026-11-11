@@ -1,0 +1,7 @@
+from pathlib import Path
+r=Path(__file__).resolve().parents[1].parent
+def read(p):return(r/p).read_text(encoding='utf-8-sig')
+w=read('Updater/WorkerParallelOperations.cs');q=read('src/Overview/OverviewUpdateQueue.cs');c=read('Updater/ShopCoreBatch.cs');u=read('src/Overview/UninstallDialog.cs')
+checks=[('bounded parallel operations','SemaphoreSlim operationSlots = new(4)' in w and 'Task.WhenAll' in w),('separate persistent operation requests','Path.Combine(OperationsHome,item.Id,"request.json")' in w),('failure isolated','Path.Combine(directory,"error.json")' in w),('core migration prerequisite removed','Core operations require a validated' not in c),('install and uninstall not staged','ResourceOperationDraft.Stage(new UpdateCommand { Action = "shop"' not in q),('local import not staged','ResourceOperationDraft.Stage(new UpdateCommand { Action = "local-import"' not in q),('uninstall exact impact in same dialog','operation-ignore' in u and '_dependencyConsent' not in u),('parallel file copies journalled first','p.Placed=t.Desired.Select' in read('Updater/ShopQueue.cs') and 'Parallel.ForEach(t.Desired' in read('Updater/ShopQueue.cs')),('operation recovery indexed','RecoverIndependentOnly' in read('Updater/WorkerRecovery.cs')),('no failed-history click detour','if (HasRetriableForPackage(mod.PackageRoot))' not in q)]
+for name,ok in checks:assert ok,name
+print(f'PASS {len(checks)} independent operation wiring checks')

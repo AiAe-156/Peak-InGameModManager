@@ -1,0 +1,4 @@
+C:\Program Files\dotnet\sdk\10.0.401\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: 未能解析此引用。未能找到程序集“YamlDotNet”。请检查磁盘上是否存在该程序集。 如果您的代码需要此引用，则可能出现编译错误。 [F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\DisabledDllChecks\Checks.csproj]
+C:\Program Files\dotnet\sdk\10.0.401\Microsoft.Common.CurrentVersion.targets(5455,5): error MSB3030: 无法复制文件“F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\bin\Debug\netstandard2.1\ModConfigEnhance.dll”，原因是找不到该文件。 [F:\Games\SteamLibrary\steamapps\common\PEAK\MODs\ModConfigEnhance\验证\DisabledDllChecks\Checks.csproj]
+
+生成失败。请修复生成错误并重新运行。

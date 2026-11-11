@@ -1,0 +1,5 @@
+using System;using System.Collections.Generic;using BepInEx.Configuration;
+namespace PEAKLib.ModConfig{public interface IBepInExProperty{ConfigEntryBase ConfigBase{get;}void RefreshValueFromConfig();}}
+namespace Zorro.Settings{public class Setting{public virtual void ApplyValue(){}public virtual void OnSettingChangedExternal(){}public virtual void OnSettingChanged(){}}public sealed class SettingsHandler{public static SettingsHandler Instance=new();public List<Setting> Settings=new();public IEnumerable<Setting> GetAllSettings()=>Settings;public void SaveSetting(Setting s){}}}
+namespace ModConfigEnhance.Overview{internal static class NativeConfigurationDraft{internal sealed class CommitScope:IDisposable{public void Dispose(){}}}}
+internal sealed class FakeRoundSetting:Zorro.Settings.Setting,PEAKLib.ModConfig.IBepInExProperty{public ConfigEntryBase ConfigBase{get;}internal int Applied;internal bool Fail;internal FakeRoundSetting(ConfigEntryBase e){ConfigBase=e;}public void RefreshValueFromConfig(){}public override void ApplyValue(){if(Fail)throw new System.IO.IOException("bridge callback fault");Applied++;}}

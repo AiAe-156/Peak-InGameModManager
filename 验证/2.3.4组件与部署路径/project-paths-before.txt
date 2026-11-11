@@ -1,0 +1,102 @@
+== BetterPing\BetterPing.csproj
+     15 core other  core
+     16 ok   other  plugins
+     18 MISS deploy plugins\0核心&基础模组\[功能]更好的中键标记-BetterPing
+== Better_MicIndicator\Better_MicIndicator.csproj
+     33 core ref    core\0Harmony.dll
+     36 core ref    core\BepInEx.dll
+     39 core ref    core\BepInEx.Harmony.dll
+     45 MISS deploy plugins\0核心&基础模组\[功能]更好的麦克风指示器(Better_MicIndicator)
+== ClearQuit\ClearQuit.csproj
+     58 ok   other  plugins
+== LocalFix\LocalFix.csproj
+     16 core other  core
+     17 ok   other  plugins
+     19 MISS deploy plugins\0核心&基础模组\[机制]综合本地修复-LocalFix
+== LocalMultiplayerPeak162Fix\LocalMultiplayerPeak162Fix.csproj
+     12 core other  core
+     13 ok   other  plugins
+     14 MISS other  plugins\LocalMultiplayerPeak162Fix
+== MicEnhance\MicEnhance.csproj
+     14 core other  core
+     15 ok   other  plugins
+     16 MISS deploy plugins\0核心&基础模组\[功能]麦克风增强-MicEnhance
+== ModConfigEnhance\ModConfigEnhance.csproj
+     25 core other  core
+     26 ok   other  plugins
+     28 ok   deploy plugins\0基础模组\ModManager_InGame_2.0.0_20261029_215224
+     42 MISS other  plugins\ 现用整合包扁平布局 → BepInEx3 扁平布局 → BepInEx 分区布局。 -->
+     44 ok   ref    plugins\依赖模组\[依赖]PEAKLib核心-PEAKLib_Core\plugins\com.github.PEAKModding.PEAKLib.Core.dll
+     48 ok   ref    plugins\依赖模组\[依赖]PEAKLib界面-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll
+     52 ok   ref    plugins\0基础模组\[功能]游戏内更改mod配置-ModConfig-1.8.2\com.github.PEAKModding.PEAKLib.ModConfig.dll
+== ModConfigEnhance\Updater\MCE.UpdateWorker.csproj
+     49 core ref    core\Mono.Cecil.dll
+== PEAKERRpcInfoNativeSkip\PEAKERRpcInfoNativeSkip.csproj
+     14 core other  core
+     16 core deploy patchers\PEAKERRpcInfoNativeSkip
+== PeakSpectatorMode\PeakSpectatorMode.csproj
+     14 core other  core
+     17 ok   other  plugins\2额外模组\[功能]更好的观战视角-PeakSpectatorMode
+     47 ok   other  plugins
+== PeakVoiceFixFix\PeakVoiceFix\BetterPeakVoiceFix.csproj
+      8 MISS deploy plugins\0核心&基础模组\[优化]更好的语音修复CN-1.1.6
+     29 core ref    core\0Harmony.dll
+     35 core ref    core\BepInEx.dll
+     38 core ref    core\BepInEx.Harmony.dll
+== RecentlyPlayedWith\RecentlyPlayedWith.csproj
+     16 core other  core
+     17 MISS deploy plugins\0核心&基础模组\[功能]最近遇到的玩家-RecentlyPlayedWith-1.0.1
+== TerrainCustomiserFix\TerrainCustomiserFix.csproj
+     12 core other  core
+     13 ok   other  plugins
+     17 ok   deploy 3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser
+== UBImGuiPerf\UBImGuiPerf.csproj
+     16 core ref    core\BepInEx.dll
+     17 core ref    core\0Harmony.dll
+== ZombieTweaks\ZombieTweaks.csproj
+     16 core other  core
+     17 ok   other  plugins
+     19 MISS deploy plugins\1拓展模组\[机制]僵尸调整-ZombieTweaks
+== 显示玩家距离\更好的显示玩家距离2\更好的显示距离2.csproj
+     19 core ref    core\BepInEx.dll
+     23 core ref    core\0Harmony.dll
+    105 ok   other  plugins\1拓展模组\[信息]更好的显示玩家距离-1.1.5
+== 汉化\BetterReviveTeleport\PeakLateJoinButItActuallyWorks.csproj
+     18 ok   other  .
+     27 MISS deploy plugins\0核心&基础模组\[机制]更好的手动复活&传送
+== 汉化\CheckpointSave_ZH\CheckpointSave_ZH.csproj
+     19 MISS other  plugins\[机制]检查点存档模组-Checkpoint_Save-0.4.6\plugins
+     68 ok   other  plugins
+     70 ok   other  plugins
+     70 ok   other  plugins
+     71 ok   other  plugins
+     72 ok   other  plugins
+== 汉化\FlagSurvival_ZH\FlagSurvival_ZH.csproj
+     18 core ref    core\0Harmony.dll
+     22 core ref    core\BepInEx.dll
+     26 core ref    core\BepInEx.Harmony.dll
+     57 MISS deploy plugins\FlagSurvival_ZH
+== 汉化\ItemStats_src\src\ItemStats\ItemStats.csproj
+     17 core ref    core\BepInEx.dll
+     21 core ref    core\0Harmony.dll
+== 汉化\PeakSaveManager_ZH\PeakSaveManager_ZH.csproj
+     69 MISS other  plugins\PeakSaveManager_ZH
+     70 MISS other  plugins\PeakSaveManager_ZH
+== 汉化\PlantholderOverhaul_ZH\PlantholderOverhaul_ZH.csproj
+     59 MISS deploy plugins\2额外模组\[装饰]迷你景观台-汉化-PlantholderOverhaul-0.1.4\PlantholderOverhaul_ZH
+== 汉化\SoFly_ZH\SoFly_ZH.csproj
+     22 MISS other  ..\..\PEAKBepInEx\core
+     43 MISS deploy ..\..\PEAKBepInEx\plugins\2额外模组\[作弊]飞行模组So_Fly-2.1.0\SoFly_ZH
+== 汉化\TerrainCustomiser_ZH\TerrainCustomiser_ZH.csproj
+     10 core other  core
+     11 ok   other  plugins
+     13 MISS deploy plugins\[机制]地形定制器-TerrainCustomiser\TerrainCustomiser_ZH
+== 汉化\TerrainRandomiser_ZH\TerrainRandomiser_ZH.csproj
+     52 MISS other  plugins\2额外模组\[机制]地形随机器-TerrainRandomiser\TerrainRandomiser.dll
+     58 MISS other  plugins\2额外模组\[机制]地形随机器-TerrainRandomiser\TerrainRandomiser_ZH
+     59 MISS other  plugins\2额外模组\[机制]地形随机器-TerrainRandomiser\TerrainRandomiser_ZH
+     60 MISS other  plugins\2额外模组\[机制]地形随机器-TerrainRandomiser\TerrainRandomiser_ZH
+== 随机地形增强\RandomTerrainEnhance.csproj
+     25 MISS deploy plugins\RandomTerrainEnhance
+     34 core ref    core\BepInEx.dll
+     35 core ref    core\0Harmony.dll

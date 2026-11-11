@@ -1,0 +1,13 @@
+/// <summary>A moved file keeps its path inside the package; only the package root changes.</summary>
+internal static class LayoutPaths
+{
+    /// <summary>Where a moved file was before the move. Only the file name used to be kept, so any file inside a
+    /// subfolder ("plugins/X.dll", as in most store packages) was looked up in the wrong place and the confirm failed.</summary>
+    internal static string OldPath(LayoutUnitChange unit, PackFile file)
+    {
+        string path = file.Path.Replace('\\', '/'), newRoot = unit.NewRoot.Replace('\\', '/').TrimEnd('/');
+        string inside = path.StartsWith(newRoot + "/", StringComparison.OrdinalIgnoreCase) ? path.Substring(newRoot.Length + 1) : System.IO.Path.GetFileName(path);
+        return unit.OldRoot.Replace('\\', '/').TrimEnd('/') + "/" + inside;
+    }
+}
+

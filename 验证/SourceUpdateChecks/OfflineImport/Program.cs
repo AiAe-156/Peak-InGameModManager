@@ -1,0 +1,19 @@
+using System.IO.Compression;
+using MCE.UpdateWorker;
+using ModConfigEnhance.Updating;
+using Mono.Cecil;
+using System.Text.Json.Nodes;
+string root=Path.Combine(AppContext.BaseDirectory,"runs",DateTime.Now.ToString("yyyyMMdd_HHmmss_fff"));Directory.CreateDirectory(root);int n=0;
+void Check(bool value,string name){if(!value)throw new Exception(name);Console.WriteLine("PASS "+name);n++;}
+string source=Path.Combine(root,"source");string payload=Path.Combine(source,"BepInEx/plugins/Feature");Directory.CreateDirectory(payload);
+using(var asm=AssemblyDefinition.CreateAssembly(new AssemblyNameDefinition("fixture",new Version(1,0,0)),"fixture",ModuleKind.Dll)){
+ var module=asm.MainModule;var type=new TypeDefinition("Fixture","Plugin",TypeAttributes.Public|TypeAttributes.Class,module.TypeSystem.Object);module.Types.Add(type);
+ var attr=new TypeReference("BepInEx","BepInPlugin",module,new AssemblyNameReference("BepInEx",new Version(5,4,0,0)));var ctor=new MethodReference(".ctor",module.TypeSystem.Void,attr){HasThis=true};foreach(int i in new[]{1,2,3})ctor.Parameters.Add(new ParameterDefinition(module.TypeSystem.String));var value=new CustomAttribute(ctor);foreach(string s in new[]{"fixture.feature","Feature","1.0.0"})value.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String,s));type.CustomAttributes.Add(value);asm.Write(Path.Combine(payload,"feature.dll"));
+}
+string author=Path.Combine(source,"BepInEx/plugins/Pack/MCEPack");Directory.CreateDirectory(author);File.WriteAllText(Path.Combine(author,"release.json"),"{\"packId\":\"offline.source\",\"name\":\"Offline\",\"version\":\"1.0.0\"}");
+string sources="{\"fixture.feature\":{\"kind\":1,\"ns\":\"Alice\",\"name\":\"Feature\",\"packageVersion\":\"1.0.0\",\"homepage\":\"https://github.com/Alice/Feature\",\"distribution\":\"embedded\"}}";File.WriteAllText(Path.Combine(author,"sources.json"),sources);
+File.WriteAllText(Path.Combine(author,"profile.json"),"{\"mods\":[{\"guid\":\"fixture.feature\",\"pluginVersion\":\"1.0.0\",\"packageNamespace\":\"Alice\",\"packageName\":\"Feature\",\"packageVersion\":\"1.0.0\"}]}");
+PackStorage Storage(string name){var p=Path.Combine(root,name,"BepInEx");Directory.CreateDirectory(Path.Combine(p,"plugins"));return new(p);}
+using var offline=new Offline();var storage=Storage("first");var first=await PackImports.Preview(storage,new(){Source=source},new(),offline);Check(first.Proposed.Problems.Count==0,"embedded store source imports offline");Check(first.PendingDownloads.Count==0&&offline.Requests==0,"retained store identity causes no download");PackImports.Commit(storage,first);var pack=storage.Read().Packs.Single();string content=storage.Content(pack);string recordPath=Directory.GetFiles(content,"sources.json",SearchOption.AllDirectories).Single();Check(File.ReadAllText(recordPath)==sources,"source identity homepage version preserved in inventory");
+string zip=Path.Combine(root,"roundtrip.zip");ZipFile.CreateFromDirectory(content,zip);var target=Storage("second");var second=await PackImports.Preview(target,new(){Source=zip},new(),offline);Check(second.Proposed.Problems.Count==0&&second.PendingDownloads.Count==0,"inventory ZIP roundtrip imports offline");PackImports.Commit(target,second);var restored=target.Content(target.Read().Packs.Single());Check(File.ReadAllText(Directory.GetFiles(restored,"sources.json",SearchOption.AllDirectories).Single())==sources,"roundtrip source bytes unchanged");Check(offline.Requests==0,"both production imports performed zero HTTP requests");Console.WriteLine($"TOTAL {n} production offline checks passed");
+sealed class Offline:HttpMessageHandler {public int Requests;protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r,CancellationToken t){Requests++;throw new IOException("offline fixture forbids network");}}

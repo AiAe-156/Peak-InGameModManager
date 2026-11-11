@@ -1,0 +1,1074 @@
+[
+  {
+    "Name": "MonoDetour_BepInEx_5",
+    "Team": "MonoDetour",
+    "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+    "Icon": "https://ccdn.thunderstore.io/live/repository/icons/MonoDetour-MonoDetour_BepInEx_5-0.7.1701.png",
+    "Version": "0.7.1701",
+    "Homepage": "https://github.com/MonoDetour/MonoDetour",
+    "Url": "https://thunderstore.io/c/peak/p/MonoDetour/MonoDetour_BepInEx_5/",
+    "Deprecated": false,
+    "Nsfw": false,
+    "CategoriesKnown": true,
+    "Downloads": 6455177,
+    "Updated": "2026-10-29T04:14:35",
+    "Categories": [
+      "Libraries"
+    ],
+    "Versions": [
+      {
+        "Version": "0.7.1701",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.1701/",
+        "Bytes": 44914,
+        "Date": "2026-10-29T04:14:34",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.1701"
+        ]
+      },
+      {
+        "Version": "0.7.17",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.17/",
+        "Bytes": 44463,
+        "Date": "2026-10-26T03:35:31",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.17"
+        ]
+      },
+      {
+        "Version": "0.7.16",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.16/",
+        "Bytes": 44409,
+        "Date": "2026-09-10T05:16:25",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.16"
+        ]
+      },
+      {
+        "Version": "0.7.15",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.15/",
+        "Bytes": 44698,
+        "Date": "2026-06-20T12:40:10",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.15"
+        ]
+      },
+      {
+        "Version": "0.7.14",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.14/",
+        "Bytes": 44700,
+        "Date": "2026-06-06T15:56:19",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.14"
+        ]
+      },
+      {
+        "Version": "0.7.13",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.13/",
+        "Bytes": 44450,
+        "Date": "2026-03-02T19:56:57",
+        "Dependencies": [
+          "MonoDetour-MonoDetour-0.7.13"
+        ]
+      },
+      {
+        "Version": "0.7.12",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.12/",
+        "Bytes": 44487,
+        "Date": "2026-02-06T16:26:26",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.12"
+        ]
+      },
+      {
+        "Version": "0.7.10",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.10/",
+        "Bytes": 44479,
+        "Date": "2026-01-16T04:04:20",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.10"
+        ]
+      },
+      {
+        "Version": "0.7.9",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.9/",
+        "Bytes": 43994,
+        "Date": "2025-12-18T03:40:21",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.9"
+        ]
+      },
+      {
+        "Version": "0.7.8",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.8/",
+        "Bytes": 43706,
+        "Date": "2025-12-12T06:20:16",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.8"
+        ]
+      },
+      {
+        "Version": "0.7.7",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.7/",
+        "Bytes": 43719,
+        "Date": "2025-12-05T23:47:38",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.7"
+        ]
+      },
+      {
+        "Version": "0.7.6",
+        "Description": "HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes MonoDetour early as a side effect.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.6/",
+        "Bytes": 42315,
+        "Date": "2025-12-05T11:59:06",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.6"
+        ]
+      },
+      {
+        "Version": "0.7.5",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.5/",
+        "Bytes": 42432,
+        "Date": "2025-11-03T08:01:59",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.5"
+        ]
+      },
+      {
+        "Version": "0.7.4",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.4/",
+        "Bytes": 42447,
+        "Date": "2025-10-22T19:24:24",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.4"
+        ]
+      },
+      {
+        "Version": "0.7.3",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.3/",
+        "Bytes": 42405,
+        "Date": "2025-10-20T03:40:42",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.3"
+        ]
+      },
+      {
+        "Version": "0.7.2",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.2/",
+        "Bytes": 42419,
+        "Date": "2025-10-18T05:52:02",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.2"
+        ]
+      },
+      {
+        "Version": "0.7.1",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.1/",
+        "Bytes": 19902,
+        "Date": "2025-10-18T05:42:26",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.1"
+        ]
+      },
+      {
+        "Version": "0.7.0",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.7.0/",
+        "Bytes": 19811,
+        "Date": "2025-10-11T02:22:23",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.7.0"
+        ]
+      },
+      {
+        "Version": "0.6.20",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.20/",
+        "Bytes": 19833,
+        "Date": "2025-10-08T07:11:18",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.20"
+        ]
+      },
+      {
+        "Version": "0.6.19",
+        "Description": "Integrates MonoDetour's logger with BepInEx 5 and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.19/",
+        "Bytes": 19832,
+        "Date": "2025-10-08T07:05:26",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.19"
+        ]
+      },
+      {
+        "Version": "0.6.18",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.18/",
+        "Bytes": 19805,
+        "Date": "2025-10-03T09:18:55",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.18"
+        ]
+      },
+      {
+        "Version": "0.6.16",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.16/",
+        "Bytes": 19827,
+        "Date": "2025-09-11T11:23:00",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.16"
+        ]
+      },
+      {
+        "Version": "0.6.15",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.15/",
+        "Bytes": 19823,
+        "Date": "2025-09-08T08:39:50",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.15"
+        ]
+      },
+      {
+        "Version": "0.6.14",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.14/",
+        "Bytes": 19818,
+        "Date": "2025-07-25T13:21:51",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.14"
+        ]
+      },
+      {
+        "Version": "0.6.13",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.13/",
+        "Bytes": 19836,
+        "Date": "2025-07-22T04:06:24",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.13"
+        ]
+      },
+      {
+        "Version": "0.6.11",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.11/",
+        "Bytes": 19828,
+        "Date": "2025-07-08T19:20:26",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.11"
+        ]
+      },
+      {
+        "Version": "0.6.9",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.9/",
+        "Bytes": 19813,
+        "Date": "2025-06-28T07:21:19",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.9"
+        ]
+      },
+      {
+        "Version": "0.6.7",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.7/",
+        "Bytes": 19819,
+        "Date": "2025-06-23T21:39:48",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.7"
+        ]
+      },
+      {
+        "Version": "0.6.6",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.6/",
+        "Bytes": 19812,
+        "Date": "2025-06-20T01:12:12",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.6"
+        ]
+      },
+      {
+        "Version": "0.6.5",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.5/",
+        "Bytes": 19810,
+        "Date": "2025-06-14T13:40:45",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.5"
+        ]
+      },
+      {
+        "Version": "0.6.4",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.4/",
+        "Bytes": 43678,
+        "Date": "2025-06-13T15:52:26",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.4"
+        ]
+      },
+      {
+        "Version": "0.6.3",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.3/",
+        "Bytes": 43663,
+        "Date": "2025-06-11T08:40:43",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.3"
+        ]
+      },
+      {
+        "Version": "0.6.2",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.2/",
+        "Bytes": 43669,
+        "Date": "2025-06-10T08:24:59",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.0"
+        ]
+      },
+      {
+        "Version": "0.6.1",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.1/",
+        "Bytes": 43671,
+        "Date": "2025-06-08T10:59:43",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.0"
+        ]
+      },
+      {
+        "Version": "0.6.0",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.6.0/",
+        "Bytes": 43672,
+        "Date": "2025-06-06T17:12:06",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.6.0"
+        ]
+      },
+      {
+        "Version": "0.5.4",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.5.4/",
+        "Bytes": 47419,
+        "Date": "2025-06-06T10:56:21",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.5.3"
+        ]
+      },
+      {
+        "Version": "0.5.3",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.5.3/",
+        "Bytes": 47433,
+        "Date": "2025-06-05T06:47:48",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.5.3"
+        ]
+      },
+      {
+        "Version": "0.5.2",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.5.2/",
+        "Bytes": 47402,
+        "Date": "2025-06-05T05:09:05",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.5.2"
+        ]
+      },
+      {
+        "Version": "0.5.1",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.5.1/",
+        "Bytes": 47434,
+        "Date": "2025-06-04T19:40:58",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.5.0"
+        ]
+      },
+      {
+        "Version": "0.5.0",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.5.0/",
+        "Bytes": 47428,
+        "Date": "2025-06-04T13:13:34",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.5.0"
+        ]
+      },
+      {
+        "Version": "0.4.7",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.4.7/",
+        "Bytes": 47442,
+        "Date": "2025-06-04T12:13:40",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.4.7"
+        ]
+      },
+      {
+        "Version": "0.4.6",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.4.6/",
+        "Bytes": 47444,
+        "Date": "2025-06-03T09:42:27",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.4.3"
+        ]
+      },
+      {
+        "Version": "0.4.5",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.4.5/",
+        "Bytes": 47426,
+        "Date": "2025-06-02T05:12:25",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.4.3"
+        ]
+      },
+      {
+        "Version": "0.4.4",
+        "Description": "Integrates MonoDetour's logger with BepInEx and as a side effect initializes MonoDetour early. MonoDetour is an easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour_BepInEx_5/0.4.4/",
+        "Bytes": 47418,
+        "Date": "2025-06-01T10:23:57",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100",
+          "MonoDetour-MonoDetour-0.4.3"
+        ]
+      }
+    ],
+    "Key": "MonoDetour-MonoDetour_BepInEx_5"
+  },
+  {
+    "Name": "MonoDetour",
+    "Team": "MonoDetour",
+    "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+    "Icon": "https://ccdn.thunderstore.io/live/repository/icons/MonoDetour-MonoDetour-0.7.1701.png",
+    "Version": "0.7.1701",
+    "Homepage": "https://github.com/MonoDetour/MonoDetour",
+    "Url": "https://thunderstore.io/c/peak/p/MonoDetour/MonoDetour/",
+    "Deprecated": false,
+    "Nsfw": false,
+    "CategoriesKnown": true,
+    "Downloads": 6466519,
+    "Updated": "2026-10-29T04:14:28",
+    "Categories": [
+      "Libraries"
+    ],
+    "Versions": [
+      {
+        "Version": "0.7.1701",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.1701/",
+        "Bytes": 140891,
+        "Date": "2026-10-29T04:14:27",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.17",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.17/",
+        "Bytes": 140406,
+        "Date": "2026-10-26T03:35:24",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.16",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.16/",
+        "Bytes": 140385,
+        "Date": "2026-09-10T05:16:18",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.15",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.15/",
+        "Bytes": 139361,
+        "Date": "2026-06-20T12:40:03",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.14",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.14/",
+        "Bytes": 138305,
+        "Date": "2026-06-06T15:56:12",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.13",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.13/",
+        "Bytes": 136460,
+        "Date": "2026-03-02T19:56:48",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.12",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.12/",
+        "Bytes": 135774,
+        "Date": "2026-02-06T16:26:18",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.10",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.10/",
+        "Bytes": 135938,
+        "Date": "2026-01-16T04:04:14",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.9",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.9/",
+        "Bytes": 135379,
+        "Date": "2025-12-18T03:40:13",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.8",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.8/",
+        "Bytes": 132167,
+        "Date": "2025-12-12T06:20:07",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.7",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.7/",
+        "Bytes": 130519,
+        "Date": "2025-12-05T23:47:27",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.6",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.6/",
+        "Bytes": 129943,
+        "Date": "2025-12-05T11:58:59",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.5",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.5/",
+        "Bytes": 135477,
+        "Date": "2025-11-03T08:01:49",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.4",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.4/",
+        "Bytes": 136262,
+        "Date": "2025-10-22T19:24:17",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.3",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.3/",
+        "Bytes": 136217,
+        "Date": "2025-10-20T03:40:30",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.2",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.2/",
+        "Bytes": 130063,
+        "Date": "2025-10-18T05:51:52",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.1",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.1/",
+        "Bytes": 130042,
+        "Date": "2025-10-18T05:42:18",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.7.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.7.0/",
+        "Bytes": 129612,
+        "Date": "2025-10-11T02:22:16",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.6.20",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.20/",
+        "Bytes": 129317,
+        "Date": "2025-10-08T07:11:11",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.6.19",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.19/",
+        "Bytes": 129304,
+        "Date": "2025-10-08T07:05:19",
+        "Dependencies": []
+      },
+      {
+        "Version": "0.6.18",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.18/",
+        "Bytes": 129311,
+        "Date": "2025-10-03T09:18:49",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.16",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.16/",
+        "Bytes": 128455,
+        "Date": "2025-09-11T11:22:53",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.15",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.15/",
+        "Bytes": 128187,
+        "Date": "2025-09-08T08:39:43",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.14",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.14/",
+        "Bytes": 116761,
+        "Date": "2025-07-25T13:21:45",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.13",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.13/",
+        "Bytes": 116493,
+        "Date": "2025-07-22T04:06:17",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.11",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.11/",
+        "Bytes": 116481,
+        "Date": "2025-07-08T19:20:20",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.9",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.9/",
+        "Bytes": 116412,
+        "Date": "2025-06-28T07:21:13",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.7",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.7/",
+        "Bytes": 116462,
+        "Date": "2025-06-23T21:39:41",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.6",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.6/",
+        "Bytes": 116462,
+        "Date": "2025-06-20T01:12:04",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.5",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.5/",
+        "Bytes": 116446,
+        "Date": "2025-06-14T13:40:39",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.4",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.4/",
+        "Bytes": 144942,
+        "Date": "2025-06-13T15:52:19",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.3",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.3/",
+        "Bytes": 143178,
+        "Date": "2025-06-11T08:40:37",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.2",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.2/",
+        "Bytes": 142880,
+        "Date": "2025-06-10T08:24:52",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.1",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.1/",
+        "Bytes": 142611,
+        "Date": "2025-06-08T10:59:36",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.6.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.6.0/",
+        "Bytes": 142270,
+        "Date": "2025-06-06T17:12:00",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.5.4",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.5.4/",
+        "Bytes": 142402,
+        "Date": "2025-06-06T10:56:14",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.5.3",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.5.3/",
+        "Bytes": 143180,
+        "Date": "2025-06-05T06:47:41",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.5.2",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.5.2/",
+        "Bytes": 143278,
+        "Date": "2025-06-05T05:08:59",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.5.1",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.5.1/",
+        "Bytes": 142756,
+        "Date": "2025-06-04T19:40:51",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.5.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.5.0/",
+        "Bytes": 142310,
+        "Date": "2025-06-04T13:13:28",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.7",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.7/",
+        "Bytes": 142326,
+        "Date": "2025-06-04T12:13:34",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.6",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.6/",
+        "Bytes": 142285,
+        "Date": "2025-06-03T09:42:20",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.5",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.5/",
+        "Bytes": 140053,
+        "Date": "2025-06-02T05:12:17",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.4",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.4/",
+        "Bytes": 136581,
+        "Date": "2025-06-01T10:23:50",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.3",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.3/",
+        "Bytes": 136604,
+        "Date": "2025-06-01T10:08:42",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.2",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.2/",
+        "Bytes": 136591,
+        "Date": "2025-05-30T19:02:49",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.4.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.4.0/",
+        "Bytes": 128287,
+        "Date": "2025-05-29T05:52:25",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.3.1",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.3.1/",
+        "Bytes": 128219,
+        "Date": "2025-05-28T09:09:08",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.3.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.3.0/",
+        "Bytes": 128222,
+        "Date": "2025-05-28T05:31:31",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      },
+      {
+        "Version": "0.2.0",
+        "Description": "Easy and convenient .NET detouring library, powered by MonoMod.RuntimeDetour.",
+        "Homepage": "https://github.com/MonoDetour/MonoDetour",
+        "Url": "https://thunderstore.io/package/download/MonoDetour/MonoDetour/0.2.0/",
+        "Bytes": 128968,
+        "Date": "2025-05-27T06:47:18",
+        "Dependencies": [
+          "BepInEx-BepInExPack-5.4.2100"
+        ]
+      }
+    ],
+    "Key": "MonoDetour-MonoDetour"
+  }
+]

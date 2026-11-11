@@ -1,0 +1,17 @@
+using ModConfigEnhance.Overview;
+int n=0;void Check(bool ok,string why){if(!ok)throw new Exception(why);n++;}
+InfrastructurePackages.Results=new[]{new InfrastructurePackages.Package{Key="Team-Lib",Name="Lib",Area="core",Path="core/Lib",Version="1.0.0",Latest="2.0.0"},new InfrastructurePackages.Package{Key="Team-Lib",Name="Lib",Area="patchers",Path="patchers/Lib",Version="1.5.0",Latest="2.0.0"},new InfrastructurePackages.Package{Key="Team-Other",Area="patchers",Path="patchers/Other",Version="3.0.0",Latest="2.0.0"}};
+var rows=InfrastructureOverviewModel.Create(InfrastructurePackages.Results);var lib=rows.Single(p=>p.Key=="Team-Lib");
+Check(rows.Count==2,"component locations are deduplicated by package");Check(lib.LocationCount==2,"both component locations retained");Check(lib.HasUpdate&&lib.LatestVersion=="2.0.0","latest newer than all installed versions");Check(rows.Count(p=>p.MatchesStatus("$update"))==1,"update filter count includes component once");Check(lib.MatchesStatus("$update"),"include update displays component");Check(!rows.Single(p=>p.Key=="Team-Other").MatchesStatus("$update"),"older latest is not update");Check(lib.MatchesStatus("$enabled")&&!lib.MatchesStatus("$disabled"),"installed component enabled status");Check(!lib.MatchesStatus("$duplicate"),"core and patcher locations are not duplicate mods");Check(!lib.MatchesStatus("Mods"),"unknown store category does not match arbitrary tag");InfrastructurePackages.Results[1].Version="2.0.0";
+var mixed=InfrastructureOverviewModel.Create(InfrastructurePackages.Results).First(p=>p.Key=="Team-Lib");Check(!mixed.HasUpdate,"no blanket update if one location already at target");
+Console.WriteLine($"PASS {n} production component update/filter checks");
+namespace ModConfigEnhance{internal static class Loc{internal static string T(string a,string b,string c)=>a;}}
+namespace ModConfigEnhance.Overview{
+internal static class InfrastructurePackages{internal sealed class Package{internal string Key="",Name="",Area="",Path="",Version="",Latest="",Author="",Description="";internal bool IdentityConfirmed=true,ManifestVerified=true;internal string[] Dependencies=Array.Empty<string>();}internal static Package[] Results=Array.Empty<Package>();}
+internal static class ThunderstoreUpdateService{internal static bool IsNewer(string a,string b)=>Version.TryParse(a,out var x)&&Version.TryParse(b,out var y)&&x>y;}
+internal static class ShopInstalled{internal static bool Key(string k)=>k.Contains('-');}
+internal static class OverviewTagSelection{internal const string Unknown="$unknown";}
+internal static class OverviewSearchText{internal static bool Matches(string q,params string[] v)=>true;}
+internal static class ResourceOperationDraft{internal static Command[] Snapshot()=>Array.Empty<Command>();internal sealed class Command{internal Target? Shop=null,Job=null;}internal sealed class Target{internal string Namespace="",Package="";}}
+}
+namespace ModConfigEnhance.Updating{internal class ComponentDependencyGraph{internal class Capability{internal bool Unknown,CanUninstall,CanUpdate;internal string Reason="";}internal class TreeEntry{internal string Id="",Evidence="";internal bool Cycle,Shared,Missing,Truncated;}internal Capability GetCapability(string k)=>new();internal IReadOnlyList<TreeEntry> ReverseTree(string k)=>Array.Empty<TreeEntry>();internal IReadOnlyList<TreeEntry> ReverseTree(string k,int d,int l)=>Array.Empty<TreeEntry>();}}

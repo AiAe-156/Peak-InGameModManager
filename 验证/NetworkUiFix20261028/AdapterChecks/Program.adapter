@@ -1,0 +1,44 @@
+using System.Reflection;
+using ModConfigEnhance.Overview;
+int count = 0;
+void Check(bool ok, string name) { if(!ok)throw new Exception(name); Console.WriteLine("PASS " + name); count++; }
+void Tick(NetworkUiSubmission view, string lifecycle = "Update") => typeof(NetworkUiSubmission).GetMethod(lifecycle, BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(view, null);
+var view = new NetworkUiSubmission();
+string initial = "system", draft = "direct", status = "";
+OverviewUpdateQueue.LastError = "OLD queue worker error";
+view.Submit(draft, "", s => status = s, () => initial = "direct");
+UnityEngine.Time.unscaledTime = 2; Tick(view);
+Check(view.Pending && initial != draft && !status.Contains("OLD"), "actual Unity adapter ignores existing LastError after 1 second");
+OverviewUpdateQueue.LastError = "UNRELATED new task error";
+UnityEngine.Time.unscaledTime = 20; Tick(view);
+Check(view.Pending && initial != draft && status.Contains("still waiting") && !status.Contains("UNRELATED"), "actual adapter keeps dirty draft and waits instead of attributing unrelated error");
+OverviewUpdateQueue.Snapshot.Revision = 1; OverviewUpdateQueue.Snapshot.Network.Mode = "direct";
+OverviewUpdateQueue.Processed = true; UnityEngine.Time.unscaledTime = 100; Tick(view);
+Check(!view.Pending && initial == draft && status.Contains("now active"), "actual adapter late confirmation updates initial/dirty signature callback");
+draft = "system";
+view.Submit(draft, "", s => status = s, () => initial = "system");
+view.Submit("custom", "http://proxy:1", s => status = s, () => initial = "custom");
+OverviewUpdateQueue.Processed = true; OverviewUpdateQueue.Snapshot.Revision = 2; OverviewUpdateQueue.Snapshot.Network.Mode = "system"; Tick(view);
+Check(initial == "direct" && view.Pending, "actual adapter newer submission is not overwritten by older target");
+OverviewUpdateQueue.Snapshot.Revision = 3; OverviewUpdateQueue.Snapshot.Network.Mode = "custom"; OverviewUpdateQueue.Snapshot.Network.ProxyAddress = "http://proxy:1"; Tick(view);
+Check(initial == "custom" && !view.Pending, "actual adapter latest submission owns applied callback");
+view.Submit("direct", "", s => status = s, () => initial = "destroyed callback");
+Tick(view, "OnDisable"); Tick(view, "OnDestroy"); string before = status;
+OverviewUpdateQueue.Snapshot.Revision = 4; OverviewUpdateQueue.Snapshot.Network.Mode = "direct"; Tick(view);
+Check(initial == "custom" && status == before && !view.Pending, "actual lifecycle disable/destroy safely releases callbacks");
+Console.WriteLine($"PASSED {count}: directly linked production NetworkUiSubmission + NetworkSubmissionState; Unity clock/queue are isolated stubs.");
+namespace UnityEngine { public class MonoBehaviour {} public static class Time { public static float unscaledTime; } }
+namespace ModConfigEnhance { internal static class Loc { internal static string T(string en,string cn,string tw) => en; internal static string LocalizeMessage(string message) => message; } }
+namespace ModConfigEnhance.Overview
+{
+    internal static class OverviewUpdateQueue
+    {
+        internal sealed class NetworkOptions { public string Mode = "system", ProxyAddress = ""; }
+        internal sealed class Saved { public long Revision; public NetworkOptions Network = new(); }
+        internal static Saved Snapshot = new();
+        internal static string LastError = "";
+        internal static bool Processed;
+        internal static void SetNetwork(string mode, string address, Action<string> posted) { Processed = false; posted(Guid.NewGuid().ToString("N") + ".json"); }
+        internal static bool NetworkCommandProcessed(string id) => Processed;
+    }
+}

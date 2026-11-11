@@ -1,0 +1,18 @@
+task state=ready tokens=0C92A7D3
+  detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  detail: 跳过未识别插件目录：plugins/MonoDetour-MonoDetour
+  detail: 跳过未识别插件目录：plugins/MonoDetour-MonoDetour_BepInEx_5
+  detail: plugins/E2ELayout：跳过（ProtectedManagerExcluded）
+  detail: 所有可识别的模组目录已在目标位置。
+  desired=0 originals=2
+task dirs: ['35b9b726a86947288d00df84c60bf337']
+layout-plan moves=0 units=0
+  plan detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  plan detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  plan detail: 插件元数据未能完整读取（已忽略）：ModConfigEnhance.dll — Failed to resolve assembly: 'BepInEx, Version=5.4.23.5, Culture=neutral, PublicKeyToken=null'
+  plan detail: 跳过未识别插件目录：plugins/MonoDetour-MonoDetour
+  plan detail: 跳过未识别插件目录：plugins/MonoDetour-MonoDetour_BepInEx_5
+  plan detail: plugins/E2ELayout：跳过（ProtectedManagerExcluded）
+  plan detail: 所有可识别的模组目录已在目标位置。

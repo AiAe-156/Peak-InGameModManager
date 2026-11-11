@@ -1,0 +1,42 @@
+namespace ModConfigEnhance;
+internal static partial class Loc
+{
+    private static readonly Term[] ConflictPresetEditorTerms =
+    {
+        new("Add a conflict member", "Add a conflict member", "添加冲突成员", "新增衝突成員"),
+        new("Modpack conflict presets", "Modpack conflict presets", "整合包冲突预设", "整合包衝突預設"),
+        new("Shared by every profile · advice only · exported with this modpack", "Shared by every profile · advice only · exported with this modpack", "所有方案共用 · 只作建议 · 随本整合包导出", "所有方案共用 · 僅作建議 · 隨本整合包匯出"),
+        new("Save presets", "Save presets", "保存预设", "儲存預設"),
+        new("Reset draft", "Reset draft", "撤销修改", "撤銷修改"),
+        new("Delete rule", "Delete rule", "删除规则", "刪除規則"),
+        new("Back", "Back", "返回", "返回"),
+        new("Close", "Close", "关闭", "關閉"),
+        new("Add rule", "Add rule", "新建规则", "新增規則"),
+        new("New conflict advice", "New conflict advice", "新的冲突建议", "新的衝突建議"),
+        new("Create a rule, choose at least two independently toggled mods, then describe the problem for players.", "Create a rule, choose at least two independently toggled mods, then describe the problem for players.", "新建规则，选择至少两个可独立启停的模组，再填写给玩家看的冲突原因。", "新增規則，選擇至少兩個可獨立啟停的模組，再填寫給玩家看的衝突原因。"),
+        new("Rule title", "Rule title", "规则标题", "規則標題"),
+        new("When to warn", "When to warn", "何时提醒", "何時提醒"),
+        new("Any two enabled", "Any two enabled", "任意两项同时启用", "任意兩項同時啟用"),
+        new("Any pair", "Any pair", "任意两项", "任意兩項"),
+        new("All enabled together", "All enabled together", "全部同时启用", "全部同時啟用"),
+        new("For A, B and C: warn only when all three are enabled; enabling a pair is allowed.", "For A, B and C: warn only when all three are enabled; enabling a pair is allowed.", "例如 A、B、C：仅三项全部启用时提醒，任意两项组合不提醒。", "例如 A、B、C：僅三項全部啟用時提醒，任意兩項組合不提醒。"),
+        new("For A, B and C: A+B, A+C, B+C and all three trigger the advice.", "For A, B and C: A+B, A+C, B+C and all three trigger the advice.", "例如 A、B、C：A+B、A+C、B+C，以及三项全部启用都会提醒。", "例如 A、B、C：A+B、A+C、B+C，以及三項全部啟用都會提醒。"),
+        new("Members", "Members", "成员模组", "成員模組"),
+        new("Add member", "Add member", "添加成员", "新增成員"),
+        new("No members yet. At least two independent toggle units are required.", "No members yet. At least two independent toggle units are required.", "尚未添加成员；至少需要两个独立启停单元。", "尚未新增成員；至少需要兩個獨立啟停單元。"),
+        new("Remove", "Remove", "移除", "移除"),
+        new("Missing locally · retained for export", "Missing locally · retained for export", "本机未找到 · 保留并随包导出", "本機未找到 · 保留並隨包匯出"),
+        new("Package-linked toggle · selected once for this unit", "Package-linked toggle · selected once for this unit", "随包联动 · 同一启停单元只选一项", "隨包連動 · 同一啟停單元只選一項"),
+        new("Independent toggle unit", "Independent toggle unit", "独立启停单元", "獨立啟停單元"),
+        new("Reason shown to players", "Reason shown to players", "给玩家看的冲突原因", "給玩家看的衝突原因"),
+        new("Players can still apply their choices or ignore active advice locally. Saving these presets changes no enabled mods.", "Players can still apply their choices or ignore active advice locally. Saving these presets changes no enabled mods.", "玩家仍可继续应用，或在本机忽略主动提醒。保存预设只记录建议，不改变模组启停。", "玩家仍可繼續套用，或在本機忽略主動提醒。儲存預設只記錄建議，不改變模組啟停。"),
+        new("Mods in one package toggle together and appear once. Missing saved members remain in the rule.", "Mods in one package toggle together and appear once. Missing saved members remain in the rule.", "同包模组会联动启停，这里只显示一项；已记录但本机缺失的成员继续保留。", "同包模組會連動啟停，這裡僅顯示一項；已記錄但本機缺少的成員繼續保留。"),
+        new("Untitled advice", "Untitled advice", "未命名建议", "未命名建議"),
+        new("All enabled", "All enabled", "全部启用", "全部啟用"),
+        new("Publication draft saved. Export and install the modpack to show this advice in every profile.", "Publication draft saved. Export and install the modpack to show this advice in every profile.", "发布草稿已保存；导出并安装整合包后，所有方案都会显示这些建议。", "發布草稿已儲存；匯出並安裝整合包後，所有方案都會顯示這些建議。"),
+        new("Discard unsaved preset changes?", "Discard unsaved preset changes?", "放弃尚未保存的预设修改？", "放棄尚未儲存的預設修改？"),
+        new("Rule removed from this draft. Save presets to keep the removal, or reset to undo.", "Rule removed from this draft. Save presets to keep the removal, or reset to undo.", "已从草稿移除规则；保存预设后保留删除，撤销修改可恢复。", "已從草稿移除規則；儲存預設後保留刪除，撤銷修改可復原。"),
+        new("Save this modpack's conflict advice before leaving?", "Save this modpack's conflict advice before leaving?", "离开前保存本整合包的冲突建议？", "離開前儲存本整合包的衝突建議？"),
+        new("Conflict presets saved for every profile. Mod enablement is unchanged.", "Conflict presets saved for every profile. Mod enablement is unchanged.", "冲突预设已保存，所有方案共用；当前模组启停保持原样。", "衝突預設已儲存，所有方案共用；目前模組啟停維持原樣。"),
+    };
+}

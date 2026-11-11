@@ -1,0 +1,107 @@
+[
+  {
+    "name": "plugin",
+    "exitCode": 0,
+    "log": "plugin-build.log"
+  },
+  {
+    "name": "worker",
+    "exitCode": 0,
+    "log": "worker-build.log"
+  },
+  {
+    "name": "desktop",
+    "exitCode": 0,
+    "log": "desktop-build.log"
+  },
+  {
+    "name": "documents",
+    "exitCode": 0,
+    "log": "document-checks.log"
+  },
+  {
+    "name": "scope",
+    "exitCode": 0,
+    "log": "scope-checks.log"
+  },
+  {
+    "name": "migration",
+    "exitCode": 0,
+    "log": "migration-checks.log"
+  },
+  {
+    "name": "authors",
+    "exitCode": 0,
+    "log": "author-working-checks.log"
+  },
+  {
+    "name": "presets",
+    "exitCode": 0,
+    "log": "preset-checks.log"
+  },
+  {
+    "name": "cache",
+    "exitCode": 0,
+    "log": "cache-checks.log"
+  },
+  {
+    "name": "native",
+    "exitCode": 0,
+    "log": "native-checks.log"
+  },
+  {
+    "name": "resource-draft",
+    "exitCode": 0,
+    "log": "resource-draft-checks.log"
+  },
+  {
+    "name": "HarmonyChecks-build",
+    "exitCode": 0,
+    "log": "harmony-build.log"
+  },
+  {
+    "name": "HarmonyChecks",
+    "exitCode": 0,
+    "log": "harmony-checks.log"
+  },
+  {
+    "name": "ConfigTransactionChecks-build",
+    "exitCode": 0,
+    "log": "config-transaction-build.log"
+  },
+  {
+    "name": "ConfigTransactionChecks",
+    "exitCode": 0,
+    "log": "config-transaction-checks.log"
+  },
+  {
+    "name": "ShopChecks",
+    "exitCode": 0,
+    "log": "shop-regression.log"
+  },
+  {
+    "name": "PackLibraryChecks",
+    "exitCode": 0,
+    "log": "pack-regression.log"
+  },
+  {
+    "name": "InstallationFlowChecks",
+    "exitCode": 0,
+    "log": "installation-regression.log"
+  },
+  {
+    "name": "ModImportChecks",
+    "exitCode": 0,
+    "log": "import-regression.log"
+  },
+  {
+    "name": "navigation",
+    "exitCode": 0,
+    "log": "navigation-checks.log"
+  },
+  {
+    "name": "save-navigation",
+    "exitCode": 0,
+    "log": "save-navigation-checks.log"
+  }
+]

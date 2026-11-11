@@ -1,0 +1,1660 @@
+Only in .: .git
+Only in .: .gitattributes
+Only in .: .gitignore
+Only in .: .vs
+Only in .: ModConfigEnhance.csproj
+Only in ./Updater: GroupLayoutPlanner.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/Installer.cs" ./Updater/Installer.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/Installer.cs"	2026-11-09 00:27:22.523049900 +0800
++++ b/Updater/Installer.cs	2026-11-09 00:50:34.093695000 +0800
+@@ -111,7 +111,8 @@
+             string from = Files.Child(plan.Root, move.From), to = Files.Child(plan.Root, move.To);
+             Files.RejectLinks(plan.Root, from);
+             if (!Directory.Exists(from)) throw new IOException("源目录已不存在：" + move.From);
+-            if (Directory.Exists(to) || File.Exists(to)) throw new IOException("目标位置已被占用：" + move.To);
++            if (File.Exists(to) || Directory.Exists(to) && Directory.EnumerateFileSystemEntries(to).Any()) throw new IOException("目标位置已被占用：" + move.To);
++            if (Directory.Exists(to)) Directory.Delete(to);
+             Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+             Directory.Move(from, to);
+             move.Done = true; Save(job, plan);
+@@ -141,7 +142,8 @@
+             if (!move.Done) continue;
+             string from = Files.Child(plan.Root, move.From), to = Files.Child(plan.Root, move.To);
+             if (!Directory.Exists(to)) { move.Done = false; continue; }
+-            if (Directory.Exists(from) || File.Exists(from)) throw new IOException("原位置已被占用，未回退：" + move.From);
++            if (File.Exists(from) || Directory.Exists(from) && Directory.EnumerateFileSystemEntries(from).Any()) throw new IOException("原位置已被占用，未回退：" + move.From);
++            if (Directory.Exists(from)) Directory.Delete(from);
+             Files.RejectLinks(plan.Root, to);
+             Directory.CreateDirectory(Path.GetDirectoryName(from)!);
+             Directory.Move(to, from);
+@@ -149,14 +151,29 @@
+             WorkerLog.Info("moved back " + move.To + " → " + move.From);
+         }
+         LayoutBookkeeping(job, plan, rollback: true, sharedLease);
+-        foreach (string relative in plan.Moves.Select(m => m.To).Select(t => t.Contains('/') ? t.Substring(0, t.LastIndexOf('/')) : "").Where(d => d.Length > 0).Distinct(Files.Compare))
++        // Folders the organizer created and the rollback emptied go too, all the way up (nested group folders are
++        // several levels deep), but never plugins/ itself and never a folder that still holds anything.
++        var created = new HashSet<string>(Files.Compare);
++        foreach (string to in plan.Moves.Select(m => m.To))
++            for (string parent = to.Contains('/') ? to.Substring(0, to.LastIndexOf('/')) : ""; parent.Contains('/'); parent = parent.Substring(0, parent.LastIndexOf('/')))
++                created.Add(parent);
++        foreach (string relative in created.OrderByDescending(d => d.Count(c => c == '/')))
+             try { string empty = Files.Child(plan.Root, relative); if (Directory.Exists(empty) && !Directory.EnumerateFileSystemEntries(empty).Any()) Directory.Delete(empty); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+         plan.RollbackRequested = false; job.RollbackRequested = false; plan.Phase = "rolled-back"; Save(job, plan);
+         WorkerLog.Info("folder organization rolled back");
+     }
+ 
++    /// <summary>Later moves may run inside folders an earlier move produced (a renamed category folder, then a package
++    /// leaving it), so a move's own destination can legitimately be gone again. What must hold is the end state: every
++    /// moved package is at its final place, and the last move into each destination left it there.</summary>
+     static void VerifyLayout(Transaction plan)
+     {
++        if (plan.Layout != null && plan.Layout.Units.Count > 0)
++        {
++            foreach (var unit in plan.Layout.Units)
++                if (!Directory.Exists(Files.Child(plan.Root, unit.NewRoot))) throw new IOException("目标目录不存在：" + unit.NewRoot);
++            return;
++        }
+         foreach (var move in plan.Moves)
+         {
+             if (!Directory.Exists(Files.Child(plan.Root, move.To))) throw new IOException("目标目录不存在：" + move.To);
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/MCE.UpdateWorker.csproj" ./Updater/MCE.UpdateWorker.csproj
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/MCE.UpdateWorker.csproj"	2026-11-09 00:27:22.525554900 +0800
++++ b/Updater/MCE.UpdateWorker.csproj	2026-11-09 01:00:02.583070000 +0800
+@@ -8,7 +8,7 @@
+     <ImplicitUsings>enable</ImplicitUsings>
+     <Nullable>enable</Nullable>
+     <UseWPF>true</UseWPF>
+-    <Version>2.2.13</Version>
++    <Version>2.3.0</Version>
+     <AssemblyName>MCE.UpdateWorker</AssemblyName>
+     <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
+     <SelfContained>false</SelfContained>
+@@ -33,6 +33,7 @@
+     <Compile Include="../src/Updating/ModImportContracts.cs" Link="ModImportContracts.cs" />
+     <Compile Include="../src/Updating/LocalImportQueueContracts.cs" Link="LocalImportQueueContracts.cs" />
+     <Compile Include="../src/Updating/InstallationLayout*.cs" Link="%(Filename)%(Extension)" />
++    <Compile Include="../src/Updating/GroupFolderPlanner.cs" Link="GroupFolderPlanner.cs" />
+     <Compile Include="../src/Updating/LayoutQueueContracts.cs" Link="LayoutQueueContracts.cs" />
+     <Compile Include="../src/Updating/WorkerProtocol.cs" Link="WorkerProtocol.cs" />
+     <Compile Include="../src/Updating/UpdateContracts.cs" Link="UpdateContracts.cs" />
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/WorkerParallelOperations.cs" ./Updater/WorkerParallelOperations.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/Updater/WorkerParallelOperations.cs"	2026-11-09 00:27:22.545597900 +0800
++++ b/Updater/WorkerParallelOperations.cs	2026-11-09 00:48:53.361196700 +0800
+@@ -126,12 +126,14 @@
+     {
+         var previous=shop.Read();
+         if(previous?.BlocksWrites==true)throw new DeferredCommandException("等待当前安装或恢复完成后继续目录整理。");
+-        if(request.Mode==InstallationLayoutMode.Disabled)throw new IOException("请选择启用的整理方式。");
++        if(request.Rows.Count==0&&request.Mode==InstallationLayoutMode.Disabled)throw new IOException("请选择启用的整理方式。");
+         var index=new PackStorage(root).Read();var ledger=shop.ReadLedgerTolerant();
+         var task=new ShopTask{Id=Guid.NewGuid().ToString("N"),ActivePackId=index.ActivePackId,IndexRevision=index.Revision,LedgerRevision=ledger.Revision,CreatedUtc=DateTime.UtcNow.ToString("O"),
+             Request=new ShopRequest{Operation="layout-preview",SourceProcessId=request.SourceProcessId,AppliedSnapshotPath=request.AppliedSnapshotPath,AppliedSnapshotHash=request.AppliedSnapshotHash},State="preparing-layout"};
+         shop.WriteTask(task);
+-        var plan=LayoutPlanner.Build(root,request,ledger, message => {
++        // 2.3.0 requests carry overview rows and use the group-folder organizer (no renaming, nested groups, nested-package extraction).
++        Func<string,LayoutQueueRequest,ShopLedger,Action<string>?,LayoutPlan> build=request.Rows.Count>0?GroupLayoutPlanner.Build:LayoutPlanner.Build;
++        var plan=build(root,request,ledger, message => {
+             // Publish each phase so the game can show progress; the preview used to look frozen from the click
+             // until the finished plan appeared.
+             task.Message=message;task.Details.Add(message);
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/ModConfigSidebarWidgets.Groups.cs" ./src/ModConfigSidebarWidgets.Groups.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/ModConfigSidebarWidgets.Groups.cs"	2026-11-09 00:27:22.482543000 +0800
++++ b/src/ModConfigSidebarWidgets.Groups.cs	2026-11-09 00:34:51.654626700 +0800
+@@ -180,6 +180,9 @@
+             internal string Id = "";
+             internal string Name = "";
+             internal Color Color;
++            internal int Depth = 1;
++            /// <summary>Ancestors first, then this group: used for the rails and to fold the header under a collapsed ancestor.</summary>
++            internal List<string> Chain = new List<string>();
+             internal GameObject Row = null!;
+             internal TextMeshProUGUI? Label;
+             internal RectTransform? Arrow;
+@@ -188,6 +191,8 @@
+ 
+         private readonly List<GroupSlot> _groupSlots = new List<GroupSlot>();
+         private readonly Dictionary<string, Color> _groupColors = new Dictionary<string, Color>(StringComparer.Ordinal);
++        /// <summary>2.3.0 nested groups: the tree the slots were built from.</summary>
++        private GroupTree _groupTree = new GroupTree(Array.Empty<OverviewGroup>());
+         private readonly HashSet<GameObject> _collapsedHidden = new HashSet<GameObject>();
+         private bool _built;
+         private int _groupLanguageRevision = -1, _groupSettingsCount = -1, _groupPluginsCount = -1;
+@@ -302,22 +307,35 @@
+             _groupColors.Clear();
+             if (repository != null)
+             {
+-                foreach (OverviewGroup group in repository.State.groups.OrderBy(g => g.order))
++                _groupTree = new GroupTree(repository.State.groups);
++                var wanted = new HashSet<string>(StringComparer.Ordinal);
++                foreach (RowWidgets row in _rows)
+                 {
+-                    if (_groupColors.ContainsKey(group.id) || !_rows.Any(r => !r.IsSelf && r.GroupId == group.id))
++                    if (!row.IsSelf && _groupTree.Contains(row.GroupId))
++                    {
++                        foreach (OverviewGroup member in _groupTree.Chain(row.GroupId)) wanted.Add(member.id);
++                    }
++                }
++
++                foreach (OverviewGroup group in _groupTree.Flat)
++                {
++                    if (!wanted.Contains(group.id) || _groupColors.ContainsKey(group.id))
+                     {
+                         continue;
+                     }
+ 
+                     Color color = ParseGroupColor(group.color);
+                     _groupColors[group.id] = color;
+-                    _groupSlots.Add(MakeGroupHeader(group.id, group.name, group.description ?? "", color));
++                    GroupSlot slot = MakeGroupHeader(group.id, group.name, group.description ?? "", color,
++                        _groupTree.Depth(group.id), _groupTree.Chain(group.id).Select(g => g.id).ToList());
++                    slot.Tip!.Title = _groupTree.Path(group.id);
++                    _groupSlots.Add(slot);
+                 }
+ 
+                 if (_groupSlots.Count > 0 && _rows.Any(r => !r.IsSelf && r.GroupId.Length == 0))
+                 {
+                     _groupColors[""] = new Color(Cream.r, Cream.g, Cream.b, 0.75f);
+-                    _groupSlots.Add(MakeGroupHeader("", Loc.Get("GROUP_UNGROUPED"), "", _groupColors[""]));
++                    _groupSlots.Add(MakeGroupHeader("", Loc.Get("GROUP_UNGROUPED"), "", _groupColors[""], 1, new List<string>()));
+                 }
+             }
+ 
+@@ -358,8 +376,13 @@
+             widgets.GroupRail.color = _groupColors[widgets.GroupId];
+             RectTransform rect = widgets.GroupRail.rectTransform;
+             float left = pinned ? PinnedRailLeft : 0f;
+-            rect.offsetMin = new Vector2(left, rect.offsetMin.y);
+-            rect.offsetMax = new Vector2(left + RailWidth, rect.offsetMax.y);
++            // Ancestors' rails sit to the left of the own-group rail, like the overview list.
++            List<OverviewGroup> chain = _groupTree.Chain(widgets.GroupId);
++            int ancestors = Math.Max(0, chain.Count - 1);
++            float ownLeft = left + ancestors * (RailWidth + 1f);
++            rect.offsetMin = new Vector2(ownLeft, rect.offsetMin.y);
++            rect.offsetMax = new Vector2(ownLeft + RailWidth, rect.offsetMax.y);
++            SyncAncestorRails(widgets, chain, left);
+         }
+ 
+         /// <summary>标题文字 = 分组名 + 段内（不含置顶）成员数。</summary>
+@@ -372,16 +395,39 @@
+                     continue;
+                 }
+ 
+-                int count = _rows.Count(r => !IsPinnedRow(r) && (_groupColors.ContainsKey(r.GroupId) ? r.GroupId : "") == slot.Id);
++                HashSet<string>? subtree = slot.Id.Length > 0 ? _groupTree.Subtree(slot.Id) : null;
++                int count = _rows.Count(r => !IsPinnedRow(r) && (subtree != null ? subtree.Contains(r.GroupId) : !_groupColors.ContainsKey(r.GroupId) || r.GroupId.Length == 0));
+                 slot.Label.text = EscapeRich(slot.Name) + "  <alpha=#99><size=85%>" + count + "</size>";
+             }
+         }
+ 
+         private static string EscapeRich(string value) => value.Replace("<", "＜").Replace(">", "＞");
+ 
+-        private GroupSlot MakeGroupHeader(string id, string name, string description, Color color)
++        private Color GroupColorOf(string id) => _groupColors.TryGetValue(id, out Color color) ? color : ParseGroupColor(_groupTree.Get(id)?.color);
++
++        /// <summary>Extra rails to the left of a member row's own rail, one per ancestor group, created on demand.</summary>
++        private void SyncAncestorRails(RowWidgets widgets, List<OverviewGroup> chain, float left)
+         {
+-            GroupSlot slot = new GroupSlot { Id = id, Name = name, Color = color };
++            if (widgets.GroupRail == null) return;
++            Transform row = widgets.GroupRail.transform.parent;
++            int needed = Math.Max(0, chain.Count - 1);
++            for (int i = 0; ; i++)
++            {
++                Transform? existing = row.Find("MCE_AncestorRail" + i);
++                if (i >= needed) { if (existing == null) break; existing.gameObject.SetActive(false); continue; }
++                Image rail = existing != null ? existing.GetComponent<Image>() : MakeRail(row, "MCE_AncestorRail" + i);
++                rail.gameObject.SetActive(true);
++                rail.color = GroupColorOf(chain[i].id);
++                RectTransform rect = rail.rectTransform; float x = left + i * (RailWidth + 1f);
++                rect.offsetMin = new Vector2(x, widgets.GroupRail.rectTransform.offsetMin.y);
++                rect.offsetMax = new Vector2(x + RailWidth, widgets.GroupRail.rectTransform.offsetMax.y);
++            }
++        }
++
++        private GroupSlot MakeGroupHeader(string id, string name, string description, Color color, int depth, List<string> chain)
++        {
++            GroupSlot slot = new GroupSlot { Id = id, Name = name, Color = color, Depth = Math.Max(1, depth), Chain = chain };
++            float indent = (slot.Depth - 1) * 12f;
+             GameObject row = new GameObject("MCE_Group_" + (id.Length > 0 ? id : "ungrouped"), typeof(RectTransform), typeof(Image), typeof(Button));
+             row.transform.SetParent(ListContent, false);
+             ModConfigTreeLayoutPatch.StyleRowFrame(row, GroupHeaderHeight);
+@@ -392,11 +438,16 @@
+             background.raycastTarget = true;
+             ModConfigPaperStyle.Apply(background, 8f);
+ 
+-            Image rail = MakeRail(row.transform, "MCE_GroupRail");
+-            rail.color = color;
+-            RectTransform railRect = rail.rectTransform;
+-            railRect.offsetMin = new Vector2(0f, 3f);
+-            railRect.offsetMax = new Vector2(RailWidth, -3f);
++            // One rail per level, ancestors first (the overview list draws them the same way).
++            for (int level = 0; level < Math.Max(1, chain.Count); level++)
++            {
++                Image rail = MakeRail(row.transform, "MCE_GroupRail");
++                rail.color = level < chain.Count - 1 ? GroupColorOf(chain[level]) : color;
++                RectTransform railRect = rail.rectTransform;
++                float x = level * (RailWidth + 1f);
++                railRect.offsetMin = new Vector2(x, 3f);
++                railRect.offsetMax = new Vector2(x + RailWidth, -3f);
++            }
+ 
+             GameObject arrow = new GameObject("Arrow", typeof(RectTransform), typeof(Image));
+             RectTransform arrowRect = (RectTransform)arrow.transform;
+@@ -405,7 +456,7 @@
+             arrowRect.anchorMax = new Vector2(0f, 0.5f);
+             arrowRect.pivot = new Vector2(0.5f, 0.5f);
+             arrowRect.sizeDelta = new Vector2(12f, 12f);
+-            arrowRect.anchoredPosition = new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + 4f, 0f);
++            arrowRect.anchoredPosition = new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + 4f + indent, 0f);
+             Image arrowImage = arrow.GetComponent<Image>();
+             arrowImage.sprite = ArrowIconSprite();
+             arrowImage.color = color;
+@@ -416,14 +467,14 @@
+             RectTransform labelRect = label.GetComponent<RectTransform>();
+             labelRect.anchorMin = Vector2.zero;
+             labelRect.anchorMax = Vector2.one;
+-            labelRect.offsetMin = new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + 16f, 0f);
++            labelRect.offsetMin = new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + 16f + indent, 0f);
+             labelRect.offsetMax = new Vector2(-8f, 0f);
+             TextMeshProUGUI text = label.TextMesh;
+             StyleLabel(text, TextAlignmentOptions.MidlineLeft);
+             text.enableAutoSizing = true;
+             text.fontSizeMin = 12f;
+-            text.fontSizeMax = 14f;
+-            text.fontSize = 14f;
++            text.fontSizeMax = slot.Depth <= 1 ? 14f : 13f;
++            text.fontSize = slot.Depth <= 1 ? 14f : 13f;
+             text.richText = true;
+             text.overflowMode = TextOverflowModes.Ellipsis;
+             text.color = color;
+@@ -529,9 +580,11 @@
+                 if (wanted)
+                 {
+                     shown.Add(group);
++                    // A subgroup's member keeps every ancestor header visible.
++                    foreach (OverviewGroup ancestor in _groupTree.Ancestors(group)) shown.Add(ancestor.id);
+                 }
+ 
+-                bool hide = wanted && !searching && row != selected && repository.State.collapsedGroups.Contains(group);
++                bool hide = wanted && !searching && row != selected && (group.Length > 0 ? _groupTree.HiddenByCollapse(group, repository.State.collapsedGroups) : repository.State.collapsedGroups.Contains(group));
+                 if (hide)
+                 {
+                     _collapsedHidden.Add(row);
+@@ -550,7 +603,7 @@
+ 
+             foreach (GroupSlot slot in _groupSlots)
+             {
+-                bool visible = shown.Contains(slot.Id);
++                bool visible = shown.Contains(slot.Id) && (searching || repository == null || slot.Id.Length == 0 || !_groupTree.HeaderHidden(slot.Id, repository.State.collapsedGroups));
+                 if (slot.Row.activeSelf != visible)
+                 {
+                     slot.Row.SetActive(visible);
+Only in ./src/Overview: GroupPalette.cs
+Only in ./src/Overview: GroupTree.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LayoutReviewModel.cs" ./src/Overview/LayoutReviewModel.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LayoutReviewModel.cs"	2026-11-09 00:27:22.397116300 +0800
++++ b/src/Overview/LayoutReviewModel.cs	2026-11-09 00:57:19.531984500 +0800
+@@ -6,95 +6,122 @@
+ 
+ namespace ModConfigEnhance.Overview;
+ 
+-/// <summary>Shapes a layout preview's flat node list into what the review window draws: one section per destination
+-/// group folder, then "stays where it is (ungrouped)", then "skipped". Pure logic, so the grouping is checked without Unity.</summary>
++/// <summary>Shapes a layout preview's node list into what the review window draws (2.3.0): one card per destination
++/// group folder (nested by folder depth, so nested groups appear as nested cards), then "stays where it is", then
++/// "empty folders". Category folders that get renamed are shown in their card's header. Pure logic, checked without Unity.</summary>
+ internal static class LayoutReviewModel
+ {
+-    internal enum Kind { Move, Rename, InPlace, Ungrouped, Skipped }
++    internal enum Kind { Move, Extracted, InPlace, Ungrouped, Stays, Skipped, Empty }
+ 
+     internal sealed class Entry
+     {
+         internal LayoutTreeNode Node = null!;
+         internal Kind Kind;
+-        internal string Folder = "", From = "";
++        internal string Folder = "", From = "", To = "";
+         internal List<string> Reasons = new();
+         internal List<string> Notes = new();
+     }
+ 
+     internal sealed class Section
+     {
++        /// <summary>Destination folder relative to plugins/ ("" = plugins/ itself), or a special key.</summary>
+         internal string Key = "", Title = "";
+-        internal bool Skipped, Ungrouped;
++        internal int Depth = 1;
++        internal bool Stays, EmptyFolders, Ungrouped;
++        /// <summary>The category folder this group folder is renamed from, when it is.</summary>
++        internal string RenamedFrom = "";
+         internal readonly List<Entry> Entries = new();
+         internal int Count(Kind kind) => Entries.Count(e => e.Kind == kind);
+-        /// <summary>Sections with something to look at start open; a section where nothing changes starts folded.</summary>
+-        internal bool OpenByDefault => Skipped || Entries.Any(e => e.Kind is Kind.Move or Kind.Rename);
++        internal int Mods => Entries.Sum(e => Math.Max(1, e.Node.ModCount));
++        /// <summary>Cards where something changes start open; a card where everything is already in place starts folded.</summary>
++        internal bool OpenByDefault => Stays || EmptyFolders || RenamedFrom.Length > 0 || Entries.Any(e => e.Kind is Kind.Move or Kind.Extracted or Kind.Ungrouped);
+     }
+ 
+     internal sealed class Summary
+     {
+-        internal int Move, Rename, InPlace, Ungrouped, Skipped;
+-        internal int Changes => Move + Rename;
++        internal int Move, Extracted, InPlace, Ungrouped, Stays, Empty, Renamed, Folders, Mods;
++        internal int Changes => Move + Extracted + Renamed;
+     }
+ 
+     static string Parent(string path) { int at = path.LastIndexOf('/'); return at < 0 ? "" : path.Substring(0, at); }
+     static string Leaf(string path) => path.Substring(path.LastIndexOf('/') + 1);
++    static string UnderPlugins(string path) => path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) ? path.Substring("plugins/".Length) : path == "plugins" ? "" : path;
+ 
+     internal static Kind Classify(LayoutTreeNode node)
+     {
++        if (node.Kind == LayoutNodeKind.Empty) return Kind.Empty;
+         if (node.Disposition is InstallationLayoutDisposition.Deferred or InstallationLayoutDisposition.Rejected) return Kind.Skipped;
+-        if (node.Ungrouped) return Kind.Ungrouped;
+-        if (node.Disposition == InstallationLayoutDisposition.Unchanged) return Kind.InPlace;
+-        // Same parent folder, new name: a rename; anything else comes in from another folder.
+-        string target = "plugins/" + (node.Group.Length > 0 ? node.Group + "/" : "") + node.Folder;
+-        return string.Equals(Parent(node.OriginalPath), Parent(target), StringComparison.OrdinalIgnoreCase) ? Kind.Rename : Kind.Move;
++        if (node.Notes.Contains("NoGroupKnown")) return Kind.Stays;
++        if (node.Notes.Contains("NestedExtracted")) return Kind.Extracted;
++        if (node.Disposition == InstallationLayoutDisposition.Move && !node.Notes.Contains("CarriedByFolderRename")) return node.Ungrouped ? Kind.Ungrouped : Kind.Move;
++        return node.Ungrouped ? Kind.Ungrouped : Kind.InPlace;
+     }
+ 
+     internal static List<Section> Build(IEnumerable<LayoutTreeNode> nodes, out Summary summary)
+     {
+-        var sections = new List<Section>(); var byKey = new Dictionary<string, Section>(StringComparer.OrdinalIgnoreCase);
+-        Section? ungrouped = null, skipped = null;
++        var all = nodes.ToList();
++        var cards = new Dictionary<string, Section>(StringComparer.OrdinalIgnoreCase);
++        Section? stays = null, empties = null;
+         var totals = new Summary();
+-        foreach (var node in nodes)
++        Section Card(string key)
++        {
++            if (cards.TryGetValue(key, out var card)) return card;
++            card = new Section { Key = key, Title = key.Length == 0 ? "" : Leaf(key) + "/", Depth = key.Length == 0 ? 1 : key.Count(c => c == '/') + 1 };
++            cards.Add(key, card);
++            // Every ancestor folder gets a card too, so a nested group is always drawn inside its parent.
++            if (key.Contains('/')) Card(Parent(key));
++            return card;
++        }
++        foreach (var container in all.Where(n => n.Kind == LayoutNodeKind.Container))
++        {
++            var card = Card(UnderPlugins(container.FinalPath));
++            card.RenamedFrom = UnderPlugins(container.OriginalPath);
++            totals.Renamed++;
++        }
++        foreach (var node in all.Where(n => n.Kind != LayoutNodeKind.Container))
+         {
+             var kind = Classify(node);
+-            var entry = new Entry { Node = node, Kind = kind, Folder = node.Folder, From = node.OriginalPath,
++            var entry = new Entry { Node = node, Kind = kind, Folder = Leaf(node.FinalPath.Length > 0 ? node.FinalPath : node.OriginalPath), From = node.OriginalPath, To = node.FinalPath,
+                 Reasons = node.Reasons.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()).Where(r => r.Length > 0).ToList(),
+-                Notes = node.Notes.Where(n => n != "ManagerMovedLast").ToList() };
++                Notes = node.Notes.Where(n => n is not ("ManagerMovedLast" or "CarriedByFolderRename" or "NestedExtracted")).ToList() };
+             switch (kind)
+             {
+                 case Kind.Move: totals.Move++; break;
+-                case Kind.Rename: totals.Rename++; break;
++                case Kind.Extracted: totals.Extracted++; break;
+                 case Kind.InPlace: totals.InPlace++; break;
+                 case Kind.Ungrouped: totals.Ungrouped++; break;
+-                default: totals.Skipped++; break;
+-            }
+-            Section section;
+-            if (kind == Kind.Skipped) section = skipped ??= new Section { Key = "~skipped", Skipped = true };
+-            else if (kind == Kind.Ungrouped)
+-            {
+-                section = ungrouped ??= new Section { Key = "~ungrouped", Ungrouped = true };
+-                // An ungrouped package stays put, so show the folder it is in, not the planner's would-be target.
+-                entry.Folder = Leaf(node.OriginalPath);
++                case Kind.Empty: totals.Empty++; break;
++                default: totals.Stays++; break;
+             }
+-            else
+-            {
+-                string key = node.Group;
+-                if (!byKey.TryGetValue(key, out section!)) { section = new Section { Key = key, Title = key }; byKey.Add(key, section); sections.Add(section); }
+-            }
+-            // A skipped package does not move either: show the folder it is in.
+-            if (kind == Kind.Skipped) entry.Folder = Leaf(node.OriginalPath);
+-            section.Entries.Add(entry);
++            if (kind != Kind.Empty) { totals.Folders++; totals.Mods += Math.Max(1, node.ModCount); }
++            if (kind == Kind.Empty) { entry.Folder = UnderPlugins(node.OriginalPath); (empties ??= new Section { Key = "~empty", EmptyFolders = true }).Entries.Add(entry); continue; }
++            if (kind is Kind.Stays or Kind.Skipped) { entry.Folder = Leaf(node.OriginalPath); (stays ??= new Section { Key = "~stays", Stays = true }).Entries.Add(entry); continue; }
++            var target = Card(UnderPlugins(Parent(node.FinalPath)));
++            if (kind == Kind.Ungrouped) target.Ungrouped = true;
++            target.Entries.Add(entry);
+         }
+-        sections.Sort((a, b) => (a.Key.Length == 0 ? 0 : 1).CompareTo(b.Key.Length == 0 ? 0 : 1) is int c && c != 0 ? c : StringComparer.OrdinalIgnoreCase.Compare(a.Key, b.Key));
+-        // Inside a section: what changes first, then what stays; alphabetical within each.
+-        foreach (var section in sections)
+-            section.Entries.Sort((a, b) => Rank(a.Kind).CompareTo(Rank(b.Kind)) is int c && c != 0 ? c : StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder));
+-        if (ungrouped != null) { ungrouped.Entries.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder)); sections.Add(ungrouped); }
+-        if (skipped != null) { skipped.Entries.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder)); sections.Add(skipped); }
++        // Folder order: depth-first by path, plugins/ root last among folders; inside a card changes first.
++        var ordered = cards.Values.Where(c => c.Key.Length > 0).OrderBy(c => c.Key, StringComparer.OrdinalIgnoreCase).ToList();
++        if (cards.TryGetValue("", out var rootCard) && rootCard.Entries.Count > 0) ordered.Add(rootCard);
++        foreach (var card in ordered)
++            card.Entries.Sort((a, b) => Rank(a.Kind).CompareTo(Rank(b.Kind)) is int c && c != 0 ? c : StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder));
++        if (stays != null) { stays.Entries.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder)); ordered.Add(stays); }
++        if (empties != null) { empties.Entries.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Folder, b.Folder)); ordered.Add(empties); }
+         summary = totals;
+-        return sections;
++        return ordered;
++    }
++
++    /// <summary>Whether a card is inside a folded ancestor card.</summary>
++    internal static bool HiddenUnder(Section card, ICollection<string> folded)
++    {
++        if (card.Stays || card.EmptyFolders || card.Key.Length == 0) return false;
++        for (string parent = Parent(card.Key); parent.Length > 0; parent = Parent(parent)) if (folded.Contains(parent)) return true;
++        return false;
+     }
+ 
+-    static int Rank(Kind kind) => kind switch { Kind.Move => 0, Kind.Rename => 1, _ => 2 };
++    /// <summary>Cards a card contains (directly or deeper), for the header count.</summary>
++    internal static int SubtreeMods(Section card, IEnumerable<Section> all)
++        => card.Mods + all.Where(c => !c.Stays && !c.EmptyFolders && c.Key.Length > card.Key.Length && card.Key.Length > 0 && c.Key.StartsWith(card.Key + "/", StringComparison.OrdinalIgnoreCase)).Sum(c => c.Mods);
++
++    static int Rank(Kind kind) => kind switch { Kind.Move => 0, Kind.Extracted => 1, Kind.Ungrouped => 2, _ => 3 };
+ }
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LayoutReviewView.cs" ./src/Overview/LayoutReviewView.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LayoutReviewView.cs"	2026-11-09 00:27:22.398121000 +0800
++++ b/src/Overview/LayoutReviewView.cs	2026-11-09 00:54:29.748376200 +0800
+@@ -12,37 +12,41 @@
+ 
+ namespace ModConfigEnhance.Overview;
+ 
+-/// <summary>The folder-organization review: a framed, foldable tree. Each destination group folder is a card; each package
+-/// inside is a framed row with a coloured tag, its name, where it comes from in small grey text and, for skipped ones,
+-/// the reason in plain words. Ungrouped and skipped packages get their own cards at the end.</summary>
++/// <summary>The folder-organization review (2.3.0): a framed, foldable tree of destination folders. Nested group folders
++/// are nested cards (indented, one gold rail per level); a renamed category folder shows "renamed from" in its header;
++/// each mod folder is a framed row with a coloured tag, its unchanged name, where it comes from in small grey text and,
++/// when needed, the reason in plain words. "Stays where it is" and "empty folders" (each with a Recycle Bin button) come last.</summary>
+ internal sealed class LayoutReviewView
+ {
+-    private enum Filter { All, Changes, Skipped }
++    private enum Filter { All, Changes, Stays }
+ 
+     private static readonly Color CardColor = new(.13f, .15f, .15f, .97f), RowColor = new(.09f, .10f, .10f, .92f), HostColor = new(.065f, .08f, .095f, 1);
+     private static readonly Color MoveColor = new(.40f, .72f, .82f), RenameColor = new(.56f, .66f, .92f), StayColor = new(.50f, .77f, .49f);
+     private static readonly Color UngroupedColor = new(.56f, .56f, .52f), SkipColor = new(.88f, .63f, .33f), ReasonInk = new(.93f, .72f, .45f), NoteInk = new(.63f, .75f, .83f);
++    private const float CardIndent = 18;
+ 
+     private readonly RectTransform _host, _content;
+     private readonly ScrollRect _scroll;
+     private readonly List<LayoutReviewModel.Section> _sections;
+     private readonly LayoutReviewModel.Summary _summary;
+-    private readonly HashSet<string> _open = new(StringComparer.OrdinalIgnoreCase);
++    private readonly HashSet<string> _folded = new(StringComparer.OrdinalIgnoreCase);
++    private readonly HashSet<string> _deleted = new(StringComparer.OrdinalIgnoreCase);
+     private readonly List<(Button Button, Filter Filter)> _filters = new();
++    private readonly Action<string>? _status;
+     private Filter _filter = Filter.All;
+ 
+-    internal static void Show(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice)
+-        => new LayoutReviewView(panel, tree, notice);
++    internal static void Show(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, Action<string>? status = null)
++        => new LayoutReviewView(panel, tree, notice, status);
+ 
+-    private LayoutReviewView(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice)
++    private LayoutReviewView(RectTransform panel, IReadOnlyList<LayoutTreeNode> tree, IReadOnlyList<(string Text, bool Warning)> notice, Action<string>? status)
+     {
++        _status = status;
+         _sections = LayoutReviewModel.Build(tree, out _summary);
+-        foreach (var section in _sections) if (section.OpenByDefault) _open.Add(section.Key);
++        foreach (var section in _sections) if (!section.OpenByDefault) _folded.Add(section.Key);
+         _host = OverviewUi.Panel("LayoutReview", panel, HostColor); OverviewUi.Fill(_host);
+         _host.offsetMin = new Vector2(24, 82); _host.offsetMax = new Vector2(-24, -124);
+         float width = panel.rect.width - 48, y = 10;
+ 
+-        // Notice: status and any warning, each its own line.
+         foreach (var (text, warning) in notice)
+         {
+             var line = OverviewUi.Text(_host, text, 14); line.color = warning ? ReasonInk : OverviewUi.Muted;
+@@ -50,21 +54,25 @@
+             float height = Mathf.Ceil(line.GetPreferredValues(text, width - 28, Mathf.Infinity).y) + 2;
+             OverviewUi.Place(line.rectTransform, 14, y, width - 28, height); y += height + 2;
+         }
+-        y += 4;
+-        // Summary chips double as filters.
++        // Totals: folders vs mods, so the count matches the overview list.
++        var totals = OverviewUi.Text(_host, Loc.F("{0} folders · {1} mods", "{0} 个文件夹 · 共 {1} 个模组", "{0} 個資料夾 · 共 {1} 個模組", _summary.Folders, _summary.Mods), 15);
++        totals.color = OverviewUi.Ivory; OverviewUi.PlaceClipped(totals, 14, y + 2, width - 28, 20); y += 26;
+         float x = 14;
+         x = Chip(_host, x, y, MoveColor, Loc.T("Move in", "移入", "移入"), _summary.Move);
+-        x = Chip(_host, x, y, RenameColor, Loc.T("Rename", "改名", "改名"), _summary.Rename);
++        x = Chip(_host, x, y, RenameColor, Loc.T("Moved out of a mod", "拆出", "拆出"), _summary.Extracted);
++        x = Chip(_host, x, y, OverviewUi.Gold, Loc.T("Folder renamed", "文件夹改名", "資料夾改名"), _summary.Renamed);
+         x = Chip(_host, x, y, StayColor, Loc.T("In place", "原位", "原位"), _summary.InPlace);
+         x = Chip(_host, x, y, UngroupedColor, Loc.T("Ungrouped", "未分组", "未分組"), _summary.Ungrouped);
+-        Chip(_host, x, y, SkipColor, Loc.T("Skipped", "跳过", "跳過"), _summary.Skipped);
+-        float fx = width - 14;
+-        foreach (var (label, filter) in new[] { (Loc.T("Skipped only", "只看跳过", "只看跳過"), Filter.Skipped), (Loc.T("Changes only", "只看变动", "只看變動"), Filter.Changes), (Loc.T("All", "全部", "全部"), Filter.All) })
++        x = Chip(_host, x, y, SkipColor, Loc.T("Not moved", "不动", "不動"), _summary.Stays);
++        Chip(_host, x, y, OverviewUi.Muted, Loc.T("Empty folders", "空文件夹", "空資料夾"), _summary.Empty);
++        y += 30;
++        float fx = 14;
++        foreach (var (label, filter) in new[] { (Loc.T("All", "全部", "全部"), Filter.All), (Loc.T("Changes only", "只看变动", "只看變動"), Filter.Changes), (Loc.T("Not moved and empty", "只看不动与空文件夹", "只看不動與空資料夾"), Filter.Stays) })
+         {
+-            float w = 92; fx -= w;
++            float w = filter == Filter.Stays ? 150 : 92;
+             var button = OverviewUi.Button(_host, label, () => { _filter = filter; Rebuild(); }, w, 26, UiActionRole.Neutral);
+             var caption = button.GetComponentInChildren<TMP_Text>(true); caption.enableAutoSizing = true; caption.fontSizeMin = 10; caption.fontSizeMax = 13;
+-            OverviewUi.Place((RectTransform)button.transform, fx, y - 1, w, 26); fx -= 6;
++            OverviewUi.Place((RectTransform)button.transform, fx, y, w, 26); fx += w + 6;
+             _filters.Add((button, filter));
+         }
+         y += 34;
+@@ -92,10 +100,10 @@
+         return x + width + 8;
+     }
+ 
+-    private bool Visible(LayoutReviewModel.Entry entry) => _filter switch
++    private bool Visible(LayoutReviewModel.Entry entry) => !_deleted.Contains(entry.From) && _filter switch
+     {
+-        Filter.Changes => entry.Kind is K.Move or K.Rename,
+-        Filter.Skipped => entry.Kind == K.Skipped,
++        Filter.Changes => entry.Kind is K.Move or K.Extracted or K.Ungrouped,
++        Filter.Stays => entry.Kind is K.Stays or K.Skipped or K.Empty,
+         _ => true
+     };
+ 
+@@ -105,18 +113,21 @@
+         foreach (var (button, filter) in _filters) UiActionStyle.Set(button, filter == _filter ? UiActionRole.Edit : UiActionRole.Neutral);
+         float width = _content.rect.width > 10 ? _content.rect.width : ((RectTransform)_scroll.transform).rect.width - 14;
+         float y = 0;
+-        var root = OverviewUi.Text(_content, "plugins/", 13); root.color = OverviewUi.Muted; OverviewUi.PlaceClipped(root, 4, y, width, 18); y += 22;
++        var rootText = OverviewUi.Text(_content, "plugins/", 13); rootText.color = OverviewUi.Muted; OverviewUi.PlaceClipped(rootText, 4, y, width, 18); y += 22;
+         int shown = 0;
+         foreach (var section in _sections)
+         {
++            if (_filter == Filter.All && LayoutReviewModel.HiddenUnder(section, _folded)) continue;
+             var entries = section.Entries.Where(Visible).ToList();
+-            if (entries.Count == 0) continue;
++            bool renamed = section.RenamedFrom.Length > 0 && _filter != Filter.Stays;
++            bool hasChildren = _filter == Filter.All && _sections.Any(c => c != section && !c.Stays && !c.EmptyFolders && section.Key.Length > 0 && c.Key.StartsWith(section.Key + "/", StringComparison.OrdinalIgnoreCase));
++            if (entries.Count == 0 && !renamed && !hasChildren) continue;
+             shown++;
+-            y = Card(section, entries, y, width) + 8;
++            y = Card(section, entries, y, width) + 6;
+         }
+         if (shown == 0)
+         {
+-            var empty = OverviewUi.Text(_content, _filter == Filter.Skipped ? Loc.T("Nothing is skipped.", "没有被跳过的模组。", "沒有被跳過的模組。") : Loc.T("Nothing changes.", "没有需要变动的目录。", "沒有需要變動的目錄。"), 15);
++            var empty = OverviewUi.Text(_content, _filter == Filter.Stays ? Loc.T("Everything moves; nothing is left out.", "所有目录都会整理，没有不动的。", "所有目錄都會整理，沒有不動的。") : Loc.T("Nothing changes.", "没有需要变动的目录。", "沒有需要變動的目錄。"), 15);
+             empty.color = OverviewUi.Muted; OverviewUi.PlaceClipped(empty, 8, y + 6, width - 16, 20); y += 34;
+         }
+         _content.sizeDelta = new Vector2(0, y + 4);
+@@ -124,77 +135,112 @@
+ 
+     private float Card(LayoutReviewModel.Section section, List<LayoutReviewModel.Entry> entries, float y, float width)
+     {
+-        bool open = _open.Contains(section.Key) || _filter != Filter.All;
+-        Color accent = section.Skipped ? SkipColor : section.Ungrouped ? UngroupedColor : OverviewUi.Gold;
+-        var card = OverviewUi.Panel("Section", _content, CardColor);
+-        var bar = OverviewUi.Panel("Accent", card, accent); bar.anchorMin = Vector2.zero; bar.anchorMax = new Vector2(0, 1); bar.pivot = Vector2.zero; bar.sizeDelta = new Vector2(3, 0); bar.anchoredPosition = Vector2.zero;
++        bool special = section.Stays || section.EmptyFolders;
++        int depth = special ? 1 : section.Depth;
++        float left = (depth - 1) * CardIndent, cardWidth = width - left;
++        bool open = !_folded.Contains(section.Key) || _filter != Filter.All;
++        Color accent = section.Stays ? SkipColor : section.EmptyFolders ? OverviewUi.Muted : section.Ungrouped ? UngroupedColor : OverviewUi.Gold;
++        var card = OverviewUi.Panel("Section", _content, depth <= 1 ? CardColor : new Color(CardColor.r + .02f, CardColor.g + .02f, CardColor.b + .02f, CardColor.a));
++        for (int level = 0; level < depth; level++)
++        {
++            var bar = OverviewUi.Panel("Accent", card, level == depth - 1 ? accent : new Color(accent.r, accent.g, accent.b, .45f));
++            bar.anchorMin = Vector2.zero; bar.anchorMax = new Vector2(0, 1); bar.pivot = Vector2.zero; bar.sizeDelta = new Vector2(3, 0); bar.anchoredPosition = new Vector2(level == depth - 1 ? 0 : -(depth - 1 - level) * 5f, 0);
++        }
+         float top = y, inner = 8;
+-        // Header: fold toggle, folder title, counts.
+-        var toggle = OverviewUi.IconButton(card, open ? "triangle-down" : "triangle-right", () => { if (!_open.Add(section.Key)) _open.Remove(section.Key); Rebuild(); }, 24, 24);
++        var toggle = OverviewUi.IconButton(card, open ? "triangle-down" : "triangle-right", () => { if (!_folded.Add(section.Key)) _folded.Remove(section.Key); Rebuild(); }, 24, 24);
+         OverviewUi.Place((RectTransform)toggle.transform, 10, inner, 24, 24);
+-        string title = section.Skipped ? Loc.T("Skipped — not moved", "跳过，不会移动", "跳過，不會移動")
+-            : section.Ungrouped ? Loc.T("Stays where it is (no group)", "保持原位（未分组）", "保持原位（未分組）")
+-            : section.Key.Length == 0 ? Loc.T("plugins/ (top level)", "plugins/（根目录）", "plugins/（根目錄）") : section.Title + "/";
+-        var heading = OverviewUi.Text(card, title, 16); heading.fontStyle = FontStyles.Bold; heading.color = section.Skipped ? SkipColor : OverviewUi.Ivory;
+-        var counts = OverviewUi.Text(card, Counts(section, entries.Count), 12); counts.color = OverviewUi.Muted; counts.alignment = TextAlignmentOptions.MidlineRight;
++        string title = section.Stays ? Loc.T("Not moved", "不动", "不動")
++            : section.EmptyFolders ? Loc.T("Empty folders", "空文件夹", "空資料夾")
++            : section.Key.Length == 0 ? Loc.T("plugins/ (top level)", "plugins/（根目录）", "plugins/（根目錄）") : section.Title;
++        var heading = OverviewUi.Text(card, title, depth <= 1 ? 16 : 15); heading.fontStyle = FontStyles.Bold; heading.color = section.Stays ? SkipColor : OverviewUi.Ivory;
++        var counts = OverviewUi.Text(card, Counts(section), 12); counts.color = OverviewUi.Muted; counts.alignment = TextAlignmentOptions.MidlineRight;
+         float countsWidth = Mathf.Ceil(counts.GetPreferredValues(counts.text, Mathf.Infinity, Mathf.Infinity).x) + 4;
+-        OverviewUi.PlaceClipped(counts, width - 12 - countsWidth, inner + 3, countsWidth, 18);
+-        OverviewUi.PlaceClipped(heading, 40, inner + 1, Mathf.Max(80, width - 64 - countsWidth), 22);
++        OverviewUi.PlaceClipped(counts, cardWidth - 12 - countsWidth, inner + 3, countsWidth, 18);
++        float headingWidth = Mathf.Min(Mathf.Ceil(heading.GetPreferredValues(title, Mathf.Infinity, Mathf.Infinity).x) + 4, Mathf.Max(80, cardWidth - 64 - countsWidth));
++        OverviewUi.PlaceClipped(heading, 40, inner + 1, headingWidth, 22);
++        if (section.RenamedFrom.Length > 0)
++        {
++            var renamed = OverviewUi.Text(card, Loc.T("renamed from ", "由「", "由「") + section.RenamedFrom + Loc.T("", "」改名", "」改名"), 12); renamed.color = OverviewUi.Gold;
++            OverviewUi.PlaceClipped(renamed, 46 + headingWidth, inner + 4, Mathf.Max(40, cardWidth - 64 - countsWidth - headingWidth - 12), 18);
++        }
+         var click = heading.gameObject.AddComponent<OverviewHeaderClick>(); heading.raycastTarget = true;
+-        click.Clicked = _ => { if (!_open.Add(section.Key)) _open.Remove(section.Key); Rebuild(); };
++        click.Clicked = _ => { if (!_folded.Add(section.Key)) _folded.Remove(section.Key); Rebuild(); };
+         float cy = inner + 32;
+-        if (open) foreach (var entry in entries) cy = Row(card, entry, cy, width) + 4;
+-        cy += open ? 4 : 0;
+-        OverviewUi.Place(card, 0, top, width, cy);
++        if (open) foreach (var entry in entries) cy = Row(card, entry, cy, cardWidth) + 4;
++        cy += open && entries.Count > 0 ? 4 : 0;
++        OverviewUi.Place(card, left, top, cardWidth, cy);
+         return top + cy;
+     }
+ 
+-    private static string Counts(LayoutReviewModel.Section section, int visible)
++    private string Counts(LayoutReviewModel.Section section)
+     {
+-        var parts = new List<string> { Loc.F("{0} mods", "{0} 个", "{0} 個", visible) };
++        if (section.EmptyFolders) return Loc.F("{0} folders", "{0} 个", "{0} 個", section.Entries.Count(e => !_deleted.Contains(e.From)));
++        int mods = section.Stays ? section.Mods : LayoutReviewModel.SubtreeMods(section, _sections);
++        var parts = new List<string> { Loc.F("{0} mods", "{0} 个模组", "{0} 個模組", mods) };
+         if (section.Count(K.Move) > 0) parts.Add(Loc.F("{0} move in", "移入 {0}", "移入 {0}", section.Count(K.Move)));
+-        if (section.Count(K.Rename) > 0) parts.Add(Loc.F("{0} renamed", "改名 {0}", "改名 {0}", section.Count(K.Rename)));
+-        if (!section.Skipped && !section.Ungrouped && section.Count(K.InPlace) > 0) parts.Add(Loc.F("{0} in place", "原位 {0}", "原位 {0}", section.Count(K.InPlace)));
++        if (section.Count(K.Extracted) > 0) parts.Add(Loc.F("{0} moved out of a mod", "拆出 {0}", "拆出 {0}", section.Count(K.Extracted)));
++        if (!section.Stays && section.Count(K.InPlace) > 0) parts.Add(Loc.F("{0} in place", "原位 {0}", "原位 {0}", section.Count(K.InPlace)));
+         return string.Join(" · ", parts);
+     }
+ 
+     private float Row(RectTransform card, LayoutReviewModel.Entry entry, float y, float width)
+     {
+-        float x = 20, rowWidth = width - x - 10, textX = 76, textWidth = rowWidth - textX - 44;
++        float x = 20, rowWidth = width - x - 10, textX = 76, textWidth = rowWidth - textX - (entry.Kind == K.Empty ? 120 : 44);
+         var row = OverviewUi.Panel("Package", card, RowColor);
+         var (tagText, tagColor) = Tag(entry.Kind);
+         var tag = OverviewUi.Panel("Tag", row, new Color(tagColor.r, tagColor.g, tagColor.b, .9f)); OverviewUi.Place(tag, 8, 8, 56, 20);
+         var tagLabel = OverviewUi.Text(tag, tagText, 12); tagLabel.color = new Color(.07f, .08f, .08f); tagLabel.fontStyle = FontStyles.Bold; tagLabel.alignment = TextAlignmentOptions.Center;
+         OverviewUi.Fill(tagLabel.rectTransform);
+-        // Name with the source on the right.
+-        var (source, sourceColor) = Source(entry.Node);
+-        var sourceText = OverviewUi.Text(row, source, 11); sourceText.color = sourceColor; sourceText.alignment = TextAlignmentOptions.MidlineRight;
+-        float sourceWidth = Mathf.Ceil(sourceText.GetPreferredValues(source, Mathf.Infinity, Mathf.Infinity).x) + 4;
+-        OverviewUi.PlaceClipped(sourceText, textX + textWidth - sourceWidth, 8, sourceWidth, 18);
++        float sourceWidth = 0;
++        if (entry.Kind != K.Empty)
++        {
++            var (source, sourceColor) = Source(entry.Node);
++            string countText = entry.Node.ModCount > 1 ? Loc.F("{0} mods · ", "{0} 个模组 · ", "{0} 個模組 · ", entry.Node.ModCount) : "";
++            var sourceText = OverviewUi.Text(row, countText + source, 11); sourceText.color = sourceColor; sourceText.alignment = TextAlignmentOptions.MidlineRight;
++            sourceWidth = Mathf.Ceil(sourceText.GetPreferredValues(sourceText.text, Mathf.Infinity, Mathf.Infinity).x) + 4;
++            OverviewUi.PlaceClipped(sourceText, textX + textWidth - sourceWidth, 8, sourceWidth, 18);
++        }
+         var name = OverviewUi.Text(row, entry.Folder, 14); name.color = OverviewUi.Ivory;
+         OverviewUi.PlaceClipped(name, textX, 7, Mathf.Max(60, textWidth - sourceWidth - 10), 20);
+         float ry = 30;
+-        // Second line: where it is now, in small grey text.
+-        string fromLabel = entry.Kind switch
++        if (entry.Kind == K.Empty)
++        {
++            string contents = entry.Node.FileCount == 0 ? Loc.T("Empty", "空的", "空的") : Loc.F("{0} files, no mod", "{0} 个文件，没有模组", "{0} 個檔案，沒有模組", entry.Node.FileCount);
++            ry = Line(row, contents, OverviewUi.Muted, textX, ry, textWidth, 11);
++        }
++        else
+         {
+-            K.Move => Loc.T("from  ", "来自  ", "來自  "),
+-            K.Rename => Loc.T("was  ", "原名  ", "原名  "),
+-            _ => Loc.T("at  ", "位置  ", "位置  ")
+-        };
+-        string from = entry.Kind == K.Rename ? entry.From.Substring(entry.From.LastIndexOf('/') + 1) : entry.From;
+-        ry = Line(row, fromLabel + from, OverviewUi.Muted, textX, ry, textWidth, 11);
++            bool moving = entry.Kind is K.Move or K.Extracted or K.Ungrouped && !string.Equals(entry.From, entry.To, StringComparison.OrdinalIgnoreCase);
++            ry = Line(row, (moving ? Loc.T("from  ", "来自  ", "來自  ") : Loc.T("at  ", "位置  ", "位置  ")) + entry.From, OverviewUi.Muted, textX, ry, textWidth, 11);
++        }
+         if (entry.Node.Manager) ry = Line(row, Loc.T("Mod manager itself · moved last, after the game exits", "模组管理器自身 · 退出游戏后最后移动", "模組管理器自身 · 結束遊戲後最後移動"), NoteInk, textX, ry, textWidth, 11);
+         foreach (string reason in entry.Reasons) ry = Line(row, "· " + Reason(reason), ReasonInk, textX, ry, textWidth, 12);
+         foreach (string note in entry.Notes) ry = Line(row, "· " + Reason(note), NoteInk, textX, ry, textWidth, 11);
+-        // Open the folder where it is now.
+         string absolute = Path.Combine(Paths.BepInExRootPath, entry.From.Replace('/', Path.DirectorySeparatorChar));
+         var folder = OverviewUi.IconButton(row, "folder", () => { try { PackFileShortcuts.Open(absolute, true); } catch (Exception error) { Plugin.Log.LogWarning("[目录整理] 打开目录失败：" + error.Message); } }, 26, 26);
+         OverviewUi.Place((RectTransform)folder.transform, rowWidth - 34, 6, 26, 26);
++        if (entry.Kind == K.Empty)
++        {
++            var delete = OverviewUi.Button(row, Loc.T("Recycle", "删除", "刪除"), () => ConfirmRecycle(entry, absolute), 70, 26, UiActionRole.Danger);
++            OverviewUi.Place((RectTransform)delete.transform, rowWidth - 112, 6, 70, 26);
++        }
+         float height = Mathf.Max(38, ry + 6);
+         OverviewUi.Place(row, x, y, rowWidth, height);
+         return y + height;
+     }
+ 
++    /// <summary>Empty folders go to the Windows Recycle Bin after one confirmation; folders with mod files are refused.</summary>
++    private void ConfirmRecycle(LayoutReviewModel.Entry entry, string absolute)
++    {
++        string? refusal = RecycleBin.Refusal(absolute);
++        if (refusal != null) { _status?.Invoke(Loc.T("This folder cannot be moved to the Recycle Bin: ", "不能放进回收站：", "不能放進資源回收筒：") + refusal); return; }
++        OverviewUi.Confirm(Loc.T("Move to the Recycle Bin: ", "放进回收站：", "放進資源回收筒：") + entry.Folder + (entry.Node.FileCount > 0 ? Loc.F(" ({0} files)", "（含 {0} 个文件）", "（含 {0} 個檔案）", entry.Node.FileCount) : ""), () =>
++        {
++            try { RecycleBin.Send(absolute); _deleted.Add(entry.From); _status?.Invoke(Loc.T("Moved to the Recycle Bin.", "已放进回收站。", "已放進資源回收筒。")); Rebuild(); }
++            catch (Exception error) { _status?.Invoke(Loc.LocalizeMessage(error.Message)); }
++        }, UiActionRole.Danger);
++    }
++
+     private static float Line(RectTransform row, string text, Color color, float x, float y, float width, float size)
+     {
+         var line = OverviewUi.Text(row, text, size); line.color = color; line.textWrappingMode = TextWrappingModes.Normal;
+@@ -206,10 +252,11 @@
+     private static (string, Color) Tag(K kind) => kind switch
+     {
+         K.Move => (Loc.T("Move", "移入", "移入"), MoveColor),
+-        K.Rename => (Loc.T("Rename", "改名", "改名"), RenameColor),
++        K.Extracted => (Loc.T("Out", "拆出", "拆出"), RenameColor),
+         K.InPlace => (Loc.T("Stays", "原位", "原位"), StayColor),
+         K.Ungrouped => (Loc.T("No group", "未分组", "未分組"), UngroupedColor),
+-        _ => (Loc.T("Skip", "跳过", "跳過"), SkipColor)
++        K.Empty => (Loc.T("Empty", "空", "空"), OverviewUi.Muted),
++        _ => (Loc.T("Kept", "不动", "不動"), SkipColor)
+     };
+ 
+     private static (string, Color) Source(LayoutTreeNode node) => node.Source switch
+@@ -240,6 +287,12 @@
+         "DuplicatePluginId" => Loc.T("Holds more than one copy of the same plugin (for example .dll and .dll.old); they move together", "包内有同一插件的多份副本（如 .dll 与 .dll.old），会一起移动", "套件內有同一外掛的多份副本（如 .dll 與 .dll.old），會一起移動"),
+         "PluginOwnedByMultiplePackages" => Loc.T("The same plugin is also installed in another folder; check the duplicates in the overview", "同一插件在另一个目录也装了一份，可在概览「重复」里处理", "同一外掛在另一個目錄也裝了一份，可在概覽「重複」裡處理"),
+         "BundledOtherGroup" => Loc.T("Bundles a library from another group; it moves with this package", "内含其他分组的依赖库，随本包一起移动", "內含其他分組的相依程式庫，隨本套件一起移動"),
++        "DestinationInsidePackage" => Loc.T("The target folder is inside another mod's folder", "目标位置在另一个模组的文件夹里", "目標位置在另一個模組的資料夾裡"),
++        "GroupFromSameName" => Loc.T("No plugin was read from it; it follows the mod with the same name", "没有读到插件，跟随同名模组的分组", "沒有讀到外掛，跟隨同名模組的分組"),
++        "GroupFromDependent" => Loc.T("Has no plugin of its own; it follows the mod that depends on it", "自身没有插件，跟随依赖它的模组的分组", "自身沒有外掛，跟隨相依它的模組的分組"),
++        "NoGroupKnown" => Loc.T("No plugin and no mod depends on it, so it has no group; it stays where it is", "没有插件，也没有模组依赖它，无法确定分组，保持原位", "沒有外掛，也沒有模組相依它，無法確定分組，保持原位"),
++        "NameSuffixed" => Loc.T("Another folder with the same name lands here; this one gets its version added", "同名文件夹会落到同一位置，这一份加上版本号", "同名資料夾會落到同一位置，這一份加上版本號"),
++        "EmptyAfterMove" => Loc.T("Empty once its mods have moved out", "里面的模组移走后就空了", "裡面的模組移走後就空了"),
+         _ => code
+     };
+ }
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LogWindow.cs" ./src/Overview/LogWindow.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/LogWindow.cs"	2026-11-09 00:27:22.461494400 +0800
++++ b/src/Overview/LogWindow.cs	2026-11-09 00:36:30.745965700 +0800
+@@ -221,10 +221,11 @@
+             return (Category: category, Mod: mod, Group: mod?.Rule.groupId ?? "runtime");
+         }).ToList();
+         float y = 0;
+-        foreach (var group in entries.GroupBy(e => e.Group).OrderBy(g => _repo.State.groups.FirstOrDefault(x => x.id == g.Key)?.order ?? int.MaxValue))
++        var tree = new GroupTree(_repo.State.groups);
++        foreach (var group in entries.GroupBy(e => e.Group).OrderBy(g => tree.Position(g.Key)))
+         {
+-            string id = group.Key; var info = _repo.State.groups.FirstOrDefault(g => g.id == id);
+-            string name = info?.name ?? T("Runtime / other sources", "运行时／其他来源");
++            string id = group.Key; var info = tree.Get(id);
++            string name = info == null ? T("Runtime / other sources", "运行时／其他来源") : tree.Path(id);
+             Color color = OverviewUi.Blue; if (info != null) ColorUtility.TryParseHtmlString(info.color, out color);
+             var header = OverviewUi.Button(content, (_foldedModGroups.Contains(id) ? "+ " : "- ") + name + " (" + group.Count() + ")", () => { if (!_foldedModGroups.Add(id)) _foldedModGroups.Remove(id); PickMod(); }, width - 54, 36, UiActionRole.Overview);
+             OverviewUi.Place((RectTransform)header.transform, 0, y, width - 54, 36); UiActionStyle.Tint(header, color); y += 42;
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ManagementModSelector.cs" ./src/Overview/ManagementModSelector.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ManagementModSelector.cs"	2026-11-09 00:27:22.412790900 +0800
++++ b/src/Overview/ManagementModSelector.cs	2026-11-09 00:36:30.745461800 +0800
+@@ -39,10 +39,12 @@
+         foreach (Transform child in _content) { child.gameObject.SetActive(false); UnityEngine.Object.Destroy(child.gameObject); }
+         float y = 0;
+         var filtered = _mods.Where(m => _query.Length == 0 || (m.Name + " " + m.RawName + " " + m.Author).IndexOf(_query, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+-        foreach (var group in filtered.GroupBy(m => m.Rule.groupId).OrderBy(g => _repo.State.groups.FirstOrDefault(p => p.id == g.Key)?.order ?? int.MaxValue).ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
++        var tree = new GroupTree(_repo.State.groups);
++        foreach (var group in filtered.GroupBy(m => tree.Contains(m.Rule.groupId) ? m.Rule.groupId : "").OrderBy(g => tree.Position(g.Key)).ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase))
+         {
+-            string id = group.Key; var definition = _repo.State.groups.FirstOrDefault(g => g.id == id);
+-            string name = definition?.name ?? Loc.T("Ungrouped", "未分组", "未分組");
++            string id = group.Key; var definition = tree.Get(id);
++            if (_query.Length == 0 && id.Length > 0 && tree.HeaderHidden(id, _collapsed)) continue;
++            string name = definition == null ? Loc.T("Ungrouped", "未分组", "未分組") : tree.Path(id);
+             Color tint = ColorUtility.TryParseHtmlString(definition?.color ?? "", out var parsed) ? parsed : OverviewUi.Muted;
+             bool folded = _collapsed.Contains(id) && _query.Length == 0;
+             y += y > 0 ? 14 : 4;
+Only in ./src/Overview: NestedMods.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewCatalogue.cs" ./src/Overview/OverviewCatalogue.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewCatalogue.cs"	2026-11-09 00:27:22.464000600 +0800
++++ b/src/Overview/OverviewCatalogue.cs	2026-11-09 00:38:09.248039300 +0800
+@@ -184,9 +184,26 @@
+             var list = copies.ToList();
+             foreach (var row in list) row.CopyRows = list;
+         }
++        LinkNested(rows);
+         return rows.OrderBy(r => r.Rule.order).ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase).ToList();
+     }
+ 
++    /// <summary>Marks each row with the mod whose folder it is nested in (see <see cref="NestedMods"/>). Rows sharing a
++    /// package root are one package, so only distinct roots are compared.</summary>
++    private static void LinkNested(List<OverviewMod> rows)
++    {
++        var byRoot = rows.Where(r => !string.IsNullOrEmpty(r.PackageRoot) && Directory.Exists(r.PackageRoot))
++            .GroupBy(r => NestedMods.Normalize(Path.GetFullPath(r.PackageRoot)), StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
++        var outers = NestedMods.OuterOf(byRoot.Keys, NestedMods.ManifestName);
++        foreach (var row in rows) { row.Outer = null; row.Inner.Clear(); }
++        foreach (var pair in outers)
++        {
++            if (pair.Value.Length == 0 || !byRoot.TryGetValue(pair.Value, out var outerRows) || !byRoot.TryGetValue(pair.Key, out var innerRows)) continue;
++            var outer = outerRows.OrderByDescending(r => r.Loaded).First();
++            foreach (var inner in innerRows) { inner.Outer = outer; foreach (var o in outerRows) if (!o.Inner.Contains(inner)) o.Inner.Add(inner); }
++        }
++    }
++
+     private static string CopyKey(string bepinex, string packageRoot)
+     {
+         string full = Path.GetFullPath(packageRoot);
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewController.cs" ./src/Overview/OverviewController.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewController.cs"	2026-11-09 00:27:22.460494100 +0800
++++ b/src/Overview/OverviewController.cs	2026-11-09 00:59:42.846966200 +0800
+@@ -443,6 +443,7 @@
+         if (_tab == PageTab.Hotkeys) _hotkeys?.OnOpened();
+         if (_intro) _document?.OnOpened();
+         if (_intro && _author && _document != null) _document.ActivateEditor();
++        MaybeOfferSmartGrouping();
+     }
+     public override void OnPageExit()
+     {
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewDependencyHints.Components.cs" ./src/Overview/OverviewDependencyHints.Components.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewDependencyHints.Components.cs"	2026-11-09 00:27:22.403121600 +0800
++++ b/src/Overview/OverviewDependencyHints.Components.cs	2026-11-09 00:36:30.745965700 +0800
+@@ -76,11 +76,12 @@
+             string Group(ComponentRelationshipTree.Row row) => labels.Mod(row.Id)?.Rule.groupId
+                 ?? (labels.Component(row.Id) != null ? "@infrastructure" : "");
+             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { labels.Canonical(root) };
++            var tree = new GroupTree(_repo.State.groups);
+             foreach (var group in branches.GroupBy(b => Group(b[0]))
+-                .OrderBy(g => _repo.State.groups.FirstOrDefault(s => s.id == g.Key)?.order ?? int.MaxValue))
++                .OrderBy(g => tree.Position(g.Key)))
+             {
+                 string title = group.Key == "@infrastructure" ? InfrastructureOverviewModel.GroupTitle
+-                    : group.Key.Length > 0 ? _repo.State.groups.FirstOrDefault(g => g.id == group.Key)?.name ?? Loc.T("Ungrouped", "未分组", "未分組")
++                    : group.Key.Length > 0 ? (tree.Contains(group.Key) ? tree.Path(group.Key) : Loc.T("Ungrouped", "未分组", "未分組"))
+                     : Loc.T("Resource packages and unidentified items", "资源包及未识别项目", "資源包及未識別項目");
+                 bool header = false;
+                 foreach (var branch in group.OrderBy(b => labels.Mod(b[0].Id)?.Rule.order ?? int.MaxValue))
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewEnablementDraft.cs" ./src/Overview/OverviewEnablementDraft.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewEnablementDraft.cs"	2026-11-09 00:27:22.458495400 +0800
++++ b/src/Overview/OverviewEnablementDraft.cs	2026-11-09 00:38:09.248039300 +0800
+@@ -22,6 +22,33 @@
+         return entry.enabled && (copy.Length == 0 ? mod.TargetEnabled : Same(copy, mod.CopyKey));
+     }
+ 
++    /// <summary>Whether this row can be switched on now: not while the mod it is nested in is (planned) off.</summary>
++    internal static bool BlockedByOuter(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod) => mod.Outer != null && !Planned(draft, mod.Outer);
++
++    /// <summary>Sets a mod and carries it to the mods nested in its folder: turning the outer off turns them off and
++    /// remembers which were on; turning it back on restores exactly those. An inner mod cannot be turned on while its
++    /// outer is off.</summary>
++    internal static void SetWithNested(List<OverviewProfileMod> draft, OverviewMod mod, bool enabled)
++    {
++        if (enabled && BlockedByOuter(draft, mod)) throw new InvalidOperationException(Loc.F("{0} is inside {1}, which is disabled. Enable {1} first.", "{0} 位于已停用的「{1}」里，请先启用「{1}」。", "{0} 位於已停用的「{1}」裡，請先啟用「{1}」。", mod.Name, mod.Outer!.Name));
++        bool was = Planned(draft, mod);
++        Set(draft, mod, enabled);
++        if (mod.Inner.Count == 0 || was == enabled) return;
++        var entry = draft.FirstOrDefault(m => m.guid == mod.Guid);
++        if (!enabled)
++        {
++            var on = mod.Inner.Where(i => Planned(draft, i)).ToList();
++            if (entry != null) entry.nestedEnabled = on.Select(i => i.Guid).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
++            foreach (var inner in on) SetWithNested(draft, inner, false);
++        }
++        else
++        {
++            var restore = new HashSet<string>(entry?.nestedEnabled ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
++            foreach (var inner in mod.Inner.Where(i => restore.Contains(i.Guid))) SetWithNested(draft, inner, true);
++            if (entry != null) entry.nestedEnabled.Clear();
++        }
++    }
++
+     internal static void Set(List<OverviewProfileMod> draft, OverviewMod mod, bool enabled)
+     {
+         foreach (string guid in mod.PluginGuids.Count > 0 ? mod.PluginGuids : new List<string> { mod.Guid })
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewGroupEditor.cs" ./src/Overview/OverviewGroupEditor.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewGroupEditor.cs"	2026-11-09 00:27:22.416302100 +0800
++++ b/src/Overview/OverviewGroupEditor.cs	2026-11-09 00:33:53.752418900 +0800
+@@ -30,6 +30,10 @@
+     private RectTransform? _palette;
+     private Image? _colorPreview;
+     private string _color = "#7CC7E6";
++    private string _parentId = "", _initialParentId = "";
++    private TextMeshProUGUI? _parentCaption;
++    /// <summary>Parent for the next "new group" form, set by "New subgroup" entry points.</summary>
++    internal string NewGroupParent = "";
+     private readonly List<string> _custom = new();
+     private readonly HashSet<string> _checked = new(StringComparer.Ordinal);
+     private readonly Dictionary<string, OverviewMod> _candidates = new(StringComparer.Ordinal);
+@@ -42,7 +46,7 @@
+     public bool HasDirty => IsOpen && (!string.Equals(_name?.text ?? "", _initialName, StringComparison.Ordinal)
+         || !string.Equals(_description?.text ?? "", _initialDescription, StringComparison.Ordinal)
+         || !string.Equals(_color, _initialColor, StringComparison.OrdinalIgnoreCase)
+-        || !_initialCustom.SetEquals(_custom) || !_initialChecked.SetEquals(_checked) || _secondaryDirty?.Invoke() == true);
++        || !_initialCustom.SetEquals(_custom) || !_initialChecked.SetEquals(_checked) || !string.Equals(_parentId, _initialParentId, StringComparison.Ordinal) || _secondaryDirty?.Invoke() == true);
+ 
+     internal OverviewGroupEditor(OverviewRepository repository, IReadOnlyList<OverviewMod> mods, Action<string> status, Action saved)
+     { _repository = repository; _mods = mods; _status = status; _saved = saved; }
+@@ -57,7 +61,9 @@
+         var parent = (Transform?)_embeddedHost ?? OverviewUi.ModalParent;
+         if (parent == null) return;
+         _group = group;
+-        _color = NormalizeColor(group?.color ?? "#7CC7E6") ?? "#7CC7E6";
++        _parentId = group?.parentId ?? NewGroupParent; NewGroupParent = "";
++        if (_parentId.Length > 0 && !new GroupTree(_repository.State.groups).Contains(_parentId)) _parentId = "";
++        _color = NormalizeColor(group?.color ?? GroupPalette.ForNewGroup(_repository.State.groups, _parentId)) ?? "#7CC7E6";
+         _custom.Clear(); _custom.AddRange((_repository.State.customColors ?? new List<string>()).Select(NormalizeColor).Where(c => c != null).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase));
+         _checked.Clear(); _candidates.Clear();
+         foreach (var mod in _mods)
+@@ -95,17 +101,19 @@
+             var railContent = SourceUi.Rows(rail, 0, Mathf.Max(70, rail.rect.height - 98), out var railScroll);
+             ManagementUi.Scrollbar((RectTransform)railScroll.transform, railScroll);
+             float rowY = 0;
+-            foreach (var existing in _repository.State.groups.OrderBy(g => g.order))
++            var railTree = new GroupTree(_repository.State.groups);
++            foreach (var existing in railTree.Flat)
+             {
+                 var choice = existing;
+-                var button = OverviewUi.Button(railContent, choice.name, () => RequestChangeGroup(choice), railWidth - 52, 36, choice == group ? UiActionRole.Edit : UiActionRole.Neutral);
+-                OverviewUi.Place((RectTransform)button.transform, 0, rowY, railWidth - 52, 36);
++                float inset = (railTree.Depth(choice.id) - 1) * OverviewListView.GroupIndent;
++                var button = OverviewUi.Button(railContent, choice.name, () => RequestChangeGroup(choice), railWidth - 52 - inset, 36, choice == group ? UiActionRole.Edit : UiActionRole.Neutral);
++                OverviewUi.Place((RectTransform)button.transform, inset, rowY, railWidth - 52 - inset, 36);
+                 var caption = button.GetComponentInChildren<TextMeshProUGUI>(true); caption.textWrappingMode = TextWrappingModes.NoWrap; caption.overflowMode = TextOverflowModes.Ellipsis;
+                 var hint = button.gameObject.AddComponent<OverviewHover>(); hint.Enter = () => _status(choice.name);
+                 rowY += 44;
+             }
+             railContent.sizeDelta = new Vector2(0, rowY);
+-            var create = OverviewUi.Button(rail, T("New group", "新建分组"), () => RequestChangeGroup(null), railWidth - 12, 34, UiActionRole.Commit);
++            var create = OverviewUi.Button(rail, T("New group", "新建分组"), () => { NewGroupParent = ""; RequestChangeGroup(null); }, railWidth - 12, 34, UiActionRole.Commit);
+             OverviewUi.Bottom((RectTransform)create.transform, 4, 6);
+             if (group != null)
+             {
+@@ -130,14 +138,15 @@
+                 var layout = fullName.GetComponent<LayoutElement>();
+                 layout.minHeight = layout.preferredHeight = Mathf.Max(32, Mathf.Ceil(fullName.GetPreferredValues(value, width, Mathf.Infinity).y) + 6);
+             }
+-            foreach (var existing in _repository.State.groups.OrderBy(g => g.order))
++            var gridTree = new GroupTree(_repository.State.groups);
++            foreach (var existing in gridTree.Flat)
+             {
+                 var choice = existing;
+-                var button = OverviewUi.Button(choices, choice.name, () => RequestChangeGroup(choice), 150, 36, role: UiActionRole.Edit);
++                var button = OverviewUi.Button(choices, gridTree.Path(choice.id), () => RequestChangeGroup(choice), 150, 36, role: UiActionRole.Edit);
+                 var caption = button.GetComponentInChildren<TextMeshProUGUI>(true);
+                 caption.textWrappingMode = TextWrappingModes.NoWrap; caption.overflowMode = TextOverflowModes.Ellipsis;
+                 caption.margin = new Vector4(12, 0, 12, 0); caption.alignment = TextAlignmentOptions.Midline;
+-                var hover = button.gameObject.AddComponent<OverviewHover>(); hover.Enter = () => ShowName(choice.name);
++                var hover = button.gameObject.AddComponent<OverviewHover>(); hover.Enter = () => ShowName(gridTree.Path(choice.id));
+                 hover.Exit = () => { if (EventSystem.current?.currentSelectedGameObject != button.gameObject) ShowName(nameHint); };
+                 var focus = button.gameObject.AddComponent<OverviewHotkeyFocus>(); focus.Selected = hover.Enter; focus.Deselected = () => ShowName(nameHint);
+                 GamepadSupport.MarkSelectable(button.gameObject, scroll, (RectTransform)button.transform);
+@@ -145,6 +154,12 @@
+         }
+         Heading(content, group == null ? T("New group name", "新建分组名称") : T("Group name", "分组名称"));
+         _name = OverviewUi.Input(content, group?.name ?? ""); _name.characterLimit = 80; Height(_name.gameObject, 45);
++        Heading(content, T("Parent group", "上级分组"));
++        var parentRow = OverviewUi.Rect("ParentRow", content); Height(parentRow.gameObject, 40);
++        var parentButton = OverviewUi.Button(parentRow, "", ChooseParent, 320, 36, UiActionRole.Neutral); OverviewUi.Place((RectTransform)parentButton.transform, 0, 2, 320, 36);
++        _parentCaption = parentButton.GetComponentInChildren<TextMeshProUGUI>(true); _parentCaption.overflowMode = TextOverflowModes.Ellipsis; _parentCaption.textWrappingMode = TextWrappingModes.NoWrap;
++        var parentNote = OverviewUi.Text(parentRow, T("Groups nest at most three levels.", "分组最多嵌套三层。"), 16); parentNote.color = OverviewUi.Muted; OverviewUi.PlaceClipped(parentNote, 332, 10, 400, 24);
++        RefreshParentCaption();
+         Heading(content, T("Group description (optional)", "分组描述（可选，显示为浅色小字）"));
+         _description = OverviewUi.Input(content, group?.description ?? ""); Height(_description.gameObject, 45);
+         Heading(content, T("Theme color", "主题颜色"));
+@@ -189,7 +204,7 @@
+             var rect = (RectTransform)delete.transform; rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1, 0); rect.anchoredPosition = new Vector2(-20, 17);
+         }
+         LayoutRebuilder.ForceRebuildLayoutImmediate(content); scroll.verticalNormalizedPosition = 1;
+-        _initialName = _name.text; _initialDescription = _description.text; _initialColor = _color;
++        _initialName = _name.text; _initialDescription = _description.text; _initialColor = _color; _initialParentId = _parentId;
+         _initialCustom.Clear(); _initialCustom.UnionWith(_custom);
+         _initialChecked.Clear(); _initialChecked.UnionWith(_checked);
+         EventSystem.current?.SetSelectedGameObject(_name.gameObject); _name.ActivateInputField();
+@@ -269,7 +284,7 @@
+         try
+         {
+             _repository.EnsureLocalPackCopy();
+-            var oldGroups = _repository.State.groups.Select(g => new OverviewGroup { id = g.id, name = g.name, description = g.description, color = g.color, order = g.order }).ToList();
++            var oldGroups = _repository.State.groups.Select(g => new OverviewGroup { id = g.id, name = g.name, description = g.description, color = g.color, order = g.order, parentId = g.parentId }).ToList();
+             var oldColors = new List<string>(_repository.State.customColors ?? new List<string>());
+             var oldRules = new List<OverviewModRule>(_repository.State.mods);
+             var oldMembership = oldRules.Select(r => (Rule: r, Group: r.groupId)).ToList();
+@@ -279,14 +294,17 @@
+                 string groupId = _group?.id ?? System.Guid.NewGuid().ToString("N");
+                 if (remove)
+                 {
+-                    _repository.State.groups.RemoveAll(g => g.id == groupId);
+-                    foreach (var rule in _repository.State.mods.Where(r => r.groupId == groupId)) rule.groupId = "";
+-                    foreach (var mod in _mods.Where(m => m.Rule.groupId == groupId)) mod.Rule.groupId = "";
++                    // Subgroups and members move up one level (to the deleted group's parent; ungrouped at the top).
++                    string up = new GroupTree(_repository.State.groups).Parent(groupId);
++                    GroupTree.Remove(_repository.State.groups, _repository.State.mods, groupId, _repository.State.collapsedGroups);
++                    foreach (var mod in _mods.Where(m => m.Rule.groupId == groupId)) mod.Rule.groupId = up;
+                 }
+                 else
+                 {
+                     var group = _repository.State.groups.FirstOrDefault(g => g.id == groupId);
+-                    if (group == null) { group = new OverviewGroup { id = groupId, order = _repository.State.groups.Count == 0 ? 0 : _repository.State.groups.Max(g => g.order) + 1 }; _repository.State.groups.Add(group); }
++                    if (group == null) { group = new OverviewGroup { id = groupId, parentId = _parentId, order = GroupTree.NextOrder(_repository.State.groups, _parentId) }; _repository.State.groups.Add(group); }
++                    else if (!string.Equals(group.parentId ?? "", _parentId, StringComparison.Ordinal) && !GroupTree.Attach(_repository.State.groups, groupId, _parentId, out string reason))
++                        throw new InvalidOperationException(ParentReason(reason));
+                     group.name = name; group.description = _description?.text.Trim() ?? ""; group.color = _color;
+                     foreach (var pair in _candidates)
+                     {
+@@ -308,7 +326,7 @@
+             }
+             var embedded = _embeddedHost;
+             string? selectedId = remove ? null : _group?.id;
+-            Close(); _saved(); _status(!persist ? T("Group draft retained; save configuration to commit.", "分组草稿已保留，保存配置后提交。") : remove ? T("Group removed; members are ungrouped.", "分组已删除，成员已移到未分组。") : T("Group saved.", "分组已保存。"));
++            Close(); _saved(); _status(!persist ? T("Group draft retained; save configuration to commit.", "分组草稿已保留，保存配置后提交。") : remove ? T("Group removed; its contents moved up one level.", "分组已删除，内容已上移一层。") : T("Group saved.", "分组已保存。"));
+             if (embedded != null) Show(_repository.State.groups.FirstOrDefault(g => g.id == selectedId) ?? _repository.State.groups.FirstOrDefault());
+         }
+         catch (Exception ex) { _status(T("Unable to save group: ", "分组保存失败：") + ex.Message); }
+@@ -346,14 +364,38 @@
+         void Move()
+         {
+             string? id = _group?.id; _repository.EnsureLocalPackCopy();
+-            var groups = _repository.State.groups.OrderBy(g => g.order).ToList(); int index = groups.FindIndex(g => g.id == id), next = index + offset;
+-            if (index < 0 || next < 0 || next >= groups.Count) return;
+-            (groups[index], groups[next]) = (groups[next], groups[index]);
+-            for (int i = 0; i < groups.Count; i++) groups[i].order = i;
+-            _repository.SavePackInformation(ConfigurationSaveScope.Groups); _saved(); Show(groups.First(g => g.id == id));
++            if (id == null || !GroupTree.MoveAmongSiblings(_repository.State.groups, id, offset)) return;
++            _repository.SavePackInformation(ConfigurationSaveScope.Groups); _saved(); Show(_repository.State.groups.First(g => g.id == id));
+         }
+         if (HasDirty) OverviewUi.ConfirmDiscard(T("Discard the current group draft?", "放弃当前未保存的分组修改？"), Move); else Move();
+     }
++    private void RefreshParentCaption()
++    {
++        if (_parentCaption == null) return;
++        _parentCaption.text = _parentId.Length == 0 ? T("None (top level)", "无（顶层）") : new GroupTree(_repository.State.groups).Path(_parentId);
++    }
++    private string ParentReason(string reason) => reason == "depth" ? T("Groups nest at most three levels; this parent would go deeper.", "分组最多嵌套三层，选这个上级会超过三层。")
++        : reason == "cycle" ? T("A group cannot go inside its own subgroup.", "分组不能放进它自己的子分组里。") : T("That parent group no longer exists.", "该上级分组已不存在。");
++    /// <summary>Parents offered: top level, then every group except this group's own subtree and any that would push the subtree past three levels.</summary>
++    private void ChooseParent()
++    {
++        var tree = new GroupTree(_repository.State.groups);
++        string self = _group?.id ?? "";
++        int height = self.Length == 0 ? 1 : tree.Height(self);
++        var excluded = self.Length == 0 ? new HashSet<string>() : tree.Subtree(self);
++        var options = new List<(string Label, string Value)> { (T("None (top level)", "无（顶层）"), "") };
++        foreach (var candidate in tree.Flat)
++            if (!excluded.Contains(candidate.id) && tree.Depth(candidate.id) + height <= GroupTree.MaxDepth)
++                options.Add((new string(' ', (tree.Depth(candidate.id) - 1) * 2) + tree.Path(candidate.id), candidate.id));
++        OverviewUi.Choose(T("Parent group", "上级分组"), options, _parentId, value =>
++        {
++            bool recolor = _group == null && string.Equals(_color, GroupPalette.ForNewGroup(_repository.State.groups, _parentId), StringComparison.OrdinalIgnoreCase);
++            _parentId = value ?? "";
++            // A new group that still has its suggested colour follows its new parent's family.
++            if (recolor) { _color = GroupPalette.ForNewGroup(_repository.State.groups, _parentId); if (_colorCaption != null) _colorCaption.text = _color; if (_colorPreview != null) _colorPreview.color = Parse(_color); RebuildPalette(); }
++            RefreshParentCaption();
++        });
++    }
+     private void RequestChangeGroup(OverviewGroup? group)
+     {
+         if (HasDirty) OverviewUi.ConfirmDiscard(T("Discard the current group draft?", "放弃当前未保存的分组修改？"), () => Show(group));
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewHotkeyView.cs" ./src/Overview/OverviewHotkeyView.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewHotkeyView.cs"	2026-11-09 00:27:22.451973300 +0800
++++ b/src/Overview/OverviewHotkeyView.cs	2026-11-09 00:35:46.981142600 +0800
+@@ -151,23 +151,40 @@
+                 columnTitle.enableAutoSizing=true; columnTitle.fontSizeMin=12; columnTitle.fontSizeMax=16;
+                 Hint(columnTitle.gameObject,columnTitle.text);
+             }
+-            var visible=Service.Entries.Where(Matches).OrderBy(e=>_repo.State.groups.FirstOrDefault(g=>g.id==e.Mod.Rule.groupId)?.order??int.MaxValue).ThenBy(e=>e.Mod.Rule.order).ThenBy(e=>e.Mod.Name).ThenBy(e=>e.Section).ThenBy(e=>e.Key).ToList();
++            var tree=new GroupTree(_repo.State.groups);
++            var visible=Service.Entries.Where(Matches).OrderBy(e=>tree.Position(e.Mod.Rule.groupId)).ThenBy(e=>e.Mod.Rule.order).ThenBy(e=>e.Mod.Name).ThenBy(e=>e.Section).ThenBy(e=>e.Key).ToList();
++            bool foldApplies=Tags.Count==0&&_filter==0&&string.IsNullOrWhiteSpace(_query);
++            var emitted=new HashSet<string>(StringComparer.Ordinal);
+             var settingsOwners = OverviewSettingsNavigator.SettingsOwners();
+             float y=0;
+-            foreach(var grouping in visible.GroupBy(e=>e.Mod.Rule.groupId))
++            void Header(string id)
+             {
+-                string id=grouping.Key; var group=_repo.State.groups.FirstOrDefault(g=>g.id==id);Color color=ColorUtility.TryParseHtmlString(group?.color??"",out var c)?c:OverviewUi.Muted;
+-                bool folded=Tags.Count==0&&_filter==0&&string.IsNullOrWhiteSpace(_query)&&_repo.State.collapsedGroups.Contains(id);
+-                var row=OverviewUi.Panel("Group_"+id,_content,Color.Lerp(new Color(.1f,.11f,.12f,.95f),new Color(color.r,color.g,color.b,.95f),.14f));OverviewUi.Place(row,0,y,width,34);
+-                var arrow=OverviewUi.IconButton(row,folded?"triangle-right":"triangle-down",()=> {if(!_repo.State.collapsedGroups.Remove(id))_repo.State.collapsedGroups.Add(id);_repo.SaveUiState();Render();},22,26);OverviewUi.Place((RectTransform)arrow.transform,6,3,22,26);Track(arrow,"group:"+id);
+-                string title=group?.name??T("Ungrouped","未分组");float nameWidth=Mathf.Min(width*.42f,Measure(title,20)+10);
+-                var titleText=Label(row,title,32,0,nameWidth,32,color,20);OverviewUi.ReadableName(titleText,nameWidth);titleText.richText=false;Hint(titleText.gameObject,title); titleText.gameObject.AddComponent<OverviewHotkeyTextAction>().DoubleClicked=()=>EditGroup?.Invoke(group);
+-                Label(row,group?.description??"",36+nameWidth,0,Math.Max(0,width-nameWidth-42),32,OverviewUi.Muted,14);y+=36;
+-                if(folded)continue;
++                if(!emitted.Add(id))return;
++                var group=tree.Get(id);Color color=ColorUtility.TryParseHtmlString(group?.color??"",out var c)?c:OverviewUi.Muted;
++                int depth=Math.Max(1,tree.Depth(id));float indent=(depth-1)*OverviewListView.GroupIndent;
++                bool folded=foldApplies&&_repo.State.collapsedGroups.Contains(id);
++                var row=OverviewUi.Panel("Group_"+id,_content,Color.Lerp(new Color(.1f,.11f,.12f,.95f),new Color(color.r,color.g,color.b,.95f),depth<=1?.14f:.09f));OverviewUi.Place(row,0,y,width,depth<=1?34:30);
++                float railX=0;foreach(var level in group==null?new List<OverviewGroup>():tree.Chain(id)){var rail=OverviewUi.Panel("GroupRail",row,ColorUtility.TryParseHtmlString(level.color,out var lc)?lc:OverviewUi.Muted);OverviewUi.Place(rail,railX,0,OverviewListView.RailWidth,depth<=1?34:30);railX+=OverviewListView.RailWidth+OverviewListView.RailGap;}
++                var arrow=OverviewUi.IconButton(row,folded?"triangle-right":"triangle-down",()=> {if(!_repo.State.collapsedGroups.Remove(id))_repo.State.collapsedGroups.Add(id);_repo.SaveUiState();Render();},22,26);OverviewUi.Place((RectTransform)arrow.transform,6+indent,depth<=1?3:2,22,26);Track(arrow,"group:"+id);
++                string title=group?.name??T("Ungrouped","未分组");float size=depth<=1?20:depth==2?18:17;float nameWidth=Mathf.Min(width*.42f,Measure(title,size)+10);
++                var titleText=Label(row,title,32+indent,0,nameWidth,depth<=1?32:28,color,size);OverviewUi.ReadableName(titleText,nameWidth);titleText.richText=false;Hint(titleText.gameObject,group==null?title:tree.Path(id)); titleText.gameObject.AddComponent<OverviewHotkeyTextAction>().DoubleClicked=()=>EditGroup?.Invoke(group);
++                Label(row,group?.description??"",36+indent+nameWidth,0,Math.Max(0,width-nameWidth-indent-42),depth<=1?32:28,OverviewUi.Muted,14);y+=depth<=1?36:32;
++            }
++            foreach(var grouping in visible.GroupBy(e=>tree.Contains(e.Mod.Rule.groupId)?e.Mod.Rule.groupId:""))
++            {
++                string id=grouping.Key;
++                // Every ancestor header first, so a subgroup is never shown without its parent; a header under a collapsed ancestor folds away.
++                bool hiddenByAncestor=foldApplies&&id.Length>0&&tree.HeaderHidden(id,_repo.State.collapsedGroups);
++                if(hiddenByAncestor)continue;
++                foreach(var ancestor in tree.Ancestors(id))Header(ancestor.id);
++                Header(id);
++                if(foldApplies&&_repo.State.collapsedGroups.Contains(id))continue;
++                Color color=ColorUtility.TryParseHtmlString(tree.Get(id)?.color??"",out var groupColor)?groupColor:OverviewUi.Muted;
++                float memberIndent=(Math.Max(1,tree.Depth(id))-1)*OverviewListView.GroupIndent;
+                 foreach(var modEntries in grouping.GroupBy(e=>e.Mod.Id))
+                 {
+                     var mod=modEntries.First().Mod;bool collapsed=Tags.Count==0&&_filter==0&&string.IsNullOrWhiteSpace(_query)&&_repo.State.collapsedHotkeyMods.Contains(mod.Id);
+-                    var modRow=OverviewUi.Panel("Mod_"+mod.Id,_content,new Color(.11f,.13f,.15f,.75f));OverviewUi.Place(modRow,14,y,width-14,32);
++                    var modRow=OverviewUi.Panel("Mod_"+mod.Id,_content,new Color(.11f,.13f,.15f,.75f));OverviewUi.Place(modRow,14+memberIndent,y,width-14-memberIndent,32);
+                     var modArrow=OverviewUi.IconButton(modRow,collapsed?"triangle-right":"triangle-down",()=>{if(!_repo.State.collapsedHotkeyMods.Remove(mod.Id))_repo.State.collapsedHotkeyMods.Add(mod.Id);_repo.SaveUiState();Render();},20,24);OverviewUi.Place((RectTransform)modArrow.transform,4,4,20,24);Track(modArrow,"mod:"+mod.Id);
+                     var modRail=OverviewUi.Panel("GroupRail",modRow,color);OverviewUi.Place(modRail,0,0,2,32);
+                     var name=Label(modRow,OverviewLanguageBridge.DisplayNameWithOriginal(mod),28,0,width-82,30,Color.Lerp(color,OverviewUi.Ivory,.35f),18);OverviewUi.ReadableName(name,width-82);_dependencyHint(name.gameObject,mod);
+@@ -275,6 +292,7 @@
+         var entry = Service.Entries.FirstOrDefault(e => e.Id == entryId);
+         if (entry == null) { _status(T("That binding is no longer available. Refresh the page.", "目标快捷键已不可用，请刷新页面。")); return; }
+         _query = ""; _search.SetTextWithoutNotify(""); _filter = 0;
++        foreach (var level in new GroupTree(_repo.State.groups).Chain(entry.Mod.Rule.groupId)) _repo.State.collapsedGroups.Remove(level.id);
+         _repo.State.collapsedGroups.Remove(entry.Mod.Rule.groupId); _repo.State.collapsedHotkeyMods.Remove(entry.Mod.Id);
+         _selectedId = entryId + ":current"; _repo.SaveUiState(); Render(); Canvas.ForceUpdateCanvases();
+         if (_targets.TryGetValue(_selectedId, out var target))
+Only in ./src/Overview: OverviewListView.Groups.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewListView.cs" ./src/Overview/OverviewListView.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewListView.cs"	2026-11-09 00:27:22.419306300 +0800
++++ b/src/Overview/OverviewListView.cs	2026-11-09 00:38:34.974615600 +0800
+@@ -335,7 +335,7 @@
+         try
+         {
+             progressGroups = CaptureCheckProgressGroups(
+-                _repo.State.groups.Select(g => (g.id, g.name, g.order)),
++                new GroupTree(_repo.State.groups) is var progressTree ? progressTree.Flat.Select(g => (g.id, progressTree.Path(g.id), progressTree.Position(g.id))) : Enumerable.Empty<(string, string, int)>(),
+                 _mods.Select(m => m.Rule.groupId), InfrastructureOverviewModel.GroupTitle, T("Ungrouped", "未分组"));
+             service = force ? fresh = new ThunderstoreUpdateService(_repo, TimeSpan.Zero) : _updates;
+             CancellationToken token = _round!.Token;
+@@ -435,7 +435,7 @@
+         bool cleared = false;
+         try
+         {
+-            RefreshRowData();
++            RefreshRowData(); InvalidateGroupTree();
+             float width = Width; _lastWidth = width; _languageRevision = OverviewLanguageBridge.Revision;
+             _scroll.StopMovement();
+             var eventSystem = EventSystem.current; var oldSelection = eventSystem != null ? eventSystem.currentSelectedGameObject : null;
+@@ -448,8 +448,8 @@
+             var conflicts = PackConflictService.Evaluate(_repo, _mods).Where(c => c.Any).ToList();
+             RefreshCompatibilityAdvice(conflicts);
+             HashSet<string> configurable = SettingsOwners?.Invoke() ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+-            var layoutRows = _mods.Where(m => MatchesRelated(m) && MatchesOverviewSearch(m) && (!_repo.State.hideDisabled || m.TargetEnabled || m.Loaded || _repo.PlannedEnabled(m)) && Tags.Matches(m, MatchesStatus) && (_sourceFilter < 0 || (int)m.SourceKind == _sourceFilter)).OrderBy(m => GroupOrder(m.Rule.groupId)).ThenBy(m => m.Rule.order).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
+-            _visible = layoutRows.Where(m => _relatedMods != null || Tags.Count > 0 || _searchQuery.Length > 0 || !_repo.State.collapsedGroups.Contains(m.Rule.groupId)).ToList();
++            var layoutRows = _mods.Where(m => MatchesRelated(m) && MatchesOverviewSearch(m) && (!_repo.State.hideDisabled || m.TargetEnabled || m.Loaded || _repo.PlannedEnabled(m)) && Tags.Matches(m, MatchesStatus) && (_sourceFilter < 0 || (int)m.SourceKind == _sourceFilter)).OrderBy(m => GroupSortKey(m.Rule.groupId)).ThenBy(m => m.Rule.order).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
++            _visible = layoutRows.Where(m => _relatedMods != null || Tags.Count > 0 || _searchQuery.Length > 0 || !RowHiddenByCollapse(m.Rule.groupId)).ToList();
+             _displayNumbers.Clear();for(int i=0;i<_visible.Count;i++)_displayNumbers[_visible[i]]=i+1;
+             const float indexWidth = 48, versionWidth = 110;
+             float goalWidth = _fixedGoalWidth;
+@@ -463,13 +463,28 @@
+             float xFolder = xHome + homeWidth, folderWidth = 43;
+             float xCheck = xFolder + folderWidth, checkWidth = _authorMode ? 43 : 0, xVersion = xCheck + checkWidth;
+             float xAuthor = xVersion + versionWidth, xDescription = xAuthor + authorWidth;
+-            float y = BuildInfrastructure(0, width, xEnable, goalWidth, xName, nameWidth, xSettings, xHome, xFolder, xVersion, versionWidth, xAuthor, authorWidth, xDescription, compact); string? currentGroup = null; int index = 0;
++            float y = BuildInfrastructure(0, width, xEnable, goalWidth, xName, nameWidth, xSettings, xHome, xFolder, xVersion, versionWidth, xAuthor, authorWidth, xDescription, compact); int index = 0;
++            var headers = HeaderOrder(layoutRows); int nextHeader = 0;
++            bool collapseApplies = _relatedMods == null && Tags.Count == 0 && _searchQuery.Length == 0;
++            void EmitHeader(string id)
++            {
++                // A header under a collapsed ancestor is folded away with its parent.
++                if (collapseApplies && Groups.HeaderHidden(id, _repo.State.collapsedGroups)) return;
++                int depth = Math.Max(1, Groups.Depth(id));
++                y += y > 0 ? GroupGapBefore : 2; BuildGroupHeader(id, y, width, layoutRows); y += HeaderHeight(depth) + GroupGapAfter;
++            }
++            void EmitHeadersThrough(string id)
++            {
++                string key = Groups.Contains(id) ? id : "";
++                int at = headers.IndexOf(key, nextHeader);
++                if (at < 0) return;
++                for (; nextHeader <= at; nextHeader++) EmitHeader(headers[nextHeader]);
++            }
+             foreach (OverviewMod mod in layoutRows)
+             {
+                 string groupId = mod.Rule.groupId;
+-                if (groupId != currentGroup)
+-                { currentGroup = groupId; y += y > 0 ? GroupGapBefore : 2; BuildGroupHeader(groupId, y, width); y += GroupHeight + GroupGapAfter; }
+-                if (_relatedMods == null && Tags.Count == 0 && _searchQuery.Length == 0 && _repo.State.collapsedGroups.Contains(groupId)) continue;
++                EmitHeadersThrough(groupId);
++                if (collapseApplies && RowHiddenByCollapse(groupId)) continue;
+                 int capturedIndex=index++;
+                 float rowY=y;
+                 System.Collections.IEnumerator BuildModLayers(RectTransform row)
+@@ -477,7 +492,7 @@
+                 _dropAreas[row] = (groupId, mod);
+                 var enablement=row.gameObject.AddComponent<OverviewEnablementBinding>();
+                 enablement.Mod=mod;enablement.Target=()=>_repo.PlannedEnabled(mod);
+-                Color color = GroupColor(groupId); var rail = OverviewUi.Panel("GroupRail", row, color); OverviewUi.Place(rail, 0, 0, 3, RowHeight);
++                DrawRails(row, groupId, RowHeight);
+                 var interaction = row.GetComponent<OverviewRowInteraction>() ?? row.gameObject.AddComponent<OverviewRowInteraction>();
+                 interaction.DragStateChanged=()=>_warmAfter=Time.unscaledTime+.25f;
+                 interaction.NativeScroll = _scroll; interaction.ForwardScroll = () => !_authorMode;
+@@ -498,7 +513,10 @@
+                 var pendingMarker = MarkerState()?.Mod(mod.Guid);
+                 // The name column's lane is one row of chips: unread change, available update, then the pending
+                 // markers. Reserve room for exactly the chips this row will show, instead of a fixed guess.
+-                int laneChips=(hasModUpdate?1:0)+(mod.HasUpdate?1:0)+(pendingMarker?.NeedsSave==true?1:0)+(pendingMarker?.NeedsRestart==true?1:0);
++                int pendingChips=(pendingMarker?.NeedsSave==true?1:0)+(pendingMarker?.NeedsRestart==true?1:0);
++                bool nestedChip=mod.Outer!=null;
++                // Slots are positional (unread 0, update 1, pending from 2); the nested chip goes after the pending ones.
++                int laneChips=nestedChip?StatusChip.FirstPendingSlot+pendingChips+1:(hasModUpdate?1:0)+(mod.HasUpdate?1:0)+pendingChips;
+                 float updateSpace=StatusChip.Reserve(laneChips);
+                 float conflictRight=Mathf.Max(26,updateSpace);
+                 if(hasConflictBadge)updateSpace=Mathf.Max(updateSpace,conflictRight+18);
+@@ -531,7 +549,8 @@
+                 OverviewEditableFrame.Set(description.rectTransform, _authorMode);
+                 enablement.Capture();enablement.Refresh(MarkerState()?.Mod(mod.Guid));
+                 yield return null;
+-                var enabled = OverviewUi.Check(row, _repo.PlannedEnabled(mod), value => Toggle(mod, value)); enabled.interactable = mod.CanToggle;
++                var enabled = OverviewUi.Check(row, _repo.PlannedEnabled(mod), value => Toggle(mod, value)); enabled.interactable = mod.CanToggle && !_repo.BlockedByOuter(mod);
++                if (mod.Outer != null && _repo.BlockedByOuter(mod)) AddHint(enabled.gameObject, T("The outer mod is disabled: ", "外层模组已停用：") + OverviewLanguageBridge.GetDisplayName(mod.Outer));
+                 enablement.Checkbox=enabled;
+                 OverviewUi.Place((RectTransform)enabled.transform, xEnable + (goalWidth - 24) / 2, (row.rect.height - 24) / 2, 24, 24);
+                 OverviewEditableFrame.Set((RectTransform)enabled.transform, _authorMode && mod.CanToggle);
+@@ -582,15 +601,18 @@
+                     AvailableUpdateDot.Version(row,xVersion,4,versionWidth-7,versionHint,()=>ShowVersion(mod),AddHint,ShowExternalHint,HideExternalHint,_scroll);
+                 }
+                 BuildConflictBadge(nameMarkers, mod, _currentConflicts, conflictRight);
++                if (nestedChip)
++                {
++                    var nested = StatusChip.Create(nameMarkers, StatusChip.FirstPendingSlot + pendingChips, StatusChip.Nested, raycast: true);
++                    AddHint(nested.gameObject, T("Nested inside ", "内嵌于「") + OverviewLanguageBridge.GetDisplayName(mod.Outer!) + T(". Nested groups are recommended instead of nesting mod folders; folder organization moves it out.", "」。建议用嵌套分组代替文件夹嵌套；目录整理会把它拆出来。"));
++                }
+                 BuildEnablementStatus(enabled, mod, MarkerState()?.Mod(mod.Guid));
+                 enablement.Refresh(MarkerState()?.Mod(mod.Guid));
+                 }
+                 AddLayeredRow("mod:"+mod.Id, "Mod_"+mod.Id, rowY, RowHeight-2, width-15, BuildModLayers,mod);
+                 y += RowHeight;
+             }
+-            if (_authorMode && Tags.Count == 0 && _searchQuery.Length == 0)
+-                foreach (var empty in _repo.State.groups.OrderBy(g => g.order).Where(g => !layoutRows.Any(m => m.Rule.groupId == g.id)))
+-                { y += GroupGapBefore; BuildGroupHeader(empty.id, y, width); y += GroupHeight + GroupGapAfter; }
++            for (; nextHeader < headers.Count; nextHeader++) EmitHeader(headers[nextHeader]);
+             if (layoutRows.Count == 0) { Label(_content, T("No mods to display.", "没有可显示的模组。"), 20, y + 15, width - 50, 45, 24); y += 65; }
+             _renderedUpdates = UpdateDisplayKey();
+         }
+@@ -712,22 +734,36 @@
+         x = Mathf.Clamp(x, 5, Mathf.Max(5, Width - width - 20)); y = Mathf.Clamp(y, 5, Mathf.Max(5, _root.rect.height - height - 5));
+         HintCanvas.Position(_hint, x, y);
+     }
+-    private int GroupOrder(string id) => _repo.State.groups.FirstOrDefault(g => g.id == id)?.order ?? int.MaxValue;
++    private int GroupOrder(string id) => GroupSortKey(id);
+     private Color GroupColor(string id) => string.IsNullOrEmpty(id) ? OverviewUi.Muted : ColorUtility.TryParseHtmlString(_repo.State.groups.FirstOrDefault(g => g.id == id)?.color ?? "", out Color color) ? color : OverviewUi.Blue;
+-    private void BuildGroupHeader(string groupId, float y, float width)
++    private void BuildGroupHeader(string groupId, float y, float width, IReadOnlyList<OverviewMod> layoutRows)
+     {
+-        OverviewGroup? group = _repo.State.groups.FirstOrDefault(g => g.id == groupId);
++        OverviewGroup? group = Groups.Get(groupId);
++        int depth = Math.Max(1, Groups.Depth(groupId));
++        float height = HeaderHeight(depth), font = HeaderFont(depth);
+         Color groupTint = GroupColor(groupId);
+-        AddVirtualRow("group:"+groupId, "Group_"+groupId, y, GroupHeight, width-15, row => {
+-        row.GetComponent<Image>().color=Color.Lerp(new Color(.1f,.11f,.12f,.95f), new Color(groupTint.r,groupTint.g,groupTint.b,.95f),.14f);
++        int count = group == null ? layoutRows.Count(m => !Groups.Contains(m.Rule.groupId)) : Groups.SubtreeCount(groupId, layoutRows, m => m.Rule.groupId);
++        AddVirtualRow("group:"+groupId, "Group_"+groupId, y, height, width-15, row => {
++        row.GetComponent<Image>().color=Color.Lerp(new Color(.1f,.11f,.12f,.95f), new Color(groupTint.r,groupTint.g,groupTint.b,.95f), depth <= 1 ? .14f : .09f);
+         _dropAreas[row] = (groupId, null);
+-        var rail = OverviewUi.Panel("GroupRail", row, GroupColor(groupId)); OverviewUi.Place(rail, 0, 0, 3, GroupHeight);
+-        var arrow = OverviewUi.IconButton(row, Tags.Count == 0 && _repo.State.collapsedGroups.Contains(groupId) ? "triangle-right" : "triangle-down", () => { if (!_repo.State.collapsedGroups.Remove(groupId)) _repo.State.collapsedGroups.Add(groupId); _repo.SaveUiState(); _selected.Clear(); _anchor = -1; Render(); }, 22, 26); OverviewUi.Place((RectTransform)arrow.transform, 7, (GroupHeight - 26) / 2, 22, 26);
+-        string groupName = group?.name ?? T("Ungrouped", "未分组"); float titleWidth = Mathf.Min(width * .45f, Measure(groupName, 20) + 12);
+-        var caption = Label(row, EscapeRich(groupName), 35, 0, titleWidth, GroupHeight, 22); caption.fontStyle = FontStyles.Normal; caption.color = GroupColor(groupId); caption.characterSpacing = 1.5f; OverviewUi.ReadableName(caption, titleWidth); OverviewUi.PlaceClipped(caption,35,0,titleWidth,GroupHeight); AddHint(caption.gameObject,groupName); OverviewEditableFrame.Set(caption.rectTransform, _authorMode);
+-        if (!string.IsNullOrWhiteSpace(group?.description)) { var description = Label(row, group!.description, 45 + titleWidth, 0, Mathf.Max(0, width - titleWidth - 66), GroupHeight, 17); description.color = OverviewUi.Muted; OverviewUi.PlaceClipped(description,45+titleWidth,0,Mathf.Max(0,width-titleWidth-66),GroupHeight); AddHint(description.gameObject, group.description); }
+-        var target = row.gameObject.AddComponent<OverviewRowInteraction>(); target.Dropped = () => MoveSelected(groupId, null);
+-        Action<PointerEventData> clicked = data => { if (data.clickCount >= 2) { if (group != null) EditGroup(group); else ManageGroups(); } };
++        float rails = DrawRails(row, groupId, height);
++        float indent = (depth - 1) * GroupIndent, left = Mathf.Max(rails + 4, indent + 7);
++        bool collapsed = Tags.Count == 0 && _repo.State.collapsedGroups.Contains(groupId);
++        var arrow = OverviewUi.IconButton(row, collapsed ? "triangle-right" : "triangle-down", () => { if (!_repo.State.collapsedGroups.Remove(groupId)) _repo.State.collapsedGroups.Add(groupId); _repo.SaveUiState(); _selected.Clear(); _anchor = -1; Render(); }, 22, 26); OverviewUi.Place((RectTransform)arrow.transform, left, (height - 26) / 2, 22, 26);
++        string groupName = group?.name ?? T("Ungrouped", "未分组");
++        float captionX = left + 28, titleWidth = Mathf.Min(width * .45f, Measure(groupName, font) + 12);
++        var caption = Label(row, EscapeRich(groupName), captionX, 0, titleWidth, height, font); caption.fontStyle = FontStyles.Normal; caption.color = groupTint; caption.characterSpacing = depth <= 1 ? 1.5f : 1f; OverviewUi.ReadableName(caption, titleWidth); OverviewUi.PlaceClipped(caption,captionX,0,titleWidth,height); AddHint(caption.gameObject, group == null ? groupName : Groups.Path(groupId)); OverviewEditableFrame.Set(caption.rectTransform, _authorMode);
++        var counter = Label(row, count.ToString(), captionX + titleWidth + 6, 0, 60, height, font - 4); counter.color = OverviewUi.Muted; OverviewUi.PlaceClipped(counter, captionX + titleWidth + 6, 0, 60, height);
++        float descriptionX = captionX + titleWidth + 6 + Mathf.Min(60, Measure(count.ToString(), font - 4) + 14);
++        if (!string.IsNullOrWhiteSpace(group?.description)) { var description = Label(row, group!.description, descriptionX, 0, Mathf.Max(0, width - descriptionX - 21), height, 17); description.color = OverviewUi.Muted; OverviewUi.PlaceClipped(description,descriptionX,0,Mathf.Max(0,width-descriptionX-21),height); AddHint(description.gameObject, group.description); }
++        var target = row.gameObject.AddComponent<OverviewRowInteraction>();
++        target.NativeScroll = _scroll; target.ForwardScroll = () => !_authorMode || group == null;
++        // A group heading dropped here becomes this group's subgroup; dropped mods join this group.
++        target.Dropped = () => { if (_draggedGroup != null) { var dragged = _draggedGroup; EndGroupDrag(); if (group != null && dragged.id != groupId) AttachGroup(dragged.id, groupId); } else MoveSelected(groupId, null); };
++        if (group != null) { target.DragStarted = () => BeginGroupDrag(group); target.DragMoved = MoveDragFeedback; target.DragFinished = EndGroupDrag; }
++        Action<PointerEventData> clicked = data => {
++            if (data.button == PointerEventData.InputButton.Right) { ShowGroupMenu(group, data); return; }
++            if (data.clickCount >= 2) { if (group != null) EditGroup(group); else ManageGroups(); } };
+         target.Clicked = clicked;
+         caption.gameObject.AddComponent<OverviewTextClick>().Clicked = clicked;
+         });
+@@ -755,7 +791,7 @@
+     }
+     private void MoveDragFeedback(PointerEventData data)
+     {
+-        if (!_authorMode || _dragged == null) return;
++        if (!_authorMode || _dragged == null && _draggedGroup == null) return;
+         Camera? camera = EventCamera;
+         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, data.position, camera, out var point))
+             OverviewUi.Place(_dragGhost, Mathf.Clamp(point.x - _root.rect.xMin + 15, 0, Mathf.Max(0, Width - 300)), Mathf.Clamp(_root.rect.yMax - point.y + 18, 0, Mathf.Max(0, _root.rect.height - 40)), 300, 40);
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewModels.cs" ./src/Overview/OverviewModels.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewModels.cs"	2026-11-09 00:27:22.442348900 +0800
++++ b/src/Overview/OverviewModels.cs	2026-11-09 00:38:09.247037900 +0800
+@@ -63,7 +63,11 @@
+     public string name = "";
+     public string color = "#7CC7E6";
+     public string description = "";
++    /// <summary>Order among siblings (same <see cref="parentId"/>).</summary>
+     public int order;
++    /// <summary>2.3.0: the group this one hangs under; "" = top level. At most <see cref="GroupTree.MaxDepth"/> levels;
++    /// a missing parent, cycle or over-deep chain is read as top level. See <see cref="GroupTree"/>.</summary>
++    public string parentId = "";
+ }
+ 
+ [Serializable]
+@@ -115,6 +119,10 @@
+     internal List<OverviewMod> CopyRows = new();
+     internal string CopyKey = "";
+     internal bool DuplicateCopy => CopyRows.Count > 1;
++    /// <summary>2.3.0: the mod whose folder this one is nested in (nearest, packaging layout excluded); null at top level.</summary>
++    internal OverviewMod? Outer;
++    /// <summary>Mods nested directly in this one's folder.</summary>
++    internal List<OverviewMod> Inner = new();
+     public List<string> PluginGuids = new();
+     public List<string> AssemblyPaths = new();
+     public OverviewModRule Rule = new();
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewPage.Installation.cs" ./src/Overview/OverviewPage.Installation.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewPage.Installation.cs"	2026-11-09 00:27:22.466511200 +0800
++++ b/src/Overview/OverviewPage.Installation.cs	2026-11-09 00:54:29.772919600 +0800
+@@ -33,15 +33,19 @@
+             SetStatus(Loc.LocalizeMessage("Local import queued independently. Follow progress in Downloads and operations."));
+         }));
+     }
+-    private void PreviewFolderLayout(bool translated)
++    /// <summary>2.3.0: one organizer — whole mod folders move, names unchanged, into folders that mirror the (nested)
++    /// group tree; each overview row goes where the user sees it grouped.</summary>
++    private void PreviewFolderLayout()
+     {
+         var applied = new OverviewRepository(appliedView: true);
++        var rows = new OverviewCatalogue().Scan(applied);
+         var request = new LayoutQueueRequest {
+-            Mode = translated ? InstallationLayoutMode.GroupAndTranslatedOuterFolder : InstallationLayoutMode.GroupOnly,
++            Mode = InstallationLayoutMode.GroupOnly,
+             AppliedProfileId = applied.Profiles.AppliedId,
+-            Groups = applied.State.groups.Select(g => new LayoutQueueGroup { Id = g.id, Name = g.name }).ToList(),
+-            Mods = new OverviewCatalogue().Scan(applied).SelectMany(m => m.PluginGuids.Concat(new[] { m.Guid }).Distinct(StringComparer.OrdinalIgnoreCase)
+-                .Select(id => new LayoutQueueMod { Guid = id, GroupId = string.IsNullOrEmpty(applied.GroupOf(id)) ? "ungrouped" : applied.GroupOf(id), Name = OverviewLanguageBridge.GetDisplayName(m) })).ToList()
++            UngroupedFolder = Loc.T("Ungrouped", "未分组", "未分組"),
++            Groups = applied.State.groups.Select(g => new LayoutQueueGroup { Id = g.id, Name = g.name, ParentId = g.parentId ?? "" }).ToList(),
++            Rows = rows.Select(m => new LayoutQueueRow { Guids = m.PluginGuids.Concat(new[] { m.Guid }).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
++                GroupId = m.Rule.groupId ?? "", PackageRoot = m.PackageRoot, Version = m.DisplayVersion, Loaded = m.Loaded }).ToList()
+         };
+         request.AppliedSnapshotPath = Path.Combine(applied.Profiles.RuntimeDirectory, "applied-profile.json");
+         if (!File.Exists(request.AppliedSnapshotPath)) throw new IOException("Applied profile snapshot missing; apply a profile first.");
+@@ -136,7 +140,7 @@
+             : review ? Loc.T("This plan cannot be confirmed; clear it and preview again after fixing the items above.", "此计划无法确认；处理上面的问题后清除并重新预览。", "此計畫無法確認；處理上面的問題後清除並重新預覽。")
+             : Loc.T("The helper is still analysing; you can stop it.", "更新助手仍在分析，可以停止。", "更新助手仍在分析，可以停止。"));
+         // A layout plan is drawn as a framed tree; everything else (and plans from before the tree existed) stays text.
+-        if (drawTree) LayoutReviewView.Show(panel, task.Tree, body.Select((line, index) => (line, index > 0 && (task.Error.Length > 0 || task.Blockers.Count > 0) && line != message)).ToList());
++        if (drawTree) LayoutReviewView.Show(panel, task.Tree, body.Select((line, index) => (line, index > 0 && (task.Error.Length > 0 || task.Blockers.Count > 0) && line != message)).ToList(), SetStatus);
+         else OverviewUi.SaveDialogBody(panel, string.Join("\n\n", body), attention: !finished);
+         var buttons = new List<(string Label, Action Action, UiActionRole Role)>();
+         if (confirmable) buttons.Add((layout ? Loc.T("Organize", "确认整理", "確認整理") : Loc.T("Import", "确认导入", "確認匯入"), () => ManagementAction(() => {
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewPage.Management.cs" ./src/Overview/OverviewPage.Management.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewPage.Management.cs"	2026-11-09 00:27:22.418305700 +0800
++++ b/src/Overview/OverviewPage.Management.cs	2026-11-09 00:51:24.805307500 +0800
+@@ -48,7 +48,7 @@
+                 _managementGroups?.Dispose();
+                 _managementGroups = new OverviewGroupEditor(_repo, _list?.Mods ?? Array.Empty<OverviewMod>(), ManagementStatus,
+                     () => { _list?.Reload(); RefreshHeader(); });
+-                _managementGroups.ShowEmbedded(host, _managementSelectedGroup ?? _repo.State.groups.OrderBy(g => g.order).FirstOrDefault());
++                _managementGroups.ShowEmbedded(host, _managementSelectedGroup ?? new GroupTree(_repo.State.groups).Flat.FirstOrDefault());
+                 _management!.SetDirty(tab, () => _managementGroups?.HasDirty == true);
+                 _management.SetStage(tab, () => _managementGroups?.StageDraft()); break;
+             case ManagementTab.Profiles: BuildProfileManager(host, _managedProfileId.Length > 0 ? _managedProfileId : null); break;
+@@ -214,8 +214,7 @@
+             }, UiActionRole.Danger);
+         }
+         form.Text(Loc.T("Installation folders", "安装目录整理", "安裝目錄整理"), true);
+-        form.Button(Loc.T("Preview group folders", "预览按分组整理", "預覽依分組整理"), () => PreviewFolderLayout(false));
+-        form.Button(Loc.T("Preview groups and translated folders", "预览分组并使用译名", "預覽分組並使用譯名"), () => PreviewFolderLayout(true));
++        form.Button(Loc.T("Organize into group folders", "整理到分组文件夹", "整理到分組資料夾"), PreviewFolderLayout);
+         form.Text(T("Compatibility", "模组兼容"), true);
+         form.Button(T("Configure mod conflicts", "设置模组冲突"), () => {
+             string id=PackPublisher.PackId();
+Only in ./src/Overview: OverviewPage.SmartGrouping.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileExport.cs" ./src/Overview/OverviewProfileExport.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileExport.cs"	2026-11-09 00:27:22.446861300 +0800
++++ b/src/Overview/OverviewProfileExport.cs	2026-11-09 00:30:24.549446300 +0800
+@@ -60,6 +60,7 @@
+             Document document = item.PreparedDocument ?? LoadDocument(item.Directory, profile);
+             ValidateReferences(item.Directory, document);
+             CleanProfile(profile, id, item.Name);
++            profile["schemaVersion"] = GroupTree.HasNesting(profile["state"]?["groups"]?.ToObject<List<OverviewGroup>>()) ? 2 : 1;
+             selected.Add((item, id, profile, config, document));
+         }
+ 
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileModels.cs" ./src/Overview/OverviewProfileModels.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileModels.cs"	2026-11-09 00:27:22.459494400 +0800
++++ b/src/Overview/OverviewProfileModels.cs	2026-11-09 00:38:09.247037900 +0800
+@@ -69,6 +69,8 @@
+     public bool installed = true;
+     // Package folder (relative to BepInEx) of the copy this entry enables when the GUID is installed more than once; empty = no preference.
+     public string copy = "";
++    /// <summary>2.3.0: GUIDs of nested mods that were enabled when this (outer) mod was disabled; restored when it is enabled again.</summary>
++    public List<string> nestedEnabled = new();
+ }
+ 
+ [Serializable]
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileStore.cs" ./src/Overview/OverviewProfileStore.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewProfileStore.cs"	2026-11-09 00:27:22.443349700 +0800
++++ b/src/Overview/OverviewProfileStore.cs	2026-11-09 00:30:24.548805100 +0800
+@@ -273,7 +273,7 @@
+             if (config.schemaVersion != SchemaVersion || config.values == null || config.files == null)
+                 throw new InvalidDataException(Loc.T("The configuration snapshot is incomplete.", "配置快照内容不完整。", "設定快照內容不完整。"));
+             OverviewProfile importedSource = DeserializeJson<OverviewProfile>(item.ProfileJson);
+-            if (importedSource.schemaVersion != SchemaVersion)
++            if (!GroupTree.SupportedSchema(importedSource.schemaVersion))
+                 throw new InvalidDataException(Loc.T("The profile data format is unsupported.", "方案资料格式不受支持。", "方案資料格式不受支持。"));
+ 
+             string id;
+@@ -449,7 +449,7 @@
+             var pair = ProfilePairPersistence.Read(profilePath, configPath);
+             var profile = DeserializeJson<OverviewProfile>(pair.Profile.ToString(Formatting.None));
+             if (profile.publicationId.Length == 0) profile.publicationId = profile.id.Substring(profile.id.LastIndexOf(':') + 1);
+-            if (profile.schemaVersion != SchemaVersion) throw new InvalidDataException(Loc.F("Unsupported profile version {0}", "不支持的方案版本 {0}", "不支持的方案版本 {0}", profile.schemaVersion));
++            if (!GroupTree.SupportedSchema(profile.schemaVersion)) throw new InvalidDataException(Loc.F("Unsupported profile version {0}", "不支持的方案版本 {0}", "不支持的方案版本 {0}", profile.schemaVersion));
+             profile.id = reference.id; profile.name = reference.name.Length > 0 ? reference.name : profile.name;
+             profile.kind = reference.kind; profile.directory = reference.directory; profile.source = reference.source; profile.readOnly = reference.readOnly;
+             profile.config = DeserializeJson<OverviewConfigSnapshot>(pair.Config.ToString(Formatting.None));
+@@ -492,6 +492,7 @@
+         Directory.CreateDirectory(profile.directory);
+         string profilePath = Path.Combine(profile.directory, "profile.json");
+         var persisted = Clone(profile); persisted.config = new OverviewConfigSnapshot(); persisted.directory = ""; persisted.loadError = "";
++        persisted.schemaVersion = GroupTree.SchemaFor(persisted.state?.groups);
+         ProfilePairPersistence.Write(profile.directory, JObject.FromObject(persisted), JObject.FromObject(profile.config));
+         profile.loadError = "";
+         _loaded[profile.id] = profile;
+@@ -668,7 +669,8 @@
+     private static void RequireImportSchema(JObject json, string path)
+     {
+         JToken? schema = json["schemaVersion"];
+-        if (schema == null || schema.Type != JTokenType.Integer || schema.Value<int>() != SchemaVersion)
++        bool profileDocument = Path.GetFileName(path).Equals("profile.json", StringComparison.OrdinalIgnoreCase);
++        if (schema == null || schema.Type != JTokenType.Integer || !(profileDocument ? GroupTree.SupportedSchema(schema.Value<int>()) : schema.Value<int>() == SchemaVersion))
+             throw new InvalidDataException(Loc.F("Unsupported export schema in {0}; schemaVersion must be integer 1.", "导出文件 {0} 的 schemaVersion 必须是整数 1。", "匯出檔案 {0} 的 schemaVersion 必須是整數 1。", Path.GetFileName(path)));
+     }
+ 
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewRepository.Profiles.cs" ./src/Overview/OverviewRepository.Profiles.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/OverviewRepository.Profiles.cs"	2026-11-09 00:27:22.448858200 +0800
++++ b/src/Overview/OverviewRepository.Profiles.cs	2026-11-09 00:38:09.249039500 +0800
+@@ -312,13 +312,15 @@
+ 
+     public bool HasRecordedMod(OverviewMod mod) => _draftMods.Any(m => m.guid == mod.Guid);
+     public bool PlannedEnabled(OverviewMod mod) => OverviewEnablementDraft.Planned(_draftMods, mod);
++    /// <summary>2.3.0: an inner mod cannot be switched on while the mod it is nested in is planned off.</summary>
++    public bool BlockedByOuter(OverviewMod mod) => OverviewEnablementDraft.BlockedByOuter(_draftMods, mod);
+     public void SetPlannedEnabled(IReadOnlyList<OverviewMod> mods, bool enabled)
+     {
+         EnsureEditableProfile();
+         foreach (var mod in mods)
+         {
+             if (!mod.CanToggle && enabled != mod.TargetEnabled) throw new InvalidOperationException(mod.Name + "：" + mod.ToggleReason);
+-            OverviewEnablementDraft.Set(_draftMods, mod, enabled);
++            OverviewEnablementDraft.SetWithNested(_draftMods, mod, enabled);
+         }
+         PersistRecoveryDraft();
+     }
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/PackWorkspaceInformation.cs" ./src/Overview/PackWorkspaceInformation.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/PackWorkspaceInformation.cs"	2026-11-09 00:27:22.466511200 +0800
++++ b/src/Overview/PackWorkspaceInformation.cs	2026-11-09 00:30:24.550904200 +0800
+@@ -21,7 +21,7 @@
+         string path = PathFor(profileRoot);
+         if (!File.Exists(path)) return null;
+         var information = OverviewProfileStore.DeserializeJson<PackWorkspaceInformation>(File.ReadAllText(path));
+-        if (information.schemaVersion != 1 || information.pack == null || information.groups == null || information.rules == null)
++        if (!GroupTree.SupportedSchema(information.schemaVersion) || information.pack == null || information.groups == null || information.rules == null)
+             throw new InvalidDataException("Unsupported pack information workspace.");
+         string boundary = Path.GetFullPath(Path.GetDirectoryName(profileRoot)!).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+         string resource = Path.GetFullPath(information.resourceDirectory);
+@@ -33,7 +33,7 @@
+     }
+     internal static void Write(string profileRoot, OverviewState state, string resources)
+     {
+-        var information = new PackWorkspaceInformation { pack = state.pack, groups = state.groups, rules = state.mods, resourceDirectory = resources };
++        var information = new PackWorkspaceInformation { schemaVersion = GroupTree.SchemaFor(state.groups), pack = state.pack, groups = state.groups, rules = state.mods, resourceDirectory = resources };
+         OverviewRepository.AtomicWrite(PathFor(profileRoot), JsonConvert.SerializeObject(information, Formatting.Indented));
+     }
+ }
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ProfileChangeReview.cs" ./src/Overview/ProfileChangeReview.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ProfileChangeReview.cs"	2026-11-09 00:27:22.452977800 +0800
++++ b/src/Overview/ProfileChangeReview.cs	2026-11-09 00:36:30.747974100 +0800
+@@ -41,14 +41,15 @@
+         var previous = saveOnly ? _savedDraftProfile : _appliedSnapshot ?? Profiles.Applied;
+         var byGuid = mods.GroupBy(m => m.Guid, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+         string ModName(string guid) => byGuid.TryGetValue(guid, out var m) ? OverviewLanguageBridge.GetDisplayName(m) : _draftMods.FirstOrDefault(m => m.guid.Equals(guid, StringComparison.OrdinalIgnoreCase))?.name ?? guid;
+-        string GroupName(string id) => State.groups.FirstOrDefault(g => g.id == id)?.name ?? previous.state.groups.FirstOrDefault(g => g.id == id)?.name ?? Loc.T("Ungrouped", "未分组", "未分組");
++        var currentTree = new GroupTree(State.groups); var previousTree = new GroupTree(previous.state.groups);
++        string GroupName(string id) => currentTree.Contains(id) ? currentTree.Path(id) : previousTree.Contains(id) ? previousTree.Path(id) : Loc.T("Ungrouped", "未分组", "未分組");
+         void Add(ProfileReviewCategory category, string guid, string title, string before, string target, string note = "", string? groupId = null)
+         {
+             string group = groupId ?? (byGuid.TryGetValue(guid, out var mod) ? mod.Rule.groupId : State.mods.FirstOrDefault(m => m.id.Equals(guid, StringComparison.OrdinalIgnoreCase))?.groupId ?? "");
+             var definition = State.groups.FirstOrDefault(g => g.id == group);
+             var tint = ColorUtility.TryParseHtmlString(definition?.color ?? "", out var color) ? color : OverviewUi.Blue;
+             result.Items.Add(new ProfileReviewItem { Category = category, GroupId = group, GroupName = guid.Length == 0 && group.Length == 0 ? Loc.T("Profile", "配置方案", "設定方案") : GroupName(group), GroupColor = tint,
+-                GroupOrder = definition?.order ?? int.MaxValue, ModOrder = byGuid.TryGetValue(guid, out var ordered) ? ordered.Rule.order : 0,
++                GroupOrder = currentTree.Position(group), ModOrder = byGuid.TryGetValue(guid, out var ordered) ? ordered.Rule.order : 0,
+                 ModId = guid, ModName = guid.Length == 0 ? "" : ModName(guid), Title = title, Before = before, Target = target, Note = note });
+         }
+         string OnOff(bool value) => value ? Loc.T("Enabled", "启用", "啟用") : Loc.T("Disabled", "停用", "停用");
+@@ -94,12 +95,19 @@
+             foreach (var field in fields)
+                 if (!JToken.DeepEquals(a[field.Key], b[field.Key])) Add(category, guid, field.Label, Display(a[field.Key]), Display(b[field.Key]), "", groupId);
+         }
+-        var groupFields = new[] { ("name", Loc.T("Group name", "分组名称", "分組名稱")), ("color", Loc.T("Group color", "分组颜色", "分組顏色")), ("description", Loc.T("Group description", "分组说明", "分組說明")), ("order", Loc.T("Order", "顺序", "順序")) };
++        var groupFields = new[] { ("name", Loc.T("Group name", "分组名称", "分組名稱")), ("color", Loc.T("Group color", "分组颜色", "分組顏色")), ("description", Loc.T("Group description", "分组说明", "分組說明")), ("order", Loc.T("Order", "顺序", "順序")), ("parentId", Loc.T("Parent group", "上级分组", "上級分組")) };
+         foreach (string id in previous.state.groups.Select(g => g.id).Union(State.groups.Select(g => g.id)))
+         {
+             var old = previous.state.groups.FirstOrDefault(g => g.id == id); var target = State.groups.FirstOrDefault(g => g.id == id);
+             if (old == null || target == null) Add(ProfileReviewCategory.Groups, "", Loc.T("Group", "分组", "分組"), old?.name ?? NotRecorded(), target?.name ?? NotRecorded(), "", id);
+-            else Fields(ProfileReviewCategory.Groups, "", old, target, groupFields, id);
++            else
++            {
++                Fields(ProfileReviewCategory.Groups, "", old, target, groupFields.Where(f => f.Item1 != "parentId").ToArray(), id);
++                if ((old.parentId ?? "") != (target.parentId ?? ""))
++                    Add(ProfileReviewCategory.Groups, "", Loc.T("Parent group", "上级分组", "上級分組"),
++                        (old.parentId ?? "").Length == 0 ? Loc.T("Top level", "顶层", "頂層") : GroupName(old.parentId!),
++                        (target.parentId ?? "").Length == 0 ? Loc.T("Top level", "顶层", "頂層") : GroupName(target.parentId!), "", id);
++            }
+         }
+         foreach (string id in previous.state.mods.Select(m => m.id).Union(State.mods.Select(m => m.id), StringComparer.OrdinalIgnoreCase))
+         {
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ProfilePairPersistence.cs" ./src/Overview/ProfilePairPersistence.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ProfilePairPersistence.cs"	2026-11-09 00:27:22.393607300 +0800
++++ b/src/Overview/ProfilePairPersistence.cs	2026-11-09 00:30:24.546800200 +0800
+@@ -22,9 +22,12 @@
+     }
+     private static void Validate(JObject profile, JObject config)
+     {
+-        foreach (var json in new[] { profile, config })
+-            if (json["schemaVersion"]?.Type != JTokenType.Integer || json.Value<int>("schemaVersion") != 1)
+-                throw new InvalidDataException("Profile pair schemaVersion must be integer 1.");
++        // profile.json is version 2 when it carries nested groups (older versions accept only 1 and so refuse it);
++        // the configuration snapshot never changed shape and stays 1.
++        if (profile["schemaVersion"]?.Type != JTokenType.Integer || !GroupTree.SupportedSchema(profile.Value<int>("schemaVersion")))
++            throw new InvalidDataException("Profile schemaVersion must be integer 1 or 2.");
++        if (config["schemaVersion"]?.Type != JTokenType.Integer || config.Value<int>("schemaVersion") != 1)
++            throw new InvalidDataException("Configuration snapshot schemaVersion must be integer 1.");
+         if (config["values"] is not JArray || config["files"] is not JArray)
+             throw new InvalidDataException("Configuration snapshot is missing values or files.");
+     }
+Only in ./src/Overview: RecycleBin.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ShopWindow.cs" ./src/Overview/ShopWindow.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/ShopWindow.cs"	2026-11-09 00:27:22.392608800 +0800
++++ b/src/Overview/ShopWindow.cs	2026-11-09 00:36:30.747974100 +0800
+@@ -285,7 +285,8 @@
+         var rows=Scroll(popup,10,48,popup.rect.width-20,320);float y=0;
+         void Item(string name,string id,Color tint){var row=FlatListRow.Create(rows,()=>{_group=id;_newGroup="";Destroy(popup.gameObject);if(id=="new")GroupName();else ShowTask();},rows.rect.width-16,38,new Color(.12f,.17f,.18f,1));OverviewUi.Place((RectTransform)row.transform,0,y,rows.rect.width-16,38);var rail=OverviewUi.Rect("Color",row.transform);OverviewUi.Place(rail,0,0,4,38);rail.gameObject.AddComponent<Image>().color=tint;Label(row.transform,name,14,1,rows.rect.width-40,34,17,tint);y+=42;}
+         Item(T("Automatic grouping","自动分组"),"",OverviewUi.Muted);Item(T("Create group...","新建分组……"),"new",OverviewUi.Blue);
+-        foreach(var group in _repo.State.groups.OrderBy(g=>g.order)){ColorUtility.TryParseHtmlString(group.color,out var tint);Item(group.name,group.id,tint);}rows.sizeDelta=new Vector2(rows.rect.width,y);
++        var tree=new GroupTree(_repo.State.groups);
++        foreach(var group in tree.Flat){ColorUtility.TryParseHtmlString(group.color,out var tint);Item(new string(' ',(tree.Depth(group.id)-1)*3)+(tree.Depth(group.id)>1?"└ ":"")+group.name,group.id,tint);}rows.sizeDelta=new Vector2(rows.rect.width,y);
+         Button(popup,T("Close","关闭"),()=>Destroy(popup.gameObject),popup.rect.width-120,8,108);
+     }
+     private string ShopText(string text)
+Only in ./src/Overview: SmartGrouping.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/StatusChip.cs" ./src/Overview/StatusChip.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Overview/StatusChip.cs"	2026-11-09 00:27:22.442348900 +0800
++++ b/src/Overview/StatusChip.cs	2026-11-09 00:38:34.974615600 +0800
+@@ -14,6 +14,8 @@
+     internal const float Size = 8, Step = 11, RightInset = 2, TopInset = 3, Hit = 16;
+     internal const int UnreadSlot = 0, UpdateSlot = 1, FirstPendingSlot = 2;
+     internal static readonly Color Unread = new(.43f, .68f, .92f, 1f);
++    /// <summary>2.3.0: this mod sits inside another mod's folder (amber, like other advice).</summary>
++    internal static readonly Color Nested = new(.88f, .63f, .33f, 1f);
+ 
+     /// <summary>Width the lane needs when it holds this many chips: to the left edge of the leftmost chip, plus
+     /// one step of breathing room so the title never touches it.</summary>
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Plugin.cs" ./src/Plugin.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Plugin.cs"	2026-11-09 00:27:22.472514900 +0800
++++ b/src/Plugin.cs	2026-11-09 01:00:02.630334800 +0800
+@@ -21,7 +21,7 @@
+ {
+     public const string PluginGuid = "com.aiae.modconfigenhance";
+     public const string PluginName = "Mod Manager (In-Game)";
+-    public const string PluginVersion = "2.2.13";
++    public const string PluginVersion = "2.3.0";
+ 
+     internal static ManualLogSource Log { get; private set; } = null!;
+ 
+Only in ./src/Updating: GroupFolderPlanner.cs
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Updating/InstallationLayoutContracts.cs" ./src/Updating/InstallationLayoutContracts.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Updating/InstallationLayoutContracts.cs"	2026-11-09 00:27:22.478028600 +0800
++++ b/src/Updating/InstallationLayoutContracts.cs	2026-11-09 00:45:01.997138200 +0800
+@@ -11,6 +11,8 @@
+     /// <summary>Where the package came from, as far as the ledger knows. The confirmation dialog names these in
+     /// the user's own language, so the worker reports the category rather than a sentence.</summary>
+     public enum LayoutSourceKind { Unknown, Local, Store }
++    /// <summary>2.3.0: what a tree node stands for.</summary>
++    public enum LayoutNodeKind { Package, Container, Empty }
+ 
+     /// <summary>One resulting package folder in the plugins tree. Flat: a node names the group folder it lands in
+     /// (empty when it stays beside plugins/), so the caller can draw the tree and word the notes locally.</summary>
+@@ -28,6 +30,12 @@
+         public bool Ungrouped { get; set; }
+         /// <summary>The manager's own folder: moved last, after the game exits.</summary>
+         public bool Manager { get; set; }
++        /// <summary>2.3.0 fields. Older previews leave them at their defaults.</summary>
++        public LayoutNodeKind Kind { get; set; }
++        public string GroupId { get; set; } = "";
++        public string FinalPath { get; set; } = "";
++        public int ModCount { get; set; }
++        public int FileCount { get; set; }
+     }
+ 
+     /// <summary>Bounded, caller-collected snapshot. All paths are relative to BepInEx, never absolute.
+diff -ru --strip-trailing-cr -x bin -x obj -x 备份 -x 验证 -x 发布 -x 图片 -x Help -x Demo -x Desktop -x tools -x '*.md' -x '*.json' -x '*.png' -x '*.txt' -x '*.slnx' "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Updating/LayoutQueueContracts.cs" ./src/Updating/LayoutQueueContracts.cs
+--- "\345\244\207\344\273\275/2.3.0_20261109_\345\265\214\345\245\227\345\210\206\347\273\204\345\211\215/src/Updating/LayoutQueueContracts.cs"	2026-11-09 00:27:22.474513500 +0800
++++ b/src/Updating/LayoutQueueContracts.cs	2026-11-09 00:45:02.003378300 +0800
+@@ -13,6 +13,12 @@
+     public InstallationLayoutMode Mode { get; set; }
+     public List<LayoutQueueGroup> Groups { get; set; } = new();
+     public List<LayoutQueueMod> Mods { get; set; } = new();
++    /// <summary>2.3.0: rows (when present the worker uses the group-folder organizer).</summary>
++    public List<LayoutQueueRow> Rows { get; set; } = new();
++    /// <summary>Folder name for mods nobody grouped, in the user's language.</summary>
++    public string UngroupedFolder { get; set; } = "Ungrouped";
+ }
+-public sealed class LayoutQueueGroup { public string Id { get; set; } = ""; public string Name { get; set; } = ""; }
++public sealed class LayoutQueueGroup { public string Id { get; set; } = ""; public string Name { get; set; } = ""; public string ParentId { get; set; } = ""; }
+ public sealed class LayoutQueueMod { public string Guid { get; set; } = ""; public string GroupId { get; set; } = ""; public string Name { get; set; } = ""; }
++/// <summary>2.3.0: one overview row as the user sees it — every plugin GUID it carries, its group, its package folder.</summary>
++public sealed class LayoutQueueRow { public List<string> Guids { get; set; } = new(); public string GroupId { get; set; } = ""; public string PackageRoot { get; set; } = ""; public string Version { get; set; } = ""; public bool Loaded { get; set; } }

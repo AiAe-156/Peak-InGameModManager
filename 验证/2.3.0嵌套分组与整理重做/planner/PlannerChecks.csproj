@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>PlannerChecks</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/Updating/GroupFolderPlanner.cs" Link="GroupFolderPlanner.cs" />
+    <Compile Include="../../../src/Updating/InstallationLayoutContracts.cs" Link="InstallationLayoutContracts.cs" />
+  </ItemGroup>
+</Project>

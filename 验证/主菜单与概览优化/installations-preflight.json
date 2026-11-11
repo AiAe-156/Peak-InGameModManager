@@ -1,0 +1,22 @@
+[
+  {
+    "name": "BetterPlayerDistance.dll",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\1拓展模组\\[信息]更好的显示玩家距离-1.1.5\\BetterPlayerDistance.dll",
+    "size": 288256
+  },
+  {
+    "name": "ModConfigEnhance.dll",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\ModManager_InGame_2.0.0_20261029_215224\\ModConfigEnhance.dll",
+    "size": 2501120
+  },
+  {
+    "name": "Better_MicIndicator.dll",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[功能]更好的麦克风指示器(Better_MicIndicator)\\Better_MicIndicator.dll",
+    "size": 32256
+  },
+  {
+    "name": "BetterReviveOrTeleport.dll",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[机制]更好的手动复活&传送\\BetterReviveOrTeleport.dll",
+    "size": 59392
+  }
+]

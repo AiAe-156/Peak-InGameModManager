@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>在游戏里管理所有模组 · 游戏内模组管理器</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="index.html"><img src="assets/icon.png" alt=""><span>游戏内模组管理器</span></a>
+  <nav class="nav" aria-label="板块"><a href="index.html" aria-current="page" style="--c:var(--pin)">首页</a><a href="mods.html">模组管理</a><a href="config.html">模组配置</a><a href="profiles.html">多配置切换</a><a href="packs.html">整合包</a><a href="language.html">多语言翻译</a></nav>
+</div></header>
+<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L0 20 L110 12 L200 22 L320 4 L420 18 L540 8 L640 24 L760 2 L880 20 L990 10 L1090 22 L1200 14 L1200 34 Z" fill="#1b3d5c"/><path d="M0 34 L0 28 L150 24 L300 30 L460 22 L620 30 L780 24 L940 30 L1100 25 L1200 28 L1200 34 Z" fill="#e6ecef"/></svg>
+<main>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 34px; align-items: center; padding-top: 10px; }
+  .hero h1 { margin-top: 8px; }
+  .hero .shot { background: var(--navy); border-radius: 16px; padding: 12px; box-shadow: 0 24px 50px -30px #0c2033; }
+  .hero .shot img { border-radius: 9px; }
+  .install { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 15px; color: var(--ink-2); margin-top: 6px; }
+  .install b { color: var(--ink); }
+  .blocks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+  .block { display: flex; flex-direction: column; background: var(--paper); border-radius: 14px; padding: 18px 16px 16px; text-decoration: none; color: var(--ink); border-top: 5px solid var(--c); min-height: 260px; }
+  .block:hover { background: #fff; }
+  .block h3 { color: var(--c); font-size: 19px; margin-bottom: 8px; }
+  .block p { font-size: 14px; color: var(--ink-2); margin: 0 0 10px; }
+  .block ul { margin: auto 0 0; padding-left: 1.05em; font-size: 14px; }
+  .block li { margin: 2px 0; }
+  .flowline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 16px; background: var(--paper); border-radius: 14px; overflow: hidden; }
+  .flowline div { padding: 16px 18px; border-right: 1px solid var(--line); }
+  .flowline div:last-child { border-right: none; }
+  .flowline b { display: block; font-size: 16px; }
+  .flowline span { font-size: 14px; color: var(--ink-2); }
+  .flowline i { display: block; font-style: normal; font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+  @media (max-width: 980px) { .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hero { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) { .blocks, .flowline { grid-template-columns: 1fr; } .flowline div { border-right: none; border-bottom: 1px solid var(--line); } }
+</style>
+<section class="hero" style="padding-top:8px">
+  <div>
+    <h1>不用退出游戏，在设置菜单里管好所有模组</h1>
+    <p class="lede">不用退出游戏、不用开管理器，在 PEAK 的设置菜单里就能看到装了哪些模组、各自是什么版本、谁依赖谁，改配置、改快捷键、更新、启停、卸载，都在同一个界面里完成。</p>
+    <div class="install"><span><b>安装：</b>用 r2modman 或雷霆商店管理器一键安装，依赖会自动装好</span><span><b>入口：</b>主菜单或暂停菜单的「设置」→「模组概览」</span></div>
+  </div>
+  <div class="shot"><img src="assets/overview-blue.jpg" alt="模组概览：按分组列出所有模组，每行有启用方框、序号、名称、来源标签、版本、作者和简介"></div>
+</section>
+
+<section>
+  <h2>五个板块</h2>
+  <p class="muted">每块点进去有详细介绍。</p>
+  <div class="blocks">
+    <a class="block" href="mods.html" style="--c:var(--mods)"><h3>模组管理</h3><p>一页看全所有模组，哪个有更新、哪个没生效、谁依赖谁，一眼就知道。</p><ul><li>按分组排列</li><li>状态角标</li><li>一键启停</li><li>更新、安装、卸载</li><li>依赖与主页</li><li>目录整理</li></ul></a>
+    <a class="block" href="config.html" style="--c:var(--config)"><h3>模组配置</h3><p>所有模组的设置集中在一棵树里，找得到、改得明白。</p><ul><li>树形侧栏</li><li>说明面板</li><li>快捷键集中管理</li><li>先改后存</li></ul></a>
+    <a class="block" href="profiles.html" style="--c:var(--profiles)"><h3>多配置切换</h3><p>同一套模组可以有好几套配置，比如「日常」和「整活」，随时切换。</p><ul><li>配置方案</li><li>切换只是查看</li><li>作者预设与个人修改分开</li></ul></a>
+    <a class="block" href="packs.html" style="--c:var(--packs)"><h3>整合包</h3><p>把一整套模组环境存起来，换着玩，也能打包发给朋友。</p><ul><li>整合包库</li><li>导入先预览</li><li>切换有备份</li><li>写介绍</li><li>发布</li></ul></a>
+    <a class="block" href="language.html" style="--c:var(--lang)"><h3>多语言翻译</h3><p>界面和模组的名字、说明都能翻译，补翻也很方便。</p><ul><li>内置三种语言</li><li>模组名称和说明也能翻</li><li>一键导出待翻文本</li><li>跟着整合包走</li><li>不需要 XUnity</li></ul></a>
+  </div>
+</section>
+
+<section>
+  <h2>一次修改是怎么生效的</h2>
+  <p class="muted">改参数、改快捷键、勾选启停都是同一个流程。安装、更新、卸载不走这条路，点了就排队执行。</p>
+  <div class="flowline">
+    <div><i>第一步</i><b>改动</b><span>改一个设置、录一个按键、勾一个模组。</span></div>
+    <div><i>第二步</i><b>进草稿</b><span>名称旁出现橙色角标，还没写进文件。</span></div>
+    <div><i>第三步</i><b>保存配置</b><span>保存前可以在「变更检查目录」核对每一项。</span></div>
+    <div><i>第四步</i><b>按时机生效</b><span>立即、下一局，或者重启游戏。每项都会标出来。</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>安装</h2>
+  <div class="two">
+    <div><p>用 r2modman 或雷霆商店管理器一键安装，依赖会自动装好。进游戏后，在主菜单或暂停菜单的「设置」里打开「模组概览」。</p></div>
+    <div class="callout"><b>不推荐手动安装：</b>依赖比较多，有的还要放进 BepInEx 的 core 文件夹。请用模组管理器安装；自动部署脚本以后会放在这里。</div>
+  </div>
+</section>
+
+<section>
+  <h2>文件放在哪</h2>
+  <p class="muted">管理器替你保存的东西都在 <code>BepInEx/config/ModConfigEnhance/</code>，只有四个文件夹。</p>
+  <div class="flowline">
+    <div><i>language</i><b>语言文件</b><span>你自己的翻译，一种语言一个文件。</span></div>
+    <div><i>profiles</i><b>配置方案</b><span>每套方案的参数、快捷键、启停，整合包介绍和素材。</span></div>
+    <div><i>output</i><b>导出的东西</b><span>待翻文本、发布的整合包、日志导出。</span></div>
+    <div><i>data</i><b>管理器自己的数据</b><span>运行状态、商店缓存、自动备份、你改过的说明。</span></div>
+  </div>
+  <p class="muted" style="margin-top:12px">已装的整合包和更新助手的备份在 <code>BepInEx/MCE/</code>。</p>
+</section>
+
+<section>
+  <h2>改文件之前一定先备份</h2>
+  <div class="two">
+    <div><p>安装、更新、卸载、整理文件夹、切换整合包，这些要动模组文件的操作都由一个独立的小助手执行。它只在有任务时启动，带一个前台进度窗口，做完就退出。</p>
+    <p>要替换游戏正在用的文件时，它会等你退出游戏再动手。每次改动前都先备份，失败自动回退；已完成的更新也能手动回退。</p></div>
+    <div class="callout"><b>不会被拦下的操作：</b>大部分检查都只是提醒，确认一次就能继续。真正不能做的只有几件：停用或卸载管理器自己和它运行所需的三个库，以及会伤到文件的操作（路径越界、链接、目标被占用）。</div>
+  </div>
+</section>
+
+<nav class="pager" aria-label="翻页"><span></span><a class="next" href="mods.html" style="--c:var(--mods)"><small>下一页</small>模组管理</a></nav>
+<footer><span>游戏内模组管理器 · In-Game Mod Manager · PEAK 模组</span><span>本介绍依据当前开发版整理，界面以游戏内为准</span></footer>
+</main>
+</body>
+</html>

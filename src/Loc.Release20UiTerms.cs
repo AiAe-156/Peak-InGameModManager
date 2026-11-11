@@ -1,0 +1,42 @@
+namespace ModConfigEnhance;
+internal static partial class Loc
+{
+    private static readonly Term[] Release20UiTerms =
+    {
+        new("Remove the recorded target; keep the live value.", "Remove the recorded target; keep the live value.", "移除方案记录，实际值保持原样。", "移除方案記錄，實際值維持原樣。"),
+        new("Save the target only; apply it separately.", "Save the target only; apply it separately.", "仅保存目标，需要另外应用。", "僅儲存目標，需要另外套用。"),
+        new("Takes effect after restarting PEAK.", "Takes effect after restarting PEAK.", "重新启动 PEAK 后生效。", "重新啟動 PEAK 後生效。"),
+        new("Apply now through the mod's settings.", "Apply now through the mod's settings.", "通过模组设置立即应用。", "透過模組設定立即套用。"),
+        new("The mod is not installed; its target is retained.", "The mod is not installed; its target is retained.", "未找到已安装模组，保留目标。", "找不到已安裝模組，保留目標。"),
+        new("Enable mod", "Enable mod", "启用", "啟用"),
+        new("Group color", "Group color", "分组颜色", "分組顏色"),
+        new("Group description", "Group description", "分组说明", "分組說明"),
+        new("Order", "Order", "顺序", "順序"),
+        new("Group", "Group", "分组", "分組"),
+        new("Assigned group", "Assigned group", "所属分组", "所屬分組"),
+        new("Display version", "Display version", "显示版本", "顯示版本"),
+        new("Update permission", "Update permission", "更新许可", "更新許可"),
+        new("Date", "Date", "日期", "日期"),
+        new("Introduction and resources", "Introduction and resources", "介绍与引用资源", "介紹與引用資源"),
+        new("Previous content", "Previous content", "原有内容", "原有內容"),
+        new("Edited content", "Edited content", "已编辑内容", "已編輯內容"),
+        new("Profile: {0}", "Profile: {0}", "配置方案：{0}", "設定方案：{0}"),
+        new("The targets have been saved. The current game values and plugin files stay as they are.", "The targets have been saved. The current game values and plugin files stay as they are.", "目标已保存；游戏当前参数和插件文件保持原样。", "目標已儲存；遊戲目前參數及插件檔案維持原樣。"),
+        new("Review the current values and targets below. Mod enablement and restart-required settings take effect after restarting PEAK.", "Review the current values and targets below. Mod enablement and restart-required settings take effect after restarting PEAK.", "请核对下方原值和目标。模组启停及需重启的设置，在重新启动 PEAK 后生效。", "請核對下方原值與目標。模組啟停及需重新啟動的設定，在重新啟動 PEAK 後生效。"),
+        new("Mod enablement", "Mod enablement", "模组启停", "模組啟停"),
+        new("Hotkeys", "Hotkeys", "快捷键", "快捷鍵"),
+        new("Groups and order", "Groups and order", "分组与排序", "分組與排序"),
+        new("Pack and mod info", "Pack and mod info", "整合包与模组资料", "整合包與模組資料"),
+        new("Introduction", "Introduction", "介绍与资源", "介紹與資源"),
+        new("Retained targets", "Retained targets", "暂不可用，保留", "暫不可用，保留"),
+        new("Saved: ", "Saved: ", "原记录：", "原記錄："),
+        new("Current: ", "Current: ", "原值：", "原值："),
+        new("No target changes to list.", "No target changes to list.", "没有需要列出的目标修改。", "沒有需要列出的目標修改。"),
+        new("All changes", "All changes", "全部修改", "全部修改"),
+        new("Save only", "Save only", "仅保存", "僅儲存"),
+        new("Profile saved: {0}; {1} unrecorded settings collected. Apply configuration to use the targets.", "Profile saved: {0}; {1} unrecorded settings collected. Apply configuration to use the targets.", "方案已保存：{0}；补收 {1} 项未记录参数。需要使用目标时，请点击“应用配置”。", "方案已儲存：{0}；補收 {1} 項未記錄參數。需要使用目標時，請按「套用設定」。"),
+        new("Configuration saved", "Configuration saved", "配置已保存", "設定已儲存"),
+        new("Checkboxes set the profile target. Save only keeps it; Apply and restart to change loaded mods.", "Checkboxes set the profile target. Save only keeps it; Apply and restart to change loaded mods.", "勾选只改方案目标；“仅保存”记住目标，“应用配置”后重启游戏生效。", "勾選只改方案目標；「僅儲存」記住目標，「套用設定」後重新啟動遊戲生效。"),
+        new("Enable target changed. Save only keeps it; Apply configuration and restart the game to change enablement.", "Enable target changed. Save only keeps it; Apply configuration and restart the game to change enablement.", "启用目标已修改。“仅保存”记住目标；点击“应用配置”并重启游戏后生效。", "啟用目標已修改。「僅儲存」記住目標；按「套用設定」並重新啟動遊戲後生效。"),
+    };
+}

@@ -1,0 +1,24 @@
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/MonoDetour-MonoDetour/LICENSE
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/MonoDetour-MonoDetour/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/MonoDetour-MonoDetour/README.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/Cysharp-UniTask/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/AutoHookGenPatcher-1.1.1/CHANGELOG.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/AutoHookGenPatcher-1.1.1/icon.png
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/AutoHookGenPatcher-1.1.1/LICENSE
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/AutoHookGenPatcher-1.1.1/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���core/AutoHookGenPatcher-1.1.1/README.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/MonoDetour-MonoDetour_BepInEx_5/CHANGELOG.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/MonoDetour-MonoDetour_BepInEx_5/icon.png
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/MonoDetour-MonoDetour_BepInEx_5/LICENSE
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/MonoDetour-MonoDetour_BepInEx_5/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/MonoDetour-MonoDetour_BepInEx_5/README.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-DetourContext_Dispose_Fix/CHANGELOG.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-DetourContext_Dispose_Fix/icon.png
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-DetourContext_Dispose_Fix/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-DetourContext_Dispose_Fix/README.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-AutoHookGenPatcher/CHANGELOG.md
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-AutoHookGenPatcher/icon.png
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-AutoHookGenPatcher/LICENSE
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-AutoHookGenPatcher/manifest.json
+      ��ʾ: �鵵ͬ���ɸ�����������ظ����أ���patchers/Hamunii-AutoHookGenPatcher/README.md
+      ��ʾ: ���� 5 �������°���ڵı����ļ���CHANGELOG.md, icon.png, LICENSE, manifest.json, README.md

@@ -1,0 +1,98 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
+    <Compile Remove="备份\**\*.cs;验证\**\*.cs;Updater\**\*.cs;Desktop\**\*.cs" />
+    <EmbeddedResource Include="Help\zh-cn\*.md" LogicalName="MCE.Help.zh-cn.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Help\en-us\*.md" LogicalName="MCE.Help.en-us.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Help\zh-tw\*.md" LogicalName="MCE.Help.zh-tw.%(Filename)%(Extension)" />
+  </ItemGroup>
+  <PropertyGroup>
+    <AssemblyName>ModConfigEnhance</AssemblyName>
+    <RootNamespace>ModConfigEnhance</RootNamespace>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DefaultItemExcludes>$(DefaultItemExcludes);备份\**;验证\**;发布\**;Updater\bin\**;Updater\obj\**;Desktop\**</DefaultItemExcludes>
+    <Version>2.5.4</Version>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GameDir>F:\Games\SteamLibrary\steamapps\common\PEAK\</GameDir>
+    <ManagedDir>$(GameDir)PEAK_Data\Managed\</ManagedDir>
+    <BepInExCoreDir>$(GameDir)BepInEx\core\</BepInExCoreDir>
+    <PluginsDir>$(GameDir)BepInEx\plugins\</PluginsDir>
+    <!-- 沿用用户确认的当前安装位置，一个模组一个独立目录。2026-11-09 用户执行目录整理后随之移到 0基础模组。 -->
+    <DeployDir>$(PluginsDir)0基础模组\ModManager_InGame_2.0.0_20261029_215224\</DeployDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 游戏本体程序集全量引用并 publicize -->
+    <LocalReferences Include="$(ManagedDir)*.dll" Exclude="$(ManagedDir)System*.dll;$(ManagedDir)mscorlib.dll;$(ManagedDir)netstandard.dll" />
+    <Reference Include="@(LocalReferences)" Private="false" Publicize="true" />
+    <!-- PEAKLib.UI 用公开 API；ModConfig 做 publicize 以访问 ModSettingsMenu 等 internal 成员。
+         ModConfig 是硬依赖（BepInDependency），XUnity / TimeTheme 全反射、不引用 DLL。
+         引用三层兜底：$(PluginsDir) 现用整合包扁平布局 → BepInEx3 扁平布局 → BepInEx 分区布局。 -->
+    <Reference Include="PEAKLib.Core">
+      <HintPath>$(PluginsDir)依赖模组\[依赖]PEAKLib核心-PEAKLib_Core\plugins\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PEAKLib.UI">
+      <HintPath>$(PluginsDir)依赖模组\[依赖]PEAKLib界面-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PEAKLib.ModConfig" Publicize="true">
+      <HintPath>$(PluginsDir)0基础模组\[功能]游戏内更改mod配置-ModConfig-1.8.2\com.github.PEAKModding.PEAKLib.ModConfig.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExCoreDir)Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="PrepareDesktopBundle">
+    <Error Condition="!Exists('$(ProjectDir)Desktop\bin\Release\net48\MCE.Desktop.exe')" Text="请先构建 Desktop/MCE.Desktop.csproj -c Release。" />
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe')" Text="请先发布 Framework 更新助手。" />
+    <Copy SourceFiles="$(ProjectDir)Desktop/bin/Release/net48/MCE.Desktop.exe;$(ProjectDir)Desktop/bin/Release/net48/MCE.Desktop.exe.config" DestinationFolder="$(ProjectDir)Updater/bin/framework-bundle" />
+    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
+  </Target>
+  <Target Name="CollectReleaseFiles" DependsOnTargets="ResolveReferences;PrepareDesktopBundle">
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe')" Text="请先发布独立更新助手：dotnet publish Updater/MCE.UpdateWorker.csproj -c Release -o Updater/bin/framework-bundle -p:EnableDeployment=false" />
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\Mono.Cecil.LICENSE.txt') Or !Exists('$(ProjectDir)Updater\bin\framework-bundle\Runtime-LICENSE.TXT') Or !Exists('$(ProjectDir)Updater\bin\framework-bundle\Runtime-THIRD-PARTY-NOTICES.TXT')" Text="更新助手许可证文件缺失，请重新发布完整助手。" />
+    <Error Condition="!Exists('$(ProjectDir)Updater\bin\framework-bundle\worker-protocol.manifest')" Text="助手协议清单缺失，请重新发布。" />
+    <Exec Command="&quot;$(ProjectDir)Updater\bin\framework-bundle\MCE.UpdateWorker.exe&quot; --validate-protocol-manifest &quot;$(ProjectDir)Updater\bin\framework-bundle&quot;" />
+    <ItemGroup>
+      <OverviewRuntimeDependencies Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Markdig' Or '%(Filename)' == 'YamlDotNet'" />
+      <OverviewDemoFiles Include="$(ProjectDir)Demo\**\*.*" />
+      <HelpAssetFiles Include="$(ProjectDir)Help\**\*.*" Exclude="$(ProjectDir)Help\**\*.md;$(ProjectDir)Help\**\*.json;$(ProjectDir)Help\**\*.partial;$(ProjectDir)Help\**\*.bak" />
+      <UpdateWorkerBundle Include="$(ProjectDir)Updater\bin\framework-bundle\**\*" />
+      <ReleaseDocumentation Include="$(ProjectDir)README.md;$(ProjectDir)CHANGELOG.md;$(ProjectDir)THIRD-PARTY-NOTICES.md;$(ProjectDir)LICENSE.txt;$(ProjectDir)manifest.json;$(ProjectDir)icon.png" />
+      <ReleasePayload Include="$(TargetPath)" TargetPath="ModConfigEnhance.dll" />
+      <ReleasePayload Include="@(OverviewRuntimeDependencies)" TargetPath="%(Filename)%(Extension)" />
+      <ReleasePayload Include="@(UpdateWorkerBundle)" TargetPath="Tools\Updater\%(RecursiveDir)%(Filename)%(Extension)" />
+      <ReleasePayload Include="@(OverviewDemoFiles)" TargetPath="Demo\%(RecursiveDir)%(Filename)%(Extension)" />
+      <ReleasePayload Include="@(HelpAssetFiles)" TargetPath="Help\%(RecursiveDir)%(Filename)%(Extension)" />
+      <ReleasePayload Include="@(ReleaseDocumentation)" TargetPath="%(ReleaseDocumentation.Filename)%(ReleaseDocumentation.Extension)" />
+    </ItemGroup>
+    <MakeDir Directories="$(TargetDir)" />
+    <WriteLinesToFile File="$(TargetDir)release-files.txt" Lines="@(ReleasePayload->'%(FullPath)|%(TargetPath)')" Overwrite="true" Encoding="UTF-8" />
+  </Target>
+  <Target Name="Deploy" AfterTargets="PostBuildEvent" DependsOnTargets="CollectReleaseFiles" Condition="'$(EnableDeployment)' != 'false'">
+    <Copy SourceFiles="@(ReleasePayload)" DestinationFiles="@(ReleasePayload->'$(DeployDir)%(TargetPath)')" OverwriteReadOnlyFiles="true" />
+  </Target>
+</Project>

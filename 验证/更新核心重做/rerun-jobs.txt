@@ -1,0 +1,32 @@
+JOB 8a43e351 MonoDetour_BepInEx_5 pending-restart
+   phase=installed originals=0 desired=0 retired=3
+     retired: \core\MonoDetour-MonoDetour_BepInEx_5\com.github.MonoDetour.Interop.HarmonyX.dll
+     retired: \patchers\MonoDetour-MonoDetour_BepInEx_5\0.com.github.MonoDetour.BepInEx.5.dll
+     retired: \patchers\MonoDetour-MonoDetour_BepInEx_5\com.github.MonoDetour.Interop.HarmonyX.dll
+     kept: 保留本地额外文件：CHANGELOG.md
+     kept: 保留本地额外文件：icon.png
+     kept: 保留本地额外文件：LICENSE
+     kept: 保留本地额外文件：manifest.json
+     kept: 保留本地额外文件：README.md
+   warn: 归档同名旧副本（否则会重复加载）：core/MonoDetour-MonoDetour_BepInEx_5/com.github.MonoDetour.Interop.HarmonyX.dll
+   warn: 归档同名旧副本（否则会重复加载）：patchers/MonoDetour-MonoDetour_BepInEx_5/0.com.github.MonoDetour.BepInEx.5.dll
+   warn: 归档同名旧副本（否则会重复加载）：patchers/MonoDetour-MonoDetour_BepInEx_5/com.github.MonoDetour.Interop.HarmonyX.dll
+   warn: 保留 5 个不在新版包内的本地文件：CHANGELOG.md, icon.png, LICENSE, manifest.json, README.md
+JOB 9f0964f3 MonoDetour pending-restart
+   phase=installed originals=0 desired=0 retired=3
+     retired: \core\MonoDetour-MonoDetour\com.github.MonoDetour.Bindings.Reorg.dll
+     retired: \core\MonoDetour-MonoDetour\com.github.MonoDetour.dll
+     retired: \core\MonoDetour-MonoDetour\com.github.MonoDetour.Reflection.dll
+     kept: 保留本地额外文件：CHANGELOG.md
+     kept: 保留本地额外文件：icon.png
+     kept: 保留本地额外文件：LICENSE
+     kept: 保留本地额外文件：manifest.json
+     kept: 保留本地额外文件：README.md
+   warn: 归档同名旧副本（否则会重复加载）：core/MonoDetour-MonoDetour/com.github.MonoDetour.Bindings.Reorg.dll
+   warn: 归档同名旧副本（否则会重复加载）：core/MonoDetour-MonoDetour/com.github.MonoDetour.dll
+   warn: 归档同名旧副本（否则会重复加载）：core/MonoDetour-MonoDetour/com.github.MonoDetour.Reflection.dll
+   warn: 保留 5 个不在新版包内的本地文件：CHANGELOG.md, icon.png, LICENSE, manifest.json, README.md
+CHECK core/AutoHookGenPatcher-1.1.1/manifest.json                OK
+CHECK core/Cysharp-UniTask/manifest.json                         OK
+CHECK patchers/Hamunii-DetourContext_Dispose_Fix/manifest.json   OK
+CHECK patchers/Hamunii-AutoHookGenPatcher/README.md              OK

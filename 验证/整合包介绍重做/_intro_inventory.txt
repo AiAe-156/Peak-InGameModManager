@@ -1,0 +1,71 @@
+== 0核心&基础模组 (19)
+  [开]  | ModConfig Enhance 1.1.4 | com.aiae.modconfigenhance | 
+  [开]  | PeakLevelSelect 1.0.6 | PeakLevelSelect | 
+  [开]  | AutoItemMultiplier 0.2.0 | com.github.LengSword.AutoItemMultiplier | 
+  [开]  | Better_MicIndicator 1.1.0 | com.aiae.better_micindicator | 
+  [开]  | 更好的中键标记 1.0.2 | com.aiae.betterping | 
+  [开]  | 麦克风增强 1.0.0 | com.aiae.micenhance | 
+  [开]  | ClimbInfoTracker 0.4.0 | com.github.LengSword.ClimbInfoTracker | 
+  [开]  | PEAKLib.ModConfig 1.8.2 | com.github.PEAKModding.PEAKLib.ModConfig | 
+  [开]  | VoiceVolumeSaver 1.0.1 | voice_volume_saver | 
+  [开]  | PEAK Recently Played With 1.0.2 | com.yourname.peak.recentlyplayedwith | 
+  [开]  | ProfileViewer 0.1.5 | com.atomic.profileviewer | 
+  [开]  | ClearQuit 1.0.0 | com.YOURNAME.ClearQuit | 
+  [开]  | BetterReviveOrTeleport 1.4.3 | peaklatejoinfr.RE | 
+  [开]  | LateJoinFix 1.4.2 | com.sol.latejoinfix | 
+  [开]  | 综合本地修复 2.20.1 | com.aiae.localfix | 
+  [开]  | BetterPeakVoiceFix 1.1.4 | chuxiaaaa.Aiae.BetterPeakVoiceFix | 
+  [开]  | CrossplayStutterFix 1.4.0 | Rombusz.CrossplayStutterFix | 
+  [开]  | No More Motion Blur 2.1.0 | com.kobbler.nomotionblur | 
+  [开]  | MyBananaDontHurtMe 0.1.7 | my.pahsiv.MyBananaDontHurtMe | 
+== (未分组) (4)
+  [关]  | ClearComms  | ClearComms | 
+  [关]  | com.framedoctor.peak  | com.framedoctor.peak | 
+  [关]  | com.github.d5v.HowManyTimesWeClimbedTogether  | com.github.d5v.HowManyTimesWeClimbedTogether | 
+  [关]  | lammas123.PEAKER  | lammas123.PEAKER | 
+== 1拓展模组 (14)
+  [开]  | BetterPiggyback 0.1.1 | com.github.LengSword.BetterPiggyback | 
+  [开]  | PerspectiveSwitcher 0.1.3 | com.github.nazo-x1.PerspectiveSwitcher | 
+  [开]  | FastStart 0.1.0 | com.github.LengSword.FastStart | 
+  [开]  | ItemInfoDisplay 1.2.1 | com.github.cherrycove.ItemInfoDisplay | 
+  [开]  | EaglesEye 3.0.2 | mrbub.eagleseye | 
+  [开]  | EasyBackpack 1.1.8 | nickklmao.easybackpack | 
+  [开]  | peakReconnect 1.0.2 | peakReconnect | 
+  [开]  | SimpleUnlocker 1.1.0 | club.freewifi.void.SimpleUnlocker | 
+  [开]  | Plantholder Overhaul 0.1.6 | Murka124.PlantholderOverhaul | 
+  [开]  | PlantholderOverhaul_ZH 0.1.6 | com.aiaemod.plantholderoverhaul_zh | 
+  [开]  | TimeTheme 0.4.3 | com.github.MiiMii1205.TimeTheme | 
+  [开]  | HudHider 1.2.1 | com.github.Boxofbiscuits97.HudHider | 
+  [开]  | Better Player Distance 1.1.5 | com.AiAe.betterplayerdistance | 
+  [开]  | PeakStatsEx 1.5.2 | com.github.LengSword.PeakStatsEx | 
+== 依赖模组 (9)
+  [开]  | PEAKLib.Core 1.7.2 | com.github.PEAKModding.PEAKLib.Core | 
+  [开]  | PEAKLib.Items 1.6.2 | com.github.PEAKModding.PEAKLib.Items | 
+  [开]  | PEAKLib.UI 1.7.2 | com.github.PEAKModding.PEAKLib.UI | 
+  [开]  | SoftDependencyFix 1.0.0 | com.github.PEAKModding.SoftDependencyFix | 
+  [开]  | PhotonCustomPropsUtils 1.1.0 | com.snosz.photoncustompropsutils | 
+  [开]  | XUnity Auto Translator 5.6.11 | gravydevsupreme.xunity.autotranslator | 
+  [开]  | XUnity Resource Redirector 2.1.0 | gravydevsupreme.xunity.resourceredirector | 
+  [开]  | Upscaler Lib 1.0.0 | com.github.glarmer.UpscalerLib | 
+  [开]  | UBImGui 1.0.0 | com.snosz.ubimgui | 
+== 2额外模组 (12)
+  [开]  | So Fly 汉化 2.1.0 | com.aiae.sofly_zh | 
+  [开]  | So Fly 2.1.0 | tony4twentys.So_Fly | 
+  [开]  | ItemSpawnerEnhanced Chinese Search 1.5.0 | com.github.lllei.ItemSpawnerEnhanced.ChineseSearch | 
+  [开]  | ItemSpawnerEnhanced 1.5.0 | com.github.lllei.ItemSpawnerEnhanced | 
+  [开]  | PeakSpectatorMode 1.2.2 | com.AiAe.peakspectatormode | 
+  [开]  | Foothold? 1.6.1 | Foothold-Forked | 
+  [开]  | Lighting Tweaks 1.0.7 | jill920.LightingTweaks | 
+  [开]  | PEAK_Visuals 2.1.0 | com.github.glarmer.PEAK_Visuals | 
+  [开]  | 挂在队友身上 1.1.1 | com.shuhia.peak.piggybackteammate | 
+  [开]  | Plushie Swap 1.1.1 | com.zhuanban.peak.plushieswap | 
+  [开]  | Throwwaway 1.2.4 | com.throwthrow.throwteammate | 
+  [开]  | PEAKTrails 1.2.1 | com.github.darmuh.PEAKTrails | 
+== 3玩法类模组(大多数需要全员安装相同版本) (7)
+  [开]  | 随机地形增强 1.0.16 | com.anthony.randomterrainenhance | 
+  [开]  | TerrainRandomiser_ZH 1.2.0 | com.aiaemod.terrainrandomiser_zh | 
+  [开]  | TerrainRandomiser 1.2.0 | com.snosz.terrainrandomiser | 
+  [开]  | 僵尸调整 1.3.0 | com.aiae.zombietweaks | 
+  [开]  | TerrainCustomiser 1.0.2 | com.snosz.terraincustomiser | 
+  [开]  | True Final Ascent 2.8.1 | com.CptPICHU.peak.truefinalascent | 
+  [开]  | AF.PLL.Library 5.8.1 | af.pll.library | 

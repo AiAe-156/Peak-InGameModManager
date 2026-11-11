@@ -1,0 +1,5 @@
+��������: [('dd7a1322', 'MonoDetour_BepInEx_5'), ('01708977', 'MonoDetour')]
+ʹ������: F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\MCE\tools\p2-rerun-20261102_214714
+  ��1 ��: [('dd7a1322', 'rolled-back'), ('01708977', 'rolled-back')]
+  ���� dd7a1322 rolled-back 
+  ���� 01708977 rolled-back 

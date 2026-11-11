@@ -1,0 +1,1689 @@
+- manifestVersion: 1
+  name: BepInEx-BepInExPack_PEAK
+  authorName: BepInEx
+  websiteUrl: https://github.com/BepInEx/BepInEx
+  displayName: BepInExPack_PEAK
+  description: BepInEx pack for PEAK. Preconfigured and ready to use.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies: []
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 5
+    minor: 4
+    patch: 75301
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: AiAeT-BetterPeakVoiceFix
+  authorName: AiAeT
+  websiteUrl: https://thunderstore.io/c/peak/p/AiAeT/BetterPeakVoiceFix/
+  displayName: BetterPeakVoiceFix
+  description: >-
+    Fixes voice connection issues with auto-reconnect, host synchronization, and
+    a visual status overlay.  |  支持切换中文。修复了语音连接问题，新增了自动重连、主机同步以及可视化状态显示功能。
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792775077024
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 8
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AiAeT-BetterPlayerDistance
+  authorName: AiAeT
+  websiteUrl: https://thunderstore.io/c/peak/p/AiAeT/BetterPlayerDistance/
+  displayName: BetterPlayerDistance
+  description: >-
+    定位你的队友，昏迷了也跑不掉！完全贴近原版的风格，自定义选项丰富，几乎没有性能损失。 | Find your teammates—even the
+    downed ones can't hide! Vanilla-style visuals, rich customization, and
+    virtually no performance impact.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791294863055
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 5
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AiAeT-PeakSpectatorMode
+  authorName: AiAeT
+  websiteUrl: https://thunderstore.io/c/peak/p/AiAeT/PeakSpectatorMode/
+  displayName: PeakSpectatorMode
+  description: >-
+    Better spectator camera: F3 free-fly cam, Q/E switch players, smooth
+    soft-follow, overhead name/altitude labels, x-ray silhouettes. 更好的观战视角：F3
+    自由相机、切换玩家、软跟随、头顶标记、轮廓透视。
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789537858764
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AtomicStudio-Profile_Cards
+  authorName: AtomicStudio
+  websiteUrl: https://thunderstore.io/c/peak/p/AtomicStudio/Profile_Cards/
+  displayName: Profile_Cards
+  description: An overhaul of the pause menu for multiplayer!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154794
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 7
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: boxofbiscuits97-HudHider
+  authorName: boxofbiscuits97
+  websiteUrl: https://github.com/Boxofbiscuits97/PEAK-HudHider
+  displayName: HudHider
+  description: Toggles the HUD when a configurable key is pressed.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 1
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Bub-EaglesEye
+  authorName: Bub
+  websiteUrl: https://github.com/misterbubb/EaglesEye
+  displayName: EaglesEye
+  description: >-
+    Adds a zoom feature with scroll support and optional binocular overlay. Spot
+    things like an eagle.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 3
+    minor: 0
+    patch: 2
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: chuxiaaaa-PeakLevelSelect
+  authorName: chuxiaaaa
+  websiteUrl: https://github.com/chuxiaaaa/PeakLevelSelect
+  displayName: PeakLevelSelect
+  description: Select the level you want to play in at the GATE KIOSK.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 6
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: coolteamname-peakReconnect
+  authorName: coolteamname
+  websiteUrl: https://github.com/hiimagamer/peakReconnect
+  displayName: peakReconnect
+  description: >-
+    Press a configurable key or controller button to reconnect to the last
+    server you were in.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 2
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Cooperly-SimpleUnlocker
+  authorName: Cooperly
+  websiteUrl: https://github.com/Cooperly/PEAK-SimpleUnlocker
+  displayName: SimpleUnlocker
+  description: >-
+    A PEAK cosmetic unlocker mod that just gets the job done. (w/ Sash Colors +
+    Ascents)
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies: []
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Cysharp-UniTask
+  authorName: Cysharp
+  websiteUrl: https://github.com/Cysharp/UniTask
+  displayName: UniTask
+  description: Provides an efficient allocation free async/await integration for Unity.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 2
+    minor: 5
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: d5v-HowManyTimesWeClimbedTogether
+  authorName: d5v
+  websiteUrl: https://github.com/deadmau5v/How-Many-Times-We-Climbed-Together
+  displayName: HowManyTimesWeClimbedTogether
+  description: Tracks how many times you've climbed together with each player.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - PEAKModding-PEAKLib_Core-1.7.2
+    - PEAKModding-PEAKLib_UI-1.6.1
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 6
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: darmuh-PEAKTrails
+  authorName: darmuh
+  websiteUrl: https://thunderstore.io/c/peak/p/darmuh/PEAKTrails/
+  displayName: PEAKTrails
+  description: Client-sided mod that adds real-time trails for all players!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788881380071
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: glarmer-PEAK_Voice_Volume_Saver
+  authorName: glarmer
+  websiteUrl: https://github.com/glarmer/PEAK-Voice-Volume-Saver
+  displayName: PEAK_Voice_Volume_Saver
+  description: >-
+    Saves the voice volumes you set for friends! (No more resetting their volume
+    every game!)
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 1
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Hamunii-AutoHookGenPatcher
+  authorName: Hamunii
+  websiteUrl: https://github.com/Hamunii/BepInEx.MonoMod.AutoHookGenPatcher
+  displayName: AutoHookGenPatcher
+  description: >-
+    Automatically generates MonoMod.RuntimeDetour.HookGen's MMHOOK files during
+    the BepInEx preloader phase.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+    - Hamunii-DetourContext_Dispose_Fix-1.0.5
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 1
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Hamunii-DetourContext_Dispose_Fix
+  authorName: Hamunii
+  websiteUrl: https://github.com/Hamunii/DetourContext.Dispose_Fix
+  displayName: DetourContext_Dispose_Fix
+  description: >-
+    A BepInEx patcher to fix MonoMod.RuntimeDetour's DetourContext.Dispose not
+    working.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 9
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: khalil-EasyBackpack_Fix
+  authorName: khalil
+  websiteUrl: https://thunderstore.io/c/peak/p/khalil/EasyBackpack_Fix/
+  displayName: EasyBackpack_Fix
+  description: >-
+    Compatibility fix for the original EasyBackpack mod (by nickklmao). Access
+    your backpack without dropping it, restored for the 2026-08-12 PEAK update.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154763
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 9
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: khalil-ItemInfoDisplayForkedCNPlus_new
+  authorName: khalil
+  websiteUrl: https://github.com/cherrycove/ItemInfoDisplay
+  displayName: ItemInfoDisplayForkedCNPlus_new
+  description: >-
+    Displays item information with CN localization, updated for PEAK 2.0.a: adds
+    accurate descriptions for all new items (amulets, jetpack/rocketpack,
+    glider, candle, anti-zooka, ritual dagger, warping items, new foods, more).
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 1
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: kobbler-NoMoreMotionBlur
+  authorName: kobbler
+  websiteUrl: https://thunderstore.io/c/peak/p/kobbler/NoMoreMotionBlur/
+  displayName: NoMoreMotionBlur
+  description: >-
+    Removes motion blur entirely from PEAK. Useful for those who can't tolerate
+    it. With post-processing removal as well!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 2
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: lammas123-PEAKER
+  authorName: lammas123
+  websiteUrl: https://thunderstore.io/c/peak/p/lammas123/PEAKER/
+  displayName: PEAKER
+  description: >-
+    Who knew that PEAK could get even more PEAK!? An all-in-one feature & fix
+    mod for larger expeditions! Patch: 2.04.b
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788507331360
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - lammas123-PEAKERRpcInfo-1.1.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 5
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: lammas123-PEAKERRpcInfo
+  authorName: lammas123
+  websiteUrl: https://github.com/lammas321/PEAKERRpcPatcher
+  displayName: PEAKERRpcInfo
+  description: A dependency for mods that need the info parameter on Rpcs.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: LengSword-AutoItemMultiplier
+  authorName: LengSword
+  websiteUrl: https://codeberg.org/yls-peak-mods/AutoItemMultiplier
+  displayName: AutoItemMultiplier
+  description: Auto configure item spawn multiplier for PEAK
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 2
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: LengSword-PeakStatsEx
+  authorName: LengSword
+  websiteUrl: https://thunderstore.io/c/peak/p/LengSword/PeakStatsEx/
+  displayName: PeakStatsEx
+  description: >-
+    Displays teammate stamina bars and item names in the inventory for improved
+    cooperative gameplay. You can also see how long and how far you've been
+    climbing!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154731
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 6
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: lllei-EnhancedPing
+  authorName: lllei
+  websiteUrl: https://thunderstore.io/c/peak/p/lllei/EnhancedPing/
+  displayName: EnhancedPing
+  description: >-
+    Distance labels, reliable ghost pings, and spherical path-drawing pings for
+    PEAK.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788692800114
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: MonoDetour-MonoDetour
+  authorName: MonoDetour
+  websiteUrl: https://thunderstore.io/c/peak/p/MonoDetour/MonoDetour/
+  displayName: MonoDetour
+  description: >-
+    Easy and convenient .NET detouring library, powered by
+    MonoMod.RuntimeDetour.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154629
+  loaders: []
+  dependencies: []
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 7
+    patch: 1701
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: MonoDetour-MonoDetour_BepInEx_5
+  authorName: MonoDetour
+  websiteUrl: https://thunderstore.io/c/peak/p/MonoDetour/MonoDetour_BepInEx_5/
+  displayName: MonoDetour_BepInEx_5
+  description: >-
+    HarmonyX interop & BepInEx 5 logger integration for MonoDetour. Initializes
+    MonoDetour early as a side effect.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154684
+  loaders: []
+  dependencies:
+    - MonoDetour-MonoDetour-0.7.1701
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 7
+    patch: 1701
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Murka124-PlantholderOverhaul
+  authorName: Murka124
+  websiteUrl: https://thunderstore.io/c/peak/p/Murka124/PlantholderOverhaul/
+  displayName: PlantholderOverhaul
+  description: >-
+    See the miniatures of today's (or any) map biomes right in the airport!
+    Multiplayer-Interactive in-game menu included.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792775076992
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 8
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: nazo-PerspectiveSwitcher
+  authorName: nazo
+  websiteUrl: https://github.com/nazo-x1/PerspectiveSwitcher
+  displayName: PerspectiveSwitcher
+  description: >-
+    Enhanced camera mod with First, Second, and Third person perspectives. Based
+    on peak-thirdperson with second-person view support and improved
+    architecture. Cycle through perspectives with V key, zoom with mouse wheel.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - Hamunii-AutoHookGenPatcher-1.0.9
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 3
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Pahsiv-MyBananaDontHurtMe
+  authorName: Pahsiv
+  websiteUrl: ''
+  displayName: MyBananaDontHurtMe
+  description: A mod to get back some of your frames.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 7
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: PEAKModding-ModConfig
+  authorName: PEAKModding
+  websiteUrl: https://thunderstore.io/c/peak/p/PEAKModding/ModConfig/
+  displayName: ModConfig
+  description: Easily configure mods inside your game.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789402406506
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-PEAKLib_Core-1.6.0
+    - PEAKModding-PEAKLib_UI-1.6.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 8
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: PEAKModding-PEAKLib_Core
+  authorName: PEAKModding
+  websiteUrl: https://github.com/PEAKModding/PEAKLib/
+  displayName: PEAKLib_Core
+  description: Core module of the PEAKLib community API.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-SoftDependencyFix-1.0.0
+    - MonoDetour-MonoDetour_BepInEx_5-0.6.7
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 7
+    patch: 2
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: PEAKModding-PEAKLib_UI
+  authorName: PEAKModding
+  websiteUrl: https://thunderstore.io/c/peak/p/PEAKModding/PEAKLib_UI/
+  displayName: PEAKLib_UI
+  description: UI module of the PEAKLib community API.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789732735667
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-PEAKLib_Core-1.6.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 7
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: PEAKModding-SoftDependencyFix
+  authorName: PEAKModding
+  websiteUrl: https://github.com/PEAKModding/SoftDependencyFix
+  displayName: SoftDependencyFix
+  description: >-
+    Fixes ReflectionUtility usage in Vanilla from breaking from mods with soft
+    dependencies.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - MonoDetour-MonoDetour_BepInEx_5-0.6.6
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: PerfectTechniques-RecentlyPlayedWith
+  authorName: PerfectTechniques
+  websiteUrl: https://github.com/PerfectFightTechniques/RecentlyPlayedWith
+  displayName: RecentlyPlayedWith
+  description: >-
+    Automatically adds players you play with in PEAK to Steam’s Recently Played
+    With list
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 1
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Sapphire009-LateJoinFix
+  authorName: Sapphire009
+  websiteUrl: https://thunderstore.io/c/peak/p/Sapphire009/LateJoinFix/
+  displayName: LateJoinFix
+  description: >-
+    Fixes late-join player revive/death-state issues by warping and reviving new
+    players near the current run and clearing stuck dead/passed out flags.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789354858974
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 4
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Shuhia-Piggyback
+  authorName: Shuhia
+  websiteUrl: https://thunderstore.io/c/peak/
+  displayName: Piggyback
+  description: Ride your friends. Cause problems. Keep climbing.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Snosz-PhotonCustomPropsUtils
+  authorName: Snosz
+  websiteUrl: ''
+  displayName: PhotonCustomPropsUtils
+  description: >-
+    Helps modders easily synchronize room/player properties across all connected
+    clients through Photon's Custom Properties.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: tony4twenty-So_Fly
+  authorName: tony4twenty
+  websiteUrl: ''
+  displayName: So_Fly
+  description: >-
+    Made for me but also devs and tester. Fly with customizable speeds. Toggle
+    no clip. Detect luggage, items, mobs, and hazards. Add/Remove/Reduce/Clear
+    Afflictions (including Suffocation). Revive. Delete dropped items. Teleport.
+    Campfire jump.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 2
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: WaporVave-Clear_Comms
+  authorName: WaporVave
+  websiteUrl: https://gitlab.com/zacharygraber/clearcomms
+  displayName: Clear_Comms
+  description: >-
+    Better client-side microphone noise filtering (mechanical keyboard clicking
+    begone!)
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788075972245
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 4
+    patch: 0
+  enabled: true
+  onlineSource: false
+  trustedPackage: false
+- manifestVersion: 1
+  name: Tzebruh-Foothold
+  authorName: Tzebruh
+  websiteUrl: https://thunderstore.io/c/peak/p/Tzebruh/Foothold/
+  displayName: Foothold
+  description: A mod for PEAK that visualizes standable ground
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788077941377
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 6
+    patch: 3
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: lllei-ItemSpawnerEnhanced
+  authorName: lllei
+  websiteUrl: https://thunderstore.io/c/peak/p/lllei/ItemSpawnerEnhanced/
+  displayName: ItemSpawnerEnhanced
+  description: >-
+    A client-side item spawner for PEAK built for players across every supported
+    game language, with localized smart search, spectator-aware targeting, and
+    support for spawning items for any connected Scout.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1790855982812
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 5
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: OracleTeam-TimeTheme
+  authorName: OracleTeam
+  websiteUrl: https://thunderstore.io/c/peak/p/OracleTeam/TimeTheme/
+  displayName: TimeTheme
+  description: Switches the UIs color palette when it becomes night/day.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789287391501
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-PEAKLib_Core-1.7.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 4
+    patch: 3
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: youxia173-ModSettingsLocalization
+  authorName: youxia173
+  websiteUrl: https://thunderstore.io/c/peak/p/youxia173/ModSettingsLocalization/
+  displayName: ModSettingsLocalization
+  description: >-
+    Mod Settings localization: multi-language labels + bilingual EN/ZH split.
+    模组设置本地化。
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788604376364
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-PEAKLib_Core-1.6.0
+    - PEAKModding-PEAKLib_UI-1.6.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 8
+    patch: 8
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Snosz-TerrainRandomiser
+  authorName: Snosz
+  websiteUrl: https://thunderstore.io/c/peak/p/Snosz/TerrainRandomiser/
+  displayName: TerrainRandomiser
+  description: >-
+    Randomise terrain generation with a seed and select what biome or variants
+    to play on for near infinite choices.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1788890445945
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - Snosz-PhotonCustomPropsUtils-1.1.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: PatchNote-OverheadStamina
+  authorName: PatchNote
+  websiteUrl: https://thunderstore.io/c/peak/p/PatchNote/OverheadStamina/
+  displayName: OverheadStamina
+  description: >-
+    Shows nearby players' stamina, extra stamina, petrify, and afflictions above
+    their names.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789287391173
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: dawwnforu-Throwwaway
+  authorName: dawwnforu
+  websiteUrl: https://thunderstore.io/c/peak/p/dawwnforu/Throwwaway/
+  displayName: Throwwaway
+  description: >-
+    队友太沉？送他一程！救援也好，整活也罢。 / Heavy teammate? Give them a lift—literally. Rescue
+    meets mischief.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789287390938
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 2
+    patch: 4
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: RTLC-XUnity_AutoTranslator
+  authorName: RTLC
+  websiteUrl: https://thunderstore.io/c/peak/p/RTLC/XUnity_AutoTranslator/
+  displayName: XUnity_AutoTranslator
+  description: Advanced translator plugin
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789200763872
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack-5.4.2100
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 5
+    minor: 6
+    patch: 11
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Snosz-UBImGui
+  authorName: Snosz
+  websiteUrl: https://thunderstore.io/c/peak/p/Snosz/UBImGui/
+  displayName: UBImGui
+  description: A plugin that allows mod developers to use Dear ImGui in Unity.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789230844776
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Snosz-TerrainCustomiser
+  authorName: Snosz
+  websiteUrl: https://thunderstore.io/c/peak/p/Snosz/TerrainCustomiser/
+  displayName: TerrainCustomiser
+  description: >-
+    (V2 Beta) Create custom variants for each biome with an in game level editor
+    which you can then play your creation with your friends!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789230844943
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - Snosz-PhotonCustomPropsUtils-1.1.0
+    - Snosz-UBImGui-1.0.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 3
+    patch: 2
+  enabled: false
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: WUYACHIYU-TerrainCustomiserCN
+  authorName: WUYACHIYU
+  websiteUrl: https://thunderstore.io/c/peak/p/WUYACHIYU/TerrainCustomiserCN/
+  displayName: TerrainCustomiserCN
+  description: TerrainCustomiser 的中文界面版本，仅汉化 UI，保留原版地图和联机兼容性。
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789230853339
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - Snosz-PhotonCustomPropsUtils-1.1.0
+    - Snosz-UBImGui-1.0.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 2
+  enabled: false
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Rombusz-CrossplayStutterFix
+  authorName: Rombusz
+  websiteUrl: https://thunderstore.io/c/peak/p/Rombusz/CrossplayStutterFix/
+  displayName: CrossplayStutterFix
+  description: >-
+    Fixes the crossplay integration related gameplay stutters, introduced in the
+    v2.4.a update.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792212671973
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 2
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: jill920-LightingTweaks
+  authorName: jill920
+  websiteUrl: https://thunderstore.io/c/peak/p/jill920/LightingTweaks/
+  displayName: LightingTweaks
+  description: >-
+    Various lighting tweaks. The most important feature is re-adding the
+    Moonlight
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791540045380
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 7
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: glarmer-UpscaleLib
+  authorName: glarmer
+  websiteUrl: https://thunderstore.io/c/peak/p/glarmer/UpscaleLib/
+  displayName: UpscaleLib
+  description: Loads upscaling DLLs. For use with PEAK_Visuals
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789307147945
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: glarmer-PEAK_Visuals
+  authorName: glarmer
+  websiteUrl: https://thunderstore.io/c/peak/p/glarmer/PEAK_Visuals/
+  displayName: PEAK_Visuals
+  description: >-
+    Improves the visual fidelity of PEAK by expanding the graphics options! Now
+    with DLSS!
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789307148512
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - glarmer-UpscaleLib-1.0.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 2
+    minor: 1
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: Rachel560lu-PeakItemInsight
+  authorName: Rachel560lu
+  websiteUrl: https://thunderstore.io/c/peak/p/Rachel560lu/PeakItemInsight/
+  displayName: PeakItemInsight
+  description: >-
+    Preview item effects with native HUD icons. Optional detailed descriptions
+    with timings, side effects and cooking info, plus adjustable background
+    transparency.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792046597986
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 2
+    patch: 14
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AiAeT-ModConfigEnhance
+  authorName: AiAeT
+  websiteUrl: https://thunderstore.io/c/peak/p/AiAeT/ModConfigEnhance/
+  displayName: ModConfigEnhance
+  description: >-
+    ModConfig settings page enhancements: tree sidebar, description panel,
+    translation tools, language files.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1789749086314
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-ModConfig-1.8.2
+    - PEAKModding-PEAKLib_UI-1.7.1
+    - RTLC-XUnity_AutoTranslator-5.6.11
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: CptPICHU-TrueFinalAscent
+  authorName: CptPICHU
+  websiteUrl: https://thunderstore.io/c/peak/p/CptPICHU/TrueFinalAscent/
+  displayName: TrueFinalAscent
+  description: >-
+    Climb every biome in one run. A new mode that stacks the whole mountain into
+    a single ascent - plus an Apocalypse mode full of weather that wants you
+    dead.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154584
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - PEAKModding-PEAKLib_Items-1.6.2
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 3
+    minor: 0
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: PEAKModding-PEAKLib_Items
+  authorName: PEAKModding
+  websiteUrl: https://thunderstore.io/c/peak/p/PEAKModding/PEAKLib_Items/
+  displayName: PEAKLib_Items
+  description: Items module of the PEAKLib community API.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1790589876263
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.2403
+    - PEAKModding-PEAKLib_Core-1.6.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 6
+    patch: 2
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: khalil-PlushieSwap
+  authorName: khalil
+  websiteUrl: https://thunderstore.io/c/peak/p/khalil/PlushieSwap/
+  displayName: PlushieSwap
+  description: >-
+    Replaces the BingBong plush with a cartoon Miffy or Zichao Xiong. Switch
+    between the vanilla bear and both replacements in game with F7. Models,
+    shading and icons are embedded in the DLL.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791006222163
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 1
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: LengSword-ClimbInfoTracker
+  authorName: LengSword
+  websiteUrl: https://thunderstore.io/c/peak/p/LengSword/ClimbInfoTracker/
+  displayName: ClimbInfoTracker
+  description: Track your every climbing record.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154412
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 5
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AiAeT-TerrainCustomiser_Fix
+  authorName: AiAeT
+  websiteUrl: https://thunderstore.io/c/peak/p/AiAeT/TerrainCustomiser_Fix/
+  displayName: TerrainCustomiser_Fix
+  description: >-
+    Community rebuild of Snosz-TerrainCustomiser 0.3.2 for current PEAK
+    (verified v2.6.b): custom biome maps work again, with old-save, multiplayer
+    and storm fixes. | 地形定制器 0.3.2 社区修复重建版，适配当前 PEAK，含旧存档、联机与风暴修复。
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791452310257
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+    - Snosz-PhotonCustomPropsUtils-1.1.0
+    - Snosz-UBImGui-1.0.0
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AeralisFoundation-Unified_Ray_Tracing
+  authorName: AeralisFoundation
+  websiteUrl: https://thunderstore.io/c/peak/p/AeralisFoundation/Unified_Ray_Tracing/
+  displayName: Unified_Ray_Tracing
+  description: >-
+    Unity 6000.3.15f1 SRP Core 17.3.0 Unified Ray Tracing compute resources for
+    PEAK mods.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791636919326
+  loaders: []
+  dependencies: []
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AeralisFoundation-PLL_Fog_Resources
+  authorName: AeralisFoundation
+  websiteUrl: https://thunderstore.io/c/peak/p/AeralisFoundation/PLL_Fog_Resources/
+  displayName: PLL_Fog_Resources
+  description: Sealed Direct3D 11 fog shader resources for PLL Library on PEAK 2.6a.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791636919368
+  loaders: []
+  dependencies: []
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 1
+    minor: 0
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: AeralisFoundation-PLL_Library
+  authorName: AeralisFoundation
+  websiteUrl: https://thunderstore.io/c/peak/p/AeralisFoundation/PLL_Library/
+  displayName: PLL_Library
+  description: Map layout and custom biome runtime library.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792211443797
+  loaders: []
+  dependencies:
+    - AeralisFoundation-PLL_Fog_Resources-1.0.0
+    - AeralisFoundation-Unified_Ray_Tracing-1.0.0
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 5
+    minor: 9
+    patch: 10
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: LengSword-BetterRoomShare
+  authorName: LengSword
+  websiteUrl: https://thunderstore.io/c/peak/p/LengSword/BetterRoomShare/
+  displayName: BetterRoomShare
+  description: Enhanced room sharing features.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1792845313489
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 1
+    patch: 3
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: tony4twenty-Crispberry_PiPhone
+  authorName: tony4twenty
+  websiteUrl: https://thunderstore.io/c/peak/p/tony4twenty/Crispberry_PiPhone/
+  displayName: Crispberry_PiPhone
+  description: >-
+    A phone in your pocket. Call, text, take photos, use emoji packs, play
+    games, cast your screen, and install modded apps.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1791697465432
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 17
+    patch: 150
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: PeakCode-PeakWorkshop
+  authorName: PeakCode
+  websiteUrl: https://thunderstore.io/c/peak/p/PeakCode/PeakWorkshop/
+  displayName: PeakWorkshop
+  description: >-
+    New biomes. New maps. New mountains. Build them in the in-game editor, chain
+    biomes into whole expeditions, browse the community Workshop and play it all
+    with friends in multiplayer. 36 game modes, vanilla PEAK stays untouched.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154372
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 5
+    patch: 0
+  enabled: true
+  onlineSource: true
+  trustedPackage: false
+- manifestVersion: 1
+  name: TheGermanElias-SakuraSanctuary
+  authorName: TheGermanElias
+  websiteUrl: https://thunderstore.io/c/peak/p/TheGermanElias/SakuraSanctuary/
+  displayName: SakuraSanctuary
+  description: >-
+    WORK IN PROGRESS: bugs can happen! A cherry-blossom mountain replaces the
+    second biome: sakura groves, a glowing grotto, a temple maze in the clouds,
+    petal storms, yokai, cats. Pickable in True Final Ascent 2.10+. Everyone
+    needs the mod.
+  gameVersion: '0'
+  networkMode: both
+  packageType: other
+  installMode: managed
+  installedAtTime: 1793643154332
+  loaders: []
+  dependencies:
+    - BepInEx-BepInExPack_PEAK-5.4.75301
+  incompatibilities: []
+  optionalDependencies: []
+  versionNumber:
+    major: 0
+    minor: 6
+    patch: 1
+  enabled: true
+  onlineSource: true
+  trustedPackage: false

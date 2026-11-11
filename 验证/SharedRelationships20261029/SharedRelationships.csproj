@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Overview/SharedRelationshipSnapshot.cs" />
+    <Compile Include="../../src/Overview/OverviewDependencies.cs" />
+    <Compile Include="../../src/Overview/OverviewModels.Dependencies.cs" />
+    <Compile Include="../../src/Overview/ComponentRelationshipTree.cs" />
+    <Compile Include="../../src/Overview/ComponentRelationshipLabels.cs" />
+    <Compile Include="../../src/Updating/ComponentDependencyGraph.cs" />
+    <Reference Include="Newtonsoft.Json"><HintPath>../../../../PEAK_Data/Managed/Newtonsoft.Json.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

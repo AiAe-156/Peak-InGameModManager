@@ -1,0 +1,15 @@
+{
+  "time": "20261027_014309",
+  "mceVersion": "2.0.0",
+  "mceFiles": 22,
+  "mceTarget": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[界面]ModConfig增强-ModConfigEnhance",
+  "mceBackup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\备份\\部署前_日志审计合并_20261027_014309\\installed",
+  "voiceVersion": "1.1.9",
+  "voiceFiles": 5,
+  "voiceTarget": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组\\[优化]更好的语音修复CN-1.1.8",
+  "voiceBackup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\PeakVoiceFixFix\\备份\\部署前_MCE日志接入_20261027_014309\\installed",
+  "voiceZip": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\PeakVoiceFixFix\\发布\\BetterPeakVoiceFix_1.1.9_20261027_mce-logs_20261027_014309.zip",
+  "mceZip": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\发布\\ModConfigEnhance_2.0.0_20261027_logs-audit-merged.zip",
+  "checks": "destination file existence and sizes; no routine hashes",
+  "configAndLibrary": "unchanged"
+}

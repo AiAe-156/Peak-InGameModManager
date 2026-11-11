@@ -1,0 +1,13 @@
+{
+  "stamp": "20261029_025207",
+  "run": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\attempt_delivery_20261029_025207",
+  "script": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\attempt_delivery_20261029_025207\\deploy_20261029_025207.py",
+  "plan": {
+    "prepared_at": "2026-10-29T02:52:07.545680+08:00",
+    "version": "2.0.0",
+    "zip": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\发布\\ModConfigEnhance_2.0.0_20261029_025207_infrastructure-tree.zip",
+    "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\备份\\部署前_基础组件依赖树_20261029_025207\\installed",
+    "verification": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\ModConfigEnhance\\验证\\InfrastructureTree20261029\\ReleaseFinal\\verify_20261029_025014\\summary.json",
+    "preparation_processes": []
+  }
+}

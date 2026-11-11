@@ -1,0 +1,118 @@
+--- before/验证/刷新与入口收敛/checks.py
++++ 验证/刷新与入口收敛/checks.py
+@@ -45,7 +45,7 @@
+ 'child fade pauses on hidden page':'private void OnDisable()=>Restore()' not in read('src/Overview/OverviewLayerFade.cs'),
+ 'independent toolbar horizontal order':'ThenBy(t=>((RectTransform)t.transform).anchoredPosition.x)' in read('src/Overview/OverviewToolbarReveal.cs'),
+ 'no toolbar replay on layout':'_seen.Add(child.GetInstanceID())' in read('src/Overview/OverviewToolbarReveal.cs'),
+-'50ms retained':'Delay = .050f' in read('src/Overview/HoverDwell.cs'),
++'200ms retained':'Delay = .200f' in read('src/Overview/HoverDwell.cs'),
+ }
+ for name,ok in checks.items():print(('PASS ' if ok else 'FAIL ')+name,flush=True)
+ assert all(checks.values())
+--- before/验证/常驻列表与任意备份/checks.py
++++ 验证/常驻列表与任意备份/checks.py
+@@ -15,7 +15,7 @@
+ 'no suffix whitelist':'suffix.Equals(".old"' not in f and 'private static bool HasBackupSuffix(string path) => IsDisabled(path)' in f,
+ 'active DLL wins':'if(active!=null)return copies.Where' in f,
+ 'absent DLL multiple candidates retained':'With no active DLL all suffixed files are disabled candidates' in f,
+-'50ms retained':'Delay = .050f' in read('src/Overview/HoverDwell.cs'),
++'200ms retained':'Delay = .200f' in read('src/Overview/HoverDwell.cs'),
+ 'refresh centered retained':'rect.offsetMin=min;rect.offsetMax=max' in read('src/Overview/RefreshIconFeedback.cs'),
+ 'profile distinction retained':'游戏当前使用：{0}' in read('src/Overview/OverviewPage.Profiles.cs'),
+ }
+--- before/验证/悬停与首开性能20261030/source_checks.py
++++ 验证/悬停与首开性能20261030/source_checks.py
+@@ -8,7 +8,7 @@
+ controller=read('src/Overview/OverviewController.cs')
+ probe=read('src/Overview/UiPerfProbe.cs')
+ checks={
+- 'shared 50ms hover dwell': 'Delay = .050f' in read('src/Overview/HoverDwell.cs') and '_showAt=Time.unscaledTime+HoverDwell.Delay' in hints,
++ 'shared 200ms hover dwell': 'Delay = .200f' in read('src/Overview/HoverDwell.cs') and '_showAt=Time.unscaledTime+HoverDwell.Delay' in hints,
+  'normal tooltip isolated': 'HintCanvas.Attach(_hint,false)' in view,
+  'dependency tooltip isolated': 'HintCanvas.Attach(_card, true)' in hints,
+  'sort inherited not promoted over modal': 'canvas.overrideSorting = false' in canvas,
+--- before/验证/悬停与首开性能续修/source_checks.py
++++ 验证/悬停与首开性能续修/source_checks.py
+@@ -4,7 +4,7 @@
+ h=read('src/Overview/OverviewDependencyHints.cs');c=read('src/Overview/OverviewController.cs');a=read('src/Overview/AnimatorRestGate.cs')
+ shell=c[c.index('internal IEnumerator BuildShell'):c.index('internal void BindRepository')]
+ checks={
+-'50ms common delay':'Delay = .050f' in read('src/Overview/HoverDwell.cs') and '+HoverDwell.Delay' in h,
++'200ms common delay':'Delay = .200f' in read('src/Overview/HoverDwell.cs') and '+HoverDwell.Delay' in h,
+ 'no starvation repeated target':'if(_pending==value)return' in read('src/Overview/HoverDwell.cs'),
+ 'external hints dwell':'_hintDwell.Enter(text,Time.unscaledTime)' in read('src/Overview/OverviewListView.cs'),
+ 'prebuild inactive before component creation':c.index('rect.gameObject.SetActive(false);')<c.index('rect.gameObject.AddComponent<OverviewPage>()'),
+--- before/验证/首开回归与50ms/source_checks.py
++++ 验证/首开回归与50ms/source_checks.py
+@@ -3,7 +3,7 @@
+ def read(p):return (r/p).read_text(encoding='utf-8-sig')
+ v=read('src/Overview/OverviewListView.cs');h=read('src/Overview/OverviewDependencyHints.cs');rows=read('src/Overview/OverviewListView.VirtualRows.cs');c=read('src/Overview/OverviewController.cs');pivot=read('src/Overview/RefreshIconFeedback.cs');profile=read('src/Overview/OverviewPage.Profiles.cs')
+ checks={
+-'50ms shared':'Delay = .050f' in read('src/Overview/HoverDwell.cs') and '+HoverDwell.Delay' in h,
++'200ms shared':'Delay = .200f' in read('src/Overview/HoverDwell.cs') and '+HoverDwell.Delay' in h,
+ 'no synchronous font diagnostic on enter':'OverviewFontReport.Run' not in c,
+ 'deferred inspect':'RequestInspect(transform)' in c,
+ 'no global canvas force in cascade':'Canvas.ForceUpdateCanvases()' not in read('src/Overview/OverviewCascade.cs'),
+--- before/验证/悬停与首开性能20261030/HintChecks/Program.cs
++++ 验证/悬停与首开性能20261030/HintChecks/Program.cs
+@@ -19,7 +19,11 @@
+ }
+ Check(HintPrefix.Fit(0,0,_=>throw new Exception())==0,"empty");
+ var hover=new HoverDwell();hover.Enter("first",1);hover.Enter("last",1);
+-Check(hover.Take(1.049f)==null,"50ms dwell");Check(hover.Take(1.051f)=="last","latest transition after dwell");Check(hover.Take(1.1f)==null,"one emission");
+-hover.Enter("same",3);hover.Enter("same",3.03f);Check(hover.Take(3.051f)=="same","repeated same target does not starve deadline");
+-hover.Enter("gone",2);hover.Cancel();Check(hover.Take(2)==null,"cancel");
++Check(HoverDwell.Delay==.200f,"shared 200ms delay");
++Check(hover.Take(1.051f)==null,"old 50ms deadline no longer opens");
++Check(hover.Take(1.199f)==null,"200ms dwell holds");Check(hover.Take(1.201f)=="last","latest transition after dwell");Check(hover.Take(1.3f)==null,"one emission");
++hover.Enter("same",3);hover.Enter("same",3.15f);Check(hover.Take(3.199f)==null,"same target holds until original deadline");Check(hover.Take(3.201f)=="same","repeated same target does not starve deadline");
++hover.Enter("gone",2);hover.Cancel();Check(hover.Take(2.3f)==null,"cancel survives deadline");
++hover.Enter("old",4);hover.Enter("new",4.15f);Check(hover.Take(4.201f)==null,"different target restarts dwell");Check(hover.Take(4.351f)=="new","replacement opens after its own deadline");
++hover.Enter("exit",5);hover.Cancel();hover.Enter("exit",5.1f);Check(hover.Take(5.201f)==null,"reenter after exit restarts dwell");Check(hover.Take(5.301f)=="exit","reentered target opens once");
+ Console.WriteLine($"RESULT {passed} passed");
+--- before/验证/主菜单与概览优化/PerformanceChecks/Program.cs
++++ 验证/主菜单与概览优化/PerformanceChecks/Program.cs
+@@ -54,9 +54,9 @@
+ Check(!PublishState(),"retried publication deduplicates");
+ var dwell=new HoverDwell();int generated=0;
+ for(int i=0;i<300;i++) { dwell.Enter(i.ToString(),i*.01f);if(dwell.Take(i*.01f+.025f)!=null)generated++;dwell.Cancel(); }
+-Check(generated==0,"fast transitions do not open before 75ms");
+-dwell.Enter("stable",4);Check(dwell.Take(4.049f)==null,"75ms dwell holds");Check(dwell.Take(4.051f)=="stable","hover opens after 75ms");Check(dwell.Take(5)==null,"same hover emits once");
+-dwell.Enter("old",6);dwell.Enter("new",6);Check(dwell.Take(6.051f)=="new","same-frame transitions coalesce to latest identity");
++Check(generated==0,"fast transitions do not open before 200ms");
++dwell.Enter("stable",4);Check(dwell.Take(4.199f)==null,"200ms dwell holds");Check(dwell.Take(4.201f)=="stable","hover opens after 200ms");Check(dwell.Take(5)==null,"same hover emits once");
++dwell.Enter("old",6);dwell.Enter("new",6);Check(dwell.Take(6.201f)=="new","same-frame transitions coalesce to latest identity");
+ dwell.Enter("cancelled",7);dwell.Cancel();Check(dwell.Take(7)==null,"exit cancels pending hover");
+ var graph=new ComponentDependencyGraph();
+ for(int i=0;i<300;i++)graph.Components.Add(new(){Id="node"+i});
+--- before/src/Overview/HoverDwell.cs
++++ src/Overview/HoverDwell.cs
+@@ -1,9 +1,9 @@
+ #nullable enable
+ namespace ModConfigEnhance.Overview;
+-/// <summary>Shared 50ms pointer dwell; same-target refreshes never restart the deadline.</summary>
++/// <summary>Shared 200ms pointer dwell; same-target refreshes never restart the deadline.</summary>
+ internal sealed class HoverDwell
+ {
+-    internal const float Delay = .050f;
++    internal const float Delay = .200f;
+     private string? _pending;
+     private float _at;
+     internal void Enter(string value,float now)
+--- before/src/Overview/OverviewController.cs
++++ src/Overview/OverviewController.cs
+@@ -113,7 +113,13 @@
+         try
+         {
+             if(_shell==null)return;
+-            if(!_shell.MoveNext()) { (_shell as IDisposable)?.Dispose();_shell=null; }
++            // Advance cheap shell steps together; only yield after actual work used the budget.
++            long started=System.Diagnostics.Stopwatch.GetTimestamp();
++            for(int steps=0;steps<8 && _shell!=null;steps++)
++            {
++                if(!_shell.MoveNext()) { (_shell as IDisposable)?.Dispose();_shell=null;break; }
++                if((System.Diagnostics.Stopwatch.GetTimestamp()-started)*1000d/System.Diagnostics.Stopwatch.Frequency>=4)break;
++            }
+         }
+         catch(Exception error) { FailOpen(error); }
+     }

@@ -1,0 +1,31 @@
+UI组，版本保持 2.0.0；未部署，未运行游戏，未改真实配置/库存/任务。
+备份：备份/UI组_20261028_160138/src/Overview/（5个既有源码）。
+
+已改入口
+1. 商店：网络/代理、排序、分类标签 → 300宽窗口内下拉，内容独立滚动；不调用 CloseModal。
+2. 商店自定义代理 → 380宽小输入层，紧邻右上触发按钮，下方不足则上翻，水平/垂直夹紧。
+3. 管理中心网络连接方式 → 同一窗口内下拉；编辑的是草稿，保存后等待 snapshot 一致才反馈生效。
+4. 日志等级/自定义日志来源 → 同一生产锚定几何；来源列表缩至360宽。日志模组树、导出选项仍为多控件大对话框。
+5. 原有 OverviewUi.Dropdown（语言、配置方案、更多等）复用同一夹紧/翻转几何；保留原模态生命周期。
+6. OverviewUi.Input 全部单行 → 唯一 InputCaretLayout；商店搜索不再额外挂载。
+   其他同类入口包括管理表单、搜索、重命名、分组名称/颜色、发布路径等。
+7. 代理两入口 placeholder=http://127.0.0.1:7890，灰色独立Graphic，焦点立即隐藏、空值失焦恢复，不写入 text。
+
+定点输入调查
+- 全src直接创建TMP输入：OverviewUi.Input 与 OverviewDocumentView.Input（IntroductionTextInput多行）。
+- 多行保留：IntroductionEditorView源码、PublicationContentView、日志详情、商店组件/卸载详情；未强制 MidlineLeft。
+- 单行继续使用TMP原生文本布局、滚动、选择、IME；光标用实际行ascender/descender和渲染字符位置，长文本跟随text rect偏移。
+- 空框用字体face度量计算居中，不硬加y12；使用viewport坐标变换适配Canvas缩放。
+- disable恢复原TMP光标颜色、销毁自绘对象，避免双光标；多行富文本编辑器未挂此组件。
+- 游戏自带ModConfig输入不是本工厂创建；未修改依赖预制件。
+
+实际验证
+执行：dotnet run --project 验证/NetworkUiFix20261028/UiChecks/UiChecks.csproj -p:EnableDeployment=false
+直接编译生产 UiGeometry.cs；10016项通过，results.log。
+覆盖：右侧靠近、下/上翻转、右下夹紧、小窗、长列表限高、39高空框字体/缩放中心、10000随机边界。
+随机测试曾抓到锚点在宿主外时高度越界，已补宿主高度上限后重跑通过。
+未编译主插件（由tester统一）；未运行Unity画面，不把几何通过当成实际视觉通过。
+必须游戏内验收：空框39高/20高光标、中文fallback/125%缩放、长URL横向滚动/拖选/IME候选、失焦placeholder、多行行尾、ESC先关弹层保留商店、网络助手失败/延迟反馈。
+
+测试器注意：UiChecks/Program.ui采用显式Compile，避免父NetworkChecks递归收集顶级程序。
+UiChecks关闭自动AssemblyInfo/框架属性/全局using生成，首次生成的.cs已移入父obj/UiChecksPrior（父项目默认排除）。重新运行后用msbuild -getItem:Compile检查：父NetworkChecks无UiChecks编译输入。本组未改网络组csproj。

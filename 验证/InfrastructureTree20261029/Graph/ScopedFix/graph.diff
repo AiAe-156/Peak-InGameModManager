@@ -1,0 +1,210 @@
+--- "\345\244\207\344\273\275/InfrastructureTree20261029/ScopedFix/ComponentDependencyGraph.cs"	2026-10-29 02:43:33.976550800 +0800
++++ src/Updating/ComponentDependencyGraph.cs	2026-10-29 02:45:47.257960100 +0800
+@@ -1,89 +1,118 @@
+-#nullable enable
+-using System;
+-using System.Collections.Generic;
+-using System.Linq;
+-
+-namespace ModConfigEnhance.Updating;
+-
+-/// <summary>Immutable-by-convention evidence snapshot. IDs are package keys or file paths, never invented plugin GUIDs.</summary>
+-public sealed class ComponentDependencyGraph
+-{
+-    public const string MceGuid = "com.aiae.modconfigenhance";
+-    public sealed class Component
+-    {
+-        public string Id = "", PackageKey = "";
+-        public readonly List<string> Locations = new List<string>();
+-        public readonly List<string> PluginGuids = new List<string>();
+-        public readonly List<string> Assemblies = new List<string>();
+-    }
+-    public sealed class Edge
+-    {
+-        public string From = "", To = "", Evidence = "";
+-        public bool Hard = true;
+-    }
+-    public sealed class Capability
+-    {
+-        public bool CanUninstall;
+-        // This policy does not veto updates; final dependency/version validation still applies.
+-        public bool CanUpdate = true;
+-        public bool Unknown;
+-        public string Reason = "";
+-        public IReadOnlyList<string> ProtectionPath = Array.Empty<string>();
+-    }
+-    public sealed class TreeEntry
+-    {
+-        public string Id = "", Evidence = "";
+-        public int Depth;
+-        public bool Cycle, Shared, Missing, Truncated;
+-    }
+-    public readonly List<Component> Components = new List<Component>();
+-    public readonly List<Edge> Edges = new List<Edge>();
+-    public readonly List<string> Failures = new List<string>();
+-    static readonly StringComparer Compare = StringComparer.OrdinalIgnoreCase;
+-
+-    public Capability GetCapability(string id)
+-    {
+-        var target = Components.FirstOrDefault(c => Compare.Equals(c.Id, id) || (c.PackageKey.Length > 0 && Compare.Equals(c.PackageKey, id)));
+-        var paths = new Dictionary<string, List<string>>(Compare);
+-        var pending = new Queue<string>();
+-        foreach (var seed in Components.Where(c => c.PluginGuids.Contains(MceGuid, Compare)))
+-            if (!paths.ContainsKey(seed.Id)) { paths[seed.Id] = new List<string> { seed.Id }; pending.Enqueue(seed.Id); }
+-        bool unknown = Failures.Count > 0 || pending.Count == 0;
+-        while (pending.Count > 0)
+-        {
+-            string current = pending.Dequeue();
+-            foreach (var edge in Edges.Where(e => e.Hard && Compare.Equals(e.From, current)))
+-            {
+-                if (!Components.Any(c => Compare.Equals(c.Id, edge.To))) { unknown = true; continue; }
+-                if (paths.ContainsKey(edge.To)) continue;
+-                paths[edge.To] = paths[current].Concat(new[] { edge.To }).ToList(); pending.Enqueue(edge.To);
+-            }
+-        }
+-        if (target != null && paths.TryGetValue(target.Id, out var path))
+-            return new Capability { Reason = "MCE required component: " + string.Join(" → ", path), ProtectionPath = path };
+-        if (unknown || target == null)
+-            return new Capability { Unknown = true, Reason = "MCE dependency protection is unknown; uninstall refused. " + string.Join("; ", Failures.Take(4)) };
+-        return new Capability { CanUninstall = true };
+-    }
+-
+-    /// <summary>Reverse consumers, with evidence and explicit cycle/shared/missing/budget markers.</summary>
+-    public IReadOnlyList<TreeEntry> ReverseTree(string id, int maxDepth = 16, int maxEntries = 256)
+-    {
+-        maxDepth = Math.Max(0, Math.Min(64, maxDepth)); maxEntries = Math.Max(1, Math.Min(4096, maxEntries));
+-        var result = new List<TreeEntry>(); var seen = new HashSet<string>(Compare);
+-        void Visit(string node, int depth, HashSet<string> ancestors, string evidence)
+-        {
+-            if (result.Count >= maxEntries) { result[result.Count - 1].Truncated = true; return; }
+-            bool cycle = ancestors.Contains(node), shared = !seen.Add(node);
+-            var entry = new TreeEntry { Id = node, Depth = depth, Evidence = evidence, Cycle = cycle, Shared = shared,
+-                Missing = !Components.Any(c => Compare.Equals(c.Id, node)) };
+-            result.Add(entry);
+-            var incoming = Edges.Where(e => Compare.Equals(e.To, node)).OrderBy(e => e.From, Compare).ToList();
+-            if (cycle || shared) return;
+-            if (depth >= maxDepth) { entry.Truncated = incoming.Count > 0; return; }
+-            var next = new HashSet<string>(ancestors, Compare) { node };
+-            foreach (var edge in incoming) Visit(edge.From, depth + 1, next, edge.Evidence + (edge.Hard ? " [hard]" : " [soft]"));
+-        }
+-        Visit(id, 0, new HashSet<string>(Compare), "target"); return result;
+-    }
+-}
++#nullable enable
++using System;
++using System.Collections.Generic;
++using System.Linq;
++
++namespace ModConfigEnhance.Updating;
++
++/// <summary>Immutable-by-convention evidence snapshot. IDs are package keys or file paths, never invented plugin GUIDs.</summary>
++public sealed class ComponentDependencyGraph
++{
++    public const string MceGuid = "com.aiae.modconfigenhance";
++    public sealed class Component
++    {
++        public string Id = "", PackageKey = "";
++        public readonly List<string> Locations = new List<string>();
++        public readonly List<string> PluginGuids = new List<string>();
++        public readonly List<string> Assemblies = new List<string>();
++    }
++    public sealed class Edge
++    {
++        public string From = "", To = "", Evidence = "";
++        public bool Hard = true;
++    }
++    public sealed class Capability
++    {
++        public bool CanUninstall;
++        // This policy does not veto updates; final dependency/version validation still applies.
++        public bool CanUpdate = true;
++        public bool Unknown;
++        public string Reason = "";
++        public IReadOnlyList<string> ProtectionPath = Array.Empty<string>();
++    }
++    public sealed class TreeEntry
++    {
++        public string Id = "", Evidence = "";
++        public int Depth;
++        public bool Cycle, Shared, Missing, Truncated;
++    }
++    public readonly List<Component> Components = new List<Component>();
++    public readonly List<string[]> SharedFileOwners = new List<string[]>();
++    public readonly List<Edge> Edges = new List<Edge>();
++    public readonly List<string> Failures = new List<string>();
++    public sealed class FailureScope
++    {
++        public string Node = "", Path = "", Reason = "";
++    }
++    public readonly List<FailureScope> FailureScopes = new List<FailureScope>();
++    public void AddFailure(string reason, string node = "", string path = "")
++    {
++        Failures.Add(reason);
++        FailureScopes.Add(new FailureScope { Node = node, Path = path, Reason = reason });
++    }
++    static readonly StringComparer Compare = StringComparer.OrdinalIgnoreCase;
++
++    public Capability GetCapability(string id)
++    {
++        var target = Components.FirstOrDefault(c => Compare.Equals(c.Id, id) || (c.PackageKey.Length > 0 && Compare.Equals(c.PackageKey, id)));
++        var paths = new Dictionary<string, List<string>>(Compare);
++        var pending = new Queue<string>();
++        foreach (var seed in Components.Where(c => c.PluginGuids.Contains(MceGuid, Compare)))
++            if (!paths.ContainsKey(seed.Id)) { paths[seed.Id] = new List<string> { seed.Id }; pending.Enqueue(seed.Id); }
++        bool noSeed = pending.Count == 0;
++        var unresolved = new List<string>();
++        bool unknown = Failures.Count > FailureScopes.Count || FailureScopes.Any(f => f.Node.Length == 0) || pending.Count == 0;
++        while (pending.Count > 0)
++        {
++            string current = pending.Dequeue();
++            if (FailureScopes.Any(f => Compare.Equals(f.Node, current))) unknown = true;
++            foreach (var edge in Edges.Where(e => e.Hard && Compare.Equals(e.From, current)))
++            {
++                if (!Components.Any(c => Compare.Equals(c.Id, edge.To))) { unknown = true; unresolved.Add(current + " → " + edge.To + " (" + edge.Evidence + ")"); continue; }
++                if (paths.ContainsKey(edge.To)) continue;
++                paths[edge.To] = paths[current].Concat(new[] { edge.To }).ToList(); pending.Enqueue(edge.To);
++            }
++        }
++        // Co-owner veto only: do not traverse a different package's private requirements.
++        bool sharedChanged;
++        do
++        {
++            sharedChanged = false;
++            foreach (var owners in SharedFileOwners)
++            {
++                var requiredOwner = owners.FirstOrDefault(o => paths.ContainsKey(o));
++                if (requiredOwner == null) continue;
++                foreach (var owner in owners)
++                    if (!paths.ContainsKey(owner)) { paths[owner] = paths[requiredOwner].Concat(new[] { owner }).ToList(); sharedChanged = true; }
++            }
++        } while (sharedChanged);
++        if (target != null && paths.TryGetValue(target.Id, out var path))
++            return new Capability { Reason = "MCE required component: " + string.Join(" → ", path), ProtectionPath = path };
++        if (unknown || target == null)
++            return new Capability { Unknown = true, Reason = "MCE dependency protection is unknown; uninstall refused. " + (noSeed ? "MCE GUID seed missing or unreadable. " : "") + string.Join("; ", Failures.Concat(unresolved).Take(6)) };
++        bool scopedUnknown = FailureScopes.Any(f => Compare.Equals(f.Node, target!.Id));
++        return new Capability { CanUninstall = true, Unknown = scopedUnknown,
++            Reason = scopedUnknown ? "Evidence incomplete; verification-only uninstall, independent ownership and reverse-dependency checks required. " + string.Join("; ", FailureScopes.Where(f => Compare.Equals(f.Node, target!.Id)).Select(f => f.Reason)) : "" };
++    }
++
++    /// <summary>Reverse consumers, with evidence and explicit cycle/shared/missing/budget markers.</summary>
++    public IReadOnlyList<TreeEntry> ReverseTree(string id, int maxDepth = 16, int maxEntries = 256)
++    {
++        maxDepth = Math.Max(0, Math.Min(64, maxDepth)); maxEntries = Math.Max(1, Math.Min(4096, maxEntries));
++        var result = new List<TreeEntry>(); var seen = new HashSet<string>(Compare);
++        void Visit(string node, int depth, HashSet<string> ancestors, string evidence)
++        {
++            if (result.Count >= maxEntries) { result[result.Count - 1].Truncated = true; return; }
++            bool cycle = ancestors.Contains(node), shared = !seen.Add(node);
++            var entry = new TreeEntry { Id = node, Depth = depth, Evidence = evidence, Cycle = cycle, Shared = shared,
++                Missing = !Components.Any(c => Compare.Equals(c.Id, node)) };
++            result.Add(entry);
++            var incoming = Edges.Where(e => Compare.Equals(e.To, node)).OrderBy(e => e.From, Compare).ToList();
++            if (cycle || shared) return;
++            if (depth >= maxDepth) { entry.Truncated = incoming.Count > 0; return; }
++            var next = new HashSet<string>(ancestors, Compare) { node };
++            foreach (var edge in incoming) Visit(edge.From, depth + 1, next, edge.Evidence + (edge.Hard ? " [hard]" : " [soft]"));
++        }
++        Visit(id, 0, new HashSet<string>(Compare), "target"); return result;
++    }
++}

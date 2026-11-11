@@ -1,0 +1,18 @@
+[
+  {
+    "file": "F:/Games/SteamLibrary/steamapps/common/PEAK/BepInEx\\core/MonoDetour-MonoDetour/manifest.json",
+    "key": "MonoDetour-MonoDetour",
+    "version": "0.7.16",
+    "area": "core",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\core\\MonoDetour-MonoDetour",
+    "readUtc": "2026-10-28T14:20:10.2470897Z"
+  },
+  {
+    "file": "F:/Games/SteamLibrary/steamapps/common/PEAK/BepInEx\\patchers/MonoDetour-MonoDetour_BepInEx_5/manifest.json",
+    "key": "MonoDetour-MonoDetour_BepInEx_5",
+    "version": "0.7.16",
+    "area": "patchers",
+    "path": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\patchers\\MonoDetour-MonoDetour_BepInEx_5",
+    "readUtc": "2026-10-28T14:20:10.2488025Z"
+  }
+]

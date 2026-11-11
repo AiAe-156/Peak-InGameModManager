@@ -1,0 +1,1498 @@
+{
+  "format": "mce-doc",
+  "version": 1,
+  "blocks": [
+    {
+      "type": "p",
+      "style": "h1",
+      "align": "center",
+      "runs": [
+        {
+          "text": "这是一个一个一个整合包啊？",
+          "font": "game:DarumaDropOne-Regular SDF|Daruma Drop One|Regular"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "align": "center",
+      "runs": [
+        {
+          "text": "一群人爬山用的整合包：语音更稳、队友更好找、掉线能回来，想玩花样的时候也有地形和终极登顶。",
+          "color": "#DDC374"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "align": "center",
+      "runs": [
+        {
+          "text": "约 60 个模组，分成五组。下面按组说明每个模组是干什么的，最后列出全部快捷键。",
+          "color": "#9FB0BF",
+          "size": 16
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "background": "#5A2E2E90",
+      "runs": [
+        {
+          "text": "开黑前先对齐",
+          "b": true
+        },
+        {
+          "text": " 「玩法模组」那一组会改地形、生成僵尸、改登顶流程，"
+        },
+        {
+          "text": "全队要装同一个版本",
+          "b": true
+        },
+        {
+          "text": "，否则地图对不上、会被踢或者不同步。其余模组大多只影响自己。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "基础模组：装上就忘了它",
+          "color": "#7CC7E6"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "runs": [
+        {
+          "text": "修问题、保流畅、管语音，平时感觉不到它们在工作。",
+          "color": "#9FB0BF",
+          "size": 16
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "语音"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的语音修复",
+          "b": true
+        },
+        {
+          "text": "：语音断了自动重连，跟房主同步，左上角能看到连接状态。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "麦克风增强",
+          "b": true
+        },
+        {
+          "text": "：降噪、自动增益，喊叫不会被吞，离远了也听得清。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的麦克风指示器",
+          "b": true
+        },
+        {
+          "text": "：左下角显示麦克风状态和音量，"
+        },
+        {
+          "text": "M",
+          "b": true
+        },
+        {
+          "text": " 静音，"
+        },
+        {
+          "text": "Alt+M",
+          "b": true
+        },
+        {
+          "text": " 隐藏这个指示。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "语音音量保存",
+          "b": true
+        },
+        {
+          "text": "：给朋友调过的音量下次还在。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "联机"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "中途加入修复",
+          "b": true
+        },
+        {
+          "text": "：中途进房间的人会被传到大家附近并复活，不会卡在死亡状态。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的手动复活与传送",
+          "b": true
+        },
+        {
+          "text": "："
+        },
+        {
+          "text": "H",
+          "b": true
+        },
+        {
+          "text": " 传送到队友身边，"
+        },
+        {
+          "text": "Alt+H",
+          "b": true
+        },
+        {
+          "text": " 复活，"
+        },
+        {
+          "text": "Shift+H",
+          "b": true
+        },
+        {
+          "text": " 锁定目的地，"
+        },
+        {
+          "text": ",",
+          "b": true
+        },
+        {
+          "text": " "
+        },
+        {
+          "text": ".",
+          "b": true
+        },
+        {
+          "text": " 切换目标玩家。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的中键标记",
+          "b": true
+        },
+        {
+          "text": "：中键标记显示距离和序号，会渐隐，死后观战时也能标。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "ESC 队友资料卡",
+          "b": true
+        },
+        {
+          "text": "：暂停菜单里能看到每个队友的资料。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "最近遇到的玩家",
+          "b": true
+        },
+        {
+          "text": "：一起玩过的人自动加进 Steam「最近一起玩过」。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "登机口选关",
+          "b": true
+        },
+        {
+          "text": "：在机场的登机口自助终端选今天要爬哪张图。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "修复与性能"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "综合本地修复",
+          "b": true
+        },
+        {
+          "text": "：本整合包自带的一组兼容修复，把几个模组凑在一起时会出的问题挨个补上。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "跨平台卡顿修复",
+          "b": true
+        },
+        {
+          "text": "：修掉 2.4.a 以后跨平台联机带来的周期性卡顿。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "性能优化",
+          "b": true
+        },
+        {
+          "text": "、"
+        },
+        {
+          "text": "无运动模糊",
+          "b": true
+        },
+        {
+          "text": "：多拿回几帧，晕 3D 的人会好受很多。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "动态物资倍率",
+          "b": true
+        },
+        {
+          "text": "：按人数自动调整物资多少。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "攀爬记录",
+          "b": true
+        },
+        {
+          "text": "：记下每一次攀爬的数据。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "彻底退出游戏",
+          "b": true
+        },
+        {
+          "text": "：退出时不再残留进程。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "ModConfig",
+          "b": true
+        },
+        {
+          "text": " 和 "
+        },
+        {
+          "text": "Mod Manager (In-Game)",
+          "b": true
+        },
+        {
+          "text": "：这两个就是你现在看到的这个界面。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "拓展模组：让队伍信息更透明",
+          "color": "#69B87B"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的显示玩家距离",
+          "b": true
+        },
+        {
+          "text": "：按 "
+        },
+        {
+          "text": "C",
+          "b": true
+        },
+        {
+          "text": " 显示每个队友的距离，昏迷的也能找到，夜里有描边。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "Peak 状态 Ex",
+          "b": true
+        },
+        {
+          "text": "：能看到队友的体力条，物品栏显示物品名，还有本局爬了多高、多久。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "物品详细信息",
+          "b": true
+        },
+        {
+          "text": "：每个物品的效果、数值都写出来，中文。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "B 键便捷背包",
+          "b": true
+        },
+        {
+          "text": "："
+        },
+        {
+          "text": "B",
+          "b": true
+        },
+        {
+          "text": " 直接打开背包，不用先放下来。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的背队友",
+          "b": true
+        },
+        {
+          "text": "：队友没昏迷也能背。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "K 键掉线重连",
+          "b": true
+        },
+        {
+          "text": "：掉线后按 "
+        },
+        {
+          "text": "K",
+          "b": true
+        },
+        {
+          "text": " 回到刚才的房间。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "鹰眼",
+          "b": true
+        },
+        {
+          "text": "：按住 "
+        },
+        {
+          "text": "X",
+          "b": true
+        },
+        {
+          "text": " 望远，滚轮调倍率。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "视角切换器",
+          "b": true
+        },
+        {
+          "text": "："
+        },
+        {
+          "text": "F",
+          "b": true
+        },
+        {
+          "text": " 在第一、第二、第三人称之间切换。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "迷你景观台",
+          "b": true
+        },
+        {
+          "text": "（带汉化）：机场里就能看到今天各个地区的缩略模型，多人可以一起看。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F10 隐藏 HUD",
+          "b": true
+        },
+        {
+          "text": "：截图专用。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "时间主题",
+          "b": true
+        },
+        {
+          "text": "：白天黑夜界面换色。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "跳过开始画面",
+          "b": true
+        },
+        {
+          "text": "、"
+        },
+        {
+          "text": "简易解锁装扮与难度",
+          "b": true
+        },
+        {
+          "text": "：省时间。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "额外模组：好看、好玩、好整活",
+          "color": "#D7AC64"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "画面"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "月光优化",
+          "b": true
+        },
+        {
+          "text": "：把月光加回来，夜里不再一片漆黑。强烈推荐开着。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "画面调整",
+          "b": true
+        },
+        {
+          "text": "（PEAK_Visuals）：更多画质选项，支持 DLSS。"
+        },
+        {
+          "text": "F11",
+          "b": true
+        },
+        {
+          "text": " 打开菜单。配置低的话谨慎开。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "路线轨迹",
+          "b": true
+        },
+        {
+          "text": "：所有人走过的路都留下一条线，再也不怕找不到人。"
+        },
+        {
+          "text": "V",
+          "b": true
+        },
+        {
+          "text": " 显示或隐藏。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "观战"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "更好的观战视角",
+          "b": true
+        },
+        {
+          "text": "：死后按 "
+        },
+        {
+          "text": "F3",
+          "b": true
+        },
+        {
+          "text": " 进自由相机，"
+        },
+        {
+          "text": "Q",
+          "b": true
+        },
+        {
+          "text": " "
+        },
+        {
+          "text": "E",
+          "b": true
+        },
+        {
+          "text": " 切换玩家，头顶显示名字和海拔。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "整活"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "T 键骑队友",
+          "b": true
+        },
+        {
+          "text": "：按 "
+        },
+        {
+          "text": "T",
+          "b": true
+        },
+        {
+          "text": " 挂到队友背上。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "抛出昏迷队友",
+          "b": true
+        },
+        {
+          "text": "：队友太沉？送他一程。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "宾绑替换",
+          "b": true
+        },
+        {
+          "text": "：把宾绑玩偶换成米菲或自嘲熊，"
+        },
+        {
+          "text": "F7",
+          "b": true
+        },
+        {
+          "text": " 切换。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "这里能踩吗",
+          "b": true
+        },
+        {
+          "text": "：按 "
+        },
+        {
+          "text": "G",
+          "b": true
+        },
+        {
+          "text": " 显示哪些地方能站稳。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "调试工具"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "background": "#3B352590",
+      "runs": [
+        {
+          "text": "下面两个是作弊性质的工具，"
+        },
+        {
+          "text": "默认别在正式局里开",
+          "b": true
+        },
+        {
+          "text": "，测试或者整活时再用。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "飞行",
+          "b": true
+        },
+        {
+          "text": "（So Fly，带汉化）："
+        },
+        {
+          "text": "F2",
+          "b": true
+        },
+        {
+          "text": " 打开菜单，"
+        },
+        {
+          "text": "Alt+F7",
+          "b": true
+        },
+        {
+          "text": " 开关飞行，"
+        },
+        {
+          "text": "N",
+          "b": true
+        },
+        {
+          "text": " 穿墙，"
+        },
+        {
+          "text": "T",
+          "b": true
+        },
+        {
+          "text": " 传送。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "物品生成器增强",
+          "b": true
+        },
+        {
+          "text": "（带中文搜索）："
+        },
+        {
+          "text": "F5",
+          "b": true
+        },
+        {
+          "text": " 打开，可以搜中文名生成物品。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "玩法模组：全队要装同一个版本",
+          "color": "#B18BD1"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "终极登顶",
+          "b": true
+        },
+        {
+          "text": "（True Final Ascent）：一局里把所有地区叠在一起爬完。还有「末日模式」，天气会想办法弄死你。"
+        },
+        {
+          "text": "F8",
+          "b": true
+        },
+        {
+          "text": " 显示本局计时。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "地形随机器",
+          "b": true
+        },
+        {
+          "text": "（带汉化）：用种子随机生成地形，可以指定地区和变体，几乎玩不重样。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "随机地形增强",
+          "b": true
+        },
+        {
+          "text": "：修好地形随机器的多人同步问题，"
+        },
+        {
+          "text": "F8",
+          "b": true
+        },
+        {
+          "text": " 打开检查面板看大家地形是否一致。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "地形定制器",
+          "b": true
+        },
+        {
+          "text": "：自己拼地图。"
+        },
+        {
+          "text": "F11",
+          "b": true
+        },
+        {
+          "text": " 打开监视面板。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "僵尸追猎：快跑吧！",
+          "b": true
+        },
+        {
+          "text": "：调整蘑菇僵尸的速度和存活时间，新地图或按 "
+        },
+        {
+          "text": ",",
+          "b": true
+        },
+        {
+          "text": " 刷僵尸。"
+        },
+        {
+          "text": "只有房主生效。",
+          "b": true
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "PLL 雾效库",
+          "b": true
+        },
+        {
+          "text": "：给上面这些模组提供雾和光照效果，旁边两个资源包是它要用的着色器。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "依赖模组：别的模组要用",
+          "color": "#94A3B8"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "runs": [
+        {
+          "text": "PEAKLib 三件套（核心、界面、物品）、XUnity 实时翻译和资源重定向、光子属性同步工具、软依赖修复、UBImGui、Upscale Lib、MonoDetour。删了会有模组打不开，",
+          "color": "#9FB0BF",
+          "size": 16
+        },
+        {
+          "text": "不要单独停用",
+          "b": true,
+          "color": "#9FB0BF",
+          "size": 16
+        },
+        {
+          "text": "。",
+          "color": "#9FB0BF",
+          "size": 16
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "全部快捷键"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "runs": [
+        {
+          "text": "都可以在模组概览的「快捷键设置」页改。下面是整合包默认值。",
+          "color": "#9FB0BF",
+          "size": 16
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "常用"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "M",
+          "b": true
+        },
+        {
+          "text": " 麦克风静音　"
+        },
+        {
+          "text": "Alt+M",
+          "b": true
+        },
+        {
+          "text": " 隐藏麦克风指示"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "C",
+          "b": true
+        },
+        {
+          "text": " 显示队友距离"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "B",
+          "b": true
+        },
+        {
+          "text": " 打开背包"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "X",
+          "b": true
+        },
+        {
+          "text": " 按住望远"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F",
+          "b": true
+        },
+        {
+          "text": " 切换视角"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "G",
+          "b": true
+        },
+        {
+          "text": " 显示能站的地方"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "T",
+          "b": true
+        },
+        {
+          "text": " 骑到队友背上"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "H",
+          "b": true
+        },
+        {
+          "text": " 传送到队友身边　"
+        },
+        {
+          "text": "Alt+H",
+          "b": true
+        },
+        {
+          "text": " 复活　"
+        },
+        {
+          "text": "Shift+H",
+          "b": true
+        },
+        {
+          "text": " 锁定目的地　"
+        },
+        {
+          "text": ",",
+          "b": true
+        },
+        {
+          "text": " "
+        },
+        {
+          "text": ".",
+          "b": true
+        },
+        {
+          "text": " 切换目标"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "K",
+          "b": true
+        },
+        {
+          "text": " 掉线重连"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "h3",
+      "runs": [
+        {
+          "text": "功能键"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F2",
+          "b": true
+        },
+        {
+          "text": " 飞行菜单　"
+        },
+        {
+          "text": "Alt+F7",
+          "b": true
+        },
+        {
+          "text": " 开关飞行"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F3",
+          "b": true
+        },
+        {
+          "text": " 观战自由相机（观战中 "
+        },
+        {
+          "text": "Q",
+          "b": true
+        },
+        {
+          "text": " "
+        },
+        {
+          "text": "E",
+          "b": true
+        },
+        {
+          "text": " 切换玩家、"
+        },
+        {
+          "text": "F",
+          "b": true
+        },
+        {
+          "text": " 隐藏标记、"
+        },
+        {
+          "text": "C",
+          "b": true
+        },
+        {
+          "text": " 切换标记样式、"
+        },
+        {
+          "text": "R",
+          "b": true
+        },
+        {
+          "text": " 轨迹、"
+        },
+        {
+          "text": "X",
+          "b": true
+        },
+        {
+          "text": " 望远）"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F4",
+          "b": true
+        },
+        {
+          "text": " 观战时回到自己附近"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F5",
+          "b": true
+        },
+        {
+          "text": " 物品生成器"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F7",
+          "b": true
+        },
+        {
+          "text": " 切换宾绑玩偶"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F8",
+          "b": true
+        },
+        {
+          "text": " 终极登顶计时、随机地形增强检查面板、飞行速度"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F9",
+          "b": true
+        },
+        {
+          "text": " 远征整合增强面板（如果开了它）"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F10",
+          "b": true
+        },
+        {
+          "text": " 隐藏 HUD"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "F11",
+          "b": true
+        },
+        {
+          "text": " 画面调整菜单、地形定制器监视面板"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "bullet",
+      "runs": [
+        {
+          "text": "V",
+          "b": true
+        },
+        {
+          "text": " 路线轨迹显示；终极登顶里也是 "
+        },
+        {
+          "text": "V",
+          "b": true
+        },
+        {
+          "text": " 踢人（帮一把）"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "background": "#29493680",
+      "runs": [
+        {
+          "text": "撞键提醒",
+          "b": true
+        },
+        {
+          "text": " F8、F11 和 V 各被几个模组同时用着，按一下会同时触发几个功能。有需要的话在「快捷键设置」页把不常用的改掉，有重复的那一行会标「重复键」。"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "p",
+      "style": "h2",
+      "runs": [
+        {
+          "text": "出发前看一眼"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "numbered",
+      "runs": [
+        {
+          "text": "进游戏先去模组概览，看看有没有红色、橙色提示。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "numbered",
+      "runs": [
+        {
+          "text": "检查一下自己的麦克风和语音音量。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "numbered",
+      "runs": [
+        {
+          "text": "联机前跟队友确认「玩法模组」那一组的版本一样。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "style": "numbered",
+      "runs": [
+        {
+          "text": "想改某个模组的设置，点它那一行的齿轮。"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "align": "right",
+      "runs": [
+        {
+          "text": "山顶见。",
+          "color": "#DDC374"
+        }
+      ]
+    }
+  ]
+}
