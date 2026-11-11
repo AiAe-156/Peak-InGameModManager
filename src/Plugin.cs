@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = "com.aiae.modconfigenhance";
     public const string PluginName = "In-Game Mod Manager";
-    public const string PluginVersion = "2.5.4";
+    public const string PluginVersion = "2.5.5";
 
     internal static ManualLogSource Log { get; private set; } = null!;
 
@@ -35,7 +35,7 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> EnableTreeLayout = null!;
     internal static ConfigEntry<bool> EnableDescriptionPanel = null!;
     internal static ConfigEntry<ModConfigLook.ThemeMode> ColourTheme = null!;
-    internal const string DescColourTheme = "Colour theme of every MCE screen. Blue follows the game's settings menu; Purple is the night style; PurpleAtNight switches to purple at night when TimeTheme is installed (only its day/night state is read). The mod settings page switches at once; an open overview switches the next time it is opened.";
+    internal const string DescColourTheme = "Colour theme of every manager screen. Blue follows the game's settings menu; Purple is the night style; PurpleAtNight switches to purple at night when TimeTheme is installed (only its day/night state is read). The mod settings page switches at once; an open overview switches the next time it is opened.";
     internal static ConfigEntry<bool> EnableLocalization = null!;
     internal static ConfigEntry<bool> HideLocalizationButtons = null!;
     internal static ConfigEntry<bool> WarnXUnity = null!;

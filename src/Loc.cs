@@ -139,9 +139,9 @@ internal static partial class Loc
         new("NOTICE_REFRESHED", "Language folder rescanned: {0} language group(s).", "已重新扫描语言目录：{0} 个语言组。", "已重新掃描語言目錄：{0} 個語言組。"),
         // 悬停注释（说明面板显示；首行是标题，`…` 包住的部分用标题色强调）
         new("TIP_EXPORT_V2",
-            "Export texts\nExports the untranslated source dictionary of every mod, including MCE (`ModConfigEnhance`) itself;\nmods unticked while `Selected only` is on are excluded.\n\nDefault output: `*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\nUsage: `*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`",
-            "导出翻译\n导出包括 MCE（`ModConfigEnhance`）模组本身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n默认导出路径：`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\n如何使用请查阅`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`",
-            "導出翻譯\n導出包括 MCE（`ModConfigEnhance`）模組本身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n默認導出路徑：`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\n如何使用請查閱`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`"),
+            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
+            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
+            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
         new("TIP_UNTRANSLATED_V2",
             "Untranslated\nExports only the entries the current language group doesn't cover yet: exact lines and `r:` regex rules both count as translated.\n\nOutput lands in `output\\translation\\`; fill it in, then use `Import additions` in the language row.",
             "补漏翻\n只导出当前语言组还没覆盖的原文条目：整句译文和 `r:` 正则规则命中的都算已翻。\n\n产物落在 `output\\translation\\`，填好后用语言行的`导入补翻`合进语言文件。",
@@ -158,10 +158,12 @@ internal static partial class Loc
             "Reload texts\nRe-reads the files in `language\\` — after editing a language file this applies it without re-picking the language.",
             "重载翻译\n重新读取 `language\\` 的语言文件：改完语言文件点它即生效，无需重选语言。",
             "重載翻譯\n重新讀取 `language\\` 的語言檔案：改完語言檔案點它即生效，無需重選語言。"),
-        new("TIP_OPEN_DIR_V2",
-            "Open folder\nOpens `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\` (language files), `output\\translation\\` (exports) and `readme.md` (docs) all live there.",
-            "打开目录\n打开 `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\`（语言文件）、`output\\translation\\`（导出产物）、`readme.md`（使用说明）都在里面。",
-            "打開目錄\n打開 `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\`（語言檔案）、`output\\translation\\`（導出產物）、`readme.md`（使用說明）都在裡面。"),
+        // 2.5.5：按钮改为直接打开翻译导出目录，含义变了，换 _V3 键（旧 _V2 进 RetiredTerms）。
+        // 个人数据文件夹仍叫 config\ModConfigEnhance（内部目录名，拆分时再定），提示里如实写出。
+        new("TIP_OPEN_DIR_V3",
+            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\` (the folder keeps its internal name).",
+            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（文件夹沿用内部名称）。",
+            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（資料夾沿用內部名稱）。"),
         new("TIP_SORT",
             "Sort\nSidebar mod order:\n\n`Default` (load order) / `Load reversed` / `Name` / `Name reversed`.",
             "排序\n侧栏模组行的排序方式：\n\n`默认`（加载顺序）/ `加载倒序` / `名称` / `名称倒序`。",
@@ -207,6 +209,24 @@ internal static partial class Loc
     /// <summary>本模组 cfg 选项名 / 说明的内置译文：键是 cfg 里的英文原文，设置页与说明面板按它显示。</summary>
     internal static readonly Term[] ConfigTerms =
     {
+        // 2.5.5：自身设置项此前缺内置译文（补漏翻导出里一直列出）
+        new("Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
+            "Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
+            "在游戏内管理模组：PEAK 的模组、设置、依赖、更新和整合包集中在一处，支持独立环境、配置方案、本地化与打包导出。",
+            "在遊戲內管理模組：PEAK 的模組、設定、依賴、更新和整合包集中在一處，支援獨立環境、配置方案、本地化與打包匯出。"),
+        new("Check update metadata every 30 minutes in the main menu or Airport only. Downloads and installation require confirmation.",
+            "Check update metadata every 30 minutes in the main menu or Airport only. Downloads and installation require confirmation.",
+            "只在主菜单或机场每 30 分钟检查一次更新信息；下载和安装都要你确认。",
+            "只在主選單或機場每 30 分鐘檢查一次更新資訊；下載和安裝都要你確認。"),
+        new("Rest idle button animations", "Rest idle button animations", "闲置按钮动画休眠", "閒置按鈕動畫休眠"),
+        new("Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.",
+            "Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.",
+            "管理器按钮的非循环常态动画播完后暂停，省下每帧开销；悬停、点击、选中效果和音效照旧。",
+            "管理器按鈕的非循環常態動畫播完後暫停，省下每幀開銷；懸停、點擊、選中效果和音效照舊。"),
+        new("On: show up to two dependency levels in name hints; deeper levels are omitted. Off: show all direct dependencies only. Dependants use a compact two-level summary. Omitted branches show an ellipsis. Long hints can be scrolled in either placement mode. Duplicate references are merged and circular branches stop expanding.",
+            "On: show up to two dependency levels in name hints; deeper levels are omitted. Off: show all direct dependencies only. Dependants use a compact two-level summary. Omitted branches show an ellipsis. Long hints can be scrolled in either placement mode. Duplicate references are merged and circular branches stop expanding.",
+            "开：名称提示里最多显示两层依赖，更深的省略。关：只显示全部直接依赖。被依赖方向用精简的两层摘要。省略的分支显示省略号。两种显示位置下长提示都能滚动。重复引用合并显示，循环分支不再展开。",
+            "開：名稱提示裡最多顯示兩層依賴，更深的省略。關：只顯示全部直接依賴。被依賴方向用精簡的兩層摘要。省略的分支顯示省略號。兩種顯示位置下長提示都能捲動。重複引用合併顯示，循環分支不再展開。"),
         new("Appearance speed", "Appearance speed", "概览动效速度", "概覽動效速度"),
         new("Tree sidebar", "Tree sidebar", "树形侧栏", "樹形側欄"),
         new("Description panel", "Description panel", "选项说明面板", "選項說明面板"),
@@ -233,8 +253,8 @@ internal static partial class Loc
             "模组列表改为左侧竖排侧栏，选中的模组在其下方展开分区，右侧显示选项。重启生效。",
             "模組列表改為左側直排側欄，選中的模組在其下方展開分區，右側顯示選項。重啟生效。"),
         new(Plugin.DescColourTheme, Plugin.DescColourTheme,
-            "MCE 全部界面的配色主题。蓝色跟随游戏的设置菜单；紫色是夜间风格；夜里自动紫色在装了 TimeTheme 时夜里切到紫色（只读它的昼夜状态）。模组设置页即时切换；已打开过的概览在下次打开时切换。",
-            "MCE 全部介面的配色主題。藍色跟隨遊戲的設定選單；紫色是夜間風格；夜裡自動紫色在裝了 TimeTheme 時夜裡切到紫色（只讀它的晝夜狀態）。模組設定頁即時切換；已開啟過的概覽在下次開啟時切換。"),
+            "管理器全部界面的配色主题。蓝色跟随游戏的设置菜单；紫色是夜间风格；夜里自动紫色在装了 TimeTheme 时夜里切到紫色（只读它的昼夜状态）。模组设置页即时切换；已打开过的概览在下次打开时切换。",
+            "管理器全部介面的配色主題。藍色跟隨遊戲的設定選單；紫色是夜間風格；夜裡自動紫色在裝了 TimeTheme 時夜裡切到紫色（只讀它的晝夜狀態）。模組設定頁即時切換；已開啟過的概覽在下次開啟時切換。"),
         new(Plugin.DescDescriptionPanel, Plugin.DescDescriptionPanel,
             "右上方面板显示悬停选项的说明、默认值与取值范围 / 可选项。需要树形侧栏。重启生效。",
             "右上方板面顯示懸停選項的說明、預設值與取值範圍 / 可選項。需要樹形側欄。重啟生效。"),
@@ -677,6 +697,8 @@ internal static partial class Loc
         "NOTICE_NO_XUNITY_CHECK", "NOTICE_NO_XUNITY", "NOTICE_XUNITY_SWITCHED", "NOTICE_XUNITY_SYNCED", "NOTICE_XUNITY_NO_SWITCH",
         // 2.5.4：这 7 个旧键名已换成 _V2，代码不再使用，旧文件里的译文（说的是 XUnity 联动）一并清掉
         "NOTICE_SHOWING_ORIGINAL", "NOTICE_RELOADED", "TIP_UNTRANSLATED", "TIP_TOGGLE_ORIG", "TIP_RELOAD", "TIP_OPEN_DIR", "TIP_EXPORT", "NOTICE_IMPORTED",
+        // 2.5.5：文件夹按钮改为直接打开翻译导出目录
+        "TIP_OPEN_DIR_V2",
         "Switch XUnity language with the language file", "Disable XUnity machine translation",
     };
 
@@ -822,7 +844,7 @@ internal static partial class Loc
                 int applied = ApplyFile(file);
                 int missing = Terms.Length - applied;
                 parts.Add((file.DisplayOrStem + " ×" + file.FileCount
-                    + T("  |  MCE dictionary: ", "  |  已加载 MCE 词典 ", "  |  已載入 MCE 詞典 ") + applied
+                    + T("  |  Manager dictionary: ", "  |  已加载管理器词典 ", "  |  已載入管理器詞典 ") + applied
                     + T(" entries", " 条", " 條"), ModConfigDescriptionPanel.NoticeRole.Body));
                 if (missing > 0)
                 {

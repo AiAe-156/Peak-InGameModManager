@@ -92,7 +92,7 @@ internal sealed partial class OverviewPage
                 form.Block((content, y) => tree.Draw(content, _storageLoading.Result, y, form.Width));
             }
             form.Action(Loc.T("Refresh", "刷新", "重新整理"), () => { _storageLoading = null; _storageRendered = false; _management?.Rebuild(ManagementTab.Packs); }, UiActionRole.Neutral);
-            form.Action(Loc.T("Open MCE data folder", "打开管理目录", "開啟管理目錄"), () => ManagementUi.OpenFolder(OverviewUpdateQueue.Root), UiActionRole.Neutral);
+            form.Action(Loc.T("Open manager data folder", "打开管理目录", "開啟管理目錄"), () => ManagementUi.OpenFolder(OverviewUpdateQueue.Root), UiActionRole.Neutral);
 
         }
         else if (_packPane == "import")
@@ -184,7 +184,7 @@ internal sealed partial class OverviewPage
                 form.Button(T("Cancel", "取消"), () => OverviewUpdateQueue.SendPack(new PackRequest { Operation = "cancel", PreviewId = task.Id }), UiActionRole.Neutral); return;
             case "saving": case "switching": form.Text(PackStatusText(task), true); return;
             case "recovery-required":
-                form.Text(T("The last switch did not finish. Exit PEAK and wait; MCE will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，MCE 会恢复原有配置。"), true);
+                form.Text(T("The last switch did not finish. Exit PEAK and wait; the manager will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，管理器会恢复原有配置。"), true);
                 if (task.Error.Length > 0) form.Text(task.Error);
                 form.Button(Loc.T("Retry restoring the original environment", "重试恢复原环境", "重試還原原環境"), () => { OverviewUpdateQueue.SendPack(new PackRequest { Operation = "retry-recovery", PreviewId = task.Id }); PackSwitchProgressWindow.Show(task.Id); });
                 return;

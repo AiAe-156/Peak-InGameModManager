@@ -113,7 +113,7 @@ catch (Exception error)
     {
         System.Threading.Mutex? dialog = null; bool owned = false;
         try { dialog = new System.Threading.Mutex(true, @"Local\MCE.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
-        try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "MCE operations", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
+        try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "In-Game Mod Manager", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
         finally { if (owned) dialog!.ReleaseMutex(); dialog?.Dispose(); }
     }
     try

@@ -1,0 +1,20 @@
+验证\2.3.9白名单统一\apply.py
+    Required by MCE; uninstall asks for confirmation
+    此组件是MCE运行所依赖的组件
+    此組件是MCE執行所依賴的組件
+    MCE runs on this component;
+    MCE runs on this component
+    MCE 运行依赖此组件
+    MCE 執行依賴此組件
+    MCE and the libraries it runs on cannot
+    MCE 及其运行所需的基础库
+    MCE 及其執行所需的基礎庫
+验证\2.4.0主题\edit4_config.py
+    Colour theme of every MCE screen.
+    MCE 全部界面的配色主题
+    MCE 全部介面的配色主題
+验证\发布前审查\convert_hardcoded.py
+    Open MCE data folder
+验证\发布前审查\diag_add_tw.py
+    请返回 MCE 查看
+    請返回 MCE 查看

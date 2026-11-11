@@ -29,7 +29,7 @@ internal sealed class ProgressWindow : Window
     internal ProgressWindow(string root, string tools, string id, string language)
     {
         this.root = root; home = Path.Combine(root, "MCE"); this.tools = tools; expected = id; this.language = language;
-        Title = T("MCE · Modpack switch", "MCE · 整合包切换", "MCE · 整合包切換");
+        Title = T("In-Game Mod Manager · Modpack switch", "游戏内模组管理器 · 整合包切换", "遊戲內模組管理器 · 整合包切換");
         Width = 880; Height = 640; MinWidth = 720; MinHeight = 520;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Background = new SolidColorBrush(Color.FromRgb(19, 25, 36));
@@ -93,7 +93,7 @@ internal sealed class ProgressWindow : Window
             {
                 if (pending && task.Request.Operation == "confirm-switch" && task.Proposed.Id == pendingPack && task.AttemptId.Length > 0 && task.AttemptId != pendingAttempt)
                     expected = task.Id;
-                else throw new IOException(T("The task changed. Return to MCE; no action is available in this window.", "任务记录已变化，请返回 MCE 查看；本窗口不会处理新任务。", "工作記錄已變更，請返回 MCE 檢視；本視窗不會處理新工作。"));
+                else throw new IOException(T("The task changed. Return to the manager; no action is available in this window.", "任务记录已变化，请返回管理器查看；本窗口不会处理新任务。", "工作記錄已變更，請返回管理器檢視；本視窗不會處理新工作。"));
             }
             current = task; readOk = true;
             if (pending && task.AttemptId.Length > 0 && task.AttemptId != pendingAttempt) { pending = false; notice = ""; }
@@ -125,7 +125,7 @@ internal sealed class ProgressWindow : Window
                 T("Transaction: ", "事务阶段：", "交易階段：") + plan.Phase + (counted ? "  ·  " + plan.Done + " / " + plan.Total + T(" file operations", " 次文件处理", " 次檔案處理") : "");
             if (plan?.Phase == "rolled-back") phase.Text += "\n" + T("Original environment restored. Backups retained.", "原环境已恢复，备份已保留。", "原環境已復原，備份已保留。");
             if (pending && (DateTime.UtcNow - queued).TotalSeconds > 15)
-                notice = T("Retry has not been acknowledged. It may still be queued. Do not submit duplicates; check MCE/worker status or use recovery only.", "尚未收到重试确认，请求可能仍在队列中。请勿重复提交；检查 MCE／后台状态或使用仅恢复入口。", "尚未收到重試確認，請求可能仍在佇列中。請勿重複提交；檢查 MCE／背景狀態或使用僅復原入口。");
+                notice = T("Retry has not been acknowledged. It may still be queued. Do not submit duplicates; check the manager/worker status or use recovery only.", "尚未收到重试确认，请求可能仍在队列中。请勿重复提交；检查管理器／后台状态或使用仅恢复入口。", "尚未收到重試確認，請求可能仍在佇列中。請勿重複提交；檢查管理器／背景狀態或使用僅復原入口。");
             // Worker diagnostics remain original-language evidence, not a misleading generic translation.
             string text = Safe(task.Message + "\r\n" + task.Error + (notice.Length > 0 ? "\r\n\r\n" + notice : ""));
             if (details.Text != text) { int start = details.SelectionStart, length = details.SelectionLength; details.Text = text; details.Select(Math.Min(start, text.Length), Math.Min(length, Math.Max(0, text.Length - start))); }

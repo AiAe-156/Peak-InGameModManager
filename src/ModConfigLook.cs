@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ModConfigEnhance;
 
 /// <summary>
-/// 2.4.0：MCE 全部界面的配色主题，唯一来源。
+/// 2.4.0：管理器全部界面的配色主题，唯一来源。
 ///
 /// 两套主题：
 ///   · 蓝色：跟随游戏 3.1 的设置菜单（<c>Peak.UI.SettingsMenu.SettingsColors</c>，运行时反射读取，读不到用同值常量）；

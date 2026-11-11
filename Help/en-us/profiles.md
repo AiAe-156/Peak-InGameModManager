@@ -21,7 +21,7 @@ The Profiles tab lets you create, duplicate, rename, delete and export profiles,
 Settings in the overview, controls on the original mod settings pages, hotkeys and enable targets all go into the **draft** when changed.
 
 - Items with draft changes show an orange marker; the profile name gets a `*`.
-- When you leave the page or switch profiles, MCE asks whether to save, discard or keep editing.
+- When you leave the page or switch profiles, the manager asks whether to save, discard or keep editing.
 - The draft is saved automatically, so you can continue after a crash or restart.
 - If another tool changes a field you did not touch (for example editing a cfg by hand), it is merged automatically; if both sides changed the same field, you choose which value to keep.
 
@@ -48,7 +48,7 @@ Config files of mods that are not loaded can still be edited and saved offline; 
 
 ## Checks before saving {#checks}
 
-When you save, MCE lists issues you should know about. **Most are only warnings** — confirm once and continue:
+When you save, the manager lists issues you should know about. **Most are only warnings** — confirm once and continue:
 
 - **Dependencies**: missing, disabled and too-old dependencies are told apart. Installed mods with a sufficient version are never reported. You can confirm and save anyway.
 - **Duplicates**: the same plugin installed several times, each with its version and path.

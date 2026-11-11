@@ -1,6 +1,6 @@
 # Build a modpack {#top}
 
-Prepare a playable profile, organize the modpack information and introduction, then open the publishing wizard. This page covers introduction editing and preparation. See [Export and publish](export) to generate files. · [Edit the MCE guide](#guide-edit)
+Prepare a playable profile, organize the modpack information and introduction, then open the publishing wizard. This page covers introduction editing and preparation. See [Export and publish](export) to generate files. · [Edit the user guide](#guide-edit)
 
 On this page: [Prepare the profile](#prepare) · [Text and Markdown](#markdown) · [Images, animation and video](#media) · [Save and prepare publication](#save)
 
@@ -15,7 +15,7 @@ Enter edit mode on the introduction page and type as in a word processor. Enter 
 
 The link tool sets a website address. Click it while reading, or Ctrl+click while editing. Ctrl+Z/Y undoes or redoes, and Ctrl+S saves. Heading, list and quotation markers at paragraph starts can convert the paragraph's style.
 
-More contains Markdown source, import/save Markdown and a sample draft. MCE Markdown includes extensions that preserve text formatting and media layout. Creating content with the editor is the easiest way to retain those features. Preview a loaded sample, then confirm and save to adopt it.
+More contains Markdown source, import/save Markdown and a sample draft. The manager's Markdown includes extensions that preserve text formatting and media layout. Creating content with the editor is the easiest way to retain those features. Preview a loaded sample, then confirm and save to adopt it.
 
 ## Images, animation and video {#media}
 
@@ -25,17 +25,17 @@ PNG/JPEG and GIF are supported, along with the existing MP4/WEBM/MOV/AVI/M4V/OGV
 
 ## Save and prepare publication {#save}
 
-Content is saved as an MCE document with a compatible Markdown output. The introduction and referenced resources belong to the shared modpack workspace. Wait for an import to finish before saving or switching profiles.
+Content is saved as a manager document with a compatible Markdown output. The introduction and referenced resources belong to the shared modpack workspace. Wait for an import to finish before saving or switching profiles.
 
 Before publishing, inspect text, links, images and video in reading mode. Save the profile and verify its default configuration and [mod sources](sources#types). Export collects media and fonts referenced by the shared introduction. Then use the [publishing wizard](export#steps) to select languages, files and signing.
 
-## Edit the MCE guide {#guide-edit}
+## Edit the user guide {#guide-edit}
 
-Enable **Allow editing user guide** under **5. Authoring** in MCE settings. The default is off. All guide chapters and the changelog use the same toolbar as introductions, including formatting, links, images, video, fonts and Markdown source.
+Enable **Allow editing user guide** under **5. Authoring** in the manager's settings. The default is off. All guide chapters and the changelog use the same toolbar as introductions, including formatting, links, images, video, fonts and Markdown source.
 
 Changes are saved per language in `config/ModConfigEnhance/data/help/<language>/`, independently of profiles. Save before changing chapters or leaving; unsaved work offers Save, Discard or Continue editing. Disabling editing keeps saved changes visible. **Restore this page** restores the current language and chapter, moving its override into backups.
 
-Choose **More → Export guide data** to export all three languages, rich documents and assets. Copy the exported `Help/` into the MCE project for the next build. Body text is embedded; media and fonts are distributed with the MCE plugin. Heading anchors survive title edits and export. The edit switch is personal and is not enabled by modpack defaults.
+Choose **More → Export guide data** to export all three languages, rich documents and assets. Copy the exported `Help/` into the manager's project for the next build. Body text is embedded; media and fonts are distributed with the manager plugin. Heading anchors survive title edits and export. The edit switch is personal and is not enabled by modpack defaults.
 
 Related: [Modpack features](packs) · [Export and publish](export) · [Media issues](faq#media)
 

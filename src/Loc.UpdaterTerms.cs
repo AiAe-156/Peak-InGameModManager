@@ -119,7 +119,7 @@ internal static partial class Loc
         new("Roll back after exit", "Roll back after exit", "退出游戏后回退", "離開遊戲後還原"),
         new("Rolled back", "Rolled back", "已回退", "已還原"),
         new("Could not read the update queue; the previous view was kept: ", "Could not read the update queue; the previous view was kept: ", "更新队列读取失败，保留上次显示：", "更新佇列讀取失敗，保留上次顯示："),
-        new("The update worker is missing. Reinstall the complete MCE package.", "The update worker is missing. Reinstall the complete MCE package.", "缺少更新助手，请重新安装完整 MCE 包。", "缺少更新助手，請重新安裝完整 MCE 套件。"),
+        new("The update worker is missing. Reinstall the complete In-Game Mod Manager package.", "The update worker is missing. Reinstall the complete In-Game Mod Manager package.", "缺少更新助手，请重新安装完整的游戏内模组管理器包。", "缺少更新助手，請重新安裝完整的遊戲內模組管理器套件。"),
         new("Use an HTTP(S) proxy address without credentials.", "Use an HTTP(S) proxy address without credentials.", "请使用不带账户密码的 HTTP(S) 代理地址。", "請使用不含帳號密碼的 HTTP(S) 代理位址。"),
         new("Finish or undo this package's pending update and restart before publishing: {0}", "Finish or undo this package's pending update and restart before publishing: {0}", "此资料包有未完成或待重启的更新，请完成或撤销并重启后再发布：{0}", "此資料包有未完成或待重新啟動的更新，請完成或撤銷並重新啟動後再發布：{0}"),
         new("Confirm the store source first.", "Confirm the store source first.", "请先确认商店来源。", "請先確認商店來源。"),

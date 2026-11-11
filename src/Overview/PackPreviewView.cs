@@ -155,7 +155,7 @@ internal sealed class PackPreviewView
                 : _report.Kind == "snapshot"
                     ? L("Copies the current snapshot immediately. Game files are not replaced.", "立即复制当前文件快照，不会替换游戏文件。")
                     : _task.Request.Operation == "view-stored" ? L("Viewing stored contents only. Use Preview switch to review installation changes.", "当前仅查看库内内容。需要切换时，使用“预览切换影响”。")
-                    : L("Nothing changes until PEAK exits. MCE then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由 MCE 完成切换，请等待完成后再启动游戏。"), OverviewUi.Muted, 16);
+                    : L("Nothing changes until PEAK exits. The manager then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由管理器完成切换，请等待完成后再启动游戏。"), OverviewUi.Muted, 16);
         }
         else foreach (var line in errors) Card(line);
         foreach (var note in _report.Lines.Where(l => l.Section == "note" && !OverviewPage._ignoredPackLines.Contains(l.Title))) Card(note);

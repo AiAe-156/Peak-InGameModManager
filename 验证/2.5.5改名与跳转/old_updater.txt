@@ -1,0 +1,22 @@
+PackCompleteEnvironment.cs:18: 完整环境管理协议检查尚未接入，禁止切换；需要 protocol2 MCE 及游戏外恢复入口。
+PackCompleteEnvironment.cs:56: 目标缺少启用的 MCE 管理宿主。
+PackImportTarget.cs:32: 独立环境缺少启用的 MCE 宿主。
+PackMaintenance.cs:167: 删除方式：移入 MCE/packs/.trash/<编号>，可在回收区恢复；永久删除需要另行确认。
+PackMaintenance.cs:200: 这是固定宿主（MCE）的文件，不能删除：
+PackTransactions.cs:274: 缺少 MCE 宿主及依赖归属，无法接管。
+Program.cs:20: MCE worker protocol=2 build=
+Program.cs:22: 用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw
+Program.cs:116: MCE operations
+ShopDependencyValidation.cs:51: Required MCE plugin chain cannot be removed or broken: 
+ShopOwnership.cs:32: . Blocked: MCE never downloads or writes core; install the required core separately.
+ShopOwnership.cs:85: . Core is never downloaded or written by MCE.
+ShopQueue.cs:186: MCE must use its existing self-update flow.
+ShopQueue.cs:313: Required BepInEx/MCE management host cannot be uninstalled independently: 
+WorkerTargetProtocol.cs:20: Target must contain exactly one MCE host with protocol2 metadata and its complete Tools/Updater release; legacy targets cannot be auto-repai
+WorkerTargetProtocol.cs:23: Target MCE assembly identity mismatch.
+WorkerTargetProtocol.cs:26: Target MCE does not declare the required worker protocol; product version 2.0.0 alone is insufficient.
+WorkerTargetProtocol.cs:33: Environment writes require the complete worker release cached under MCE/tools, outside pack payloads.
+WorkerWindow.cs:43: MCE worker window
+WorkerWindow.cs:120: MCE operations
+WorkerWindow.cs:120: MCE 模组操作
+WorkerWindow.cs:120: MCE 模組操作

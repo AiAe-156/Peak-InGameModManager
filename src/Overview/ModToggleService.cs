@@ -589,7 +589,7 @@ internal sealed class ModToggleService
         if (!File.Exists(file)) throw new IOException(Loc.F("The confirmed assembly does not exist: {0}", "确认的程序集不存在：{0}", "確認的程序集不存在：{0}", file));
         foreach (var record in ReadPlugins(file))
             if (ModConfigEnhance.Updating.ComponentDependencyGraph.IsProtected(record.Guid))
-                throw new InvalidOperationException(Loc.F("MCE and the libraries it runs on cannot be disabled or uninstalled: {0}", "MCE 及其运行所需的基础库不能停用或卸载：{0}", "MCE 及其執行所需的基礎庫不能停用或解除安裝：{0}", record.Guid));
+                throw new InvalidOperationException(Loc.F("The manager and the libraries it runs on cannot be disabled or uninstalled: {0}", "管理器及其运行所需的基础库不能停用或卸载：{0}", "管理器及其執行所需的基礎庫不能停用或解除安裝：{0}", record.Guid));
     }
     private static void CheckDependencies(Plan plan)
     {

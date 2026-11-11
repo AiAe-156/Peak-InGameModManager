@@ -72,7 +72,7 @@ internal sealed partial class OverviewPage
         int grouped = proposal.PackageGroup.Count;
         var panel = OverviewUi.CreateModalPanel("MCE_SmartGrouping", 760, 620); if (panel == null) return;
         OverviewUi.SaveDialogHeader(panel, Loc.T("Group mods like your folders?", "按现有文件夹分组？", "按現有資料夾分組？"),
-            Loc.T("Your plugins folder is already sorted into folders. MCE can turn that layout into groups. No folder is moved or renamed.",
+            Loc.T("Your plugins folder is already sorted into folders. The manager can turn that layout into groups. No folder is moved or renamed.",
                   "plugins 里已经按文件夹分好类了，可以直接按这个结构生成分组。不会移动或改名任何文件夹。",
                   "plugins 裡已經按資料夾分好類了，可以直接按這個結構產生分組。不會移動或改名任何資料夾。"));
         var host = OverviewUi.Panel("SmartGroupingTree", panel, ModConfigLook.Surface(new Color(.065f, .08f, .095f, 1))); OverviewUi.Fill(host);

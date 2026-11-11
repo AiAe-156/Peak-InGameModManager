@@ -44,15 +44,15 @@ public static class PackReportText
         else if (Starts("预装核心辅助包版本不满足：", out rest)) Set("本机已安装的组件版本不符合要求", rest, "安装或升级 BepInEx/core 中的该组件后重新预览。");
         else if (Starts("商店依赖存在循环：", out rest)) Set("依赖关系循环，无法解析：" + Pretty(rest), "", "需由整合包或依赖的作者修正。");
         else if (Starts("重复插件身份：", out rest)) Set("重复的模组（同一标识出现多次）：" + rest, "包内有多个文件使用同一个模组标识。", "只保留其中一份后重新打包。");
-        else if (Starts("核心兼容检查未通过（不会写入）：", out rest)) Set("核心文件与整合包不一致：" + rest, "MCE 不会修改核心文件。", "将本机 BepInEx 调整为整合包所用的版本后重新预览。");
-        else if (Starts("宿主版本不足：", out rest)) Set("MCE 或其依赖的版本过低", rest, "先更新 MCE（导入整合包不会升级它），再重新预览。");
+        else if (Starts("核心兼容检查未通过（不会写入）：", out rest)) Set("核心文件与整合包不一致：" + rest, "管理器不会修改核心文件。", "将本机 BepInEx 调整为整合包所用的版本后重新预览。");
+        else if (Starts("宿主版本不足：", out rest)) Set("管理器或其依赖的版本过低", rest, "先更新管理器（导入整合包不会升级它），再重新预览。");
         else if (Starts("随包本地版本与依赖要求冲突：", out rest)) Set("随包依赖的版本不符合要求", rest, "需由整合包作者核对打包的版本。");
         else if (Starts("文件目标冲突：", out rest)) Set("多个来源写入同一位置且内容不同：" + rest, "", "去掉其中一份后重新打包。");
         else if (Starts("复用本地文件存在冲突：", out rest)) Set("本机文件与整合包内容不一致：" + rest, "", "需由整合包作者核对打包内容。");
         else if (Starts("缺少必需插件依赖：", out rest)) Set("缺少前置模组：" + rest, "整合包内的某个模组依赖它。", "补充该模组，或先在本机安装。");
         else if (Starts("插件依赖版本不足：", out rest)) Set("前置模组版本过低", rest.Replace(" 要求 ", "，至少需要 "), "需由整合包作者升级打包的版本。");
         else if (Starts("需人工安装的不支持内容：", out rest)) Set("包含不会自动处理的内容：" + rest, "monomod 和脚本类文件不会被自动放入游戏。", "如确有需要，请手动安装；整合包仍可存入。");
-        else if (Starts("含本机运行数据：", out rest)) Set("包内含有 MCE 运行数据：" + rest, "", "重新打包时排除 MCE 运行目录。");
+        else if (Starts("含本机运行数据：", out rest)) Set("包内含有管理器运行数据：" + rest, "", "重新打包时排除管理器运行目录（BepInEx/MCE）。");
         else if (Starts("BepInEx 下的额外内容需要人工归类：", out rest)) Set("无法判断存放位置的文件：" + rest, "", "将其放入 plugins、patchers 或 config 后重新打包。");
         else if (Starts("作者根清单版本锁冲突：", out rest)) Set("同一依赖被固定为多个版本：" + Pretty(rest), "", "需由整合包作者统一版本后重新发布。");
         else if (Starts("同一 DLL 中的模组启停目标冲突：", out rest)) Set("同一文件内的模组启停目标冲突：" + rest, "", "需由整合包作者修正默认方案。");

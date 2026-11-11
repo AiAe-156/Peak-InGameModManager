@@ -26,9 +26,9 @@ internal static class DocJson
     public static Document Read(string json)
     {
         var root = JObject.Parse(json);
-        if (root.Value<string>("format") is string format && format != Format) throw new InvalidDataException(Loc.T("Not an MCE document: ", "不是 MCE 文档：", "不是 MCE 文檔：") + format);
+        if (root.Value<string>("format") is string format && format != Format) throw new InvalidDataException(Loc.T("Not a manager document: ", "不是管理器文档：", "不是管理器文檔：") + format);
         int version = root.Value<int?>("version") ?? 1;
-        if (version > Version) throw new InvalidDataException(Loc.F("Document version {0} is newer than this mod. Update ModConfig Enhance.", "文档版本 {0} 比当前模组新，请更新 ModConfig Enhance。", "文件版本 {0} 比目前模組新，請更新 ModConfig Enhance。", version));
+        if (version > Version) throw new InvalidDataException(Loc.F("Document version {0} is newer than this mod. Update In-Game Mod Manager.", "文档版本 {0} 比当前模组新，请更新游戏内模组管理器。", "文件版本 {0} 比目前模組新，請更新遊戲內模組管理器。", version));
         var document = new Document();
         if (root["blocks"] is JArray blocks)
             foreach (var token in blocks.OfType<JObject>())

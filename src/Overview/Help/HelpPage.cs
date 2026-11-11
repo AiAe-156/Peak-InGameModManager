@@ -197,8 +197,8 @@ internal sealed partial class HelpPage : UIPage, IHaveParentPage
     {
         _back.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Back", "返回", "返回");
         _historyButton.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Previous location", "返回上一处", "返回上一處");
-        _title.text = "ModConfigEnhance · " + HelpDocuments.Find(_page)!.Title;
-        _version.text = Loc.F("MCE {0} · {1}", "MCE {0} · {1}", "MCE {0} · {1}", Plugin.PluginVersion, GuideSourceLabel());
+        _title.text = Loc.T("In-Game Mod Manager", "游戏内模组管理器", "遊戲內模組管理器") + " · " + HelpDocuments.Find(_page)!.Title;
+        _version.text = Loc.F("v{0} · {1}", "v{0} · {1}", "v{0} · {1}", Plugin.PluginVersion, GuideSourceLabel());
         _chapterTitle.text = Loc.T("User guide", "使用说明", "使用說明");
         _status.text = Loc.T("Click blue text to navigate · Previous location restores your place · Scroll with the right stick", "点击蓝色文字跳转 · 返回上一处恢复阅读位置 · 手柄右摇杆滚动", "點擊藍色文字跳轉 · 返回上一處恢復閱讀位置 · 手把右搖桿捲動");
         if (_editing) _status.text = Loc.T("Click the document to type · Use the toolbar to format and save · Changes stay on this device", "点击正文即可输入 · 工具栏可排版和保存 · 修改保存在本机", "點擊正文即可輸入 · 工具列可排版和儲存 · 修改儲存在本機");

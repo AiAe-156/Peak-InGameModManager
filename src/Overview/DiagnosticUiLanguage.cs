@@ -11,7 +11,7 @@ internal static class DiagnosticUiLanguage
 {
     private static readonly (string Simplified, string English, string Traditional)[] Phrases =
     {
-        ("MCE 整合包切换", "MCE Modpack Switch", "MCE 整合包切換"), ("运行日志", "Runtime logs", "執行日誌"),
+        ("游戏内模组管理器 · 整合包切换", "In-Game Mod Manager · Modpack switch", "遊戲內模組管理器 · 整合包切換"), ("运行日志", "Runtime logs", "執行日誌"),
         ("日志等级", "Log level", "日誌等級"), ("模组／来源", "Mod / source", "模組／來源"),
         ("日志正文", "Log message", "日誌內文"), ("时间（* 接收时间）", "Time (* received)", "時間（* 接收時間）"),
         ("搜索日志正文、模组名……", "Search messages or mods...", "搜尋日誌內文、模組名稱……"), ("暂停刷新", "Pause", "暫停重新整理"),
@@ -41,7 +41,7 @@ internal static class DiagnosticUiLanguage
         ("重新检查并重试", "Recheck and retry", "重新檢查並重試"), ("重试恢复原环境", "Retry recovery", "重試還原原環境"),
         ("重试切换", "Retry switch", "重試切換"), ("复制详情", "Copy details", "複製詳情"),
         ("打开切换备份文件夹", "Open switch backup folder", "開啟切換備份資料夾"), ("已提交重试请求，正在重新检查……", "Retry submitted; rechecking...", "已提交重試請求，正在重新檢查……"),
-        ("当前任务记录已变化，请返回 MCE 查看。", "The task changed. Return to MCE for details.", "目前任務記錄已變更，請返回 MCE 查看。"), ("等待 PEAK 退出", "Waiting for PEAK to exit", "等待 PEAK 結束"),
+        ("当前任务记录已变化，请返回管理器查看。", "The task changed. Return to the manager for details.", "目前任務記錄已變更，請返回管理器查看。"), ("等待 PEAK 退出", "Waiting for PEAK to exit", "等待 PEAK 結束"),
         ("正在保存并切换", "Saving and switching", "正在儲存並切換"), ("切换完成，可以启动游戏", "Switch complete. You can start PEAK.", "切換完成，可以啟動遊戲"),
         ("切换失败", "Switch failed", "切換失敗"), ("恢复未完成，请勿启动游戏", "Recovery incomplete. Do not start PEAK.", "還原未完成，請勿啟動遊戲"),
         ("正在处理请求", "Processing request", "正在處理請求"), ("准备阶段，尚未替换文件", "Preparation stage; files have not been replaced", "準備階段，尚未取代檔案"),

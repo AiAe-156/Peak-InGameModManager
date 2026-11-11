@@ -392,8 +392,8 @@ internal sealed partial class OverviewCatalogue
         // 2.3.9: the one protected whitelist (MCE + ModConfig + PEAKLib.Core + PEAKLib.UI), matched exactly.
         bool infrastructure = ModConfigEnhance.Updating.ComponentDependencyGraph.IsProtected(guid);
         string core = Path.GetFullPath(Paths.BepInExRootPath + Path.DirectorySeparatorChar + "core").TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (infrastructure) { row.CanToggle = false; row.ToggleReason = Loc.T("MCE runs on this library; it cannot be disabled or uninstalled.", "MCE 运行依赖此基础库，不能停用或卸载。", "MCE 執行依賴此基礎庫，不能停用或解除安裝。"); }
-        else if (path.StartsWith(core, StringComparison.OrdinalIgnoreCase)) { row.CanToggle = false; row.ToggleReason = Loc.T("Files in BepInEx/core are part of the loader; MCE does not change them.", "BepInEx/core 中的文件属于加载器本身，MCE 不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，MCE 不變更它們。"); }
+        if (infrastructure) { row.CanToggle = false; row.ToggleReason = Loc.T("The manager runs on this library; it cannot be disabled or uninstalled.", "管理器运行依赖此基础库，不能停用或卸载。", "管理器執行依賴此基礎庫，不能停用或解除安裝。"); }
+        else if (path.StartsWith(core, StringComparison.OrdinalIgnoreCase)) { row.CanToggle = false; row.ToggleReason = Loc.T("Files in BepInEx/core are part of the loader; the manager does not change them.", "BepInEx/core 中的文件属于加载器本身，管理器不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，管理器不變更它們。"); }
         if (PluginFileNames.IsForeignDisabled(path))
         { row.CanToggle = false; row.ToggleReason = Loc.T("Disabled by another tool. Restore it using that tool.", "由其他工具停用，请使用原工具恢复", "由其他工具停用，請使用原工具恢復"); }
         ModSources.Apply(row);

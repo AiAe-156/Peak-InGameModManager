@@ -1,0 +1,29 @@
+== en-us.txt: 5 行
+   - MCE_NOTICE_REFRESHED=Language folder rescanned: {0} file(s).
+   - Translation tools=Translation tools
+   - Turn the mod settings page into a tree: a vertical mod list on the left, the selected mod's sections expanded under it, options on the right. Layout only, ModCo
+   - A panel at the top right shows the hovered option's description from its cfg plus its default / range / choices. Needs the tree sidebar. Restart to apply.=A pan
+   - Translate ModConfig's own UI texts (Search, Default, Clear, filter names …) and this mod's buttons and notices. Texts come from language files in config\ModConf
+== zh-cn.txt: 15 行
+   - MCE_BTN_UNTRANSLATED=查漏翻
+   - MCE_SORT_LOAD_DESC=加载顺序（倒序）
+   - MCE_NOTICE_REFRESHED=已重新扫描语言目录：{0} 个文件。
+   - MCE_TIP_SELECTED_ONLY=仅已选\n勾选后，侧边栏的每个模组行都会显示“导出”复选框——“导出文本”/“未翻译”只处理已勾选模组。\n\n本模组始终包含（导出的文件本身也可作为它的语言文件）。
+   - MCE_TIP_SORT=排序\n侧边栏模组排序：\n\n`默认`（加载顺序）/ `加载顺序倒序` / `名称` / `名称倒序`。
+   - MCE_TIP_LANGUAGE=语言\n选择界面语言：“跟随游戏语言”或 `language\` 下的语言组；立即生效，无需重启。\n\n命名规则 `code[-variant][_part].txt` 见 `readme.md`。
+   - MCE_TIP_REFRESH=刷新\n重新扫描 `language\` 目录\n\n— 点击后，新语言文件会出现在下拉列表中。
+   - Localize ModConfig's own UI (Search, Default, Clear, filters …) and this mod's buttons and notices. Texts come from language files in config\ModConfigEnhance\la
+   - Mod Config Enhance=[界面]ModConfig增强
+   - ModConfig settings page enhancements: tree sidebar, description panel, translation tools, language files.=增强 ModConfig 设置页面：树状侧栏、说明面板、翻译工具和语言文件支持。
+   - MCE_NOTICE_GROUPS_UNAVAILABLE=无法打开分组编辑器，详见日志。
+   - MCE_TIP_GROUPS=分组\n创建或编辑分组：名称、说明、颜色和成员。与“模组概览”的分组共用数据。\n\n置顶模组保留在顶部的置顶区域；其分组会以彩色条显示在蓝色置顶条旁。
+   - MCE_TIP_GROUP_HEADER=点击可折叠或展开。折叠状态与“模组概览”共用；搜索时会临时展开所有分组。
+   - Native mod overview and pack introduction editor, update checks, groups, and ModConfig settings enhancements.=提供原生模组概览、整合包介绍编辑器、更新检查、分组，以及 ModConfig 设置增强。
+   - ModConfig Enhance=[界面]ModConfig增强
+== zh-tw.txt: 6 行
+   - MCE_BTN_UNTRANSLATED=查漏翻
+   - MCE_NOTICE_REFRESHED=已重新掃描語言目錄：{0} 個檔案。
+   - Translation tools=翻譯工具
+   - Turn the mod settings page into a tree: a vertical mod list on the left, the selected mod's sections expanded under it, options on the right. Layout only, ModCo
+   - A panel at the top right shows the hovered option's description from its cfg plus its default / range / choices. Needs the tree sidebar. Restart to apply.=右側頂部加
+   - Translate ModConfig's own UI texts (Search, Default, Clear, filter names …) and this mod's buttons and notices. Texts come from language files in config\ModConf

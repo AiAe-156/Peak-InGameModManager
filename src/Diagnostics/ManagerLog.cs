@@ -15,8 +15,8 @@ internal static class ManagerLog
 {
     internal const string SourceId = "manager";
     /// <summary>Category shown in the log window's source/name column for our records.</summary>
-    internal const string CategoryLabel = "ModConfigEnhance";
-    internal const string SourceName = "Mod manager / 模组管理器 (MCE)";
+    internal const string CategoryLabel = "In-Game Mod Manager";
+    internal const string SourceName = "In-Game Mod Manager / 游戏内模组管理器";
 
     private static readonly object Gate = new();
     private static ManualLogSource? _sink;
@@ -69,7 +69,7 @@ internal static class ManagerLog
         }
         try
         {
-            channel?.Write(new MceLogRecord { Level = level, Category = CategoryLabel, SubjectName = "MCE", Message = message, StackTrace = stack });
+            channel?.Write(new MceLogRecord { Level = level, Category = CategoryLabel, SubjectName = "IGMM", Message = message, StackTrace = stack });
         }
         catch (Exception) { }
     }
