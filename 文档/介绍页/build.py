@@ -499,7 +499,7 @@ const C={native:'#8ea0ad',cur:'#6fa8dc',new:'#9fd36a',warn:'#f0a050',bad:'#e0605
 const TAGN={native:'原生',cur:'已支持',new:'规划',warn:'有限制',bad:'不用',idle:'空闲'};
 const SCENES=[['play','局内（游戏中）'],['list','模组列表'],['hotkey','快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
 const LAYERS=[['plan','规划'],['now','现在'],['native','游戏原生']];
-const MODS=[['none','无'],['rt','按住 RT']];
+const MODS=[['none','无'],['rt','按住 RT'],['lt','按住 LT（局内）']];
 let scene='play',layer='plan',mod='none';
 const N='native',U='cur',P='new',W='warn',X='bad',I='idle';
 const B={
@@ -528,6 +528,11 @@ const PLAY={
   l3:['疾跑（切换）',N,'键盘左 Shift（按住）。'],r3:['标记（Ping）',N,'鼠标中键。'],
   view:['调试菜单（正式版无效）· 按住 + RT = 物品生成器',W,'物品生成器增强的手柄开窗组合，可在它的配置里改。'],menu:['暂停菜单',N,'键盘 Esc。从这里进入管理器。']},
  rt:{view:['按住 View 再按 RT：物品生成器窗口',W,'来自物品生成器增强（调试类模组），配置项 Controller Chord Modifier Path / Controller Toggle Path。'],rt:['（按住中）',P]},
+ lt:{lt:['（按住中）· 游戏副使用照常',W,'LT 是游戏的副使用 / 投掷，按住时照常触发；K 键掉线重连在大厅外按 LT 会重连。'],
+  a:['LT + A：你分配的模组快捷键',P,'在快捷键页给只认键盘的快捷键按 A，再按住 LT 按一个键即可分配。组合期间游戏不会把这个键当成跳跃。'],
+  b:['LT + B：可分配',P],x:['LT + X：可分配',P],y:['LT + Y：可分配',P],lb:['LT + LB：可分配',P],rb:['LT + RB：可分配',P],rt:['LT + RT：可分配',P],
+  dpad:['LT + ↑↓←→：各可分配',P],l3:['LT + L3：可分配',P],r3:['LT + R3：可分配',P],view:['LT + View：可分配',P],menu:['LT + Menu：可分配',P],
+  ls:['移动（不变）',N],rs:['视角（不变）',N]},
 };
 const NOW={
  list:{dpad:['移动焦点，上下保持在同一列',U],ls:['同十字键',U],rs:['跟游戏一样移动焦点',N],a:['按下选中的按钮；名称上没反应',W,'启用方框、齿轮、主页、文件夹、版本都能按；名称能选中但按 A 没有反应，鼠标双击才有的菜单手柄打不开。'],
@@ -561,16 +566,20 @@ const PLAN={
 // 显示层与修饰键可以任意组合。游戏原生与「现在」只描述单按；选了「按住 RT」时，
 // 原生层在 RT 上标「按住中」，其余键照常显示单按含义（游戏菜单里按住 RT 本身不改变任何键）。
 function entry(id){
- if(scene==='play'){const m=mod==='rt'&&PLAY.rt[id]?PLAY.rt[id]:PLAY.none[id];return m||['—',I];}
+ if(scene==='play'){const m=(mod!=='none'&&PLAY[mod]&&PLAY[mod][id])?PLAY[mod][id]:PLAY.none[id];return m||['—',I];}
+ if(mod==='lt')return id==='lt'?['（只在局内用）',I]:entry0(id);
  if(mod!=='none'&&id===mod)return['（按住中）',layer==='plan'?P:I];
  if(layer==='native')return NATIVE[id];
  if(layer==='now')return NOW[scene][id]||['—',I];
  const m=PLAN[scene][mod]; return m[id]||['—',I];
 }
+function entry0(id){const save=mod;mod='none';const e=entry(id);mod=save;return e;}
 function note(){
  const box=document.getElementById('gp-note2');if(!box)return;
  let t='';
- if(scene==='play')t='局内是游戏自己的操作，管理器不接管任何手柄键；黄色是有模组同时在用的键。快捷键设置页的「重复」检查会把这些游戏按键一起算上。';
+ if(scene==='play'&&mod==='lt')t='按住 LT 是管理器的组合键层：在快捷键页给只认键盘的模组快捷键分配「LT + 某键」，局内按住 LT 再按那个键就等于按下模组的键盘快捷键。只有 LT 一个修饰键。';
+ else if(scene==='play')t='局内是游戏自己的操作；黄色是有模组同时在用的键。快捷键页的「重复」检查会把这些游戏按键一起算上。';
+ else if(mod==='lt')t='LT 组合键只在局内生效，菜单里按住 LT 没有作用。';
  else if(mod==='rt'&&layer!=='plan')t='游戏菜单里 RT 没有任何作用，所以「游戏原生」「现在」两层按住 RT 时其余键不变；组合键只在「规划」层出现。';
  box.textContent=t;box.style.display=t?'block':'none';
 }
