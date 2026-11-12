@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""生成游戏内模组管理器介绍站（6 个静态页）。共用顶栏、页脚和上下页；每页正文写在下面的 PAGES 里。
+"""生成游戏内模组管理器介绍站（7 个静态页）。共用顶栏、页脚和上下页；每页正文写在下面的 PAGES 里。
 用法：python -I build.py   （在本文件所在目录生成 *.html）"""
 import io, os
 
@@ -14,6 +14,7 @@ NAV = [
     ("profiles.html", "多配置切换", "--profiles"),
     ("packs.html", "整合包", "--packs"),
     ("language.html", "多语言翻译", "--lang"),
+    ("gamepad.html", "手柄操作", "--pin"),
 ]
 
 RIDGE = ('<svg class="ridge" viewBox="0 0 1200 34" preserveAspectRatio="none" aria-hidden="true">'
@@ -339,6 +340,342 @@ PAGES["language.html"] = ("多语言翻译", head("多语言翻译", "--lang", "
     <li><span>发布整合包时勾选这种语言，译文就跟着包一起发出去。</span></li>
   </ul>
 </section>
+""")
+
+
+# —— 手柄操作（规划中）——
+PAGES["gamepad.html"] = ("手柄操作", head("手柄操作 · 规划中", "--pin", "用手柄也能管好模组",
+    "按游戏自己的手柄键位来：A 确认、B 返回、LB / RB 切页签。每一格都能单独选中，鼠标的悬停提示换成贴着选中格子弹出。") + """
+<style>
+  .gp-note { margin-top: 18px; }
+  .gp-bar { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin: 22px 0 12px; }
+  .gp-seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .gp-seg button { background: none; border: 0; border-right: 1px solid var(--line); padding: 6px 13px; font: 14px var(--sans); color: var(--ink); cursor: pointer; }
+  .gp-seg button:last-child { border-right: 0; }
+  .gp-seg button.on { background: var(--navy); color: #fff; }
+  .gp-seg-label { font-size: 13px; color: var(--ink-2); margin-right: 6px; }
+  .gp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
+  .gp-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .gp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+  .gp-pad { background: var(--navy); border-radius: 14px; padding: 10px; }
+  .gp-pad svg { width: 100%; height: auto; display: block; }
+  .gp-pad .btn { cursor: pointer; transition: filter .12s; }
+  .gp-pad .btn:hover { filter: brightness(1.35); }
+  .gp-detail { background: var(--paper); border-radius: 12px; padding: 16px 18px; }
+  .gp-detail h3 { margin: 0 0 2px; }
+  .gp-detail .k { font-size: 13px; color: var(--ink-2); margin-top: 12px; }
+  .gp-detail p { margin: 2px 0; font-size: 15px; }
+  .gp-detail .why { font-size: 14px; color: var(--ink-2); }
+  .gp-tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 5px; margin-left: 6px; color: #10202e; vertical-align: 1px; }
+  .gp-table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--paper); border-radius: 12px; overflow: hidden; margin-top: 14px; }
+  .gp-table th, .gp-table td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  .gp-table th { background: #dbe3e8; font-weight: 700; }
+  .gp-table tr:last-child td { border-bottom: 0; }
+  .gp-table td.ok { background: #e2f0d6; } .gp-table td.mid { background: #f6e8d2; } .gp-table td.no { background: #f5dcd8; } .gp-table td.na { color: var(--ink-2); }
+  .gp-mockwrap { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; align-items: start; margin-top: 14px; }
+  .gp-mock { background: #16283a; border-radius: 14px; padding: 10px; color: var(--cream); position: relative; font-size: 14px; }
+  .gp-mhead, .gp-mrow { display: grid; grid-template-columns: 46px 34px minmax(0, 1fr) 38px 38px 38px 104px minmax(0, .8fr); gap: 4px; align-items: center; padding: 0 8px; }
+  .gp-mhead { height: 32px; color: #9fb3c6; font-size: 13px; }
+  .gp-mgroup { height: 32px; display: flex; align-items: center; gap: 8px; padding-left: 12px; position: relative; font-size: 14px; }
+  .gp-mgroup .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .gp-mrow { height: 42px; border-top: 1px solid #203a52; }
+  .gp-mrow.cur { background: #1f3a55; }
+  .gp-cell { position: relative; height: 32px; display: flex; align-items: center; padding: 0 6px; border-radius: 6px; white-space: nowrap; overflow: hidden; }
+  .gp-cell.focus { outline: 2px solid #f4ead2; outline-offset: -1px; background: rgba(244,234,210,.07); }
+  .gp-cell.ico { justify-content: center; color: #d9d2bc; }
+  .gp-cell.dim { color: #8ea3b6; font-size: 13px; }
+  .gp-chk { width: 18px; height: 18px; border: 2px solid #c9c1a8; border-radius: 4px; margin: auto; display: grid; place-items: center; font-size: 13px; line-height: 1; color: #b9e08e; }
+  .gp-orig { color: #8ea3b6; font-size: 12px; margin-left: 6px; }
+  .gp-lane { position: absolute; right: 6px; top: 3px; display: flex; flex-direction: row-reverse; gap: 2px; }
+  .gp-lane span { width: 8px; height: 8px; border-radius: 2px; }
+  .gp-prompt { display: flex; gap: 16px; justify-content: flex-end; padding: 8px 10px 2px; font-size: 13px; color: #d8d2c2; border-top: 1px solid #203a52; margin-top: 4px; }
+  .gp-g { display: inline-grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; font-size: 11px; font-weight: 700; color: #111; margin-right: 4px; vertical-align: -4px; }
+  .gp-g.sq { border-radius: 4px; width: 26px; }
+  .gp-ga { background: #7cc36a; } .gp-gb { background: #e0605a; } .gp-gx { background: #5aa0e0; } .gp-gy { background: #e8c84a; } .gp-gs { background: #c9c9c9; }
+  .gp-floats { position: absolute; display: none; gap: 8px; z-index: 3; }
+  .gp-float { background: #0d1823; border: 1px solid #4b6176; border-radius: 9px; padding: 9px 11px; font-size: 13px; line-height: 1.6; box-shadow: 0 10px 24px rgba(0,0,0,.45); width: 270px; }
+  .gp-float b { color: #fff; }
+  .gp-float .h { font-size: 12px; color: #9fb3c6; margin-bottom: 3px; }
+  .gp-float .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+  .gp-menu { position: absolute; display: none; z-index: 4; background: #0d1823; border: 1px solid #8a9aa8; border-radius: 10px; padding: 8px; width: 300px; box-shadow: 0 12px 30px rgba(0,0,0,.55); }
+  .gp-menu .t { font-weight: 700; padding: 2px 8px 6px; color: #fff; }
+  .gp-menu .it { padding: 5px 8px; border-radius: 6px; }
+  .gp-menu .it.focus { outline: 2px solid #f4ead2; background: rgba(244,234,210,.07); }
+  .gp-menu .tip { font-size: 12px; color: #9fb3c6; padding: 6px 8px 0; }
+  .gp-ctl { background: var(--paper); border-radius: 12px; padding: 14px 16px; }
+  .gp-dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 36px); gap: 4px; margin-top: 6px; }
+  .gp-ctl button { background: #fff; border: 1px solid var(--line); border-radius: 7px; font: 14px var(--sans); color: var(--ink); cursor: pointer; }
+  .gp-face { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .gp-face button { padding: 5px 10px; }
+  .gp-log { font-size: 13px; color: var(--ink-2); margin-top: 10px; min-height: 42px; }
+  @media (max-width: 980px) { .gp-grid, .gp-mockwrap { grid-template-columns: 1fr; } }
+</style>
+
+<section style="padding-top:28px">
+  <div class="callout gp-note"><b>规划中，还没有发布。</b>这一页是手柄适配的键位草案，按游戏自己的手柄绑定来定，界面以以后的游戏内实装为准。点手柄上的按键或文字可以看细节。</div>
+  <div class="gp-bar">
+    <div><span class="gp-seg-label">界面</span><span class="gp-seg" id="gp-scene"></span></div>
+    <div><span class="gp-seg-label">显示</span><span class="gp-seg" id="gp-layer"></span></div>
+    <div><span class="gp-seg-label">修饰键</span><span class="gp-seg" id="gp-mod"></span></div>
+  </div>
+  <div class="gp-legend">
+    <span><i style="background:#8ea0ad"></i>游戏原生</span>
+    <span><i style="background:#6fa8dc"></i>已经支持</span>
+    <span><i style="background:#9fd36a"></i>规划新增</span>
+    <span><i style="background:#f0a050"></i>能用但有限制</span>
+    <span><i style="background:#e0605a"></i>不用（会冲突）</span>
+    <span><i style="background:#5b6b78"></i>空闲</span>
+  </div>
+  <div class="gp-grid" style="margin-top:12px">
+    <div class="gp-pad"><svg id="gp-svg" viewBox="0 0 1200 470"></svg></div>
+    <div class="gp-detail" id="gp-detail"><h3>点一个按键</h3><p class="why">左边手柄上的按键和文字都能点。「修饰键」选「按住 RT」可以看组合键。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>基本规则</h2>
+""" + points("--pin", [
+    ("沿用游戏的键位", "A 确认、B 返回、十字键和左摇杆移动、LB / RB 切换页签、Start 暂停，和游戏自己的菜单一致。"),
+    ("每一列都能单独选中", "启用方框、齿轮、主页、文件夹、版本都是独立的格子，选中哪格按 A 就做哪格的事，不设「一键启停」这类跨列快捷键。"),
+    ("Y 打开更多操作", "鼠标要双击或右键才能打开的菜单，手柄按 Y。"),
+    ("右摇杆只滚动", "右摇杆滚动列表，焦点留在原处；焦点滚出画面后，再按方向键会先回到画面里。"),
+    ("按住 RT 是功能层", "RT 在游戏菜单里没有用处，按住它时方向键变成跳分组、翻页，不会顺带移动焦点。"),
+    ("作者模式用键鼠", "多选、拖动排序、拖进分组这些编辑操作仍然用鼠标完成。"),
+]) + """
+</section>
+
+<section>
+  <h2>选中名称时显示什么</h2>
+  <p class="muted">和鼠标悬停一样弹出提示框，只是贴着选中的格子出现，不跟着鼠标走。名称格一次弹两张并排的卡片：左边是依赖，右边解释这一行的角标。角标本身很小，不单独选中，名称格就是它们的入口；要处理某个角标（看变动并标为已读、看版本、看冲突建议），在名称上按 A 或在这一行按 Y，从菜单里选。</p>
+  <div class="gp-mockwrap">
+    <div class="gp-mock" id="gp-mock">
+      <div class="gp-mhead"><div>启用</div><div>#</div><div>名称</div><div style="text-align:center">⚙</div><div style="text-align:center">⌂</div><div style="text-align:center">▤</div><div>版本</div><div>简介</div></div>
+      <div id="gp-rows"></div>
+      <div class="gp-prompt" id="gp-prompt"></div>
+      <div class="gp-floats" id="gp-floats"></div>
+      <div class="gp-menu" id="gp-menu"></div>
+    </div>
+    <div class="gp-ctl">
+      <div class="gp-seg-label">模拟手柄（也可以用键盘方向键和 A / B / Y）</div>
+      <div class="gp-dpad">
+        <span></span><button data-k="up">↑</button><span></span>
+        <button data-k="left">←</button><span></span><button data-k="right">→</button>
+        <span></span><button data-k="down">↓</button><span></span>
+      </div>
+      <div class="gp-face">
+        <button data-k="a"><span class="gp-g gp-ga">A</span>确认</button>
+        <button data-k="y"><span class="gp-g gp-gy">Y</span>更多</button>
+        <button data-k="b"><span class="gp-g gp-gb">B</span>返回</button>
+        <button data-k="rtdown"><span class="gp-g gp-gs sq">RT</span>+↓ 下一分组</button>
+        <button data-k="rbtab"><span class="gp-g gp-gs sq">RB</span>下一页签</button>
+      </div>
+      <div class="gp-log" id="gp-log"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>组合键能放在哪</h2>
+  <p class="muted">只用游戏菜单里空着、又不会撞上常见模组的键。</p>
+  <table class="gp-table" id="gp-matrix"></table>
+</section>
+
+<section>
+  <h2>手柄做不到的</h2>
+  <div class="two">
+    <div><ul class="steps" style="--c:var(--mods)">
+      <li><span><b>打字</b>：普通桌面模式下改名、搜索还要用键盘。在 Steam 大屏幕模式和 Steam Deck 上，选中输入框按 A 会弹出 Steam 屏幕键盘。</span></li>
+      <li><span><b>打开文件夹以后</b>：资源管理器和外部程序里的操作要用键鼠。</span></li>
+      <li><span><b>作者模式的编辑</b>：多选、拖动排序、拖进分组、写介绍用键鼠。</span></li>
+      <li><span><b>日志逐字选择</b>：改为按条选中再复制。</span></li>
+    </ul></div>
+    <div class="callout"><b>会撞键的模组：</b>K 键掉线重连（peakReconnect）不在大厅时按 LT 就会重连，所以管理器不用 LT；物品生成器增强用 View + RT 开窗口，所以 RT 功能层里不用 View；背队友（Piggyback）在局内用 LB + RB 放人，所以不用双肩同按。</div>
+  </div>
+</section>
+
+<script>
+(function(){
+const C={native:'#8ea0ad',cur:'#6fa8dc',new:'#9fd36a',warn:'#f0a050',bad:'#e0605a',idle:'#5b6b78'};
+const TAGN={native:'原生',cur:'已支持',new:'规划',warn:'有限制',bad:'不用',idle:'空闲'};
+const SCENES=[['list','模组列表'],['hotkey','快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
+const LAYERS=[['plan','规划'],['now','现在'],['native','游戏原生']];
+const MODS=[['none','无'],['rt','按住 RT']];
+let scene='list',layer='plan',mod='none';
+const N='native',U='cur',P='new',W='warn',X='bad',I='idle';
+const B={
+ lt:{s:'r',x:380,y:28,w:84,h:40,r:12,n:'LT 左扳机'}, rt:{s:'r',x:736,y:28,w:84,h:40,r:12,n:'RT 右扳机'},
+ lb:{s:'r',x:360,y:80,w:124,h:24,r:10,n:'LB 左肩键'}, rb:{s:'r',x:716,y:80,w:124,h:24,r:10,n:'RB 右肩键'},
+ ls:{s:'c',x:430,y:205,r:38,n:'左摇杆'}, l3:{s:'c',x:430,y:205,r:14,n:'L3 按下左摇杆'},
+ rs:{s:'c',x:690,y:290,r:38,n:'右摇杆'}, r3:{s:'c',x:690,y:290,r:14,n:'R3 按下右摇杆'},
+ dpad:{s:'d',x:510,y:290,n:'十字键'},
+ y:{s:'c',x:770,y:168,r:17,n:'Y',t:'Y',f:'#e8c84a'}, x:{s:'c',x:735,y:203,r:17,n:'X',t:'X',f:'#5aa0e0'},
+ b:{s:'c',x:805,y:203,r:17,n:'B',t:'B',f:'#e0605a'}, a:{s:'c',x:770,y:238,r:17,n:'A',t:'A',f:'#7cc36a'},
+ view:{s:'r',x:548,y:196,w:30,h:16,r:8,n:'View / Select'}, menu:{s:'r',x:622,y:196,w:30,h:16,r:8,n:'Menu / Start'}
+};
+const L={lt:[330,46,'end'],lb:[330,94,'end'],ls:[330,168,'end'],l3:[330,228,'end'],dpad:[330,322,'end'],view:[330,410,'end'],
+ rt:[870,46,'start'],rb:[870,94,'start'],y:[870,144,'start'],x:[870,186,'start'],b:[870,228,'start'],a:[870,270,'start'],rs:[870,322,'start'],r3:[870,366,'start'],menu:[870,410,'start']};
+const NATIVE={ls:['移动焦点',N],rs:['也移动焦点',N,'游戏把右摇杆和左摇杆、十字键一起绑在「导航」上。'],dpad:['移动焦点',N],a:['确认',N],
+ x:['确认（只在游戏自己的窗口里）',N],b:['返回',N],lb:['上一个页签',N],rb:['下一个页签',N],menu:['暂停；在菜单里等于返回',N],
+ view:['调试菜单（正式版无效）',N],lt:['菜单里没用',I],rt:['菜单里没用',I],y:['菜单里没用',I],l3:['菜单里没用',I],r3:['菜单里没用',I]};
+const NOW={
+ list:{dpad:['移动焦点，上下保持在同一列',U],ls:['同十字键',U],rs:['跟游戏一样移动焦点',N],a:['按下选中的按钮；名称上没反应',W,'启用方框、齿轮、主页、文件夹、版本都能按；名称能选中但按 A 没有反应，鼠标双击才有的菜单手柄打不开。'],
+  b:['逐层关闭，再离开页面',U],x:['—',I],y:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ hotkey:{dpad:['移动焦点',U],ls:['同十字键',U],rs:['滚动列表',W,'可能同时也在移动焦点，待实机确认。'],a:['录制按键（按住 0.55 秒）/ 改说明',U],y:['按键菜单',U,'已经能用，但界面上没有提示。'],b:['取消录制、关菜单、返回',U],
+  x:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ dialog:{dpad:['移动焦点（到头绕回）',U],ls:['同十字键',U],rs:['—',X,'长正文现在没法用手柄滚动。'],a:['确认',U],b:['关闭',U],x:['—',I],y:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ settings:{dpad:['左栏 / 右栏两级移动',U],ls:['同十字键',U],rs:['跟游戏一样移动焦点',N],a:['模组 → 分区 → 右栏；滑条先按 A 再调',U],b:['右栏 → 左栏 → 返回',U],lb:['上一个模组',U],rb:['下一个模组',U],
+  x:['—',I],y:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]}
+};
+const PLAN={
+ list:{none:{dpad:['移动焦点；按住连跳；选中行整行提亮',P],ls:['同十字键',U],rs:['只滚动，焦点不动',P,'焦点滚出画面后，再按方向键会先回到画面里的同一列。'],
+   a:['按下选中的格子；名称上 = 打开这一行的菜单',P,'启用方框按 A 就是勾选 / 取消。名称上按 A 和按 Y 一样打开这一行的菜单。'],
+   y:['这一行的菜单',P,'代替双击和右键：更改模组信息、改译名、查看依赖、查看版本、看变动并标为已读、冲突建议。'],
+   b:['关菜单 → 离开页面（没保存先问）',U],x:['—',I],lb:['上一个页签（列表 / 介绍 / 快捷键）',P],rb:['下一个页签',P],
+   lt:['不用',X,'K 键掉线重连（peakReconnect）不在大厅时按 LT 就会重连，在主菜单打开管理器就会误触。'],
+   rt:['按住 = 功能层',P,'按住时方向键不再移动焦点，改成跳分组和翻页。'],view:['显示 / 隐藏按键提示',P],menu:['游戏原生',N],
+   l3:['折叠 / 展开所在分组',P],r3:['跳到搜索框',P,'Steam 大屏幕模式和 Steam Deck 上会弹出屏幕键盘。']},
+  rt:{dpad:['↑↓ 上 / 下一个分组 · ←→ 翻页',P],ls:['同十字键',P],rs:['快速滚动',P],y:['所在分组的菜单',P,'新建子分组、编辑分组、移到顶层、删除分组。'],l3:['全部折叠 / 全部展开',P],
+   a:['—',I],x:['—',I],b:['—',I],lb:['—',I],rb:['—',I],view:['不用',X,'View + RT 是物品生成器增强开窗口的键。'],menu:['—',I],r3:['—',I],lt:['—',I]}},
+ hotkey:{none:{dpad:['移动焦点；选中行整行提亮',P],ls:['同十字键',U],rs:['只滚动，焦点不动',P],a:['录制 / 改说明',U],y:['按键菜单（补上提示）',U],b:['取消录制、关菜单、返回',U],x:['—',I],
+   lb:['上一个页签',P],rb:['下一个页签',P],lt:['不用',X],rt:['按住 = 功能层',P],view:['显示 / 隐藏按键提示',P],menu:['游戏原生',N],l3:['折叠 / 展开分组',P],r3:['跳到搜索框',P]},
+  rt:{dpad:['↑↓ 上 / 下一个分组 · ←→ 翻页',P],ls:['同十字键',P],rs:['快速滚动',P],y:['分组菜单',P],l3:['全部折叠 / 全部展开',P],a:['—',I],x:['—',I],b:['—',I],lb:['—',I],rb:['—',I],view:['不用',X],menu:['—',I],r3:['—',I],lt:['—',I]}},
+ dialog:{none:{dpad:['移动焦点（到头绕回）',U],ls:['同十字键',U],rs:['滚动长正文',P,'问题报告里左右推可以横向滚动。'],a:['确认',U],b:['关闭（有上层先关上层）',P,'比如日志窗的导出选项，按 B 只关选项，不关整个日志窗。'],
+   x:['—',I],y:['窗口里的更多操作',P],lb:['多页窗口切页',P,'管理中心、更新队列。'],rb:['多页窗口切页',P],lt:['不用',X],rt:['按住 = 功能层',P],view:['显示 / 隐藏按键提示',P],menu:['游戏原生',N],l3:['—',I],r3:['跳到窗口里的输入框',P]},
+  rt:{dpad:['翻页 / 跳到首尾',P],ls:['同十字键',P],rs:['快速滚动',P],a:['—',I],x:['—',I],y:['—',I],b:['—',I],lb:['—',I],rb:['—',I],view:['不用',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]}},
+ settings:{none:{dpad:['不变',U],ls:['同十字键',U],rs:['滚动右栏，焦点不动',P],a:['不变',U],b:['不变',U],lb:['上一个模组（不变）',U],rb:['下一个模组（不变）',U],x:['—',I],
+   y:['这一项的菜单',P,'复制键名、跳回概览里的这个模组。'],lt:['不用',X],rt:['按住 = 功能层',P],view:['显示 / 隐藏按键提示',P],menu:['游戏原生',N],l3:['—',I],r3:['跳到搜索框',P]},
+  rt:{dpad:['↑↓ 上 / 下一个分区',P],ls:['同十字键',P],rs:['快速滚动',P],lb:['回到模组概览',P],a:['—',I],x:['—',I],y:['—',I],b:['—',I],rb:['—',I],view:['不用',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]}}
+};
+function entry(id){
+ if(layer==='native')return NATIVE[id];
+ if(layer==='now')return NOW[scene][id]||['—',I];
+ const m=PLAN[scene][mod]; if(mod!=='none'&&id===mod)return['（按住中）',P]; return m[id]||['—',I];
+}
+const svg=document.getElementById('gp-svg');
+function el(tag,a,p){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e;}
+function draw(){
+ svg.innerHTML='';
+ el('path',{d:'M470,110 Q600,92 730,110 Q840,120 865,215 L905,360 Q920,440 850,450 Q800,455 765,395 L725,335 Q600,350 475,335 L435,395 Q400,455 350,450 Q280,440 295,360 L335,215 Q360,120 470,110 Z',fill:'#24486a',stroke:'#3d6488','stroke-width':2});
+ for(const id in L){const g=B[id],e=entry(id),col=C[e[1]],p=L[id];
+  const cx=g.s==='r'?g.x+g.w/2:g.x,cy=g.s==='r'?g.y+g.h/2:g.y;
+  el('line',{x1:p[0]+(p[2]==='end'?6:-6),y1:p[1]-4,x2:cx,y2:cy,stroke:col,'stroke-width':1.2,'stroke-opacity':.6});
+  const t=el('text',{x:p[0],y:p[1],'text-anchor':p[2],class:'btn'});
+  const a=el('tspan',{x:p[0],fill:'#a9bccd','font-size':14},t);a.textContent=g.n;
+  const b=el('tspan',{x:p[0],dy:19,fill:col,'font-size':16},t);b.textContent=e[0];
+  t.addEventListener('click',()=>show(id));}
+ for(const id of ['lt','rt','lb','rb','ls','rs','dpad','y','x','b','a','view','menu','l3','r3']){const g=B[id],e=entry(id),col=C[e[1]];let s;
+  if(g.s==='r')s=el('rect',{x:g.x,y:g.y,width:g.w,height:g.h,rx:g.r,fill:'#1b3d5c',stroke:col,'stroke-width':3,class:'btn'});
+  else if(g.s==='c')s=el('circle',{cx:g.x,cy:g.y,r:g.r,fill:g.f||(id==='l3'||id==='r3'?'#16334f':'#1b3d5c'),'fill-opacity':g.f?.9:1,stroke:col,'stroke-width':3,class:'btn'});
+  else s=el('path',{d:`M${g.x-12},${g.y-38}h24v26h26v24h-26v26h-24v-26h-26v-24h26z`,fill:'#1b3d5c',stroke:col,'stroke-width':3,class:'btn'});
+  s.addEventListener('click',()=>show(id));
+  if(g.t){const t=el('text',{x:g.x,y:g.y+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#121212'});t.textContent=g.t;t.style.pointerEvents='none';}}
+}
+function tag(e){return `<span class="gp-tag" style="background:${C[e[1]]}">${TAGN[e[1]]}</span>`;}
+function why(e){return e[2]?`<p class="why">${e[2]}</p>`:'';}
+function show(id){
+ const n=NATIVE[id],c=NOW[scene][id]||['—',I],p=PLAN[scene].none[id]||['—',I],r=PLAN[scene].rt[id];
+ document.getElementById('gp-detail').innerHTML=`<h3>${B[id].n}</h3><div class="why">${SCENES.find(s=>s[0]===scene)[1]}</div>
+ <div class="k">规划</div><p>${p[0]}${tag(p)}</p>${why(p)}
+ ${r&&r[1]!==I?`<div class="k">按住 RT</div><p>${r[0]}${tag(r)}</p>${why(r)}`:''}
+ <div class="k">现在</div><p>${c[0]}${tag(c)}</p>${why(c)}
+ <div class="k">游戏原生</div><p>${n[0]}${tag(n)}</p>${why(n)}`;
+}
+function seg(id,items,get,set){const box=document.getElementById(id);box.innerHTML='';
+ for(const [k,v] of items){const b=document.createElement('button');b.textContent=v;if(get()===k)b.className='on';b.onclick=()=>{set(k);render();};box.appendChild(b);}}
+function render(){seg('gp-scene',SCENES,()=>scene,v=>scene=v);seg('gp-layer',LAYERS,()=>layer,v=>{layer=v;if(v!=='plan')mod='none';});seg('gp-mod',MODS,()=>mod,v=>{mod=v;layer='plan';});draw();}
+render();
+
+const MX=[['按住的键','方向键','A','Y','另一边的键','结论'],
+ ['RT','ok:跳分组 / 翻页','na:不用','ok:分组菜单','mid:View + RT 是物品生成器','<b>采用</b>：游戏菜单里没用，常见模组只占了 View + RT'],
+ ['LT','no:','no:','no:','no:','不用：K 键掉线重连单按 LT 就会触发'],
+ ['LB / RB','mid:可以','mid:可以','mid:可以','no:LB + RB 是背队友放人','不用：单按要切页签'],
+ ['View','mid:可以','mid:可以','mid:可以','no:View + RT 冲突','不用：键太小，长按不顺手'],
+ ['L3 / R3','na:','na:','na:','na:','不用：按住摇杆再按别的键很难']];
+const mt=document.getElementById('gp-matrix');
+MX.forEach((r,i)=>{const tr=document.createElement('tr');r.forEach((c,j)=>{const td=document.createElement(i===0||j===0?'th':'td');const m=/^(ok|mid|no|na):(.*)$/.exec(c);
+ if(m&&i>0){td.className=m[1];td.innerHTML=m[2]||({ok:'可以',mid:'可以',no:'冲突',na:'—'})[m[1]];}else td.innerHTML=c;tr.appendChild(td);});mt.appendChild(tr);});
+
+// —— 名称列模拟 ——
+const ROWS=[
+ {group:'核心与基础',color:'#6fa8dc'},
+ {name:'游戏内模组管理器',orig:'In-Game Mod Manager',on:true,ver:'1.0.0',desc:'在游戏里管理模组、分组与更新',chips:[],deps:['PEAKLib.ModConfig','PEAKLib.Core','PEAKLib.UI'],by:0},
+ {name:'更好的语音修复',orig:'Better Peak Voice Fix',on:true,ver:'1.1.5',desc:'修复语音断连与房间码区服',chips:['unread','update'],deps:['PEAKLib.Core'],by:0},
+ {name:'随机地形增强',orig:'RandomTerrainEnhance',on:false,ver:'1.0.4',desc:'随机地形的同步与烘焙修正',chips:['save','restart'],deps:['TerrainRandomiser'],by:1},
+ {group:'拓展',color:'#9fd36a'},
+ {name:'K键掉线重连',orig:'peakReconnect',on:true,ver:'1.0.2',desc:'按键或手柄键重连上一个房间',chips:['nested'],deps:[],by:0},
+ {name:'资源包示例',orig:'SomeAssets',on:true,ver:'0.3.0',desc:'给其他模组用的贴图',chips:['shape'],deps:[],by:2},
+];
+const CHIP={unread:['#6eaeeb','蓝色','有 2 条未读变动','看变动并标为已读'],update:['#80c47d','绿色','有新版本 1.1.6','查看版本与更新'],save:['#ff8c1f','橙色','改动还没保存：改为停用',''],
+ restart:['#ad94f2','紫色','重启游戏后生效',''],nested:['#e0a154','琥珀色','放在另一个模组的文件夹里','跳到外层模组'],shape:['#61c7c2','青色','资源包：没有 DLL','']};
+const SLOT={unread:0,update:1,save:2,restart:3,nested:4,shape:5};
+const COLS=['chk','name','gear','home','folder','ver'];
+const TABS=['模组列表','介绍','快捷键'];let tab=0;
+let fr=2,fc=1,menu=null;
+const mods=()=>ROWS.map((r,i)=>i).filter(i=>!ROWS[i].group);
+function rows(){
+ const box=document.getElementById('gp-rows');box.innerHTML='';
+ ROWS.forEach((r,i)=>{
+  if(r.group){const d=document.createElement('div');d.className='gp-mgroup';d.innerHTML=`<span class="rail" style="background:${r.color}"></span><span>▾</span><span style="color:${r.color}">${r.group}</span>`;box.appendChild(d);return;}
+  const lane=[0,1,2,3,4,5].map(k=>{const c=r.chips.find(c=>SLOT[c]===k);return `<span style="background:${c?CHIP[c][0]:'transparent'}"></span>`;}).join('');
+  const f=c=>i===fr&&COLS[fc]===c?' focus':'';
+  const d=document.createElement('div');d.className='gp-mrow'+(i===fr?' cur':'');
+  d.innerHTML=`<div class="gp-cell${f('chk')}"><span class="gp-chk">${r.on?'✓':''}</span></div><div class="gp-cell dim">${mods().indexOf(i)+1}</div>
+   <div class="gp-cell${f('name')}" data-c="name">${r.name}<span class="gp-orig">${r.orig}</span><span class="gp-lane">${lane}</span></div>
+   <div class="gp-cell ico${f('gear')}">⚙</div><div class="gp-cell ico${f('home')}">⌂</div><div class="gp-cell ico${f('folder')}">▤</div>
+   <div class="gp-cell${f('ver')}">${r.ver}${r.chips.includes('update')?' <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#80c47d;margin-left:6px"></span>':''}</div><div class="gp-cell dim">${r.desc}</div>`;
+  box.appendChild(d);});
+ const r=ROWS[fr],col=COLS[fc],fl=document.getElementById('gp-floats');
+ let html='';
+ if(col==='name'){
+  html=`<div class="gp-float"><div class="h">依赖</div><b>${r.name}</b><br>需要：${r.deps.length?r.deps.join('、'):'无'}<br>被 ${r.by} 个模组需要</div>`;
+  html+=`<div class="gp-float"><div class="h">角标</div>${r.chips.length?r.chips.map(c=>`<span class="sw" style="background:${CHIP[c][0]}"></span>${CHIP[c][1]}：${CHIP[c][2]}`).join('<br>'):'这一行没有角标'}${r.chips.some(c=>CHIP[c][3])?'<br><span style="color:#9fb3c6">按 A 或 Y 处理</span>':''}</div>`;
+ } else {
+  const t={chk:r.on?'已启用，按 A 停用（先进草稿）':'已停用，按 A 启用（先进草稿）',gear:'打开这个模组的设置页',home:'打开项目主页 / 商店页',folder:'打开模组所在的文件夹',ver:'版本 '+r.ver+(r.chips.includes('update')?'，有新版本 1.1.6。按 A 查看':'')}[col];
+  html=`<div class="gp-float">${t}</div>`;
+ }
+ fl.innerHTML=html;fl.style.display=menu?'none':'flex';
+ const rowEl=box.children[fr],cell=rowEl.children[col==='chk'?0:col==='name'?2:col==='gear'?3:col==='home'?4:col==='folder'?5:6];
+ const mock=document.getElementById('gp-mock');
+ fl.style.top=(rowEl.offsetTop+rowEl.offsetHeight+2)+'px';
+ fl.style.left=Math.max(8,Math.min(cell.offsetLeft+8,mock.clientWidth-(col==='name'?560:290)))+'px';
+ const pa={chk:'勾选',name:'菜单',gear:'打开设置',home:'打开主页',folder:'打开文件夹',ver:'查看版本'}[col];
+ document.getElementById('gp-prompt').innerHTML=`<span style="margin-right:auto;color:#9fb3c6">页签：${TABS[tab]}</span><span><span class="gp-g gp-ga">A</span>${pa}</span><span><span class="gp-g gp-gy">Y</span>更多</span><span><span class="gp-g gp-gs sq">RT</span>功能</span><span><span class="gp-g gp-gb">B</span>返回</span>`;
+ const mn=document.getElementById('gp-menu');
+ if(menu){mn.style.display='block';mn.style.top=(rowEl.offsetTop+rowEl.offsetHeight+2)+'px';mn.style.left=(cell.offsetLeft+8)+'px';
+  mn.innerHTML=`<div class="t">${menu.title}</div>`+menu.items.map((t,k)=>`<div class="it${k===menu.i?' focus':''}">${t}</div>`).join('')+`<div class="tip">↑↓ 选择　A 执行　B 关闭</div>`;}
+ else mn.style.display='none';
+}
+function log(t){document.getElementById('gp-log').textContent=t;}
+function rowMenu(r){
+ const items=r.chips.filter(c=>CHIP[c][3]).map(c=>`<span class="gp-g" style="width:9px;height:9px;border-radius:2px;background:${CHIP[c][0]}"></span>${CHIP[c][3]}`);
+ return {title:r.name,i:0,items:items.concat(['更改模组信息','改译名','查看依赖','查看版本'])};
+}
+function key(k){
+ const m=mods();let idx=m.indexOf(fr);
+ if(menu){
+  if(k==='up')menu.i=Math.max(0,menu.i-1);else if(k==='down')menu.i=Math.min(menu.items.length-1,menu.i+1);
+  else if(k==='b'){menu=null;log('B：关闭菜单，焦点回到原来的格子');}
+  else if(k==='a'){const t=menu.items[menu.i].replace(/<[^>]+>/g,'');if(t==='看变动并标为已读'){const r=ROWS[fr];r.chips=r.chips.filter(c=>c!=='unread');}log('A：'+t);menu=null;}
+  rows();return;}
+ if(k==='up'&&idx>0)fr=m[idx-1];else if(k==='down'&&idx<m.length-1)fr=m[idx+1];
+ else if(k==='left')fc=Math.max(0,fc-1);else if(k==='right')fc=Math.min(COLS.length-1,fc+1);
+ else if(k==='a'){const r=ROWS[fr],c=COLS[fc];
+  if(c==='chk'){r.on=!r.on;if(!r.chips.includes('save'))r.chips.push('save');log('A：'+(r.on?'启用':'停用')+'，进草稿（名称右上出现橙色角标）');}
+  else if(c==='name'){menu=rowMenu(r);log('A（名称）：打开这一行的菜单');}
+  else log('A：'+{gear:'打开设置页',home:'打开主页',folder:'打开文件夹（之后的操作要用键鼠）',ver:'打开版本与更新'}[c]);}
+ else if(k==='y'){menu=rowMenu(ROWS[fr]);log('Y：这一行的菜单（任何一格都能按）');}
+ else if(k==='b')log('B：没有打开的菜单 → 离开页面（有没保存的改动会先问）');
+ else if(k==='rtdown'){const next=ROWS.findIndex((r,i)=>i>fr&&r.group);if(next>0){fr=m.find(i=>i>next);log('RT + ↓：跳到下一个分组的第一行，列不变');}else log('RT + ↓：已经是最后一个分组');}
+ else if(k==='rbtab'){tab=(tab+1)%TABS.length;log('RB：切到「'+TABS[tab]+'」页签');}
+ rows();
+}
+document.querySelectorAll('#gp-mock ~ .gp-ctl [data-k], .gp-ctl [data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
+document.getElementById('gp-mock').addEventListener('click',()=>{});
+document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea'))return;const k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',a:'a',b:'b',y:'y'}[e.key];
+ const r=document.getElementById('gp-mock').getBoundingClientRect();if(k&&r.top<innerHeight&&r.bottom>0){e.preventDefault();key(k);}});
+rows();log('焦点在「更好的语音修复」的名称上。');
+})();
+</script>
 """)
 
 
