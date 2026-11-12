@@ -440,6 +440,7 @@ PAGES["gamepad.html"] = ("手柄操作", head("手柄操作 · 规划中", "--pi
     ("Y 打开更多操作", "鼠标要双击或右键才能打开的菜单，手柄按 Y。"),
     ("右摇杆只滚动", "右摇杆滚动列表，焦点留在原处；焦点滚出画面后，再按方向键会先回到画面里。"),
     ("按住 RT 是功能层", "RT 在游戏菜单里没有用处，按住它时方向键变成跳分组、翻页，不会顺带移动焦点。"),
+    ("手柄也能按模组快捷键", "快捷键页有常驻的手柄列。只认键盘的模组快捷键，可以给它录一个手柄键或「修饰键 + 键」，局内直接用手柄按。修饰键在页面顶部选，默认不用。"),
     ("作者模式用键鼠", "多选、拖动排序、拖进分组这些编辑操作仍然用鼠标完成。"),
 ]) + """
 </section>
@@ -499,7 +500,7 @@ const C={native:'#8ea0ad',cur:'#6fa8dc',new:'#9fd36a',warn:'#f0a050',bad:'#e0605
 const TAGN={native:'原生',cur:'已支持',new:'规划',warn:'有限制',bad:'不用',idle:'空闲'};
 const SCENES=[['play','局内（游戏中）'],['list','模组列表'],['hotkey','快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
 const LAYERS=[['plan','规划'],['now','现在'],['native','游戏原生']];
-const MODS=[['none','无'],['rt','按住 RT'],['lt','按住 LT（局内）']];
+const MODS=[['none','无'],['rt','按住 RT'],['lt','按住修饰键（局内，以 LT 为例）']];
 let scene='play',layer='plan',mod='none';
 const N='native',U='cur',P='new',W='warn',X='bad',I='idle';
 const B={
@@ -529,7 +530,7 @@ const PLAY={
   view:['调试菜单（正式版无效）· 按住 + RT = 物品生成器',W,'物品生成器增强的手柄开窗组合，可在它的配置里改。'],menu:['暂停菜单',N,'键盘 Esc。从这里进入管理器。']},
  rt:{view:['按住 View 再按 RT：物品生成器窗口',W,'来自物品生成器增强（调试类模组），配置项 Controller Chord Modifier Path / Controller Toggle Path。'],rt:['（按住中）',P]},
  lt:{lt:['（按住中）· 游戏副使用照常',W,'LT 是游戏的副使用 / 投掷，按住时照常触发；K 键掉线重连在大厅外按 LT 会重连。'],
-  a:['LT + A：你分配的模组快捷键',P,'在快捷键页给只认键盘的快捷键按 A，再按住 LT 按一个键即可分配。组合期间游戏不会把这个键当成跳跃。'],
+  a:['LT + A：你分配的模组快捷键',P,'快捷键页顶部选好修饰键（可选 LT / RT / LB / RB / Back / Start / RS / LS，默认无），在只认键盘的快捷键的手柄列按 A，先按住修饰键再按一个键即可。组合期间游戏不会把这个键当成跳跃。不用修饰键也行，直接录单键。'],
   b:['LT + B：可分配',P],x:['LT + X：可分配',P],y:['LT + Y：可分配',P],lb:['LT + LB：可分配',P],rb:['LT + RB：可分配',P],rt:['LT + RT：可分配',P],
   dpad:['LT + ↑↓←→：各可分配',P],l3:['LT + L3：可分配',P],r3:['LT + R3：可分配',P],view:['LT + View：可分配',P],menu:['LT + Menu：可分配',P],
   ls:['移动（不变）',N],rs:['视角（不变）',N]},
@@ -577,9 +578,9 @@ function entry0(id){const save=mod;mod='none';const e=entry(id);mod=save;return 
 function note(){
  const box=document.getElementById('gp-note2');if(!box)return;
  let t='';
- if(scene==='play'&&mod==='lt')t='按住 LT 是管理器的组合键层：在快捷键页给只认键盘的模组快捷键分配「LT + 某键」，局内按住 LT 再按那个键就等于按下模组的键盘快捷键。只有 LT 一个修饰键。';
+ if(scene==='play'&&mod==='lt')t='修饰键是可选的：在快捷键页顶部选一个（默认「无」），给只认键盘的模组快捷键录「修饰键 + 某键」或单键，局内按下就等于按下模组的键盘快捷键。同一时间只有一个修饰键；LT + RB / LT + LB 固定为展开 / 收起全部分组。';
  else if(scene==='play')t='局内是游戏自己的操作；黄色是有模组同时在用的键。快捷键页的「重复」检查会把这些游戏按键一起算上。';
- else if(mod==='lt')t='LT 组合键只在局内生效，菜单里按住 LT 没有作用。';
+ else if(mod==='lt')t='手柄组合键只在局内生效；菜单里只有 LT + RB / LT + LB 展开 / 收起全部分组。';
  else if(mod==='rt'&&layer!=='plan')t='游戏菜单里 RT 没有任何作用，所以「游戏原生」「现在」两层按住 RT 时其余键不变；组合键只在「规划」层出现。';
  box.textContent=t;box.style.display=t?'block':'none';
 }
