@@ -96,8 +96,8 @@
     <span><i style="background:#5b6b78"></i>空闲</span>
   </div>
   <div class="gp-grid" style="margin-top:12px">
-    <div class="gp-pad"><svg id="gp-svg" viewBox="0 0 1200 470"></svg></div>
-    <div class="gp-detail" id="gp-detail"><h3>点一个按键</h3><p class="why">左边手柄上的按键和文字都能点。「修饰键」选「按住 RT」可以看组合键。</p></div>
+    <div><div class="gp-pad"><svg id="gp-svg" viewBox="0 0 1200 470"></svg></div><p class="muted" id="gp-note2" style="display:none;margin-top:8px;font-size:14px"></p></div>
+    <div class="gp-detail" id="gp-detail"><h3>点一个按键</h3><p class="why">左边手柄上的按键和文字都能点。「局内」是游戏里的操作和模组占用的键；其余几页是管理器界面。</p></div>
   </div>
 </section>
 
@@ -159,10 +159,10 @@
 (function(){
 const C={native:'#8ea0ad',cur:'#6fa8dc',new:'#9fd36a',warn:'#f0a050',bad:'#e0605a',idle:'#5b6b78'};
 const TAGN={native:'原生',cur:'已支持',new:'规划',warn:'有限制',bad:'不用',idle:'空闲'};
-const SCENES=[['list','模组列表'],['hotkey','快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
+const SCENES=[['play','局内（游戏中）'],['list','模组列表'],['hotkey','快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
 const LAYERS=[['plan','规划'],['now','现在'],['native','游戏原生']];
 const MODS=[['none','无'],['rt','按住 RT']];
-let scene='list',layer='plan',mod='none';
+let scene='play',layer='plan',mod='none';
 const N='native',U='cur',P='new',W='warn',X='bad',I='idle';
 const B={
  lt:{s:'r',x:380,y:28,w:84,h:40,r:12,n:'LT 左扳机'}, rt:{s:'r',x:736,y:28,w:84,h:40,r:12,n:'RT 右扳机'},
@@ -179,6 +179,18 @@ const L={lt:[330,46,'end'],lb:[330,94,'end'],ls:[330,168,'end'],l3:[330,228,'end
 const NATIVE={ls:['移动焦点',N],rs:['也移动焦点',N,'游戏把右摇杆和左摇杆、十字键一起绑在「导航」上。'],dpad:['移动焦点',N],a:['确认',N],
  x:['确认（只在游戏自己的窗口里）',N],b:['返回',N],lb:['上一个页签',N],rb:['下一个页签',N],menu:['暂停；在菜单里等于返回',N],
  view:['调试菜单（正式版无效）',N],lt:['菜单里没用',I],rt:['菜单里没用',I],y:['菜单里没用',I],l3:['菜单里没用',I],r3:['菜单里没用',I]};
+// 局内：游戏自己的 Default 动作表（现装 PEAK 3.1 globalgamemanagers.assets）+ 读手柄键的模组。
+// 管理器在局内不接任何手柄键，所以「规划」「现在」都等于游戏原生加模组占用。
+const PLAY={
+ none:{ls:['移动',N,'键盘 WASD。'],rs:['视角',N,'键盘为鼠标。'],dpad:['↑ 表情 · ↓ 收起手里的物品 · ←→ 切换物品栏',N,'观战时 ←→ 切换观战对象。键盘：R 表情、Tab 收起、1–9 选格子。'],
+  a:['跳跃',N,'键盘空格。'],x:['交互 / 拾取（按住 = 长按交互）',N,'键盘 E。'],y:['丢弃',N,'键盘 Q。'],b:['蹲下（切换）',N,'键盘左 Ctrl（按住）。'],
+  lb:['物品栏向后滚动 · 按住 + RB = 按键说话',N,'按键说话是游戏自己的组合：先按住 LB 再按 RB，或先按住 RB 再按 LB。键盘 G / V。'],rb:['物品栏向前滚动 · 按住 + LB = 按键说话',N,'键盘 T / V。'],
+  lt:['使用 / 投掷（副）',W,'游戏的副使用键（鼠标右键）。K 键掉线重连（peakReconnect）也用 LT：不在 Steam 大厅里时按 LT 立刻重连上一个房间——比如被踢回主菜单后。'],
+  rt:['使用（主）',W,'游戏的主使用键（鼠标左键）。物品生成器增强：按住 View 再按 RT 打开它的窗口。'],
+  l3:['疾跑（切换）',N,'键盘左 Shift（按住）。'],r3:['标记（Ping）',N,'鼠标中键。'],
+  view:['调试菜单（正式版无效）· 按住 + RT = 物品生成器',W,'物品生成器增强的手柄开窗组合，可在它的配置里改。'],menu:['暂停菜单',N,'键盘 Esc。从这里进入管理器。']},
+ rt:{view:['按住 View 再按 RT：物品生成器窗口',W,'来自物品生成器增强（调试类模组），配置项 Controller Chord Modifier Path / Controller Toggle Path。'],rt:['（按住中）',P]},
+};
 const NOW={
  list:{dpad:['移动焦点，上下保持在同一列',U],ls:['同十字键',U],rs:['跟游戏一样移动焦点',N],a:['按下选中的按钮；名称上没反应',W,'启用方框、齿轮、主页、文件夹、版本都能按；名称能选中但按 A 没有反应，鼠标双击才有的菜单手柄打不开。'],
   b:['逐层关闭，再离开页面',U],x:['—',I],y:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
@@ -208,10 +220,21 @@ const PLAN={
    y:['这一项的菜单',P,'复制键名、跳回概览里的这个模组。'],lt:['不用',X],rt:['按住 = 功能层',P],view:['显示 / 隐藏按键提示',P],menu:['游戏原生',N],l3:['—',I],r3:['跳到搜索框',P]},
   rt:{dpad:['↑↓ 上 / 下一个分区',P],ls:['同十字键',P],rs:['快速滚动',P],lb:['回到模组概览',P],a:['—',I],x:['—',I],y:['—',I],b:['—',I],rb:['—',I],view:['不用',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]}}
 };
+// 显示层与修饰键可以任意组合。游戏原生与「现在」只描述单按；选了「按住 RT」时，
+// 原生层在 RT 上标「按住中」，其余键照常显示单按含义（游戏菜单里按住 RT 本身不改变任何键）。
 function entry(id){
+ if(scene==='play'){const m=mod==='rt'&&PLAY.rt[id]?PLAY.rt[id]:PLAY.none[id];return m||['—',I];}
+ if(mod!=='none'&&id===mod)return['（按住中）',layer==='plan'?P:I];
  if(layer==='native')return NATIVE[id];
  if(layer==='now')return NOW[scene][id]||['—',I];
- const m=PLAN[scene][mod]; if(mod!=='none'&&id===mod)return['（按住中）',P]; return m[id]||['—',I];
+ const m=PLAN[scene][mod]; return m[id]||['—',I];
+}
+function note(){
+ const box=document.getElementById('gp-note2');if(!box)return;
+ let t='';
+ if(scene==='play')t='局内是游戏自己的操作，管理器不接管任何手柄键；黄色是有模组同时在用的键。快捷键设置页的「重复」检查会把这些游戏按键一起算上。';
+ else if(mod==='rt'&&layer!=='plan')t='游戏菜单里 RT 没有任何作用，所以「游戏原生」「现在」两层按住 RT 时其余键不变；组合键只在「规划」层出现。';
+ box.textContent=t;box.style.display=t?'block':'none';
 }
 const svg=document.getElementById('gp-svg');
 function el(tag,a,p){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e;}
@@ -235,6 +258,8 @@ function draw(){
 function tag(e){return `<span class="gp-tag" style="background:${C[e[1]]}">${TAGN[e[1]]}</span>`;}
 function why(e){return e[2]?`<p class="why">${e[2]}</p>`:'';}
 function show(id){
+ if(scene==='play'){const e=PLAY.none[id]||['—',I],r=PLAY.rt[id];
+  document.getElementById('gp-detail').innerHTML=`<h3>${B[id].n}</h3><div class="why">局内（游戏中）</div><div class="k">游戏与模组</div><p>${e[0]}${tag(e)}</p>${why(e)}${r&&r[0].indexOf('按住中')<0?`<div class="k">按住 RT</div><p>${r[0]}${tag(r)}</p>${why(r)}`:''}`;return;}
  const n=NATIVE[id],c=NOW[scene][id]||['—',I],p=PLAN[scene].none[id]||['—',I],r=PLAN[scene].rt[id];
  document.getElementById('gp-detail').innerHTML=`<h3>${B[id].n}</h3><div class="why">${SCENES.find(s=>s[0]===scene)[1]}</div>
  <div class="k">规划</div><p>${p[0]}${tag(p)}</p>${why(p)}
@@ -244,7 +269,8 @@ function show(id){
 }
 function seg(id,items,get,set){const box=document.getElementById(id);box.innerHTML='';
  for(const [k,v] of items){const b=document.createElement('button');b.textContent=v;if(get()===k)b.className='on';b.onclick=()=>{set(k);render();};box.appendChild(b);}}
-function render(){seg('gp-scene',SCENES,()=>scene,v=>scene=v);seg('gp-layer',LAYERS,()=>layer,v=>{layer=v;if(v!=='plan')mod='none';});seg('gp-mod',MODS,()=>mod,v=>{mod=v;layer='plan';});draw();}
+function render(){seg('gp-scene',SCENES,()=>scene,v=>scene=v);seg('gp-layer',LAYERS,()=>layer,v=>{layer=v;});seg('gp-mod',MODS,()=>mod,v=>{mod=v;});
+ document.getElementById('gp-layer').parentElement.style.opacity=scene==='play'?.45:1;draw();note();}
 render();
 
 const MX=[['按住的键','方向键','A','Y','另一边的键','结论'],
