@@ -2,9 +2,9 @@
 
 不用退出游戏、不用开管理器，在 PEAK 的设置菜单里就能看到装了哪些模组、各自是什么版本、谁依赖谁，改配置、改快捷键、更新、启停、卸载，都在同一个界面里完成。
 
-![模组概览](文档/介绍页/assets/overview-blue.jpg)
+![模组概览](https://raw.githubusercontent.com/AiAe-156/Peak-InGameModManager/main/%E6%96%87%E6%A1%A3/%E4%BB%8B%E7%BB%8D%E9%A1%B5/assets/overview-blue.jpg)
 
-**[查看完整介绍](文档/介绍页/index.html)**
+**[查看完整介绍](https://aiae-156.github.io/Peak-InGameModManager/%E6%96%87%E6%A1%A3/%E4%BB%8B%E7%BB%8D%E9%A1%B5/index.html)**
 
 ---
 
@@ -23,7 +23,7 @@
 
 所有模组的设置集中在一棵树里，找得到、改得明白。
 
-![模组设置页](文档/介绍页/assets/settings-tree.jpg)
+![模组设置页](https://raw.githubusercontent.com/AiAe-156/Peak-InGameModManager/main/%E6%96%87%E6%A1%A3/%E4%BB%8B%E7%BB%8D%E9%A1%B5/assets/settings-tree.jpg)
 
 - **树形侧栏**：按分组和模组排列，可以搜索、可以置顶常用的模组。
 - **说明面板**：选中一个设置项，上方显示它的说明、默认值和可选范围。
@@ -68,7 +68,7 @@
 
 ---
 
-**[完整介绍、截图和使用说明](文档/介绍页/index.html)**　·　[更新日志](CHANGELOG.md)　·　[问题反馈](https://github.com/AiAe-156/Peak-InGameModManager/issues)
+**[完整介绍、截图和使用说明](https://aiae-156.github.io/Peak-InGameModManager/%E6%96%87%E6%A1%A3/%E4%BB%8B%E7%BB%8D%E9%A1%B5/index.html)**　·　[更新日志](https://github.com/AiAe-156/Peak-InGameModManager/blob/main/CHANGELOG.md)　·　[问题反馈](https://github.com/AiAe-156/Peak-InGameModManager/issues)
 
 ---
 
