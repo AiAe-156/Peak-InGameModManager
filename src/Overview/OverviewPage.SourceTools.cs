@@ -17,12 +17,13 @@ internal sealed partial class OverviewPage
     private string AutomaticUpdateHint() => Loc.T("Automatic update checks every 30 minutes, only in the main menu or Airport. Results are cached; nothing is downloaded or installed automatically.",
         "自动检查更新开关：每30分钟在主菜单或机场候机厅后台检查，缓存结果；不会自动下载或安装。",
         "自動檢查更新：每30分鐘在主選單或機場候機廳背景檢查並快取，不自動下載或安裝。") + "\n\n" + AutomaticUpdateChecks.StatusText();
+    private bool _sourceToolsBusy;
     private void BuildSourceToolsIcon()
     {
         var hit = OverviewUi.Rect("UpdateCycleHit", _sourceTools.transform);
         var background = hit.gameObject.AddComponent<Image>(); background.color = Color.clear; background.raycastTarget = true;
         _sourceToolsRefreshButton = hit.gameObject.AddComponent<Button>(); _sourceToolsRefreshButton.targetGraphic = background;
-        _sourceToolsRefreshButton.onClick.AddListener(() => ManagementAction(() => { _list?.CheckUpdates(true); }));
+        _sourceToolsRefreshButton.onClick.AddListener(() => { if (_sourceToolsBusy) { SetStatus(_tab != PageTab.Mods ? Loc.T("Update checks run from the mod list.", "检查更新需在模组列表页进行。", "檢查更新需在模組列表頁進行。") : Loc.T("An update check is already running.", "正在检查更新，请稍候。", "正在檢查更新，請稍候。")); return; } ManagementAction(() => { _list?.CheckUpdates(true); }); });
         AttachToolHint(hit.gameObject, UpdateCheckHint);
         GamepadSupport.MarkSelectable(hit.gameObject, null, hit);
         var icon = OverviewUi.Rect("UpdateCycle", hit); OverviewUi.Fill(icon, 6);
@@ -44,9 +45,11 @@ internal sealed partial class OverviewPage
     private void RefreshSourceToolsIcon()
     {
         if (_sourceToolsRefresh == null) return;
-        _sourceToolsRefreshButton.interactable = _tab == PageTab.Mods && _list != null && !_list.IsCheckingUpdates && !AutomaticUpdateChecks.IsChecking;
+        // Stays focusable; while a check runs the click only reports it (1.1.5: a non-interactable button cannot hold the focus).
+        _sourceToolsRefreshButton.interactable = true;
+        _sourceToolsBusy = !(_tab == PageTab.Mods && _list != null && !_list.IsCheckingUpdates && !AutomaticUpdateChecks.IsChecking);
         Color color = AutomaticUpdateChecks.IsChecking || _list?.IsCheckingUpdates == true ? OverviewUi.Green : OverviewUi.Ivory;
-        _refreshIconFeedback.SetAppearance(_sourceToolsRefreshButton.interactable, color);
+        _refreshIconFeedback.SetAppearance(!_sourceToolsBusy, color);
     }
     private void SourceTools()
     {

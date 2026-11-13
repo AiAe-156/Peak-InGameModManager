@@ -21,8 +21,38 @@ internal sealed partial class OverviewRepository
     }
     private bool _restoreSavedBaseline;
     private string RecoveryDraftPath => Path.Combine(ProfileRuntimeDirectory, "drafts", OverviewProfileExport.PortableId(ViewedProfileId) + ".json");
+    /// <summary>1.1.4: rapid edits (slider drag, typing) defer the draft write; see <see cref="PersistRecoveryDraftSoon"/>.</summary>
+    private bool _recoveryDeferred;
+    private double _recoveryDueAt;
+    private const double RecoveryDelay = 0.5;
+    internal static Func<double>? RecoveryClock;
+    /// <summary>Hot path: marks the draft for writing once edits have paused. Views still refresh immediately.</summary>
+    internal void PersistRecoveryDraftSoon()
+    {
+        InvalidatePendingView();
+        if (RecoveryClock == null) { PersistRecoveryDraft(); return; }
+        _recoveryDeferred = true; _recoveryDueAt = RecoveryClock() + RecoveryDelay;
+        PendingRecovery.Add(this);
+    }
+    /// <summary>Writes a deferred draft now (before saves, discards, shutdown, or once its delay has passed).</summary>
+    internal void FlushRecoveryDraft()
+    {
+        if (!_recoveryDeferred) return;
+        _recoveryDeferred = false; PendingRecovery.Remove(this);
+        try { PersistRecoveryDraft(); } catch (Exception error) { ReadWarning = error.Message; }
+    }
+    internal static readonly System.Collections.Generic.HashSet<OverviewRepository> PendingRecovery = new();
+    /// <summary>Called every frame by the plugin: writes drafts whose delay has passed.</summary>
+    internal static void TickRecovery()
+    {
+        if (PendingRecovery.Count == 0 || RecoveryClock == null) return;
+        double now = RecoveryClock();
+        foreach (var repo in PendingRecovery.ToArray()) if (repo._recoveryDueAt <= now) repo.FlushRecoveryDraft();
+    }
+    internal static void FlushAllRecovery() { foreach (var repo in PendingRecovery.ToArray()) repo.FlushRecoveryDraft(); }
     internal void PersistRecoveryDraft()
     {
+        _recoveryDeferred = false; PendingRecovery.Remove(this);
         InvalidatePendingView();
         if (_appliedView) return;
         if (!IsProfileDirty) { ClearRecoveryDraft(); return; }
@@ -154,6 +184,7 @@ internal sealed partial class OverviewRepository
 
     private void ClearRecoveryDraft()
     {
+        _recoveryDeferred = false; PendingRecovery.Remove(this); // a discard must not be followed by a stale deferred write
         if (File.Exists(RecoveryDraftPath)) File.Delete(RecoveryDraftPath);
     }
 }

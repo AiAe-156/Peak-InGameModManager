@@ -20,7 +20,8 @@ internal sealed class OverviewGroupEditor : IDisposable
     private RectTransform? _embeddedHost;
     private GameObject? _modal;
     private GameObject? _secondary;
-    private CanvasGroup? _formCanvas;
+    private CanvasGroup? _formCanvas, _secondaryBase;
+    private bool _secondaryWasInteractive;
     private Func<bool>? _secondaryDirty;
     private GameObject? _secondarySelection;
     private OverviewGroup? _group;
@@ -56,8 +57,14 @@ internal sealed class OverviewGroupEditor : IDisposable
 
     internal void Show(OverviewGroup? group)
     {
-        Close();
-        if (_embeddedHost == null) OverviewUi.CloseModal();
+        var retained = _modal == null ? null : (RectTransform)_modal.transform;
+        bool rebuilding = retained != null;
+        if (retained != null) {
+            PublicationNavigation.Preserve(retained); CloseSecondary(false);
+            foreach (Transform child in retained) { child.gameObject.SetActive(false); UnityEngine.Object.Destroy(child.gameObject); }
+        }
+        else Close();
+        if (_embeddedHost == null && !rebuilding) OverviewUi.CloseModal();
         var parent = (Transform?)_embeddedHost ?? OverviewUi.ModalParent;
         if (parent == null) return;
         _group = group;
@@ -75,9 +82,10 @@ internal sealed class OverviewGroupEditor : IDisposable
             if (string.IsNullOrEmpty(id) || _candidates.ContainsKey(id)) continue;
             _candidates.Add(id, mod); if (member) _checked.Add(id);
         }
-        var shade = OverviewUi.Panel("MCE_GroupEditor", parent, _embeddedHost == null ? ModConfigLook.Surface(new Color(0, 0, 0, .78f)) : OverviewUi.Brown);
+        var shade = retained ?? OverviewUi.Panel("MCE_GroupEditor", parent, _embeddedHost == null ? ModConfigLook.Surface(new Color(0, 0, 0, .78f)) : OverviewUi.Brown);
         OverviewUi.Fill(shade); shade.SetAsLastSibling(); _modal = shade.gameObject;
-        var canvas = shade.gameObject.AddComponent<CanvasGroup>(); canvas.blocksRaycasts = true; canvas.interactable = true;
+        var canvas = shade.GetComponent<CanvasGroup>() ?? shade.gameObject.AddComponent<CanvasGroup>(); canvas.blocksRaycasts = true; canvas.interactable = true;
+        PublicationNavigation.Attach(shade);
         var panel = OverviewUi.Panel("GroupDialog", shade, OverviewUi.Brown);
         _formCanvas = panel.gameObject.AddComponent<CanvasGroup>();
         panel.anchorMin = _embeddedHost == null ? new Vector2(.12f, .07f) : Vector2.zero;
@@ -207,17 +215,19 @@ internal sealed class OverviewGroupEditor : IDisposable
         _initialName = _name.text; _initialDescription = _description.text; _initialColor = _color; _initialParentId = _parentId;
         _initialCustom.Clear(); _initialCustom.UnionWith(_custom);
         _initialChecked.Clear(); _initialChecked.UnionWith(_checked);
-        EventSystem.current?.SetSelectedGameObject(_name.gameObject); _name.ActivateInputField();
+        PublicationNavigation.Invalidate(shade);
+        if (!rebuilding) OverviewUi.FocusInput(_name);
     }
 
     private void RebuildPalette()
     {
         if (_palette == null) return;
+        PublicationNavigation.Preserve(_palette);
         foreach (Transform child in _palette) { child.gameObject.SetActive(false); UnityEngine.Object.Destroy(child.gameObject); }
         foreach (string color in OverviewUi.Palette.Concat(_custom).Distinct(StringComparer.OrdinalIgnoreCase))
         {
             string value = color;
-            var cell = OverviewUi.Panel("ColorSwatch", _palette, Parse(value));
+            var cell = OverviewUi.Panel("ColorSwatch_" + value, _palette, Parse(value));
             var button = cell.gameObject.AddComponent<Button>(); button.targetGraphic = cell.GetComponent<Image>(); button.onClick.AddListener(() => SelectColor(value));
             if (_custom.Contains(value, StringComparer.OrdinalIgnoreCase) && !OverviewUi.Palette.Contains(value, StringComparer.OrdinalIgnoreCase))
             {
@@ -257,7 +267,7 @@ internal sealed class OverviewGroupEditor : IDisposable
             CloseSecondary(); SelectColor(color);
         }, 125, 36, role: UiActionRole.Commit); OverviewUi.Bottom((RectTransform)save.transform, 20, 18);
         var cancel = OverviewUi.Button(panel, T("Cancel", "取消"), RequestCloseSecondary, 125, 36, role: UiActionRole.Neutral); OverviewUi.Bottom((RectTransform)cancel.transform, 155, 18);
-        EventSystem.current?.SetSelectedGameObject(input.gameObject); input.ActivateInputField();
+        OverviewUi.FocusInput(input);
     }
     private void ConfirmRemoveColor(string color)
     {
@@ -326,6 +336,7 @@ internal sealed class OverviewGroupEditor : IDisposable
             }
             var embedded = _embeddedHost;
             string? selectedId = remove ? null : _group?.id;
+            if (_modal != null) PublicationNavigation.Preserve(_modal.transform);
             Close(); _saved(); _status(!persist ? T("Group draft retained; save configuration to commit.", "分组草稿已保留，保存配置后提交。") : remove ? T("Group removed; its contents moved up one level.", "分组已删除，内容已上移一层。") : T("Group saved.", "分组已保存。"));
             if (embedded != null) Show(_repository.State.groups.FirstOrDefault(g => g.id == selectedId) ?? _repository.State.groups.FirstOrDefault());
         }
@@ -337,8 +348,14 @@ internal sealed class OverviewGroupEditor : IDisposable
         _secondarySelection = EventSystem.current?.currentSelectedGameObject;
         _secondarySelection?.GetComponent<TMP_InputField>()?.DeactivateInputField();
         if (_formCanvas != null) _formCanvas.interactable = false;
+        var owner = _modal!.GetComponentInParent<PublicationNavigation>();
+        if (owner != null) {
+            _secondaryBase = owner.GetComponent<CanvasGroup>() ?? owner.gameObject.AddComponent<CanvasGroup>();
+            _secondaryWasInteractive = _secondaryBase.interactable; _secondaryBase.interactable = false;
+        }
         var shade = OverviewUi.Panel("GroupConfirmation", _modal!.transform, ModConfigLook.Surface(new Color(0, 0, 0, .72f))); OverviewUi.Fill(shade); shade.SetAsLastSibling(); _secondary = shade.gameObject;
-        shade.gameObject.AddComponent<CanvasGroup>();
+        shade.gameObject.AddComponent<CanvasGroup>().ignoreParentGroups = true;
+        PublicationNavigation.AttachBoundary(shade);
         var panel = OverviewUi.Panel("Confirmation", shade, OverviewUi.Brown); Size(panel, 760, 250);
         var heading = OverviewUi.Text(panel, title, 27); TopStretch(heading.rectTransform, 20, 18, 43, 40); heading.textWrappingMode = TextWrappingModes.Normal;
         return panel;
@@ -420,11 +437,13 @@ internal sealed class OverviewGroupEditor : IDisposable
     {
         if (_secondary != null) { _secondary.SetActive(false); UnityEngine.Object.Destroy(_secondary); }
         _secondary = null; _secondaryDirty = null;
+        if (_secondaryBase != null) _secondaryBase.interactable = _secondaryWasInteractive;
+        _secondaryBase = null;
         if (_formCanvas != null) _formCanvas.interactable = true;
         if (restoreSelection && _secondarySelection != null && _secondarySelection.activeInHierarchy)
         {
-            EventSystem.current?.SetSelectedGameObject(_secondarySelection);
-            _secondarySelection.GetComponent<TMP_InputField>()?.ActivateInputField();
+            if (_secondarySelection.GetComponent<TMP_InputField>() is TMP_InputField field) OverviewUi.FocusInput(field);
+            else EventSystem.current?.SetSelectedGameObject(_secondarySelection);
         }
         _secondarySelection = null;
     }

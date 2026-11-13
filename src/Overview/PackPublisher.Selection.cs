@@ -41,14 +41,6 @@ internal static partial class PackPublisher
             }
         } while(changed);
         var selected=inventory.Where(m=>roots.Contains(m.PackageRoot)).ToList();
-        if(CompleteMode(request.Mode))
-        {
-            var unknown=new List<string>();
-            foreach(string route in new[]{"patchers","monomod"})
-            foreach(string file in OverviewRepository.SafeFiles(Path.Combine(Paths.BepInExRootPath,route)))
-                if(Keep(Relative(Paths.BepInExRootPath,file))&&!inventory.Any(m=>Inside(file,m.PackageRoot))&&!request.ExtraFiles.Any(p=>Inside(file,Path.Combine(GameRoot,p)))&&!request.ExcludedExtras.Keys.Any(p=>Inside(file,Path.Combine(GameRoot,p)))) unknown.Add(Relative(Paths.BepInExRootPath,file));
-            if(unknown.Count>0) throw new InvalidOperationException("启动补丁/资源归属待确认，请在附加文件中明确选择：\n"+string.Join("\n",unknown));
-        }
         foreach(var duplicate in selected.Where(m=>!m.Guid.StartsWith("package:",StringComparison.OrdinalIgnoreCase)).GroupBy(m=>m.Guid,StringComparer.OrdinalIgnoreCase).Where(g=>g.Select(m=>m.PackageRoot).Distinct(StringComparer.OrdinalIgnoreCase).Count()>1))
             throw new InvalidOperationException("发布包含重复模组，请确认保留的副本："+duplicate.Key+"\n"+string.Join("\n",duplicate.Select(m=>m.PackageRoot)));
         return selected;

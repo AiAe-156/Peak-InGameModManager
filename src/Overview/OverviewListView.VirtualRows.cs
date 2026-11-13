@@ -46,18 +46,15 @@ internal sealed partial class OverviewListView
     private readonly RowBuildBudget _rowBuildBudget = new(maxSteps:16);
     private bool ListVisible => _opened && _root.gameObject.activeInHierarchy;
     private (VirtualRow Row,int Column,GameObject? Source)? _layerFocus;
+    private MoveDirection _layerMoveDirection;
     private void CompleteLayerFocus(VirtualRow row)
     {
-        if(!_layerFocus.HasValue || !ReferenceEquals(_layerFocus.Value.Row,row))return;
-        var focus=_layerFocus.Value;_layerFocus=null;
-        if(!_opened || OverviewUi.HasModal || EventSystem.current==null || EventSystem.current.currentSelectedGameObject!=focus.Source)return;
-        var controls=row.View?.GetComponentsInChildren<Selectable>(false);
-        if(controls==null || controls.Length==0)return;
-        for(int offset=0;offset<controls.Length;offset++)
-        {
-            var target=controls[(Mathf.Min(focus.Column,controls.Length-1)+offset)%controls.Length];
-            if(target.IsInteractable() && target.IsActive()) { EventSystem.current.SetSelectedGameObject(target.gameObject);return; }
-        }
+        if (!_layerFocus.HasValue || !ReferenceEquals(_layerFocus.Value.Row, row)) return;
+        var focus = _layerFocus.Value; var direction = _layerMoveDirection; _layerFocus = null; _layerMoveDirection = MoveDirection.None;
+        if (!_opened || OverviewUi.HasModal || EventSystem.current == null || EventSystem.current.currentSelectedGameObject != focus.Source) return;
+        var target = ColumnTarget(row, focus.Column);
+        if (target != null) SelectColumn(target, focus.Column);
+        else if (direction is MoveDirection.Up or MoveDirection.Down) MoveVirtualColumn(row, focus.Source, focus.Column, direction);
     }
     private void AddLayeredRow(string key,string name,float y,float height,float width,Func<RectTransform,IEnumerator> layers,OverviewMod? mod=null)
     {
@@ -210,18 +207,28 @@ internal sealed partial class OverviewListView
     }
     private void WireRowNavigation(VirtualRow row)
     {
-        var controls = row.View!.GetComponentsInChildren<Selectable>(false);
+        var controls = RowControls(row.View!);
         for (int c=0; c<controls.Length; c++)
         {
             var selectable=controls[c];
+            if (selectable.GetComponent<OverviewRowColumn>() == null) {
+                var rect = (RectTransform)selectable.transform; float x = row.View!.InverseTransformPoint(rect.TransformPoint(rect.rect.center)).x;
+                selectable.gameObject.AddComponent<OverviewRowColumn>().Column = IsNavigationGroup(row) ? 1 : ListColumnPolicy.FromPosition(x, _columnStarts);
+            }
             var nav=selectable.navigation; nav.mode=Navigation.Mode.Explicit;
             nav.selectOnUp=null; nav.selectOnDown=null;
-            nav.selectOnLeft=c>0?controls[c-1]:null;
-            nav.selectOnRight=c+1<controls.Length?controls[c+1]:null;
+            nav.selectOnLeft = controls.Take(c).LastOrDefault(s => s.IsActive() && s.IsInteractable());
+            nav.selectOnRight = controls.Skip(c + 1).FirstOrDefault(s => s.IsActive() && s.IsInteractable());
             selectable.navigation=nav;
             var move=selectable.GetComponent<OverviewVirtualMove>() ?? selectable.gameObject.AddComponent<OverviewVirtualMove>();
-            move.Move=direction=>MoveVirtualFocus(row,selectable,direction);
+            move.Move=direction=> { if(!TryReturnFocusToView(row,selectable)) MoveVirtualFocus(row,selectable,direction); };
+            move.Sideways=()=>TryReturnFocusToView(row,selectable);
             var focus=selectable.GetComponent<OverviewHotkeyFocus>() ?? selectable.gameObject.AddComponent<OverviewHotkeyFocus>();
+            // 1.1.0: every cell gets the gamepad focus ring, and the focused row is lit so the eye finds it.
+            GamepadSupport.MarkSelectable(selectable.gameObject,null,null);
+            var view=row.View;
+            focus.Selected+=()=>SetRowFocusGlow(view,true);focus.Deselected+=()=>SetRowFocusGlow(view,false);
+            focus.Selected+=()=> { if (!_selectingColumn) { _preferredColumn = ColumnOf(view!, selectable); _verticalScrollBeforeMove = null; } };
             focus.Selected+=row.Lease.Guard(()=> {
                 float top=VirtualRowRange.ScrollTo(row.Y,row.Height,_content.anchoredPosition.y,_viewport.rect.height);
                 if(Mathf.Abs(top-_content.anchoredPosition.y)>.1f)
@@ -269,8 +276,8 @@ internal sealed partial class OverviewListView
         foreach(var row in _virtualRows)
         {
             if(row.View==null || !selected.transform.IsChildOf(row.View))continue;
-            var controls=row.View.GetComponentsInChildren<Selectable>(false);
-            return (row.Key,Array.FindIndex(controls,c=>c.gameObject==selected));
+            var controls=RowControls(row.View);
+            return (row.Key, IsNavigationGroup(row) && _preferredColumn.HasValue ? _preferredColumn.Value : ColumnOf(row.View, selected.GetComponent<Selectable>()));
         }
         return null;
     }
@@ -280,11 +287,11 @@ internal sealed partial class OverviewListView
         var row=_virtualRows.Find(r=>r.Key==focus.Value.Key);
         if(row==null)return;
         ScrollToVirtualRow(row);
-        if(row.View==null || row.Layers!=null) { _layerFocus=(row,focus.Value.Column,EventSystem.current.currentSelectedGameObject);return; }
-        var controls=row.View?.GetComponentsInChildren<Selectable>(false);
+        if(row.View==null || row.Layers!=null) { _layerMoveDirection = MoveDirection.None; _layerFocus=(row,focus.Value.Column,EventSystem.current.currentSelectedGameObject);return; }
+        var controls=(row.View==null?null:RowControls(row.View));
         if(controls==null || controls.Length==0)return;
-        int column=Mathf.Clamp(focus.Value.Column,0,controls.Length-1);
-        if(controls[column].IsInteractable())EventSystem.current.SetSelectedGameObject(controls[column].gameObject);
+        var target = ColumnTarget(row, focus.Value.Column);
+        if (target != null) SelectColumn(target, focus.Value.Column);
     }
     private void ScrollToVirtualRow(VirtualRow row)
     {
@@ -292,26 +299,35 @@ internal sealed partial class OverviewListView
         position.y=VirtualRowRange.ScrollTo(row.Y,row.Height,position.y,_viewport.rect.height);
         _content.anchoredPosition=position;RefreshVirtualRows(row);
     }
-    private void MoveVirtualFocus(VirtualRow row,Selectable source,MoveDirection direction)
+    private void MoveVirtualFocus(VirtualRow row, Selectable source, MoveDirection direction)
     {
-        if(direction!=MoveDirection.Up && direction!=MoveDirection.Down)return;
-        var controls=row.View?.GetComponentsInChildren<Selectable>(false);
-        int column=controls==null?0:Math.Max(0,Array.IndexOf(controls,source));
-        int index=_virtualRows.IndexOf(row), step=direction==MoveDirection.Down?1:-1;
-        // Wake each candidate from the full model, including rows beyond the viewport buffer.
-        for(int next=VirtualRowRange.Next(index,step,_virtualRows.Count);next>=0;next=VirtualRowRange.Next(next,step,_virtualRows.Count))
+        if (direction != MoveDirection.Up && direction != MoveDirection.Down) return;
+        int column = IsNavigationGroup(row) && _preferredColumn.HasValue ? _preferredColumn.Value : ColumnOf(row.View!, source);
+        MoveVirtualColumn(row, source.gameObject, column, direction);
+    }
+    private void MoveVirtualColumn(VirtualRow row, GameObject? sourceObject, int column, MoveDirection direction)
+    {
+        _preferredColumn = column;
+        _verticalScrollBeforeMove ??= _content.anchoredPosition.y;
+        int index = _virtualRows.IndexOf(row), step = direction == MoveDirection.Down ? 1 : -1;
+        for (int next = VirtualRowRange.Next(index, step, _virtualRows.Count); next >= 0; next = VirtualRowRange.Next(next, step, _virtualRows.Count)) {
+            var candidate = _virtualRows[next]; ScrollToVirtualRow(candidate);
+            if (candidate.View == null || candidate.Layers != null) { _layerMoveDirection = direction; _layerFocus = (candidate, column, sourceObject); return; }
+            var target = ColumnTarget(candidate, column);
+            if (target != null) { SelectColumn(target, column); return; }
+        }
+        if (_verticalScrollBeforeMove.HasValue) {
+            var position = _content.anchoredPosition; position.y = _verticalScrollBeforeMove.Value; _content.anchoredPosition = position;
+            _verticalScrollBeforeMove = null; RefreshVirtualRows();
+        }
+        // 1.1.4 (user): Up from the first row went nowhere, so the controller could never reach the buttons above the
+        // list. Leave to the nearest control in the column headers / list tools (they lead on up to the page toolbar).
+        if(direction==MoveDirection.Up)
         {
-            var candidate=_virtualRows[next];ScrollToVirtualRow(candidate);
-            if(candidate.View==null || candidate.Layers!=null) { _layerFocus=(candidate,column,source.gameObject);return; }
-            var targets=candidate.View?.GetComponentsInChildren<Selectable>(false);
-            if(targets==null || targets.Length==0)continue;
-            int preferred=Mathf.Min(column,targets.Length-1);
-            for(int offset=0;offset<targets.Length;offset++)
-            {
-                var target=targets[(preferred+offset)%targets.Length];
-                if(!target.IsInteractable() || !target.IsActive())continue;
-                EventSystem.current?.SetSelectedGameObject(target.gameObject);return;
-            }
+            var above=_header.GetComponentsInChildren<Selectable>(false).Concat(_tools.GetComponentsInChildren<Selectable>(false))
+                .Where(s=>s.IsActive() && s.IsInteractable() && s.navigation.mode!=Navigation.Mode.None)
+                .OrderBy(s=>s.transform.IsChildOf(_header)?0:1).ThenBy(s=>Mathf.Abs(s.transform.position.x - (sourceObject != null ? sourceObject.transform.position.x : 0))).FirstOrDefault();
+            if(above!=null){_content.anchoredPosition=new Vector2(_content.anchoredPosition.x,0);RefreshVirtualRows();EventSystem.current?.SetSelectedGameObject(above.gameObject);}
         }
     }
 
@@ -321,6 +337,11 @@ internal sealed partial class OverviewListView
 internal sealed class OverviewVirtualMove : MonoBehaviour, IMoveHandler
 {
     internal Action<MoveDirection>? Move;
+    /// <summary>1.1.0: a left/right move from a row scrolled out of view returns to the view instead (true = handled).</summary>
+    internal Func<bool>? Sideways;
     public void OnMove(AxisEventData data)
-    { if(data.moveDir==MoveDirection.Up || data.moveDir==MoveDirection.Down) { Move?.Invoke(data.moveDir);data.Use(); } }
+    {
+        if(data.moveDir==MoveDirection.Up || data.moveDir==MoveDirection.Down) { Move?.Invoke(data.moveDir);data.Use(); }
+        else if(Sideways?.Invoke()==true) data.Use();
+    }
 }

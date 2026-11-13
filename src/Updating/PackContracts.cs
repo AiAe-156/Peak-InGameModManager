@@ -194,7 +194,7 @@ public static class PackEnvironmentPolicy
     {
         if (!TryNormalize(path, out string p)) return false;
         if (Under(p, "plugins") || Under(p, "patchers")) return environmentVersion == 1 || environmentVersion == 2;
-        if (environmentVersion == 2 && Under(p, "core")) return true;
+        if (environmentVersion == 2 && (Under(p, "core") || Under(p, "monomod"))) return true;
         return Under(p, "config") && (environmentVersion == 1 ? !LegacyGlobalConfig(p.Substring(7))
             : environmentVersion == 2 && !ManagementConfig(p.Substring(7)));
     }

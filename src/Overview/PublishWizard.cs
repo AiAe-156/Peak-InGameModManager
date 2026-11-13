@@ -32,7 +32,7 @@ internal sealed class PublishWizard
     internal void RequestLeavePreview(Action next) { if (_preview != null) _preview.RequestLeave(next); else next(); }
     internal bool TryClosePreviewLayer() => _preview?.TryCloseLayer() == true;
     private string Fingerprint() => JsonConvert.SerializeObject(new { _request.Mode, _request.Name, _request.DisplayName, _request.Version, _request.Description, _request.Website, _request.DefaultProfile, _request.Icon, _request.OutputDirectory, _drafts.Revision,
-        _request.Sign, _request.IncludeBootstrap, _request.LoaderDependency, _request.Profiles, _request.Languages, _request.Conflicts, _request.ExcludedExtras, Extras = _request.ExtraFiles.OrderBy(p => p), Configs = _request.ExtraConfigFiles.OrderBy(p => p), Inline = _request.InlineRoots.OrderBy(p => p), _request.Dependencies });
+        _request.Sign, _request.IncludeBootstrap, _request.NewcomerZip, _request.LoaderDependency, _request.Profiles, _request.Languages, _request.Conflicts, _request.ExcludedExtras, Extras = _request.ExtraFiles.OrderBy(p => p), Configs = _request.ExtraConfigFiles.OrderBy(p => p), Inline = _request.InlineRoots.OrderBy(p => p), _request.Dependencies });
     private static string T(string en, string zh) => Loc.T(en, zh, zh);
     /// <summary>2.3.9: the format button caps at 360 px; the full names stay in the title and the chooser.</summary>
     private static string ShortFormatLabel(PublishMode mode) => mode switch {
@@ -92,7 +92,7 @@ internal sealed class PublishWizard
     {
         if (_optionsHost != null) _host = _optionsHost;
         RectTransform? panel;
-        if (_host != null) { ClearHost(_host); panel = _host; }
+        if (_host != null) { PublicationNavigation.Preserve(_host); ClearHost(_host); panel = _host; }
         else panel = OverviewUi.CreateModalPanel("MCE_PublishWizard", 850, 650);
         if (panel == null) return;
         PublicationNavigation.Attach(panel);
@@ -137,6 +137,11 @@ internal sealed class PublishWizard
         if (PackPublisher.CompleteMode(_request.Mode))
         {
             Note(T("Complete packages always include independent BepInEx core. Game-root Doorstop remains a platform prerequisite.", "完整包始终包含独立 BepInEx core；游戏根 Doorstop 仍是平台前置条件。"));
+            if (_request.Mode == PublishMode.Local)
+            {
+                Check(Loc.T("Also make a newcomer ZIP (adds the BepInEx loader files and an install note; unzip into the PEAK folder)", "同时生成新手版压缩包（附带 BepInEx 加载文件和安装说明，解压到游戏目录即可）", "同時產生新手版壓縮檔（附帶 BepInEx 載入檔案和安裝說明，解壓到遊戲目錄即可）"), _request.NewcomerZip, value => _request.NewcomerZip = value);
+            }
+            Note(Loc.T("Values that look private (API keys, secrets, tokens, passwords, proxy credentials) are cleared in the packed configuration and listed in the README. Your own files are not changed.", "打包时会清空看起来像私人信息的配置值（API 密钥、Secret、Token、密码、代理账号），并写进 README；你自己的文件不变。", "打包時會清空看起來像私人資訊的設定值（API 金鑰、Secret、Token、密碼、代理帳號），並寫進 README；你自己的檔案不變。"));
             Note(PackPublisher.PublicationSourceLabel());
             var profile = _repo.Profiles.ListProfiles().First(p => p.id == _request.DefaultProfile);
             int configCount = PackPublisher.ProfileConfigFiles(profile.config).Count();
@@ -195,9 +200,13 @@ internal sealed class PublishWizard
     {
         var choices = PackPublisher.Extras().Where(p => _request.Mode != PublishMode.Thunderstore || p.Relative.StartsWith("BepInEx/core/") || p.Relative.StartsWith("BepInEx/patchers/") || p.Relative.StartsWith("BepInEx/monomod/")).ToList();
         if (PackPublisher.CompleteMode(_request.Mode)) choices.RemoveAll(p => p.Relative.StartsWith("BepInEx/core/") || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(p.Relative));
-        Multi(T("Additional files — unchecked patchers are explicitly excluded", "选择附加文件（未勾选的启动补丁将明确排除）"), choices, new HashSet<string>(_request.ExtraFiles, StringComparer.OrdinalIgnoreCase), selected => {
+        var initial = new HashSet<string>(_request.ExtraFiles, StringComparer.OrdinalIgnoreCase);
+        if (PackPublisher.CompleteMode(_request.Mode))
+            foreach (var choice in choices.Where(p => PublicationFilePolicy.StartupAttachment(p.Relative)
+                && !PublicationFilePolicy.ExcludedStartupAttachment(p.Relative, _request.ExcludedExtras.Keys))) initial.Add(choice.Relative);
+        Multi(Loc.T("Additional files — startup patches are included by default in complete packages", "选择附加文件（完整包默认包含启动补丁）", "選擇附加檔案（完整包預設包含啟動補丁）"), choices, initial, selected => {
             _request.ExtraFiles = selected;
-            foreach(var choice in choices.Where(p=>p.Relative.StartsWith("BepInEx/patchers/")||p.Relative.StartsWith("BepInEx/monomod/")))
+            foreach(var choice in choices.Where(p=>PublicationFilePolicy.StartupAttachment(p.Relative)))
                 if(selected.Contains(choice.Relative)) _request.ExcludedExtras.Remove(choice.Relative); else _request.ExcludedExtras[choice.Relative]=T("Author excluded after attachment review", "作者核对附带内容后排除");
             completed();
         });
@@ -276,9 +285,14 @@ internal sealed class PublishWizard
             await Task.Yield();
             string output = await PackPublisher.PublishAsync(_repo, frozen);
             if (panel == null) { Plugin.Log.LogInfo("[发布包] " + output); return; }
-            _status(T("Publication generated: ", "发布包已生成：") + output);
+            string report = output;
+            string newcomer = File.Exists(output) ? PackPublisher.NewcomerPath(output) : "";
+            if (newcomer.Length > 0 && File.Exists(newcomer)) report += "\n" + Loc.T("Newcomer ZIP: ", "新手版：", "新手版：") + newcomer;
+            if (PackPublisher.LastNewcomerNote.Length > 0) report += "\n" + PackPublisher.LastNewcomerNote;
+            if (PackPublisher.LastScrubbed.Count > 0) report += "\n" + Loc.F("Cleared {0} private-looking value(s) in the packed configuration (listed in the README).", "已清空打包配置里 {0} 处疑似私人信息（列在 README 里）。", "已清空打包設定裡 {0} 處疑似私人資訊（列在 README 裡）。", PackPublisher.LastScrubbed.Count);
+            _status(T("Publication generated: ", "发布包已生成：") + report);
             _baseline = builtFingerprint;
-            if (panel != null) ShowResult(T("Publication ready", "发布包已生成"), output, Directory.Exists(output) ? output : Path.GetDirectoryName(output));
+            if (panel != null) ShowResult(T("Publication ready", "发布包已生成"), report, Directory.Exists(output) ? output : Path.GetDirectoryName(output));
         }
         catch (Exception e) { if (panel != null) ShowFailure(e); else Plugin.Log.LogWarning("[发布包] " + e.Message); }
         finally { _busy = false; }

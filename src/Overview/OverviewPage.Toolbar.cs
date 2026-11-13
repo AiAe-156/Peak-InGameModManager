@@ -130,7 +130,9 @@ internal sealed partial class OverviewPage
         }
         for (int i = result.Separators.Count; i < _toolSeparators.Count; i++) _toolSeparators[i].gameObject.SetActive(false);
         _edit.GetComponentInChildren<OverviewIconGraphic>().color = OverviewUi.Ivory; UiActionStyle.Select(_hide, _repo.State.hideDisabled);
-        var navigation = _controls.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && s.IsInteractable()).OrderBy(s => s.transform.position.x).ToList();
+        // 1.1.5 (user: "the refresh icon next to Sources and updates cannot be focused"): collected by IsActive only.
+        // It was left out whenever it was briefly non-interactable (an automatic check running) and never linked back.
+        var navigation = _controls.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && (s.IsInteractable() || s == _sourceToolsRefreshButton)).OrderBy(s => s.transform.position.x).ToList();
         var bodyTargets = _body.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && s.IsInteractable()).ToList();
         var pageTabs = new[] { _back, _listTab.GetComponent<Button>(), _introTab.GetComponent<Button>(), _hotkeyTab.GetComponent<Button>() }.Where(s => s.IsActive() && s.IsInteractable()).ToList();
         for (int i = 0; i < navigation.Count; i++)

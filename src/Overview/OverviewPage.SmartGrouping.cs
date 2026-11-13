@@ -88,7 +88,8 @@ internal sealed partial class OverviewPage
         var expanded = new HashSet<string>(StringComparer.Ordinal);
         void Draw()
         {
-            for (int i = content.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(content.GetChild(i).gameObject);
+            PublicationNavigation.Preserve(content);
+            for (int i = content.childCount - 1; i >= 0; i--) { var old = content.GetChild(i).gameObject; old.SetActive(false); UnityEngine.Object.Destroy(old); }
             float width = Mathf.Max(200, viewport.rect.width), y = 0;
             var summary = OverviewUi.Text(content, Loc.F("{0} groups · {1} mod folders grouped", "{0} 个分组 · {1} 个模组文件夹归组", "{0} 個分組 · {1} 個模組資料夾歸組", proposal.Groups.Count, grouped), 14);
             summary.color = OverviewUi.Muted; OverviewUi.PlaceClipped(summary, 4, y, width - 8, 20); y += 26;
@@ -96,7 +97,7 @@ internal sealed partial class OverviewPage
             {
                 int depth = tree.Depth(group.id);
                 float indent = (depth - 1) * OverviewListView.GroupIndent;
-                var row = OverviewUi.Panel("Group", content, Color.Lerp(ModConfigLook.Surface(new Color(.1f, .11f, .12f, .95f)), Parse(group.color), depth <= 1 ? .14f : .09f));
+                var row = OverviewUi.Panel("Group_" + group.id, content, Color.Lerp(ModConfigLook.Surface(new Color(.1f, .11f, .12f, .95f)), Parse(group.color), depth <= 1 ? .14f : .09f));
                 float height = depth <= 1 ? 32 : 28;
                 float railX = 0;
                 int railLevel = 0; foreach (var level in tree.Chain(group.id)) { var rail = OverviewUi.Rail("Rail", row, Parse(level.color)); float rw = GroupRailShape.Width(OverviewListView.RailWidth, railLevel); var (ry, rh) = GroupRailShape.Vertical(0, height, railLevel); OverviewUi.Place(rail, railX, ry, rw, rh); railX += rw + OverviewListView.RailGap; railLevel++; }

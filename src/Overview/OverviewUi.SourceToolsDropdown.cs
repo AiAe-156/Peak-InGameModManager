@@ -48,6 +48,7 @@ internal static partial class OverviewUi
         panel.gameObject.AddComponent<OverviewTextClick>();
         panel.gameObject.AddComponent<DropdownFocusReturn>().Anchor = anchor;
         // This menu navigates by whole rows; each embedded checkbox shares its row's submit action.
+        PublicationNavigation.AttachBoundary(panel);
         var automaticNavigation = panel.GetComponent<PublicationNavigation>();
         if (automaticNavigation != null) automaticNavigation.enabled = false;
         var measure = Text(panel, "", 16);

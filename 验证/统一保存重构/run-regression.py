@@ -37,6 +37,9 @@ add('help-docs', 'help-docs-checks.log', [sys.executable, '-I', str(ROOT / '验�
 # 2.3.11: PEAK 3.1.0 decimal display for mod float settings.
 add('decimal-display', 'decimal-display-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/2.3.11小数显示/checks/Checks.csproj'), '-c', 'Release'])
 add('interop-structs', 'interop-structs-checks.log', [sys.executable, '-I', str(ROOT / '验证/2.4.3日志导出崩溃/interop_checks.py')])
+add('window-navigation', 'window-navigation-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/窗口导航重做/GridChecks/GridChecks.csproj'), '-c', 'Release'])
+add('reader-input', 'reader-input-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/窗口导航重做/ReaderChecks/ReaderChecks.csproj'), '-c', 'Release'])
+add('startup-publication', 'startup-publication-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/0.0.1发布/StartupChecks/StartupChecks.csproj'), '-c', 'Release'])
 results = []
 for name, log, args in steps:
     with log.open('w', encoding='utf-8') as output:

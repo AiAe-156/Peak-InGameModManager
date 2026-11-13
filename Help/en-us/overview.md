@@ -4,7 +4,7 @@
 
 In-Game Mod Manager (IGMM) puts the mod list, enhanced settings pages, hotkeys, translation, store updates and modpack tools in one place. If this is your first time, read "Three-minute start" and "Interface legend" below, and look up unfamiliar words in the glossary.
 
-**Jump to**　[Three-minute start](#start) · [How a change takes effect](#flow) · [Interface legend](#legend) · [Glossary](#glossary) · [Safety rules](#safety) · [Chapters](#chapters)
+**Jump to**　[Three-minute start](#start) · [How a change takes effect](#flow) · [Interface legend](#legend) · [Glossary](#glossary) · [Using a controller](#gamepad) · [Safety rules](#safety) · [Chapters](#chapters)
 
 ---
 
@@ -73,6 +73,25 @@ Each marker has a **fixed slot**, so the same kind lines up on every row. Hover 
 - **Base component**: a shared library in BepInEx's core or patchers folders, listed separately at the top of the overview.
 - **BepInEx**: the framework that loads mods. `plugins` holds normal mods; `core` and `patchers` hold the loader and startup patches.
 - **Update helper**: the separate program that installs, updates and uninstalls. It appears only when there is work, shows a foreground window, and exits when done.
+
+## Using a controller {#gamepad}
+
+The controller follows the game's own buttons: **A** confirms, **B** goes back, the D-pad or left stick moves, **LB / RB** switch tabs (mod list, introduction, keybindings; inside the management center and the update queue they switch those pages), Start pauses. With a controller, the bottom of the screen shows the buttons you can press now; **View** hides or shows them.
+
+- **Every cell can be selected on its own:** the enable box, name, gear, home, folder and version are separate cells. A does what the selected cell does.
+- **Name cell:** when selected, two cards appear side by side: dependencies on the left, this row's status chips explained on the right. **A** opens this row's menu: change mod information, view dependencies, version and update, plus the chips' actions (view changes and mark as read, compatibility advice, go to the outer mod). The chips themselves are not selected.
+- **Y:** opens this row's menu from any cell (instead of a double-click or right-click).
+- **Right stick:** scrolls only; the focus stays where it is. If the focus has scrolled out of view, the next direction press brings it back into view.
+- **Hold RT:** ↑↓ jump to the previous / next group, ←→ page; **RT + Y** opens the group's menu; **RT + L3** folds or unfolds all groups.
+- **L3** folds or unfolds the current group, **R3** jumps to the search box. **Y** on a group heading opens its menu.
+- **Description cell:** when selected it shows the full description; A lets you edit it.
+- If the focus has disappeared (after using the mouse, or back from the settings page), one direction press or A brings it back.
+- **Text fields:** select one and press A to start typing. In Steam Big Picture and on Steam Deck, A opens the Steam on-screen keyboard; in normal desktop mode you need a keyboard.
+- **Long text areas** (store descriptions, logs, help and introductions): directions move focus away until you press **A** to lock browsing. An orange ring marks browsing; **B** unlocks without leaving the page. While locked, the D-pad scrolls in steps three times as large; stick speeds are unchanged. In documents with links, A again opens the link menu. Long dialog/report text uses the same reading lock; the issue report can also scroll sideways.
+
+**Keybindings and controller combos:** each row has a "Keyboard" and a "Controller" column, with keys drawn as rounded key chips. Keys recorded on this tab take effect at once; there is no separate save. With a controller only the controller column can be recorded; with keyboard and mouse only the keyboard column. An empty controller cell says "Not set": press A on it, then press a controller button, and in game that button presses the mod's key (for a mod with its own controller setting, a single button is written into that setting). While recording, tap B to record B, hold B for a second to cancel. With a controller, the "Mod default" and "Profile preset" columns show controller keys, and profiles can record controller keys too. At the top you can pick one **controller modifier** (None, LT, RT, LB, RB, Back, Start, RS, LS; default Back). Hold it while recording to get "modifier + key" (the second key then no longer does its normal game action); press a button alone for a single-button binding (the game still does its normal action). All combos share the one modifier: changing it changes them all; a button belongs to one hotkey; remove a combo from the Y menu. Combos are stored on this PC only. "Duplicate" checks include the game's own controls: "← Duplicate" for controller-side clashes, "Duplicate →" for keyboard-side ones. **LT + RB** expands all groups, **LT + LB** collapses them (on the mod list too).
+
+Author-mode multi-select, drag-to-reorder and dragging into groups, and anything after opening a folder, still need a keyboard and mouse. The manager does not use LT (peakReconnect reconnects on LT outside a lobby), View + RT or LB + RB (used by Item Spawner Enhanced and the piggyback mods).
 
 ## Safety rules {#safety}
 

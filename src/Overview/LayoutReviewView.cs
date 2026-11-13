@@ -130,7 +130,8 @@ internal sealed class LayoutReviewView
 
     private void Rebuild()
     {
-        for (int i = _content.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(_content.GetChild(i).gameObject);
+        PublicationNavigation.Preserve(_host);
+        for (int i = _content.childCount - 1; i >= 0; i--) { var old = _content.GetChild(i).gameObject; old.SetActive(false); UnityEngine.Object.Destroy(old); }
         foreach (var (button, filter) in _filters) UiActionStyle.Set(button, filter == _filter ? UiActionRole.Edit : UiActionRole.Neutral);
         float width = _content.rect.width > 10 ? _content.rect.width : ((RectTransform)_scroll.transform).rect.width - 14;
         float y = 0;
@@ -161,7 +162,7 @@ internal sealed class LayoutReviewView
         float left = (depth - 1) * CardIndent, cardWidth = width - left;
         bool open = !_folded.Contains(section.Key) || _filter != Filter.All;
         Color accent = section.Stays ? SkipColor : section.EmptyFolders ? OverviewUi.Muted : section.Ungrouped ? UngroupedColor : OverviewUi.Gold;
-        var card = OverviewUi.Panel("Section", _content, depth <= 1 ? CardColor : new Color(CardColor.r + .02f, CardColor.g + .02f, CardColor.b + .02f, CardColor.a));
+        var card = OverviewUi.Panel("Section_" + section.Key, _content, depth <= 1 ? CardColor : new Color(CardColor.r + .02f, CardColor.g + .02f, CardColor.b + .02f, CardColor.a));
         for (int level = 0; level < depth; level++)
         {
             var bar = OverviewUi.Panel("Accent", card, level == depth - 1 ? accent : new Color(accent.r, accent.g, accent.b, .45f));

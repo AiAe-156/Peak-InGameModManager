@@ -97,6 +97,7 @@ internal sealed partial class OverviewPage
             packHost.gameObject.SetActive(!individual); modHost.gameObject.SetActive(individual);
             if (packButton != null) UiActionStyle.Select(packButton, !individual);
             if (modButton != null) UiActionStyle.Select(modButton, individual);
+            PublicationNavigation.Invalidate(host); // 1.1.5 (focus review IN1): the shown half joins the chain
         }
         packButton = OverviewUi.Button(host, T("Modpack information", "整合包信息"), () => SelectInformation(false), 180, 34, UiActionRole.Neutral);
         modButton = OverviewUi.Button(host, T("Individual mod", "单个模组"), () => SelectInformation(true), 150, 34, UiActionRole.Neutral);

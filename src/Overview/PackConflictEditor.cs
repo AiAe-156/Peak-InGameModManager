@@ -41,6 +41,7 @@ internal sealed class PackConflictEditor
     }
     private void Draw()
     {
+        PublicationNavigation.Preserve(_panel);
         Clear(_panel); _selectedCaption = null;
         float width = _panel.rect.width, height = _panel.rect.height;
         var heading = OverviewUi.Text(_panel, _choosing ? T("Add a conflict member", "添加冲突成员", "新增衝突成員") : T("Modpack conflict presets", "整合包冲突预设", "整合包衝突預設"), 26);
@@ -80,6 +81,7 @@ internal sealed class PackConflictEditor
         {
             var current = rule;
             var button = OverviewUi.Button(rows, "", () => { _selected = current.id; _error = ""; Draw(); }, rowWidth, 60, current.id == _selected ? UiActionRole.Edit : UiActionRole.Neutral);
+            button.name = "Rule_" + current.id;
             OverviewUi.Place((RectTransform)button.transform, 0, y, rowWidth, 60);
             float inset = Mathf.Clamp(rowWidth * .1f, 16, 26);
             var title = Label(button.transform, RuleTitle(current), 17, OverviewUi.Ivory); OverviewUi.PlaceClipped(title, inset, 4, rowWidth - inset * 2, 29);

@@ -11,6 +11,24 @@ namespace ModConfigEnhance.Overview;
 // are copied separately so a referenced screenshot or video is retained.
 internal static class PublicationFilePolicy
 {
+    internal static bool StartupAttachment(string relative)
+    {
+        string path = relative.Replace('\\', '/');
+        return path.StartsWith("BepInEx/patchers/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("BepInEx/monomod/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool ExcludedStartupAttachment(string relative, IEnumerable<string> excluded)
+    {
+        string path = relative.Replace('\\', '/');
+        if (!StartupAttachment(path)) return false;
+        return excluded.Any(item => {
+            string root = item.Replace('\\', '/').TrimEnd('/');
+            return path.Equals(root, StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
     internal static bool ProfileConfigPath(string relative)
     {
         string path = relative.Replace('\\', '/');

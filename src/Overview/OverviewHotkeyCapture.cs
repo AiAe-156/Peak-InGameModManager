@@ -12,6 +12,8 @@ namespace ModConfigEnhance.Overview;
 internal sealed class OverviewHotkeyCapture : MonoBehaviour
 {
     public static int ConsumedCancelFrame { get; private set; } = -1;
+    /// <summary>1.1.3: the controller combo recorder also consumes B / Start this frame.</summary>
+    internal static void MarkConsumed() => ConsumedCancelFrame = UnityEngine.Time.frameCount;
     public bool IsCapturing => _entry != null;
     private OverviewHotkeyEntry? _entry;
     private Action<object>? _accept;
@@ -31,6 +33,7 @@ internal sealed class OverviewHotkeyCapture : MonoBehaviour
         _released = false; _beginFrame = Time.frameCount; _held = null; _heldSeconds = 0; _modifier = null;
         _legacyHeld = ""; _legacySeconds = 0;
         _initialHeld.Clear(); foreach (var button in Buttons()) if (button.isPressed) _initialHeld.Add(button);
+        GamepadIntent.ReleaseAll(); // never save the right stick's temporary "paused" state as the value to restore
         _eventSystem = EventSystem.current;
         if (_eventSystem != null) { _navigationEnabled = _eventSystem.sendNavigationEvents; _eventSystem.sendNavigationEvents = false; }
     }

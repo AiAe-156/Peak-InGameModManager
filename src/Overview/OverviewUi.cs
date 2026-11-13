@@ -36,13 +36,25 @@ internal static partial class OverviewUi
     internal static bool HasDialog => _modal != null || _confirmation != null;
     internal static bool HasModal => ManagementOpen || _modal != null || _confirmation != null;
     internal static void SetModalDirtyCheck(Func<bool>? check) => _isModalDirty = check;
+    /// <summary>1.1.0: the topmost open dialog (confirmation over modal), for gamepad scrolling.</summary>
+    internal static GameObject? TopLayer => _confirmation != null ? _confirmation : _modal;
+    /// <summary>Put the focus on a text field. With a mouse it starts typing at once (as before); on a gamepad it is only
+    /// selected, and A starts typing (or opens the Steam keyboard), matching the settings page.</summary>
+    internal static void FocusInput(TMP_InputField field)
+    {
+        if (GamepadSupport.IsGamepad) GamepadSupport.MarkSelectable(field.gameObject, null, null); // select-only + A to type / Steam keyboard
+        EventSystem.current?.SetSelectedGameObject(field.gameObject);
+        if (!GamepadSupport.IsGamepad) field.ActivateInputField();
+    }
     internal static void SetModalCloseHandler(Action? handler) => _modalCloseHandler = handler;
+    private static GameObject? _modalOpener;
 
     internal static RectTransform Rect(string name, Transform parent)
     {
         var go = new GameObject(name, typeof(RectTransform)); go.transform.SetParent(parent, false);
         var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
-        if (parent.gameObject == _modal || parent.gameObject == _confirmation) PublicationNavigation.Attach(rect);
+        if (parent.gameObject == _modal || parent.gameObject == _confirmation) PublicationNavigation.AttachBoundary(rect);
+        else PublicationNavigation.Invalidate(parent);
         return rect;
     }
     internal static RectTransform Panel(string name, Transform parent, Color color)
@@ -123,11 +135,18 @@ internal static partial class OverviewUi
     {
         var peak = MenuAPI.CreateMenuButton(label).ParentTo(parent).SetColor(ModConfigLook.Surface(new Color(.29f, .23f, .16f)));
         var button = peak.Button;
+        if (button.navigation.mode == Navigation.Mode.None) button.navigation = new Navigation { mode = Navigation.Mode.Automatic };
         UiActionStyle.Set(button, role);
         ModConfigPaperStyle.ApplyWobble(peak.Panel);
         // Replace the event container: RemoveAllListeners alone leaves persistent prefab callbacks intact.
         button.onClick = new Button.ButtonClickedEvent(); button.onClick.AddListener(() => Run(action));
         foreach (var localized in peak.GetComponentsInChildren<LocalizedText>(true)) UnityEngine.Object.Destroy(localized);
+        // 1.1.4 (user: first list load sounds wrong, the intro page is the right crisp click): every button from the game
+        // template carries "SFX Appear", which plays when the button is enabled. A list builds dozens at once and their
+        // appear sounds pile up over the row fade-in sound. Manager buttons stay silent on appear; hover and click keep theirs.
+        // OnEnable already started its delayed Play when the template was instantiated; changing the flag is too late.
+        foreach (var sfx in peak.GetComponentsInChildren<SFX_PlayOneShot>(true))
+            if (sfx.gameObject.name.IndexOf("Appear", StringComparison.OrdinalIgnoreCase) >= 0) { sfx.StopAllCoroutines(); sfx.enabled = false; UnityEngine.Object.Destroy(sfx); }
         Place(peak.RectTransform, 0, 0, width, height);
         OverviewButtonLayout.CenterPivot(peak.RectTransform);
         ModConfigSidebarWidgets.FitBorders(peak);
@@ -146,6 +165,7 @@ internal static partial class OverviewUi
             caption.text = label; caption.alpha = 1; Loc.BindInline(caption);
         }
         AnimatorRestGate.Attach(button);
+        PublicationNavigation.Invalidate(parent);
         return button;
     }
     internal static Button IconButton(Transform parent, string icon, Action action, float width = 32, float height = 32)
@@ -286,13 +306,18 @@ internal static partial class OverviewUi
         }, 130, 36, role);
         var cancel = Button(buttonArea, Loc.T("Cancel", "取消", "取消"), RequestCloseModal, 130, 36);
         Bottom((RectTransform)save.transform, 20, 18); Bottom((RectTransform)cancel.transform, 160, 18);
-        var first = inputs.Find(f => f.gameObject.activeSelf); if (first != null) { EventSystem.current?.SetSelectedGameObject(first.gameObject); first.ActivateInputField(); }
+        var first = inputs.Find(f => f.gameObject.activeSelf); if (first != null) FocusInput(first);
     }
     internal static void Confirm(string title, Action confirmed, UiActionRole role = UiActionRole.Commit) => Ask(title, Array.Empty<(string, string)>(), confirmedValues => confirmed(), role);
     internal static RectTransform? CreateModalPanel(string name, float width, float height)
     {
+        // A dialog replacing another keeps the first opener (the one outside every dialog), not a button of the old dialog.
+        var opener = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        if (_modal != null && opener != null && opener.transform.IsChildOf(_modal.transform)) opener = _modalOpener;
+        var keep = opener; _modalOpener = null;
         CloseModal(); if (ModalParent == null) return null;
         var shade = Panel(name, ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .72f))); Fill(shade); shade.SetAsLastSibling(); _modal = shade.gameObject;
+        _modalOpener = keep;
         var panel = Panel("Window", shade, Brown); panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(.5f, .5f);
         panel.anchoredPosition = Vector2.zero; panel.sizeDelta = new Vector2(Mathf.Min(width, Mathf.Max(380, ((RectTransform)ModalParent).rect.width - 60)), Mathf.Min(height, Mathf.Max(320, ((RectTransform)ModalParent).rect.height - 60)));
         return panel;
@@ -323,7 +348,7 @@ internal static partial class OverviewUi
     }
     internal static void Choose(string title, IReadOnlyList<(string Label, string Value)> options, string current, Action<string> chosen, Func<string, UiActionRole>? role = null)
     {
-        if (options.Count <= 16 && UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject?.transform is RectTransform selectedAnchor)
+        if (options.Count <= 16 && UnityEngine.EventSystems.EventSystem.current is UnityEngine.EventSystems.EventSystem eventSystem && eventSystem.currentSelectedGameObject != null && eventSystem.currentSelectedGameObject.transform is RectTransform selectedAnchor)
         {
             CompactDropdown(selectedAnchor, title, options.Select(item => new UiMenuEntry {
                 Label = item.Label, Checked = item.Value == current, Role = role?.Invoke(item.Value) ?? UiActionRole.Edit,
@@ -450,6 +475,7 @@ internal static partial class OverviewUi
     /// <summary>Consumes one back request. A dirty form stays alive underneath its discard confirmation.</summary>
     internal static bool TryCloseTopModal()
     {
+        if (GamepadSupport.BackSwallowed || ControllerReadingSurface.ConsumeBack()) return true;
         if (WindowPopover.TryCloseTop()) return true;
         if (_confirmation != null) { CloseConfirmation(true); return true; }
         if (_modal == null) return false;
@@ -520,7 +546,7 @@ internal static partial class OverviewUi
         if (selection != null && selection.activeInHierarchy)
         {
             EventSystem.current?.SetSelectedGameObject(selection);
-            selection.GetComponent<TMP_InputField>()?.ActivateInputField();
+            if (selection.GetComponent<TMP_InputField>() is TMP_InputField field) FocusInput(field);
         }
         stay?.Invoke();
     }
@@ -529,8 +555,12 @@ internal static partial class OverviewUi
     internal static void CloseModal()
     {
         CloseConfirmation(false);
+        bool hadModal = _modal != null;
         if (_modal != null) { _modal.SetActive(false); UnityEngine.Object.Destroy(_modal); }
         _modal = null; _isModalDirty = null; _modalCloseHandler = null;
+        // 1.1.4 (gamepad review): the focus went nowhere after a dialog closed; give it back to the button that opened it.
+        var opener = _modalOpener; _modalOpener = null;
+        if (hadModal && opener != null && opener.activeInHierarchy && GamepadSupport.IsGamepad) EventSystem.current?.SetSelectedGameObject(opener);
     }
     internal static void Bottom(RectTransform rect, float x, float y) { rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero; rect.anchoredPosition = new Vector2(x, y); }
     private static void Run(Action action) { try { action(); } catch (Exception ex) { Plugin.Log.LogError("[模组概览] 操作失败：" + ex); } }

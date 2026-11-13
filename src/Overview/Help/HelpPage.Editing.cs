@@ -121,10 +121,7 @@ internal sealed partial class HelpPage
             else if (_pendingOffset.HasValue) _editorView.ScrollOffset = _pendingOffset.Value;
             if (--_settleFrames == 0) { _pendingAnchor = null; _pendingOffset = null; }
         }
-        if (!OverviewUi.HasModal && GamepadSupport.IsGamepad && UnityEngine.InputSystem.Gamepad.current != null)
-        {
-            float stick = UnityEngine.InputSystem.Gamepad.current.rightStick.ReadValue().y;
-            if (Mathf.Abs(stick) > .15f) _editorView.ScrollOffset -= stick * 650 * Time.unscaledDeltaTime;
-        }
+        GamepadIntent.HoldNavigation(this, !OverviewUi.HasModal && GamepadIntent.RightStickHeld);
+        if (!OverviewUi.HasModal && GamepadIntent.ScrollY != 0) _editorView.ScrollOffset -= GamepadIntent.ScrollY * GamepadIntent.ScrollSpeed(650) * Time.unscaledDeltaTime;
     }
 }

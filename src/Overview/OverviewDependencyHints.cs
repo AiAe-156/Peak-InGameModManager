@@ -95,6 +95,18 @@ internal sealed partial class OverviewDependencyHints : IDisposable
         _driver = driverObject.AddComponent<OverviewDependencyDriver>(); _driver.Tick = Update;
         _card.gameObject.SetActive(false);
     }
+    /// <summary>1.1.0: the gamepad chip card sits to the right of this card (same parent, top-left anchored).</summary>
+    internal bool CardBox(GameObject source, out Vector2 topLeft, out Vector2 size)
+    {
+        topLeft = new Vector2(_card.anchoredPosition.x, -_card.anchoredPosition.y); size = _card.rect.size;
+        return _card.gameObject.activeSelf && _source == source;
+    }
+    /// <summary>1.1.0: focus (gamepad) places the card under the focused name instead of on top of it.</summary>
+    private Vector2 FocusScreenPoint(GameObject target)
+    {
+        ((RectTransform)target.transform).GetWorldCorners(_corners);
+        return RectTransformUtility.WorldToScreenPoint(Camera, _corners[0]);
+    }
     internal void Reload() { HideNow(); _layouts.Clear(); SharedRelationshipSnapshot.InvalidateDisplay(); _graph = SharedRelationshipSnapshot.Get(_mods(), Array.Empty<InfrastructureOverviewModel>(), SourceUi.DisplayDependencyGraph); _bindings.RemoveAll(b => b == null); }
     internal void Bind(GameObject target, OverviewMod mod) => Bind(target, _ => Lines(mod), "mod:" + mod.Id + "\n" + mod.PackageRoot);
     // Component rows provide content without inventing a plugin GUID or profile target.
@@ -124,7 +136,7 @@ internal sealed partial class OverviewDependencyHints : IDisposable
         _card.gameObject.SetActive(true); _card.SetAsLastSibling();
         
         RefreshCard(content, true);
-        if (selected) Position(RectTransformUtility.WorldToScreenPoint(Camera, target.transform.position)); else Position(Pointer);
+        if (selected) Position(FocusScreenPoint(target)); else Position(Pointer);
     }
     private bool RefreshCard(Func<bool,List<string>> content, bool deferred = false)
     {
@@ -169,7 +181,7 @@ internal sealed partial class OverviewDependencyHints : IDisposable
         yield return null;
         var steps=LayoutSteps(lines,result=> { if(Current()) { _layouts.Set(key,result);ApplyLayout(result); } });
         while(Current() && steps.MoveNext())yield return null;
-        if(Current()) { _layoutJob=null;Position(_fixed?_positionAnchor:_selected&&_source!=null?RectTransformUtility.WorldToScreenPoint(Camera,_source.transform.position):Pointer); }
+        if(Current()) { _layoutJob=null;Position(_fixed?_positionAnchor:_selected&&_source!=null?FocusScreenPoint(_source):Pointer); }
     }
     private void CancelLayout()
     {

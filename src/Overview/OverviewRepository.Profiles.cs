@@ -31,7 +31,31 @@ internal sealed partial class OverviewRepository
     public string ViewedProfileId => _appliedView ? Profiles.AppliedId : Profiles.ViewedId;
     private string ProfileRuntimeDirectory => _profiles?.RuntimeDirectory ?? PackLibrary.RuntimeRoot;
     public OverviewProfile ViewedProfile => _appliedView ? Profiles.Applied : Profiles.Viewed;
-    public bool IsProfileDirty => !_appliedView && _savedDraftSignature != DraftSignature(State, _draftConfig, _draftMods);
+    public bool IsProfileDirty { get { if (_appliedView) return false; MergeEditedRules(); return _savedDraftSignature != DraftSignature(State, _draftConfig, _draftMods); } }
+    /// <summary>1.1.4 diagnosis (user: an unsaved prompt on the first switch to the introduction): which part differs
+    /// from the saved baseline. Logged once per prompt; parts are compared separately.</summary>
+    internal string DirtyParts()
+    {
+        if (_appliedView) return "applied-view";
+        var parts = new List<string>();
+        var saved = _savedDraftProfile;
+        if (saved?.state == null || saved.config == null || saved.mods == null) return "no-baseline";
+        string Sig(OverviewState s, OverviewConfigSnapshot c, IEnumerable<OverviewProfileMod> m) => DraftSignature(s, c, m);
+        if (Sig(State, saved.config, saved.mods) != Sig(saved.state, saved.config, saved.mods))
+        {
+            if (Newtonsoft.Json.JsonConvert.SerializeObject(State.pack) != Newtonsoft.Json.JsonConvert.SerializeObject(saved.state.pack)) parts.Add("pack");
+            if (Newtonsoft.Json.JsonConvert.SerializeObject(State.groups.OrderBy(g => g.id)) != Newtonsoft.Json.JsonConvert.SerializeObject(saved.state.groups.OrderBy(g => g.id))) parts.Add("groups");
+            if (parts.Count == 0) parts.Add("mod-rules");
+        }
+        if (Sig(saved.state, _draftConfig, saved.mods) != Sig(saved.state, saved.config, saved.mods))
+        {
+            var before = saved.config.values.ToDictionary(v => v.Identity, v => v.serializedValue);
+            var changed = _draftConfig.values.Where(v => !before.TryGetValue(v.Identity, out var old) || old != v.serializedValue).Select(v => v.section + "/" + v.key).Take(5).ToList();
+            parts.Add("parameters(" + _draftConfig.values.Count + " vs " + saved.config.values.Count + (changed.Count > 0 ? ": " + string.Join(", ", changed) : "") + ")");
+        }
+        if (Sig(saved.state, saved.config, _draftMods) != Sig(saved.state, saved.config, saved.mods)) parts.Add("enablement");
+        return parts.Count == 0 ? "none" : string.Join("; ", parts);
+    }
     private string _authorComparisonId = "", _authorBaselineSignature = "";
     private bool _authorModified;
     private float _authorComparisonUntil;
@@ -339,6 +363,31 @@ internal sealed partial class OverviewRepository
         return full.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? full.Substring(prefix.Length).Replace('\\', '/') : "";
     }
 
+    /// <summary>1.1.4: the settings page writes values directly. Mirror the live value into the viewed profile's working
+    /// copy and its saved baseline (memory only), so the overview neither shows it as unsaved nor reverts it on a later
+    /// save. Only for parameters the profile already records; nothing is written to disk here.</summary>
+    /// <summary>The draft identity of one config entry (same form as <see cref="OverviewConfigValue.Identity"/>).</summary>
+    internal string ConfigIdentity(string guid, ConfigEntryBase entry)
+        => new OverviewConfigValue { pluginGuid = guid, configFile = RelativeConfig(entry.ConfigFile.ConfigFilePath), section = entry.Definition.Section, key = entry.Definition.Key }.Identity;
+    internal void FollowLiveValue(string guid, ConfigEntryBase entry)
+    {
+        if (_appliedView || guid == Plugin.PluginGuid || ViewedProfileId != Profiles.AppliedId) return; // a previewed profile is not the live one
+        string file = RelativeConfig(entry.ConfigFile.ConfigFilePath); if (file.Length == 0) return;
+        string live = entry.GetSerializedValue();
+        void Update(OverviewConfigSnapshot? snapshot)
+        {
+            if (snapshot?.values == null) return;
+            foreach (var value in snapshot.values)
+                if (value.pluginGuid.Equals(guid, StringComparison.OrdinalIgnoreCase) && value.configFile.Replace('\\', '/').Equals(file.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase)
+                    && value.section == entry.Definition.Section && value.key == entry.Definition.Key) value.serializedValue = live;
+        }
+        bool wasClean = !IsProfileDirty;
+        Update(_draftConfig); Update(_savedDraftProfile.config); Update(_editingRuntimeBaseline);
+        // The saved baseline holds the live value too: recompute its signature from the baseline itself, so undoing
+        // other edits later still reads as clean (review #7).
+        _savedDraftSignature = wasClean ? DraftSignature(State, _draftConfig, _draftMods) : DraftSignature(_savedDraftProfile.state, _savedDraftProfile.config, _savedDraftProfile.mods);
+        InvalidatePendingView();
+    }
     public bool SetDraftConfig(string guid, ConfigEntryBase entry, string serialized, out string error)
     {
         var key = new OverviewConfigValue
@@ -355,7 +404,7 @@ internal sealed partial class OverviewRepository
         if (!Configs.TryValidateDraft(key, value, out string normalized, out error)) return false;
         EnsureEditableProfile();
         bool success = Configs.TryEditDraft(_draftConfig, key, normalized, out error);
-        if (success) PersistRecoveryDraft();
+        if (success) PersistRecoveryDraftSoon(); // 1.1.4: one write after a slider drag, not one per frame
         return success;
     }
 
@@ -410,16 +459,14 @@ internal sealed partial class OverviewRepository
     public IReadOnlyList<OverviewConfigDiff> ParameterDifferences() => Configs.Diff(_draftConfig, Configs.Capture());
     public bool HasCurrentParameterChanges => ParameterDifferences().Any(d => d.Kind == OverviewConfigDiffKind.Changed);
 
-    public string ProfileSummary(IReadOnlyList<OverviewMod> mods)
+    // Shown the moment the toolbar button is focused, so it only formats counts the page already holds.
+    // A full ParameterDifferences() here re-captured every config file on each focus change.
+    public string ProfileSummary(ProfilePendingState pending)
     {
-        var pending = GetPendingState();
-        var diff = ParameterDifferences();
-        int fresh = diff.Count(d => d.Kind == OverviewConfigDiffKind.CurrentOnlyNotRecorded);
-        int missing = diff.Count(d => d.Kind == OverviewConfigDiffKind.ProfileOnlyMissing);
-        return Loc.F("Editing: {0}\nIn use: {1}\n{2} unsaved; {3} next-round; {4} game-restart.\n{5} unrecorded parameters keep current values; {6} absent mod records retained.\nSave writes changes; each mod determines when they take effect.",
-            "正在编辑：{0}\n当前使用：{1}\n{2} 项未保存；{3} 项重新开局生效；{4} 项重启游戏生效。\n{5} 项未记录参数沿用当前值；{6} 项缺失模组记录保留。\n保存后写入，各项按模组声明的时机生效。",
-            "正在編輯：{0}\n目前使用：{1}\n{2} 項未儲存；{3} 項重新開局生效；{4} 項重新啟動遊戲生效。\n{5} 項未記錄參數沿用目前值；{6} 項缺失模組記錄保留。\n儲存後寫入，各項依模組宣告的時機生效。",
-            ViewedProfile.name, AppliedProfileName, pending.UnsavedCount, pending.RoundRestartCount, pending.RestartCount, fresh, missing);
+        return Loc.F("Editing: {0}\nIn use: {1}\n{2} unsaved; {3} next-round; {4} game-restart.\nSave writes changes; each mod determines when they take effect.",
+            "正在编辑：{0}\n当前使用：{1}\n{2} 项未保存；{3} 项重新开局生效；{4} 项重启游戏生效。\n保存后写入，各项按模组声明的时机生效。",
+            "正在編輯：{0}\n目前使用：{1}\n{2} 項未儲存；{3} 項重新開局生效；{4} 項重新啟動遊戲生效。\n儲存後寫入，各項依模組宣告的時機生效。",
+            ViewedProfile.name, AppliedProfileName, pending.UnsavedCount, pending.RoundRestartCount, pending.RestartCount);
     }
 
     public OverviewToggleResult ApplyViewedProfile(IReadOnlyList<OverviewMod> mods, bool mainMenu, bool skipEnablement = false)
@@ -451,6 +498,8 @@ internal sealed partial class OverviewRepository
     {
         // Export reads committed content. Browsing/exporting must never commit unrelated drafts.
         var profiles = Profiles.ListProfiles().Select(Clone).ToList();
+        // 1.1.4: private-looking values never leave in a profile snapshot (clones only; stored profiles are untouched).
+        foreach (var profile in profiles) PublicationScrub.ScrubSnapshot(profile.config);
         var information = PackWorkspaceInformation.Read(Profiles.RootDirectory);
         if (information != null)
             foreach (var profile in profiles)

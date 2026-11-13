@@ -30,6 +30,7 @@ internal sealed class OverviewManagementCenter : IDisposable
     private readonly CanvasGroup _canvas;
     internal ManagementTab Current { get; private set; }
     internal bool IsOpen => _root != null && _root.gameObject.activeInHierarchy;
+    internal Transform Root => _root;
     internal bool HasDirty => _dirty.Values.Any(check => check());
     internal RectTransform? Host(ManagementTab tab) => _pages.TryGetValue(tab, out var host) ? host : null;
     internal void SetDirty(ManagementTab tab, Func<bool> check) => _dirty[tab] = check;
@@ -79,6 +80,14 @@ internal sealed class OverviewManagementCenter : IDisposable
         PublicationNavigation.Attach(_panel);
     }
 
+    /// <summary>1.1.0: LB / RB on a gamepad steps through the tabs (Updates opens the queue, so it is skipped).</summary>
+    internal void StepTab(int step)
+    {
+        var order = _tabs.Keys.Where(t => t != ManagementTab.Updates && _tabs[t].gameObject.activeInHierarchy && _tabs[t].IsInteractable()).OrderBy(t => (int)t).ToList();
+        if (order.Count == 0) return;
+        int index = order.IndexOf(Current);
+        Show(order[((index < 0 ? 0 : index) + step + order.Count) % order.Count]);
+    }
     internal void Show(ManagementTab tab)
     {
         if (tab == ManagementTab.Updates) { _updates(); return; }
@@ -107,32 +116,14 @@ internal sealed class OverviewManagementCenter : IDisposable
     {
         if (_pages.TryGetValue(tab, out var host))
         {
-            var selected = EventSystem.current?.currentSelectedGameObject;
-            bool restoreFocus = selected != null && selected.transform.IsChildOf(host);
-            var focusText = restoreFocus ? selected!.GetComponentInChildren<TMP_Text>(true)?.text : null;
-            Vector3 focusPosition = restoreFocus ? selected!.transform.position : Vector3.zero;
-            var scrolls = host.GetComponentsInChildren<ScrollRect>(true).Select(s => (Path: RelativeUiPath(host, s.transform), Position: s.content?.anchoredPosition ?? Vector2.zero)).ToList();
+            PublicationNavigation.Preserve(host);
             foreach (Transform child in host)
             {
                 if (detailOnly && tab == ManagementTab.Packs && child.name != "PackDetail") continue;
                 child.gameObject.SetActive(false); child.name = "Retired_" + child.name; UnityEngine.Object.Destroy(child.gameObject);
             }
             _dirty.Remove(tab); _leave.Remove(tab); _build(tab, host);
-            if (tab == ManagementTab.Packs)
-            {
-                foreach (var scroll in host.GetComponentsInChildren<ScrollRect>(false))
-                {
-                    var old = scrolls.FirstOrDefault(s => s.Path == RelativeUiPath(host, scroll.transform));
-                    if (old.Path != null && scroll.content != null) scroll.content.anchoredPosition = old.Position;
-                }
-                if (restoreFocus && (selected == null || !selected.activeInHierarchy))
-                {
-                    var choices = host.GetComponentsInChildren<Selectable>(false).Where(s => s.IsInteractable()).ToList();
-                    var next = choices.Where(s => s.GetComponentInChildren<TMP_Text>(true)?.text == focusText).OrderBy(s => Vector3.SqrMagnitude(s.transform.position - focusPosition)).FirstOrDefault()
-                        ?? choices.OrderBy(s => Vector3.SqrMagnitude(s.transform.position - focusPosition)).FirstOrDefault();
-                    EventSystem.current?.SetSelectedGameObject(next?.gameObject);
-                }
-            }
+            PublicationNavigation.Invalidate(host);
         }
     }
     private static string RelativeUiPath(Transform root, Transform child)
@@ -149,6 +140,7 @@ internal sealed class OverviewManagementCenter : IDisposable
     internal bool TryClose()
     {
         if (!IsOpen) return false;
+        if (!BackGuard.Allow()) return true; // 1.1.5: B twice quickly to close
         StageDrafts();
         if (HasDirty) OverviewUi.ConfirmDiscard(Loc.T("Discard remaining unsaved management changes?", "放弃尚未纳入草稿的管理修改？", "放棄尚未納入草稿的管理變更？"), _closed);
         else _closed();
@@ -238,6 +230,7 @@ internal static class ManagementUi
         var track = OverviewUi.Panel("Scrollbar", host, ModConfigLook.Surface(new Color(.07f, .07f, .06f, 1))); track.anchorMin = new Vector2(1, 0); track.anchorMax = Vector2.one; track.pivot = Vector2.one; track.sizeDelta = new Vector2(10, 0); track.anchoredPosition = Vector2.zero;
         var handle = OverviewUi.Panel("Handle", track, OverviewUi.Gold); OverviewUi.Fill(handle);
         var bar = track.gameObject.AddComponent<UnityEngine.UI.Scrollbar>(); bar.targetGraphic = handle.GetComponent<Image>(); bar.handleRect = handle; bar.direction = UnityEngine.UI.Scrollbar.Direction.BottomToTop;
+        bar.navigation = new Navigation { mode = Navigation.Mode.None }; // 1.1.5 (focus review P4): not a focus stop
         scroll.verticalScrollbar = bar; scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
     }
     internal static void OpenFolder(string path)

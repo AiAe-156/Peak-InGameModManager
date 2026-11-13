@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ModConfigEnhance.Overview;
 
-internal enum ConfigurationSaveScope { All, Hotkeys, ModParameters, Parameters, Information, Groups, Introduction, ModInformation }
+internal enum ConfigurationSaveScope { All, Hotkeys, ModParameters, Parameters, Information, Groups, Introduction, ModInformation, HotkeyEntry }
 
 internal sealed partial class OverviewRepository
 {
@@ -43,6 +43,7 @@ internal sealed partial class OverviewRepository
                 target.alias = rule.alias; target.description = rule.description; target.descriptionOverridden = rule.descriptionOverridden;
             }
         }
+        FlushRecoveryDraft(); // 1.1.4: the checkpoint below snapshots the recovery file
         var previousSaved = Clone(_savedDraftProfile);
         string previousSignature = _savedDraftSignature;
         var previousApplied = _appliedSnapshot;
@@ -79,6 +80,7 @@ internal sealed partial class OverviewRepository
         {
             if (scope is ConfigurationSaveScope.All or ConfigurationSaveScope.Parameters) return true;
             if (scope == ConfigurationSaveScope.ModParameters) return value.pluginGuid.Equals(modGuid, StringComparison.OrdinalIgnoreCase);
+            if (scope == ConfigurationSaveScope.HotkeyEntry) return value.Identity.Equals(modGuid, StringComparison.Ordinal); // modGuid carries the identity
             if (scope != ConfigurationSaveScope.Hotkeys) return false;
             var entry = Configs.FindLoadedEntry(value);
             return entry != null ? OverviewHotkeyAdapter.Create(entry) != null :
@@ -92,6 +94,7 @@ internal sealed partial class OverviewRepository
             var all = ApplyProfileTransaction(mods, IsMainMenuScene, skipEnablement: skipEnablement, ignoreDependencyWarnings: ignoreDependencyWarnings);
             if (all.Success)
             {
+                GamepadCombos.ApplyPresets(State); // 1.1.4: the profile's controller keys become this PC's combos
                 _editingRuntimeBaseline = Configs.Capture(_draftConfig);
             }
             return all;

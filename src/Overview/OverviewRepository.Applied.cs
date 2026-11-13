@@ -83,6 +83,7 @@ internal sealed partial class OverviewRepository
         if (!ViewedProfile.IsValid) return new(false, Loc.T("The profile is unreadable; the current configuration is kept: ", "方案损坏，保留当前有效配置：", "方案損壞，保留目前有效設定：") + ViewedProfile.loadError);
         ModToggleService.ModToggleTransaction? toggle = null;
         OverviewConfigService.OverviewConfigTransaction? parameters = null;
+        FlushRecoveryDraft(); // 1.1.4: the checkpoint below snapshots the recovery file
         string pendingPath = Path.Combine(ProfileRuntimeDirectory, "pending-profile.json");
         string oldApplied = Profiles.AppliedId;
         bool marked = false;

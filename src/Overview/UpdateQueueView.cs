@@ -25,13 +25,16 @@ internal sealed class UpdateQueueView : IDisposable
     private UpdateSnapshot _snapshot = new();
     private GameObject? _returnFocus;
     private bool _history;
-    private string _structure = "";
+    private string _structure = "", _actionLayoutKey = "";
     private int _openFrame;
     private float _width, _height;
     private bool _embedded;
     private Action? _networkRequested;
     private readonly Action<string>? _review;
     internal bool IsOpen => _root != null && _root.gameObject.activeSelf;
+    /// <summary>1.1.5: the store embeds this list; its update-all / update-selected buttons belong to the overview.</summary>
+    internal void HideUpdateButtons() { _all.gameObject.SetActive(false); _selected.gameObject.SetActive(false); _width = 0; Layout(); }
+    internal Transform Root => _root;
 
     private sealed class Row
     {
@@ -78,8 +81,8 @@ internal sealed class UpdateQueueView : IDisposable
         Layout();
     }
 
-    internal UpdateQueueView(RectTransform host, Action all, Action selected, Action<string> status, Action network)
-        : this(host, host, all, selected, status)
+    internal UpdateQueueView(RectTransform host, Action all, Action selected, Action<string> status, Action network, Action<string>? review = null)
+        : this(host, host, all, selected, status, review: review)
     { _embedded = true; _networkRequested = network; _width = _height = 0; Layout(); }
 
     internal void Open(UpdateSnapshot snapshot)
@@ -94,7 +97,8 @@ internal sealed class UpdateQueueView : IDisposable
     internal bool TryClose()
     {
         if (!IsOpen) return false;
-        Close(); return true;
+        if (BackGuard.Allow()) Close(); // 1.1.5: B twice quickly to close
+        return true;
     }
 
     internal void Close(bool restoreFocus = true)
@@ -136,18 +140,26 @@ internal sealed class UpdateQueueView : IDisposable
         _width = width; _height = height;
         OverviewUi.Place(_heading.rectTransform, 13, 8, width - 96, 32);
         OverviewUi.Place((RectTransform)_close.transform, width - 78, 9, 62, 28);
-        float half = (width - 36) / 2;
-        OverviewUi.Place((RectTransform)_queueTab.transform, 12, 43, half, 31);
-        OverviewUi.Place((RectTransform)_historyTab.transform, 24 + half, 43, half, 31);
-        int slots = _save.gameObject.activeSelf ? 5 : 4;
-        float slot = (width - 24 - (slots - 1) * 10) / slots;
-        var toolbar = _save.gameObject.activeSelf ? new[] { _selected, _all, _network, _save, _clear } : new[] { _selected, _all, _network, _clear };
-        for (int i = 0; i < toolbar.Length; i++) OverviewUi.Place((RectTransform)toolbar[i].transform, 12 + i * (slot + 10), 81, slot, 30);
-        OverviewUi.PlaceClipped(_notice, 12, 114, width - 28, 30);
-        OverviewUi.Place((RectTransform)_scroll.transform, 12, 150, width - 28, Mathf.Max(24, height - 162));
+        _actionLayoutKey = ""; LayoutActions();
+        OverviewUi.PlaceClipped(_notice, 12, 82, width - 28, 30);
+        OverviewUi.Place((RectTransform)_scroll.transform, 12, 118, width - 28, Mathf.Max(24, height - 130));
+        PublicationNavigation.Invalidate(_root);
         _structure = "";
     }
 
+    private void LayoutActions()
+    {
+        var toolbar = new[] { _queueTab, _historyTab, _selected, _all, _network, _save, _clear }.Where(b => b.gameObject.activeSelf).ToArray();
+        string key = string.Join("|", toolbar.Select(b => b.GetComponentInChildren<TMP_Text>(true).text));
+        if (key == _actionLayoutKey) return; _actionLayoutKey = key;
+        var preferred = toolbar.Select(b => Mathf.Clamp(b.GetComponentInChildren<TMP_Text>(true).GetPreferredValues().x + 36, 80, 190)).ToArray();
+        var widths = QueueToolbarSizing.Widths(_width - 24, preferred, 8); float x = 12;
+        for (int i = 0; i < toolbar.Length; i++) { OverviewUi.Place((RectTransform)toolbar[i].transform, x, 43, widths[i], 31); x += widths[i] + 8; }
+        PublicationNavigation.Invalidate(_root);
+    }
+
+    /// <summary>1.1.0: LB / RB switch between the queue and the history.</summary>
+    internal void StepTab() => Switch(!_history);
     private void Switch(bool history)
     {
         if (_history == history) return;
@@ -157,6 +169,7 @@ internal sealed class UpdateQueueView : IDisposable
 
     internal void Refresh(UpdateSnapshot snapshot, string lastError)
     {
+        bool wasSave = _save.interactable, wasClear = _clear.interactable;
         _snapshot = snapshot;
         if (!IsOpen) return;
         int draftCount = ResourceOperationDraft.PendingUpdates().Count;
@@ -192,6 +205,8 @@ internal sealed class UpdateQueueView : IDisposable
         _save.GetComponentInChildren<TMP_Text>(true).text = Loc.LocalizeMessage("Start updates");
         _clear.GetComponentInChildren<TMP_Text>(true).text = Loc.T("Clear", "清空", "清空");
         _clear.interactable = snapshot.Jobs.Any(job => !job.Hidden && (job.State == UpdateStates.Failed || job.State == UpdateStates.Stopped || job.State == UpdateStates.Completed || job.State == UpdateStates.RolledBack || job.State == UpdateStates.Superseded || job.State == UpdateStates.PendingRestart));
+        if (wasSave != _save.interactable || wasClear != _clear.interactable) PublicationNavigation.Invalidate(_root);
+        LayoutActions();
         string error = Loc.LocalizeMessage(lastError) ?? "";
         _notice.text = error.Length > 0 ? error : OverviewUpdateQueue.Feedback.Length > 0 ? OverviewUpdateQueue.Feedback : OverviewUpdateQueue.HistoricalError.Length > 0 ? Loc.T("Historical worker diagnostic available · click to view (not a current failure).", "有历史助手诊断 · 点击查看（不代表当前失败）。", "有歷史助手診斷 · 點擊檢視（不代表目前失敗）。") : Loc.T("Downloads continue while this window is closed. Changes take effect after restart.", "收起后继续更新；文件已准备的项目在重启后生效。", "收起後繼續更新；檔案已備妥的項目於重新啟動後生效。");
         _notice.color = error.Length > 0 ? new Color(.96f, .59f, .43f) : OverviewUi.Muted;
@@ -231,8 +246,7 @@ internal sealed class UpdateQueueView : IDisposable
 
     private void Rebuild(IReadOnlyList<UpdateJob> jobs)
     {
-        var selected = EventSystem.current?.currentSelectedGameObject;
-        string selectedId = _rows.FirstOrDefault(row => selected != null && selected.transform.IsChildOf(row.Root))?.Id ?? "";
+        PublicationNavigation.Preserve(_root);
         foreach (var row in _rows) { row.Root.gameObject.SetActive(false); UnityEngine.Object.Destroy(row.Root.gameObject); }
         foreach (var header in _headers) if (header != null) UnityEngine.Object.Destroy(header.gameObject);
         _rows.Clear(); _headers.Clear();
@@ -313,11 +327,6 @@ internal sealed class UpdateQueueView : IDisposable
         _empty.gameObject.SetActive(jobs.Count == 0); OverviewUi.Place(_empty.rectTransform, 8, 12, width - 20, 90);
         _content.sizeDelta = new Vector2(0, Mathf.Max(90, y + 8));
         ConfigureNavigation();
-        if (selectedId.Length > 0)
-        {
-            var target = _rows.FirstOrDefault(row => row.Id == selectedId)?.Buttons.FirstOrDefault();
-            EventSystem.current?.SetSelectedGameObject(target != null ? target.gameObject : (_history ? _historyTab : _queueTab).gameObject);
-        }
     }
 
     private static void RefreshRow(Row row, UpdateJob job)
@@ -504,16 +513,8 @@ internal sealed class UpdateQueueView : IDisposable
 
     private void ConfigureNavigation()
     {
-        var controls = new List<Button> { _close, _queueTab, _historyTab, _selected, _all, _network, _save }.Where(button => button.gameObject.activeInHierarchy && button.IsInteractable()).ToList();
-        controls.AddRange(_rows.SelectMany(row => row.Buttons).Where(button => button.IsInteractable()));
-        for (int i = 0; i < controls.Count; i++)
-        {
-            var row = _rows.FirstOrDefault(item => controls[i].transform.IsChildOf(item.Root));
-            controls[i].navigation = new Navigation { mode = Navigation.Mode.Explicit,
-                selectOnLeft = controls[(i + controls.Count - 1) % controls.Count], selectOnRight = controls[(i + 1) % controls.Count],
-                selectOnUp = controls[(i + controls.Count - 1) % controls.Count], selectOnDown = controls[(i + 1) % controls.Count] };
-            GamepadSupport.MarkSelectable(controls[i].gameObject, row == null ? null : _scroll, row?.Root);
-        }
+        if (_embedded) PublicationNavigation.Attach(_root);
+        else PublicationNavigation.AttachBoundary(_root);
     }
 
     /// <summary>"1.2 MB/s | 3.4 秒" from what this download actually moved; empty for a reused cache, folder jobs and old records.</summary>

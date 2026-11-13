@@ -93,10 +93,10 @@ internal static partial class ModConfigSidebarWidgets
     private const int SpriteRadius = 10;
     private const int SpriteBorder = 12;
 
-    private const string PinKey = "MCE_PIN";
-    private const string ExportColumnKey = "MCE_EXPORT_COL";
-    private const string ExportSelectedKey = "MCE_EXPORT_SELECTED";
-    private const string JumpHotkeysKey = "MCE_JUMP_HOTKEYS";
+    private static string PinKey => Loc.Index("PIN"); // 1.1.3: was the pre-split "MCE_" index → showed "LOC: MCE_PIN"
+    private static string ExportColumnKey => Loc.Index("EXPORT_COL");
+    private static string ExportSelectedKey => Loc.Index("EXPORT_SELECTED");
+    private static string JumpHotkeysKey => Loc.Index("JUMP_HOTKEYS");
 
     private static Sprite? _roundedSprite;
 

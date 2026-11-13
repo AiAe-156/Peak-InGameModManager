@@ -36,6 +36,7 @@ internal sealed class ManagementModSelector
     }
     private void Draw()
     {
+        PublicationNavigation.Preserve(_content);
         foreach (Transform child in _content) { child.gameObject.SetActive(false); UnityEngine.Object.Destroy(child.gameObject); }
         float y = 0;
         var filtered = _mods.Where(m => _query.Length == 0 || (m.Name + " " + m.RawName + " " + m.Author).IndexOf(_query, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
@@ -60,7 +61,7 @@ internal sealed class ManagementModSelector
             {
                 float rowWidth = _width - 8, inset = Mathf.Clamp(rowWidth * .09f, 24, 34);
                 var row = OverviewUi.Button(_content, "", () => { _selected = mod.Id; _select(mod); Draw(); }, rowWidth, 32, mod.Id == _selected ? UiActionRole.Edit : UiActionRole.Neutral);
-                OverviewUi.Place((RectTransform)row.transform, 8, y, rowWidth, 32); Rail(row.transform, tint, 12, 5, 22);
+                row.name = "Mod_" + mod.Id; OverviewUi.Place((RectTransform)row.transform, 8, y, rowWidth, 32); Rail(row.transform, tint, 12, 5, 22);
                 var version = Label(row.transform, mod.PluginVersion.Length > 0 ? mod.PluginVersion : mod.PackageVersion, 15);
                 float versionWidth = Mathf.Min(rowWidth - inset * 2 - 36, Mathf.Ceil(version.GetPreferredValues(version.text).x) + 10);
                 version.alignment = TextAlignmentOptions.MidlineRight; version.enableAutoSizing = true; version.fontSizeMin = 1; version.fontSizeMax = 15;

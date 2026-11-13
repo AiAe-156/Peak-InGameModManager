@@ -264,7 +264,7 @@ internal sealed class PackPreviewView
         OverviewUi.Place((RectTransform)folder.transform, _width - 66, _y, 26, 24);
         var external = OverviewUi.Button(_host, L("Open", "打开"), () => PackFileShortcuts.Open(PreviewPath(relative), false), 36, 24, UiActionRole.Neutral);
         OverviewUi.Place((RectTransform)external.transform, _width - 38, _y, 36, 24);
-        if (_openFile != null) { t.raycastTarget = true; t.gameObject.AddComponent<OverviewHeaderClick>().Clicked = _ => _openFile(relative); }
+        if (_openFile != null) { t.raycastTarget = true; var preview = t.gameObject.AddComponent<Button>(); preview.targetGraphic = t; preview.transition = Selectable.Transition.None; preview.onClick.AddListener(() => _openFile(relative)); }
         _y += 25;
     }
 

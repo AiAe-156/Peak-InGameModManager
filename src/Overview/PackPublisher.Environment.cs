@@ -22,6 +22,7 @@ internal static partial class PackPublisher
         void Add(string source, string relative, bool project)
         {
             relative = relative.Replace('\\', '/');
+            if (PublicationFilePolicy.ExcludedStartupAttachment("BepInEx/" + relative, request.ExcludedExtras.Keys)) return;
             if (!PackEnvironmentPolicy.ManagedPath(relative, 2)) throw new IOException("发布路径不属于独立环境：" + relative);
             if (new[] { ".ps1", ".bat", ".cmd", ".sh" }.Any(e => relative.EndsWith(e, StringComparison.OrdinalIgnoreCase))) throw new IOException("独立环境不附带脚本：" + relative);
             bool tool = relative.IndexOf("/Tools/Updater/", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -48,6 +49,7 @@ internal static partial class PackPublisher
         // Loader and third-party core libraries are captured independently of the old IncludeBootstrap checkbox.
         Tree(Path.Combine(Paths.BepInExRootPath, "core"), "core", false);
         Tree(Path.Combine(Paths.BepInExRootPath, "patchers"), "patchers", false);
+        Tree(Path.Combine(Paths.BepInExRootPath, "monomod"), "monomod", false);
         foreach (string file in OverviewRepository.SafeFiles(Paths.ConfigPath))
         {
             string relative = "config/" + Relative(Paths.ConfigPath, file).Replace('\\', '/');

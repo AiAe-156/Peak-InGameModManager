@@ -344,6 +344,9 @@ internal static class ModConfigLocalizationPatch
         }
 
         TextMeshProUGUI? warning = ui.DuplicateWarningText;
+        // 1.1.3: tell the cell's corner badge (it no longer polls the expensive duplicate scan each frame).
+        var extras = ui.GetComponentInParent<SettingCellExtras.CellExtras>();
+        if (extras != null) extras.OnDuplicatesRecomputed(warning != null && warning.gameObject.activeSelf, warning != null ? warning.text : "");
         if (warning == null || !warning.gameObject.activeSelf)
         {
             return;

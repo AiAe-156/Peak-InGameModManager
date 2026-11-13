@@ -67,7 +67,8 @@ internal sealed class OverviewHotkeyAdapter
     internal string Label(object value)
     {
         if (Signature(value).Length == 0) return Loc.T("None", "未绑定", "未綁定");
-        return IsPath && TryPath(Convert.ToString(value) ?? "", out string device, out string control) ? device + " / " + control : Convert.ToString(value) ?? "";
+        // 1.1.4 (user): key names through the manager dictionary ("Period" → "句号").
+        return IsPath && TryPath(Convert.ToString(value) ?? "", out string device, out string control) ? device + " / " + KeyChips.LocalName(control) : KeyChips.LocalizeKeys(Convert.ToString(value) ?? "");
     }
     internal string Signature(object value)
     {

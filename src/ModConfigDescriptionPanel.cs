@@ -420,12 +420,18 @@ internal static class ModConfigDescriptionPanel
                 _translationRevision = Loc.TranslationRevision;
                 _overviewInitialized = false; _shownCell = null;
             }
-            if (!_overviewInitialized || selectedMod != _overviewMod || selectedSection != _overviewSection)
+            // 1.1.1（用户）：手柄在左栏上下移动时，说明框预览焦点所在模组的介绍，但不切换右栏显示的模组配置；
+            // 焦点离开模组行（进右栏 / 分区行）就回到实际选中的模组。
+            ModdedTABSButton? previewMod = FocusedModRow();
+            ModdedTABSButton? shownMod = previewMod ?? selectedMod;
+            ModdedTABSButton? shownSection = previewMod != null && previewMod != selectedMod ? null : selectedSection;
+            if (!_overviewInitialized || shownMod != _overviewMod || shownSection != _overviewSection)
             {
                 _overviewInitialized = true;
-                _overviewMod = selectedMod;
-                _overviewSection = selectedSection;
-                ShowOverview(selectedMod, selectedSection);
+                _overviewMod = shownMod;
+                _overviewSection = shownSection;
+                _shownCell = null;
+                ShowOverview(shownMod, shownSection);
             }
 
             SettingsUICell? mouseCell = FindHoveredCell();
@@ -644,6 +650,19 @@ internal static class ModConfigDescriptionPanel
             }
 
             return null;
+        }
+
+        /// <summary>The mod row (left column) holding the gamepad focus, if any.</summary>
+        private ModdedTABSButton? FocusedModRow()
+        {
+            if (!GamepadSupport.IsGamepad || Menu == null || Menu.ModTabController == null) return null;
+            EventSystem? system = EventSystem.current;
+            GameObject? selected = system != null ? system.currentSelectedGameObject : null;
+            if (selected == null || !selected.transform.IsChildOf(Menu.ModTabController.transform)) return null;
+            // Section rows are nested inside the mod list in the tree layout; they are not mods.
+            if (Menu.SectionTabController != null && Menu.SectionTabController.Tabs.Contains(selected)) return null;
+            ModdedTABSButton? row = selected.GetComponent<ModdedTABSButton>();
+            return row != null && !string.IsNullOrEmpty(row.category) ? row : null;
         }
 
         private static SettingsUICell? FindFocusedCell()

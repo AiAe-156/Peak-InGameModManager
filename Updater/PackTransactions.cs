@@ -39,7 +39,7 @@ internal static class PackTransactions
     {
         if (environmentVersion is not (1 or 2)) throw new IOException("未知环境版本。");
         var result = new List<PackFile>();
-        foreach (string route in environmentVersion == 2 ? new[] { "core", "plugins", "patchers", "config" } : new[] { "plugins", "patchers", "config" })
+        foreach (string route in environmentVersion == 2 ? new[] { "core", "plugins", "patchers", "monomod", "config" } : new[] { "plugins", "patchers", "config" })
         {
             string start = Path.Combine(storage.Root, route); if (!Directory.Exists(start)) continue;
             var pending = new Stack<string>(); pending.Push(start);

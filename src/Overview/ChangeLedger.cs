@@ -119,6 +119,14 @@ internal static class ChangeLedger
         var changes = Journal.unread.Where(p => SummaryMatch(p.Key, key)).ToArray();
             return changes.Length == 0 ? null : new ChangeRecord { kind = "summary", before = "", after = string.Join("\n\n", changes.Select(Describe)) };
     }
+    /// <summary>The blue chip's click: show the change and mark it as read. 1.1.0: also the gamepad row menu's entry.</summary>
+    internal static void OpenModUpdate(string key, string? current = null)
+    {
+        var change = FindModUpdate(key); if (change == null) return;
+        string detail = ChangeRecordText.Describe(key, change, current);
+        if (OverviewUi.ModalParent != null) OverviewUi.ShowText(Loc.T("Updated", "更新变动", "更新變動"), detail); else ModConfigDescriptionPanel.Current?.ShowNotice(detail);
+        Read(key);
+    }
     internal static void Read(string key)
     {
         if (key.StartsWith("summary:", StringComparison.Ordinal)) { foreach (string id in Journal.unread.Keys.Where(id => SummaryMatch(id, key)).ToArray()) Journal.unread.Remove(id); SaveRead(); return; }
@@ -186,12 +194,7 @@ internal sealed class UpdateDot : MonoBehaviour
                 string tip=Loc.T("Blue: unread changes. Click for details.","蓝色：未读变动。点击查看详情。","藍色：未讀變動。點擊查看詳情。");
                 if(ShowHint!=null)ShowHint("<color=#6EADF0>"+tip+"</color>\n"+preview.Replace("<","＜")); else ModConfigDescriptionPanel.Current?.ShowNotice(tip+"\n"+preview); };
             hover.Exit=()=>HideHint?.Invoke();
-            var action = _dot.gameObject.AddComponent<OverviewTextClick>(); action.Clicked = _ => {
-                var change = ChangeLedger.FindModUpdate(Key); if (change == null) return;
-                string detail = ChangeRecordText.Describe(Key,change,Current?.Invoke());
-                if (OverviewUi.ModalParent != null) OverviewUi.ShowText(Loc.T("Updated", "更新变动", "更新變動"), detail); else ModConfigDescriptionPanel.Current?.ShowNotice(detail);
-                ChangeLedger.Read(Key);
-            };
+            var action = _dot.gameObject.AddComponent<OverviewTextClick>(); action.Clicked = _ => ChangeLedger.OpenModUpdate(Key, Current?.Invoke());
         }
         if (_dot != null) _dot.gameObject.SetActive(show);
     }
