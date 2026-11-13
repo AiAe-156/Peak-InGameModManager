@@ -89,8 +89,8 @@ internal sealed partial class HelpPage : UIPage, IHaveParentPage
         var hit = reader.gameObject.AddComponent<Image>(); hit.color = Color.clear;
         _surface = reader.gameObject.AddComponent<HelpReadingSurface>();
         _surface.targetGraphic = hit; _surface.transition = Selectable.Transition.None;
-        _surface.Click = ClickLink; _surface.MovePage = amount => { _canvas.ScrollOffset += amount; };
-        _surface.Links = ShowLinks; _surface.Leave = () => EventSystem.current?.SetSelectedGameObject(_tabs[Array.FindIndex(HelpDocuments.Pages, p => p.Id == _page)].gameObject);
+        _surface.Click = ClickLink; _surface.TryMovePage = amount => { float before = _canvas.ScrollOffset; _canvas.ScrollOffset += amount; return Mathf.Abs(_canvas.ScrollOffset - before) > .1f; };
+        _surface.StickSpeed = 650; _surface.Links = ShowLinks;
 
         var host = OverviewUi.Rect("ReadingScroll", reader); OverviewUi.Fill(host);
         var scroll = host.gameObject.AddComponent<IntroductionScrollRect>(); scroll.horizontal = false;
@@ -152,17 +152,19 @@ internal sealed partial class HelpPage : UIPage, IHaveParentPage
     }
     public (UIPage, PageTransistion) GetParentPage()
     {
-        if (OverviewUi.TryCloseTopModal()) return (this, GamepadSupport.NoopTransistion.Shared);
+        if (GamepadSupport.ConsumeTypingBack() || OverviewUi.TryCloseTopModal()) return (this, GamepadSupport.NoopTransistion.Shared);
         if (_editing && _editorView != null)
         {
             if (_editorView.TryCloseLayer()) return (this, GamepadSupport.NoopTransistion.Shared);
             if (_editorView.IsDirty || _editorView.IsImporting) { _editorView.RequestLeave(LeaveToParent); return (this, GamepadSupport.NoopTransistion.Shared); }
         }
+        if (!BackGuard.Allow()) return (this, GamepadSupport.NoopTransistion.Shared); // 1.1.5: B twice quickly to leave
         return (_parent, new SetActivePageTransistion());
     }
     private void Back()
     {
-        if (OverviewUi.TryCloseTopModal()) return;
+        if (GamepadSupport.ConsumeTypingBack() || OverviewUi.TryCloseTopModal()) return;
+        if (!BackGuard.Allow()) return;
         RequestDocumentLeave(LeaveToParent);
     }
     private string PositionKey(string page) => _language + "/" + page;
@@ -278,13 +280,10 @@ internal sealed partial class HelpPage : UIPage, IHaveParentPage
             else if (_pendingOffset.HasValue) _canvas.ScrollOffset = _pendingOffset.Value;
             if (--_settleFrames == 0) { _pendingAnchor = null; _pendingOffset = null; }
         }
-        if (!OverviewUi.HasModal && GamepadSupport.IsGamepad && Gamepad.current != null)
-        {
-            float stick = Gamepad.current.rightStick.ReadValue().y;
-            if (Mathf.Abs(stick) > .15f) _canvas.ScrollOffset -= stick * 650 * Time.unscaledDeltaTime;
-        }
+
     }
-    private void OnDestroy() { _editorView?.Dispose(); _canvas?.Dispose(); }
+    private void OnDestroy() { GamepadIntent.Release(this); _editorView?.Dispose(); _canvas?.Dispose(); }
+    private void OnDisable() => GamepadIntent.Release(this);
 }
 
 internal sealed class HelpFocusRestore : MonoBehaviour
@@ -304,12 +303,9 @@ internal sealed class HelpFocusRestore : MonoBehaviour
 }
 
 /// <summary>Read-only pointer/scroll/focus surface. It accepts navigation, never text or editor commands.</summary>
-internal sealed class HelpReadingSurface : Selectable, IPointerClickHandler, IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler, ISubmitHandler
+internal sealed class HelpReadingSurface : ControllerReadingSurface, IPointerClickHandler, IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler
 {
-    internal ScrollRect Scroll = null!;
     internal Action<PointerEventData>? Click;
-    internal Action<float>? MovePage;
-    internal Action? Links, Leave;
     private bool _dragged;
     public override void OnPointerDown(PointerEventData data) { _dragged = false; base.OnPointerDown(data); }
     public void OnPointerClick(PointerEventData data) { if (!_dragged && data.button == PointerEventData.InputButton.Left) Click?.Invoke(data); }
@@ -318,13 +314,4 @@ internal sealed class HelpReadingSurface : Selectable, IPointerClickHandler, IIn
     public void OnDrag(PointerEventData data) => Scroll.OnDrag(data);
     public void OnEndDrag(PointerEventData data) => Scroll.OnEndDrag(data);
     public void OnScroll(PointerEventData data) => Scroll.OnScroll(data);
-    public void OnSubmit(BaseEventData data) { Links?.Invoke(); data.Use(); }
-    public override void OnMove(AxisEventData data)
-    {
-        if (data.moveDir == MoveDirection.Up) MovePage?.Invoke(-90);
-        else if (data.moveDir == MoveDirection.Down) MovePage?.Invoke(90);
-        else if (data.moveDir == MoveDirection.Left) Leave?.Invoke();
-        else if (data.moveDir == MoveDirection.Right) Links?.Invoke();
-        data.Use();
-    }
 }

@@ -45,7 +45,7 @@ internal sealed partial class OverviewPage
         AttachToolHint(_profileNotice.gameObject, () => _profileNotice.text);
         AttachToolHint(_profileChoice.gameObject, () => T("Switching a profile only previews it. The language dropdown only switches global translations; the two never change each other.",
             "切换配置方案只是预览；语言下拉只切换全局译文，两者互不改变。") + "\n" + _repo.ViewedProfile.name);
-        AttachToolHint(_profileApply.gameObject, () => _repo.ProfileSummary(_list?.Mods ?? Array.Empty<OverviewMod>()));
+        AttachToolHint(_profileApply.gameObject, () => _repo.ProfileSummary(_pendingState));
         AttachToolHint(_profileSave.gameObject, () => T("Save and use the edited configuration. Changes marked for restart are used next launch.",
             "保存并使用当前修改；标记需重启的内容将在下次启动生效。"));
     }
@@ -174,6 +174,8 @@ internal sealed partial class OverviewPage
     {
         if (_document?.IsImporting == true) { SetStatus(T("Media is still importing; finish it before switching or closing the profile editor.", "素材仍在导入，请完成后再切换或关闭方案编辑器。")); return; }
         if (!ProfileHasUnsaved) { leave(); return; }
+        Plugin.Log.LogInfo("[方案] 离开提示的原因：profile=" + (_repo.IsProfileDirty ? _repo.DirtyParts() : "clean") + " · introduction=" + (_document?.IsDirty == true)
+            + " · resource-ops=" + ResourceOperationDraft.Snapshot().Count(c => !ResourceOperationDraft.IsUpdate(c)));
         OverviewUi.ConfirmUnsaved(T("The profile has unsaved changes", "方案有未保存的修改"), () => SaveCurrentProfile(onSaved: leave),
             () => { try { DiscardCurrentProfile(); leave(); } catch (Exception ex) { SetStatus(T("Could not discard the draft: ", "无法放弃草稿：") + Loc.LocalizeMessage(ex.Message)); } },
             () => _document?.ActivateEditor());
@@ -477,6 +479,7 @@ internal sealed partial class OverviewPage
             exportButton.interactable = profile.IsValid;
             switchButton.interactable = !viewed && profile.IsValid;
             applyButton.interactable = profile.IsValid && _document?.IsImporting != true;
+            PublicationNavigation.Invalidate(embeddedHost);
 
             notice.text =
                 problem.Length > 0 ? T("Could not compare the live configuration: ", "实际配置比较失败：") + problem

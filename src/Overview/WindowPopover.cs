@@ -12,6 +12,8 @@ namespace ModConfigEnhance.Overview;
 internal sealed class WindowPopover : MonoBehaviour
 {
     private RectTransform? _shade;
+    private CanvasGroup? _base;
+    private bool _wasInteractable, _wasRaycast;
     private static WindowPopover? _active;
     private static int _closedFrame=-1;
     internal static bool TryCloseTop()
@@ -22,14 +24,15 @@ internal sealed class WindowPopover : MonoBehaviour
     internal static void Adopt(RectTransform host, RectTransform shade)
     {
         var owner = host.GetComponent<WindowPopover>() ?? host.gameObject.AddComponent<WindowPopover>();
-        owner.Close(); owner._shade = shade; _active = owner;
+        owner.Close(); owner.Own(shade);
     }
     internal static RectTransform Open(RectTransform host, RectTransform anchor, string name, float width, float height)
     {
         var owner=host.GetComponent<WindowPopover>()??host.gameObject.AddComponent<WindowPopover>();owner.Close();
         var shade=OverviewUi.Rect("WindowPopover",host);OverviewUi.Fill(shade);shade.gameObject.AddComponent<Image>().color=ModConfigLook.Surface(new Color(0,0,0,.12f));
-        owner._shade=shade;_active=owner;shade.gameObject.AddComponent<OverviewTextClick>().Clicked=_=>owner.Close();
+        owner.Own(shade);shade.gameObject.AddComponent<OverviewTextClick>().Clicked=_=>owner.Close();
         var panel=OverviewUi.Panel(name,shade,OverviewUi.Brown);panel.gameObject.AddComponent<OverviewTextClick>();
+        PublicationNavigation.AttachBoundary(panel);
         Place(panel,host,anchor,width,height);panel.gameObject.AddComponent<DropdownFocusReturn>().Anchor=anchor;
         shade.SetAsLastSibling();return panel;
     }
@@ -65,7 +68,21 @@ internal sealed class WindowPopover : MonoBehaviour
         }
         if(focus!=null)EventSystem.current?.SetSelectedGameObject(focus);
     }
-    internal void Close(){if(_shade!=null){_shade.gameObject.SetActive(false);Destroy(_shade.gameObject);_shade=null;}}
+    private void Own(RectTransform shade)
+    {
+        _shade = shade; _active = this;
+        _base = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+        _wasInteractable = _base.interactable; _wasRaycast = _base.blocksRaycasts;
+        var layer = shade.GetComponent<CanvasGroup>() ?? shade.gameObject.AddComponent<CanvasGroup>();
+        layer.ignoreParentGroups = true; layer.interactable = true; layer.blocksRaycasts = true;
+        _base.interactable = false; _base.blocksRaycasts = false;
+    }
+    internal void Close()
+    {
+        if (_base != null) { _base.interactable = _wasInteractable; _base.blocksRaycasts = _wasRaycast; _base = null; }
+        if (_shade != null) { _shade.gameObject.SetActive(false); Destroy(_shade.gameObject); _shade = null; }
+        PublicationNavigation.Invalidate(transform);
+    }
     private void Update(){if(_shade!=null&&Input.GetKeyDown(KeyCode.Escape))TryCloseTop();}
     private void OnDisable()=>Close();
 }

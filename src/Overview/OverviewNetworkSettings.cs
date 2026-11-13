@@ -69,13 +69,13 @@ internal sealed class OverviewNetworkSettings : IDisposable
     }
     private void Invalidate()
     {
-        CancelProbe(); if (_result != null) _result.text = Loc.T("Not tested", "未测试", "未測試");
+        CancelProbe(); PublicationNavigation.Invalidate(_host); if (_result != null) _result.text = Loc.T("Not tested", "未测试", "未測試");
     }
     private async void Test()
     {
         if (_busy || _disposed) return;
         try { Validate(); } catch (Exception error) { _result.text = Loc.LocalizeMessage(error.Message); return; }
-        _busy = true; _test.interactable = false;
+        _busy = true; _test.interactable = false; PublicationNavigation.Invalidate(_host);
         var cancellation = _cancellation = new CancellationTokenSource();
         try
         {
@@ -107,7 +107,7 @@ internal sealed class OverviewNetworkSettings : IDisposable
         catch (Exception error) { if (!_disposed && _result != null) _result.text = Loc.LocalizeMessage(error.Message); }
         finally
         {
-            if (ReferenceEquals(_cancellation, cancellation)) { StopProcess(); _cancellation = null; _busy = false; if (!_disposed && _test != null) _test.interactable = true; }
+            if (ReferenceEquals(_cancellation, cancellation)) { StopProcess(); _cancellation = null; _busy = false; if (!_disposed && _test != null) _test.interactable = true; PublicationNavigation.Invalidate(_host); }
             cancellation.Dispose();
         }
     }
@@ -115,6 +115,6 @@ internal sealed class OverviewNetworkSettings : IDisposable
         ? Loc.T("Passed", "通过", "通過") + " · " + endpoint.Milliseconds + " ms"
         : Loc.T("Failed: ", "失败：", "失敗：") + Loc.LocalizeMessage(endpoint.Error));
     private void StopProcess() { if (_probe != null) { try { if (!_probe.HasExited) _probe.Kill(); } catch (InvalidOperationException) { } finally { _probe.Dispose(); _probe = null; } } }
-    private void CancelProbe() { _cancellation?.Cancel(); StopProcess(); _busy = false; if (_test != null) _test.interactable = true; }
+    private void CancelProbe() { _cancellation?.Cancel(); StopProcess(); _busy = false; if (_test != null) _test.interactable = true; PublicationNavigation.Invalidate(_host); }
     public void Dispose() { _disposed = true; CancelProbe(); _submission.CancelObservation(); if (_submission != null) UnityEngine.Object.Destroy(_submission); _host.GetComponent<WindowPopover>()?.Close(); }
 }

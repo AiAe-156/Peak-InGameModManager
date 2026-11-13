@@ -29,6 +29,9 @@ internal sealed class OverviewState
     public bool hotkeyAuthorPresetsImported = false;
     public bool profileHotkeysMigrated;
     public List<OverviewHotkeyPreset> packHotkeyPresets = new();
+    /// <summary>1.1.4: controller keys / combos recorded in the profile (exported with packs; applied to this PC's
+    /// combos when the profile is applied).</summary>
+    public List<GamepadCombos.Item> gamepadComboPresets = new();
     public bool packHotkeyPresetMode;
     public bool packHotkeyPresetModeOverridden = false;
     // Conflict exceptions belong to the player, never the published pack.

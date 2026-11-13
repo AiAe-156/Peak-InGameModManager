@@ -91,12 +91,16 @@ internal sealed partial class OverviewListView
     private void ShowGroupMenu(OverviewGroup? group, PointerEventData data)
     {
         HideAllHints();
+        OverviewUi.PointerDropdown(data.position, data.pressEventCamera, group == null ? T("Ungrouped", "未分组") : Groups.Path(group.id), GroupMenuEntries(group).ToArray());
+    }
+    /// <summary>Right-click on a group heading; 1.1.0: also RT+Y on a gamepad.</summary>
+    private List<UiMenuEntry> GroupMenuEntries(OverviewGroup? group)
+    {
         var entries = new List<UiMenuEntry>();
         if (group == null)
         {
             entries.Add(new UiMenuEntry { Label = T("New group", "新建分组"), Role = UiActionRole.Edit, Invoke = () => NewGroupIn("") });
-            OverviewUi.PointerDropdown(data.position, data.pressEventCamera, T("Ungrouped", "未分组"), entries.ToArray());
-            return;
+            return entries;
         }
         bool deep = Groups.Depth(group.id) >= GroupTree.MaxDepth;
         entries.Add(new UiMenuEntry { Label = T("New subgroup", "新建子分组"), Role = UiActionRole.Edit, Enabled = !deep,
@@ -105,7 +109,7 @@ internal sealed partial class OverviewListView
         entries.Add(new UiMenuEntry { Label = T("Move to top level", "移到顶层"), Role = UiActionRole.Neutral, Enabled = Groups.Parent(group.id).Length > 0,
             DisabledReason = T("Already a top-level group.", "已经是顶层分组。"), Invoke = () => AttachGroup(group.id, "") });
         entries.Add(new UiMenuEntry { Label = T("Delete group", "删除分组"), Role = UiActionRole.Danger, Invoke = () => ConfirmDeleteGroup(group) });
-        OverviewUi.PointerDropdown(data.position, data.pressEventCamera, Groups.Path(group.id), entries.ToArray());
+        return entries;
     }
 
     private void ConfirmDeleteGroup(OverviewGroup group)

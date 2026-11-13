@@ -17,6 +17,16 @@ LOG_ONLY = {
     'ModConfigTreeLayoutPatch.cs', 'ModConfigLocalizationPatch.cs', 'TimeThemeBridge.cs', 'XUnityBridge.cs', 'Plugin.cs',
     'LogExport.cs', 'ManagerLog.cs', 'ModConfigPaperStyle.cs', 'PublicationFilePolicy.cs', 'GroupFolderPlanner.cs',
     'DiagnosticUiLanguage.cs', 'UpdateMessageCatalog.cs',
+    # 1.1.0: GamepadIntent's Chinese is only in WarnOnce → BepInEx log (checked by hand 2026-11-12).
+    'GamepadIntent.cs',
+    # 1.1.5: CursorWatch / GamepadLock / BackGuard Chinese is only in LogWarning → BepInEx log.
+    'CursorWatch.cs', 'GamepadLock.cs',
+    # 1.1.7: the toolbar-to-tab-row jump diagnosis only writes one BepInEx log line.
+    'OverviewPage.ToolbarJumpWatch.cs',
+    # 1.1.1: SettingCellExtras' Chinese is only in WarnOnce → BepInEx log.
+    'SettingCellExtras.cs',
+    # 1.1.3: GamepadCombos' Chinese is only in log warnings.
+    'GamepadCombos.cs',
     # 2.5.4: directory-migration report lines go to the BepInEx log only (runs before Loc is set up).
     'MceDirectoryMigration.cs',
     # ModConfigLook.State is only written to the BepInEx log at startup ([配色] line).
@@ -35,6 +45,7 @@ LOG_ONLY = {
     'PackContracts.cs', 'IntroductionDocument.cs', 'OverviewRepository.Diagnostics.cs', 'ModConfigSupport.cs', 'LogRepeatIndex.cs',
 }
 ALLOWED = {
+    '\\r\\n"': 'newcomer install note (PackPublisher.NewcomerNote): one bilingual text file, Chinese block + English block, on purpose',
     '"Language changes / 语言变更详情"': 'log channel name shown bilingually in the log window source list (unchanged since 2.x; line moved by the 1.0.0 rename)',
     'Loc.T(tag, ': 'English is the store tag itself (variable); three languages given',
     'Loc.T(EnablementNote, ': 'English comes from a constant; three languages given',

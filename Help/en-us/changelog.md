@@ -1,18 +1,16 @@
 # Changelog {#top}
 
-## 1.0.0 — First release {#v1-0-0}
+## 0.0.1 — First public test release {#v0-0-1}
 
-The first release of In-Game Mod Manager.
+In-Game Mod Manager expands the settings-focused ModConfig Enhance 1.0.4 into an in-game mod and modpack manager.
 
-- **Mod overview:** every mod in coloured, nestable groups with version, author, source, dependencies and status chips; enable and disable with a tick; update, install and uninstall straight from the Thunderstore store; organize the plugins folder by group (it only moves folders, never renames them).
-- **Settings:** all mod settings in one tree with search, pinning and a description panel; every hotkey on one page with duplicates marked; changes go into a draft and are saved together.
-- **Profiles and modpacks:** save a whole setup as a profile; keep several environments in the modpack library and switch with a backup; write a modpack introduction with images and video; export a local package or a Thunderstore package.
-- **Translation:** English, Simplified and Traditional Chinese built in; export untranslated texts, fill them in and import them back; regex rules for sentences that differ only by numbers. XUnity AutoTranslator is not needed.
-- **PEAK 3.1 support:** mod decimal settings display and accept decimals again.
-
-### Coming from ModConfig Enhance {#from-mce}
-
-- On the first launch, settings, language files, profiles and introductions are **copied** from `BepInEx/config/ModConfigEnhance/` to `BepInEx/config/InGameModManager/`. The original folder is left for ModConfig Enhance. Old modpack exports are not copied; the log says where they are.
-- The working folder `BepInEx/MCE/` is renamed to `BepInEx/IGMM/`.
-- Modpacks, author data (`MCEPack` folders) and language files with `MCE_` keys published by ModConfig Enhance are still read.
-- Running both changes the settings page twice. Both show a reminder; disable one of them.
+- **Mod overview:** versions, sources, enablement, update indicators, dependency information, nested groups and local-folder access in one list.
+- **Installation and maintenance:** Thunderstore browsing, installation, updates and uninstalling; queued work, history, backups and recovery through the included helper. Loaded-file replacements finish after the game exits.
+- **Settings and keybinds:** the settings tree, search, pinning and descriptions, plus a dedicated keyboard/gamepad binding page, configurable gamepad modifiers and duplicate-binding indicators. Settings-page edits and recorded bindings are written immediately.
+- **Configuration profiles:** named sets of parameters, bindings and enablement targets; preview before applying; separate author presets and personal changes, with a change review and effect-timing information.
+- **Modpack library:** import previews, separate mod versions and configuration for each environment, saved environment revisions and switching after the game exits.
+- **Modpack authoring:** illustrated introductions with images, GIFs and video; export author data, complete local archives or Thunderstore packages. Complete archives collect startup patches automatically and honor explicit exclusions. Newcomer archives include BepInEx startup files and bilingual installation instructions; recognized private configuration values are cleared in export copies.
+- **Independent translation tools:** built-in English, Simplified Chinese and Traditional Chinese, custom language files, export all/missing texts, import supplements and regular-expression translations without requiring XUnity AutoTranslator.
+- **Gamepad operation:** navigation across settings, overview tabs and dialogs, stable list columns, configurable combinations, Steam on-screen keyboard and A-to-lock/B-to-leave reading panes. D-pad reading steps are three times the ordinary size.
+- **Everyday tools:** log browsing/filtering/export, previewed folder organization, and blue/purple themes with optional TimeTheme night switching.
+- **Independent identity:** a separate plugin, configuration folder and runtime directory, with support for reading earlier author material and modpacks.

@@ -19,6 +19,7 @@ internal sealed partial class OverviewRepository
 
     private void MarkSavedDraftBaseline()
     {
+        MergeEditedRules(); // 1.1.5 review: GetPendingState merges these later; the baseline must include them too
         InvalidatePendingView();
         _savedDraftProfile = new OverviewProfile { state = Clone(State), config = Clone(_draftConfig), mods = Clone(_draftMods) };
         _savedDraftSignature = DraftSignature(State, _draftConfig, _draftMods);

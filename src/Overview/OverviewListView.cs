@@ -182,6 +182,8 @@ internal sealed partial class OverviewListView : IDisposable
             else if(_factoryHint.Take(Time.unscaledTime,target=>target is GameObject go && go!=null && go.activeInHierarchy) is string generated) ShowHint(generated);
             else if(_hintDwell.Take(Time.unscaledTime) is string ready) ShowHint(ready);
             if (_hint.gameObject.activeSelf) PositionHint();
+            if (_chipCard != null && _chipCard.gameObject.activeSelf) { if (_chipCardSource == null || !_chipCardSource.activeInHierarchy || OverviewUi.HasModal) HideChipCard(); else PositionChipCard(); }
+            GamepadTick();
             if (ListVisible) SourceUi.PollDisplayContext();
             if (ListVisible && _checking && _checkDisplayContext!=SourceUi.DisplayDependencyContext)
             { _round?.Cancel();_checkProgress.Clear(); }
@@ -223,7 +225,12 @@ internal sealed partial class OverviewListView : IDisposable
         _tools.gameObject.SetActive(true);OverviewUi.Place(_tools,0,0,width,32);
         BuildOverviewSearch(width);
         string enablementNote=EnablementHint;
-        var note=Label(_tools,enablementNote,SearchWidth+18,0,Mathf.Max(40,width-SearchWidth-218),32,15);note.color=OverviewUi.Muted;AddHint(note.gameObject,enablementNote);
+        // 1.1.3 (user): one button to expand / collapse every group (controller: LT + RB / LT + LB).
+        _foldAllButton=OverviewUi.IconButton(_tools,"triangle-down",()=>SetAllFolded(null),30,30);
+        OverviewUi.Place((RectTransform)_foldAllButton.transform,SearchWidth+14,1,30,30);
+        AddHint(_foldAllButton.gameObject,Loc.T("Expand or collapse all groups. Controller: LT + RB expands all, LT + LB collapses all.","展开或收起全部分组。手柄：LT + RB 全部展开，LT + LB 全部收起。","展開或收起全部分組。手把：LT + RB 全部展開，LT + LB 全部收起。"));
+        RefreshFoldAllIcon();
+        var note=Label(_tools,enablementNote,SearchWidth+52,0,Mathf.Max(40,width-SearchWidth-252),32,15);note.color=OverviewUi.Muted;AddHint(note.gameObject,enablementNote);
         OverviewUi.Place(_header,0,33,width,39);
         string goalHeading = Loc.T("Enable mod", "启用", "啟用");
         _fixedGoalWidth=Mathf.Max(60,Measure(goalHeading,18)+16);
@@ -239,6 +246,7 @@ internal sealed partial class OverviewListView : IDisposable
         float xFolder = xHome + homeWidth, folderWidth = 43;
         float xCheck = xFolder + folderWidth, checkWidth = _authorMode ? 43 : 0, xVersion = xCheck + checkWidth;
         float xAuthor = xVersion + versionWidth, xDescription = xAuthor + authorWidth;
+        _columnStarts = new[] { xName, xSettings, xHome, xFolder, xCheck, xVersion, xAuthor, xDescription };
         var goalHeader = Label(_header, goalHeading, xEnable, 4, goalWidth, 30, 18); goalHeader.alignment = TextAlignmentOptions.Midline;
         AddHint(goalHeader.gameObject, enablementNote); Label(_header, "#", xIndex, 4, indexWidth, 30, 20);
         var settingsHeader = OverviewUi.IconButton(_header, "gear", () => _openSettings?.Invoke(null), 30, 32); OverviewUi.Place((RectTransform)settingsHeader.transform, xSettings + 2, 2, 30, 32); AddHint(settingsHeader.gameObject, T("Mod settings column. Click to open the general mod settings page.", "模组设置列，点击跳转到模组总设置页"));
@@ -299,8 +307,8 @@ internal sealed partial class OverviewListView : IDisposable
         if (_checking) { _reopenPending = true; return; }
         // Automatic checks are owned by the scene-gated process-wide scheduler, not page entry.
     }
-    internal void OnTabHidden() { _layerFocus=null; _opened=false; _cascade.PauseForExit(); HideAllHints(); EndDragFeedback(); }
-    public void OnClosed() { _layerFocus=null; _cascade.PauseForExit(); _opened = false; _reopenPending = false; _round?.Cancel(); _checkProgress.Clear(); HideAllHints(); _groupEditor.Close(); EndDragFeedback(); }
+    internal void OnTabHidden() { GamepadIntent.Release(_root.gameObject); _layerFocus=null; _opened=false; _cascade.PauseForExit(); HideAllHints(); EndDragFeedback(); }
+    public void OnClosed() { GamepadIntent.Release(_root.gameObject); _layerFocus=null; _cascade.PauseForExit(); _opened = false; _reopenPending = false; _round?.Cancel(); _checkProgress.Clear(); HideAllHints(); _groupEditor.Close(); EndDragFeedback(); }
     /// <summary>由概览页提供：当前向 ModConfig 提供了设置项的插件 GUID。空集合表示未知，不置灰。</summary>
     internal Func<HashSet<string>>? SettingsOwners;
     internal void PlayAppearance() => _cascade.Play(_scroll, AppearanceRows);
@@ -467,6 +475,7 @@ internal sealed partial class OverviewListView : IDisposable
             float xFolder = xHome + homeWidth, folderWidth = 43;
             float xCheck = xFolder + folderWidth, checkWidth = _authorMode ? 43 : 0, xVersion = xCheck + checkWidth;
             float xAuthor = xVersion + versionWidth, xDescription = xAuthor + authorWidth;
+        _columnStarts = new[] { xName, xSettings, xHome, xFolder, xCheck, xVersion, xAuthor, xDescription };
             float y = BuildInfrastructure(0, width, xEnable, goalWidth, xName, nameWidth, xSettings, xHome, xFolder, xVersion, versionWidth, xAuthor, authorWidth, xDescription, compact); int index = 0;
             var headers = HeaderOrder(layoutRows); int nextHeader = 0;
             bool collapseApplies = _relatedMods == null && Tags.Count == 0 && _searchQuery.Length == 0;
@@ -539,6 +548,7 @@ internal sealed partial class OverviewListView : IDisposable
                 title.margin = Vector4.zero;
                 OverviewUi.PlaceClipped(title, xName, 4, titleWidth, 34);
                 BindDependencyHint(title.gameObject, mod);
+                BindGamepadName(title.gameObject, mod);
                 if (ownMod) OverviewRowActions.HighlightSelf(title);
                 if (chip != null) chip.anchoredPosition = new Vector2(chipX, chip.anchoredPosition.y);
                 var titleClick = title.gameObject.AddComponent<OverviewTextClick>(); titleClick.Clicked = data => { if (data.clickCount >= 2) ShowModActions(mod, data); else Select(mod, VisibleIndex(mod), data); };
@@ -555,6 +565,7 @@ internal sealed partial class OverviewListView : IDisposable
                 string translatedDescription = OverviewLanguageBridge.GetDescription(mod);
                 var description = Label(row, translatedDescription, xDescription, 4, Mathf.Max(40, width - xDescription - 28), 34, 16); description.color = OverviewUi.Muted; description.gameObject.SetActive(!compact);
                 AddHint(description.gameObject, translatedDescription);
+                BindGamepadDescription(description.gameObject, mod);
                 var descClick = description.gameObject.AddComponent<OverviewTextClick>(); descClick.Clicked = data => { if (data.clickCount >= 2) ShowModActions(mod, data); else Select(mod, VisibleIndex(mod), data); };
                 OverviewEditableFrame.Set(description.rectTransform, _authorMode);
                 enablement.Capture();enablement.Refresh(MarkerState()?.Mod(mod.Guid));
@@ -680,18 +691,18 @@ internal sealed partial class OverviewListView : IDisposable
     {
         if (string.IsNullOrWhiteSpace(text)) return;
         var hover = target.GetComponent<OverviewHover>() ?? target.AddComponent<OverviewHover>();
-        hover.Enter = () => { _factoryHint.Cancel();_warmAfter=Time.unscaledTime+.25f;_hintDwell.Enter(text,Time.unscaledTime); _hint.gameObject.SetActive(false); };
+        hover.Enter = () => { _hintAnchor=null;_factoryHint.Cancel();_warmAfter=Time.unscaledTime+.25f;_hintDwell.Enter(text,Time.unscaledTime); _hint.gameObject.SetActive(false); };
         hover.Exit = HideExternalHint;
         var focus=target.GetComponent<OverviewHotkeyFocus>() ?? target.AddComponent<OverviewHotkeyFocus>();
-        focus.Selected+=()=> { _factoryHint.Cancel();_hintDwell.Cancel();ShowHint(text); };
+        focus.Selected+=()=> { _factoryHint.Cancel();_hintDwell.Cancel();ShowFocusHint(text,target); };
         focus.Deselected+=HideExternalHint;
     }
     private void AddHint(GameObject target,Func<string> factory)
     {
         var hover=target.GetComponent<OverviewHover>()??target.AddComponent<OverviewHover>();
-        hover.Enter=()=>QueueExternalHint(target,factory);hover.Exit=HideExternalHint;
+        hover.Enter=()=> { _hintAnchor=null;QueueExternalHint(target,factory); };hover.Exit=HideExternalHint;
         var focus=target.GetComponent<OverviewHotkeyFocus>()??target.AddComponent<OverviewHotkeyFocus>();
-        focus.Selected+=()=>QueueExternalHint(target,factory,true);focus.Deselected+=HideExternalHint;
+        focus.Selected+=()=> { _hintAnchor=(RectTransform)target.transform;QueueExternalHint(target,factory,true); };focus.Deselected+=HideExternalHint;
     }
     private void ShowHint(string text)
     {
@@ -701,7 +712,7 @@ internal sealed partial class OverviewListView : IDisposable
         _lastHintPointer=new(float.NaN,float.NaN);PositionHint(); _hint.SetAsLastSibling(); _hint.gameObject.SetActive(true);
     }
     internal bool TryCloseLayer() => _groupEditor.TryCloseTop() || _dependencyHints.TryCloseLayer();
-    internal void HideAllHints() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); _dependencyHints.HideNow(); }
+    internal void HideAllHints() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); _hintAnchor=null; _dependencyHints.HideNow(); HideChipCard(); }
     internal void BindDependencyHint(GameObject target, OverviewMod mod)
     {
         _dependencyHints.Bind(target, mod);
@@ -723,9 +734,12 @@ internal sealed partial class OverviewListView : IDisposable
     internal void ShowExternalHint(string text)
     {
         if(_disposed || OverviewUi.HasModal || (_hint.gameObject.activeSelf && _shownHint==text))return;
-        _factoryHint.Cancel();_hintDwell.Enter(text,Time.unscaledTime);
+        // 1.1.0: on a gamepad, hints raised by the focused cell (pending markers on the enable box) sit under that cell.
+        if(GamepadSupport.IsGamepad && EventSystem.current?.currentSelectedGameObject is GameObject focused && focused.transform.IsChildOf(_content))
+        { _factoryHint.Cancel();_hintDwell.Cancel();ShowFocusHint(text,focused);return; }
+        _hintAnchor=null;_factoryHint.Cancel();_hintDwell.Enter(text,Time.unscaledTime);
     }
-    internal void HideExternalHint() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); }
+    internal void HideExternalHint() { _factoryHint.Cancel();_hintDwell.Cancel(); _hint.gameObject.SetActive(false); _hintAnchor=null; }
     private void PositionHint()
     {
         float width = Mathf.Min(700, Width - 30);
@@ -743,6 +757,14 @@ internal sealed partial class OverviewListView : IDisposable
             _measuredHint=_shownHint;_hintWidth=width;_hintFont=_hintText.font;_hintLanguage=Loc.TranslationRevision;_hintFontSize=_hintText.fontSize;
         }
         float height=_hintHeight;
+        if(HintFollowsFocus)
+        {
+            var at=FocusPoint(_hintAnchor!,out float anchorHeight);
+            float fx=at.x+8, fy=at.y+6;
+            if(fy+height>_root.rect.height-5) fy=at.y-anchorHeight-height-6;
+            fx=Mathf.Clamp(fx,5,Mathf.Max(5,Width-width-20)); fy=Mathf.Clamp(fy,5,Mathf.Max(5,_root.rect.height-height-5));
+            HintCanvas.Position(_hint,fx,fy); _lastHintPointer=new(float.NaN,float.NaN); return;
+        }
         var screen=PointerPosition;var rootSize=_root.rect.size;
         if(screen==_lastHintPointer && rootSize==_lastHintRootSize)return;
         _lastHintPointer=screen;_lastHintRootSize=rootSize;

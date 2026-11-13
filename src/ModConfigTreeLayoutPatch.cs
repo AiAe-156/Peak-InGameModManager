@@ -732,6 +732,7 @@ internal static class ModConfigTreeLayoutPatch
                     ModConfigPaperStyle.ApplyWobbleToCell(cell);
                     Overview.ChangeLedger.WireCell(cell);
                     ModConfigSidebarWidgets.StyleCellButtons(cell); // 「默认」钮挂主题色 + 虚线归位
+                    SettingCellExtras.Apply(cell); // 1.1.1：默认值小字、快捷键重复改「!」标记、快捷键格统一
                 }
             }
 
@@ -812,7 +813,25 @@ internal static class ModConfigTreeLayoutPatch
                     || control.transform is not RectTransform rect) continue;
                 // Keep the anchor and horizontal geometry of sliders, text inputs and dropdowns.
                 if (control is TMP_Dropdown) continue; // sized below, to CompactControlHeight
-                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Clamp(rect.rect.height * .85f, 28f, 36f));
+                // 1.1.1 (user): text boxes were 28–36 high depending on the source prefab; all one height now.
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, control is TMP_InputField ? CompactControlHeight : Mathf.Clamp(rect.rect.height * .85f, 28f, 36f));
+                // Stretched controls (text box, slider row, dropdown) end at the left of the reserved button columns.
+                // Text boxes (any anchoring, so the manager-profile-directory box no longer runs under its Default button)
+                // and sliders; the small number box beside a slider keeps its size.
+                bool sliderNumber = control is TMP_InputField && controls.GetComponentInChildren<Slider>(true) != null;
+                if (control is TMP_InputField && !sliderNumber) SettingCellExtras.FitControl(rect);
+            }
+            foreach (Slider slider in controls.GetComponentsInChildren<Slider>(true))
+            {
+                SliderLook.Apply(slider);
+                // 1.1.4 (user, old screenshot): keep ModConfig's own number-box : slider proportion. Only when a wide
+                // panel would push the slider's right end into the button column is it pulled back (never stretched).
+                if (slider.transform is RectTransform sliderRect && sliderRect.parent is RectTransform sliderHost && sliderHost.rect.width > 1)
+                {
+                    float right = sliderHost.rect.width / 2f * (sliderRect.anchorMax.x * 2f - 1f) + sliderRect.offsetMax.x;
+                    float limit = SettingCellExtras.ButtonsLeft - 8f;
+                    if (right > limit) sliderRect.offsetMax = new Vector2(sliderRect.offsetMax.x - (right - limit), sliderRect.offsetMax.y);
+                }
             }
             foreach (TMP_Dropdown dropdown in controls.GetComponentsInChildren<TMP_Dropdown>(true))
             {
@@ -833,11 +852,12 @@ internal static class ModConfigTreeLayoutPatch
                 {
                     // 2.3.11: PEAK 3.1.0's cell gives ModConfig's dropdown (sizeDelta y = -30, stretched) only a sliver of
                     // height. Use an absolute height equal to the compact text boxes so all controls line up.
-                    float lineHeight = Mathf.Ceil(caption.GetPreferredValues(caption.text).y) + 4f;
                     dropdownRect.anchorMin = new Vector2(dropdownRect.anchorMin.x, .5f);
                     dropdownRect.anchorMax = new Vector2(dropdownRect.anchorMax.x, .5f);
-                    dropdownRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(CompactControlHeight, lineHeight));
+                    // 1.1.4 (user: the dropdown looked a hair taller than the other boxes): exactly the box height.
+                    dropdownRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, CompactControlHeight);
                     dropdownRect.anchoredPosition = new Vector2(dropdownRect.anchoredPosition.x, 0f);
+                    SettingCellExtras.FitControl(dropdownRect);
                 }
                 dropdown.RefreshShownValue();
             }
@@ -846,19 +866,19 @@ internal static class ModConfigTreeLayoutPatch
                 if (button.name != "UI_MainMenuButton_DefaultsButton" && button.name != "UI_MainMenuButton_ClearButton") continue;
                 // Native stacked actions sit at +/-14. Their captions must not retain 10px top/bottom margins.
                 button.RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 28f);
-                // 2.3.11: a lone Default button sits on the row's centre line, next to MCE's Save button.
-                if (!stackedActions) button.RectTransform.anchoredPosition = new Vector2(button.RectTransform.anchoredPosition.x, 0f);
+                // 1.1.4 (user): one column, Default above Clear (two rows) when the row has both; Default alone is centred.
+                SettingCellExtras.PlaceButton(button.RectTransform, button.name == "UI_MainMenuButton_ClearButton" ? SettingCellExtras.Column.Clear : SettingCellExtras.Column.Default, stackedActions);
                 if (button.Text == null) continue;
                 RectTransform caption = button.Text.rectTransform;
                 caption.anchorMin = Vector2.zero; caption.anchorMax = Vector2.one;
                 caption.offsetMin = new Vector2(4f, 0f); caption.offsetMax = new Vector2(-4f, 0f);
-                button.Text.fontSizeMin = 12f; button.Text.fontSizeMax = 14f; button.Text.fontSize = 14f;
+                button.Text.enableAutoSizing = true; button.Text.fontSizeMin = 9f; button.Text.fontSizeMax = stackedActions ? 12f : 13f; button.Text.fontSize = button.Text.fontSizeMax;
             }
         }
 
         if (cell.transform is RectTransform cellRect)
         {
-            float minimum = stackedActions ? 60f : 44f;
+            float minimum = 50f; // 1.1.1: keybind cells are one line now too; 1.1.3: taller controls
             float height = Mathf.Max(minimum, cellRect.rect.height * .82f);
             cellRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             LayoutElement? element = cell.GetComponent<LayoutElement>();
@@ -872,7 +892,7 @@ internal static class ModConfigTreeLayoutPatch
 
     private sealed class CompactSettingCellMarker : MonoBehaviour { }
     /// <summary>Height of every compact control (text box, dropdown, action button): one line, aligned on the row.</summary>
-    internal const float CompactControlHeight = 30f;
+    internal const float CompactControlHeight = 36f; // 1.1.3 (user): white boxes a little taller
 
     /// <summary>
     /// 搜索 / 筛选 / 只看按键后把「没有任何匹配选项」的模组行藏起来，恢复匹配的再亮回来。

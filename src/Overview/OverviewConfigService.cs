@@ -67,12 +67,15 @@ internal sealed class OverviewConfigService
             { retained.serializedValue = diskValue; retained.missing = false; retained.missingReason = ""; }
             snapshot.values.Add(retained);
         }
+        // One read and parse per file, not per value: a capture covers thousands of values in a few hundred files.
+        var documents = new Dictionary<string, ConfigurationDocument>(StringComparer.OrdinalIgnoreCase);
         foreach (var value in snapshot.values)
         {
             string path = Absolute(value.configFile);
             value.diskBaselineKnown = true;
             // Do not swallow I/O failures: an unreadable baseline is not an absent field.
-            var document = new ConfigurationDocument(File.Exists(path) ? File.ReadAllText(path) : "");
+            if (!documents.TryGetValue(path, out var document))
+                documents[path] = document = new ConfigurationDocument(File.Exists(path) ? File.ReadAllText(path) : "");
             value.diskExists = document.TryGet(new ConfigurationDocument.Key(value.section, value.key), out string raw);
             value.diskValue = raw ?? "";
         }

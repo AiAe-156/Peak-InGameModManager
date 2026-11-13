@@ -283,7 +283,7 @@ internal static partial class SourceUi
     }
     internal static RectTransform Rows(RectTransform panel, float top, float height, out ScrollRect scroll)
     {
-        PublicationNavigation.Attach(panel);
+        PublicationNavigation.Invalidate(panel);
         var host = OverviewUi.Rect("Scroll", panel); OverviewUi.Place(host, 20, top, panel.rect.width - 40, height);
         host.gameObject.AddComponent<RectMask2D>(); var background = host.gameObject.AddComponent<Image>(); background.color = ModConfigLook.Surface(new Color(0, 0, 0, .08f));
         scroll = host.gameObject.AddComponent<ScrollRect>(); scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 40;

@@ -33,6 +33,8 @@ internal sealed class UninstallDialog : MonoBehaviour
         dialog._confirm = OverviewUi.Button(panel,Loc.LocalizeMessage("Confirm uninstall"),dialog.Submit,210,34,UiActionRole.Danger);
         OverviewUi.Place((RectTransform)dialog._confirm.transform,20,panel.rect.height-50,210,34); dialog._caption=dialog._confirm.GetComponentInChildren<TextMeshProUGUI>();
         var cancel=OverviewUi.Button(panel,Loc.LocalizeMessage("Close"),close,108,34); OverviewUi.Place((RectTransform)cancel.transform,244,panel.rect.height-50,108,34);
+        // 1.1.4 (gamepad review): start on the safe button, not on "Confirm uninstall".
+        if (GamepadSupport.IsGamepad) UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(cancel.gameObject);
     }
     private void Submit()
     {

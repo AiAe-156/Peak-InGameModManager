@@ -39,6 +39,7 @@ internal static class OverviewRowActions
         var button = OverviewUi.IconButton(parent, icon, clicked, Size, Size);
         OverviewUi.Place((RectTransform)button.transform, x, y, Size, Size);
         button.interactable = enabled;
+        button.gameObject.AddComponent<OverviewRowColumn>().Column = icon == "gear" ? ListColumnPolicy.Settings : icon == "home" ? ListColumnPolicy.Home : ListColumnPolicy.Folder;
         Color color = enabled ? activeColor : Disabled;
         foreach (var text in button.GetComponentsInChildren<TextMeshProUGUI>(true)) text.color = color;
         foreach (var glyph in button.GetComponentsInChildren<OverviewIconGraphic>(true)) glyph.color = color;

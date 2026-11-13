@@ -225,6 +225,7 @@ internal sealed class PublishFilePreview
             if (_initializedCategory != _category && depth < 2) _expanded.Add(relative);
             bool expanded = _expanded.Contains(relative);
             var button = OverviewUi.Button(_treeContent!, "", () => { if (expanded) _expanded.Remove(relative); else _expanded.Add(relative); DrawTree(); }, _treeWidth, 30, UiActionRole.Neutral);
+            button.name = "Folder_" + relative;
             OverviewUi.Place((RectTransform)button.transform, 0, y, _treeWidth, 30);
             float indent = Mathf.Min(depth, 4) * 12;
             var label = OverviewUi.Text(button.transform, (expanded ? "− " : "+ ") + pair.Key, 16); OverviewUi.PlaceClipped(label, 8 + indent, 1, _treeWidth - 16 - indent, 28); y += 31;
@@ -234,6 +235,7 @@ internal sealed class PublishFilePreview
         {
             string name = file.Replace('\\', '/').Split('/').Last();
             var button = OverviewUi.Button(_treeContent!, "", () => _content?.Open(file, () => { _selected = file; var pathText = _host.Find("SelectedPath"); if (pathText != null) pathText.GetComponent<TMP_Text>().text = file; }), _treeWidth, 29, file == _selected ? UiActionRole.Edit : UiActionRole.Neutral);
+            button.name = "File_" + file;
             OverviewUi.Place((RectTransform)button.transform, 0, y, _treeWidth, 29);
             float indent = Mathf.Min(depth, 4) * 12;
             var label = OverviewUi.Text(button.transform, name, 15); OverviewUi.PlaceClipped(label, 24 + indent, 1, _treeWidth - 32 - indent, 27);
@@ -251,6 +253,7 @@ internal sealed class PublishFilePreview
 
     private static void Clear(Transform parent)
     {
+        PublicationNavigation.Preserve(parent);
         for (int i = parent.childCount - 1; i >= 0; i--) { var child = parent.GetChild(i).gameObject; child.SetActive(false); UnityEngine.Object.Destroy(child); }
     }
 }

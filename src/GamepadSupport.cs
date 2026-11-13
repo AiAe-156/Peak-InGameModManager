@@ -535,6 +535,9 @@ internal static class GamepadSupport
 
             // 最后输入设备跟踪：PlayerInput 不自动切方案，动鼠标时方案仍停在 Gamepad（指针锁死根源），
             // 每帧在 InputHandler.Update 后统计真实输入，IsGamepad 改查它。挂不上时 IsGamepad 退回原方案判定。
+            // 1.1.4 (user): any text box, with a controller: focus ≠ typing; A starts typing, B only stops typing.
+            MethodInfo? fieldSelect = AccessTools.Method(typeof(TMP_InputField), "OnSelect", new[] { typeof(BaseEventData) });
+            if (fieldSelect != null) harmony.Patch(fieldSelect, prefix: new HarmonyMethod(typeof(GamepadSupport), nameof(InputFieldSelectPrefix)));
             MethodInfo? inputUpdate = AccessTools.Method(typeof(InputHandler), "Update", Type.EmptyTypes);
             if (inputUpdate != null)
             {
@@ -676,6 +679,23 @@ internal static class GamepadSupport
         return false;
     }
 
+    /// <summary>1.1.4：有的模组把上限设成 float.MaxValue（3.4e38，用户截图「自动保存间隔」），按 0.5% 一步就直接到顶、
+    /// 滑块位置也算不出来。有效区间取「默认值 / 当前值的 4 倍、至少 100」与真实上限中较小的一个。</summary>
+    internal static float EffectiveRange(Slider slider)
+    {
+        float range = slider.maxValue - slider.minValue;
+        if (range <= 0f || range < 1e6f) return range;
+        float anchor = Mathf.Max(Mathf.Abs(slider.value - slider.minValue), 25f);
+        return Mathf.Min(range, Mathf.Max(100f, anchor * 4f));
+    }
+    /// <summary>A round step (0.01 / 0.05 / 0.1 / 0.5 / 1 / 5 …) close to 0.5% of the range.</summary>
+    internal static float StepFor(float range)
+    {
+        float raw = range * 0.005f;
+        float power = Mathf.Pow(10f, Mathf.Floor(Mathf.Log10(Mathf.Max(raw, 1e-6f))));
+        float scaled = raw / power;
+        return (scaled < 2f ? 1f : scaled < 5f ? 2f : 5f) * power;
+    }
     /// <summary>步进上限：最多区间的 0.5%（原版 0.1，0-10000 的滑条一步 1000）。整数档最少 1 步。</summary>
     private static void SliderStepSizePostfix(Slider __instance, ref float __result)
     {
@@ -684,7 +704,7 @@ internal static class GamepadSupport
             return;
         }
 
-        float range = __instance.maxValue - __instance.minValue;
+        float range = EffectiveRange(__instance);
         if (range <= 0f)
         {
             return;
@@ -709,10 +729,18 @@ internal static class GamepadSupport
             return true;
         }
 
+        if (ConsumeTypingBack()) { __result = (__instance, NoopTransistion.Shared); return false; } // B only left a text box
         PanelFocus? focus = __instance.GetComponent<PanelFocus>();
-        if (focus == null || !focus.ConsumeBack())
+        if (focus == null)
         {
             return true;
+        }
+
+        if (!focus.ConsumeBack())
+        {
+            if (BackGuard.Allow()) return true; // 1.1.5: B twice quickly to leave the mod settings page
+            __result = (__instance, NoopTransistion.Shared);
+            return false;
         }
 
         __result = (__instance, NoopTransistion.Shared);
@@ -758,6 +786,7 @@ internal static class GamepadSupport
 
         private void OnDisable()
         {
+            GamepadIntent.Release(this);
             InOptions = false;
             _lastSidebar = null;
             _lastOptions = null;
@@ -768,17 +797,34 @@ internal static class GamepadSupport
         {
             if (!IsGamepad || Menu == null || Page == null)
             {
+                GamepadIntent.Release(this);
                 return;
             }
 
             if (_handler == null || _handler.currentPage != Page || !Page.gameObject.activeInHierarchy)
             {
+                GamepadIntent.Release(this);
                 return;
             }
 
-            if (Overlaid() || CaptureActive() || AnyDropdownOpen(Page.transform))
+            if (Overlaid() || CaptureActive() || AnyDropdownOpen(Page.transform) || TypingGuard.Active)
             {
+                GamepadIntent.Release(this);
                 return;
+            }
+
+            // 1.1.0：右摇杆只滚动右栏（游戏把右摇杆也绑在导航上，推动期间暂停导航，焦点不动）。
+            // Unity 对象不能用 ?. 判空（已销毁的对象 ?. 不拦截，GetComponent 直接抛）——1.1.0 首版这里每帧抛 NRE，
+            // 整个状态机后半段都不执行，右栏进去后什么都操作不了。
+            GameObject? current = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+            SliderGate? gate = current != null ? current.GetComponent<SliderGate>() : null;
+            bool sliderEngaged = gate != null && gate.Engaged;
+            float stick = sliderEngaged ? 0 : GamepadIntent.ScrollY;
+            GamepadIntent.HoldNavigation(this, !sliderEngaged && GamepadIntent.RightStickHeld);
+            if (stick != 0 && Menu.Content != null && Menu.Content.GetComponentInParent<ScrollRect>() is ScrollRect options && options.content != null && options.viewport != null)
+            {
+                float range = options.content.rect.height - options.viewport.rect.height;
+                if (range > 1) { options.StopMovement(); options.verticalNormalizedPosition = Mathf.Clamp01(options.verticalNormalizedPosition + stick * GamepadIntent.ScrollSpeed(900) * Time.unscaledDeltaTime / range); }
             }
 
             EventSystem? system = EventSystem.current;
@@ -987,6 +1033,19 @@ internal static class GamepadSupport
             return null;
         }
 
+        /// <summary>The row's value control (slider, dropdown, text box, toggle, key box), never Default / Clear / Save.</summary>
+        internal static GameObject? ValueControl(SettingsUICell cell)
+        {
+            if (cell == null || cell.m_settingsContentParent == null) return null;
+            foreach (Selectable control in cell.m_settingsContentParent.GetComponentsInChildren<Selectable>(false))
+            {
+                if (control is Scrollbar || !control.IsInteractable()) continue;
+                if (control.GetComponent<PeakMenuButton>() != null || control.name.StartsWith("MCE_", StringComparison.Ordinal)) continue;
+                if (control.GetComponentInParent<TMP_Dropdown>() is TMP_Dropdown parent && parent != control) continue;
+                return control.gameObject;
+            }
+            return null;
+        }
         private GameObject? FirstCellSelectable()
         {
             if (Menu == null)
@@ -1001,7 +1060,9 @@ internal static class GamepadSupport
                     continue;
                 }
 
-                GameObject? selectable = cell.GetSelectable();
+                // 1.1.4 (user: entering the right panel focused "Default", one press reset the value): the game's
+                // GetSelectable returns the first Button, which in a ModConfig row is Default. Prefer the value control.
+                GameObject? selectable = ValueControl(cell) ?? cell.GetSelectable();
                 if (selectable == null || !selectable.activeInHierarchy)
                 {
                     continue;
@@ -1401,6 +1462,12 @@ internal static class GamepadSupport
 
         public void OnSelect(BaseEventData eventData)
         {
+            // 1.1.0：鼠标点击选中不画焦点框（概览行内格子现在也挂了焦点框，鼠标行为要保持原样）。
+            if (eventData is PointerEventData || !IsGamepad)
+            {
+                return;
+            }
+
             SetVisible(true);
         }
 
@@ -1462,6 +1529,23 @@ internal static class GamepadSupport
             image.pixelsPerUnitMultiplier = 1.2f; // 屏上描边 ≈ 2.5px、圆角 ≈ 10px
             image.color = ModConfigSidebarWidgets.Cream;
             image.raycastTarget = false;
+
+            // 1.1.1：米白框套在米白输入框/下拉上看不出来（用户截图）。外面再套一圈深色描边，
+            // 浅底上看深圈、深底上看米白圈，任何底色都分得清。
+            GameObject dark = new GameObject("MCE_FocusFrameShadow", typeof(RectTransform), typeof(Image));
+            RectTransform darkRect = (RectTransform)dark.transform;
+            darkRect.SetParent(rect, false);
+            darkRect.anchorMin = Vector2.zero;
+            darkRect.anchorMax = Vector2.one;
+            darkRect.offsetMin = new Vector2(-2.5f, -2.5f);
+            darkRect.offsetMax = new Vector2(2.5f, 2.5f);
+            Image darkImage = dark.GetComponent<Image>();
+            darkImage.sprite = RingSprite();
+            darkImage.type = Image.Type.Sliced;
+            darkImage.pixelsPerUnitMultiplier = 1.2f;
+            darkImage.color = new Color(0.08f, 0.10f, 0.14f, 0.95f);
+            darkImage.raycastTarget = false;
+            darkRect.SetAsFirstSibling();
 
             go.SetActive(false);
             return go;
@@ -1570,19 +1654,55 @@ internal static class GamepadSupport
     /// （MarkSelectable 里关）；A 键走 TMP 自己的 OnSubmit → m_ShouldActivateNextUpdate 激活，
     /// B 键走 PanelFocus.ConsumeBack → DeactivateInputField。
     /// </summary>
-    internal sealed class InputFieldGate : MonoBehaviour
+    /// <summary>Before TMP activates a box on selection: with a controller it must wait for A.</summary>
+    private static void InputFieldSelectPrefix(TMP_InputField __instance)
+    {
+        if (!IsGamepad || __instance == null) return;
+        __instance.shouldActivateOnSelect = false;
+        if (__instance.GetComponent<InputFieldGate>() == null) __instance.gameObject.AddComponent<InputFieldGate>();
+    }
+    /// <summary>Frame until which a back request (B) is swallowed because it only left a text box.</summary>
+    internal static int SwallowBackUntil = -1;
+    internal static bool BackSwallowed => Time.frameCount <= SwallowBackUntil;
+    /// <summary>For every back entry point: if a text box is being typed in (any input device), leave typing and
+    /// swallow this back request. Independent of which runs first, the gate's Update or the page's back.</summary>
+    internal static bool ConsumeTypingBack()
+    {
+        if (BackSwallowed || Overview.ControllerReadingSurface.ConsumeBack()) return true;
+        var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        var field = selected != null ? selected.GetComponent<TMP_InputField>() : null;
+        if (field == null || !field.isFocused || !IsGamepad) return false;
+        field.DeactivateInputField(); SwallowBackUntil = Time.frameCount + 1; return true;
+    }
+
+    internal sealed class InputFieldGate : MonoBehaviour, ISubmitHandler
     {
         private TMP_InputField? _input;
         private FocusHighlight? _highlight;
         private bool _engaged;
+        private int _steamFrames;
 
         private void Awake()
         {
             _input = GetComponent<TMP_InputField>();
         }
 
+        /// <summary>1.1.0：Steam 大屏幕 / Deck 下按 A 弹 Steam 屏幕键盘，TMP 自己的激活在下一帧撤掉。</summary>
+        public void OnSubmit(BaseEventData eventData)
+        {
+            if (_input == null || !IsGamepad || _input.readOnly || !_input.interactable) return;
+            if (GamepadIntent.TrySteamKeyboard(_input)) _steamFrames = 3;
+        }
+
         private void Update()
         {
+            if (_steamFrames > 0) { _steamFrames--; if (_input != null && _input.isFocused) _input.DeactivateInputField(); }
+            // B while typing: leave typing only; the page must not go back on the same press.
+            if (_input != null && _input.isFocused && IsGamepad && Gamepad.current != null && Gamepad.current.buttonEast.wasPressedThisFrame)
+            {
+                _input.DeactivateInputField(); SwallowBackUntil = Time.frameCount + 1;
+                if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(gameObject);
+            }
             bool focused = _input != null && _input.isFocused;
             if (focused == _engaged)
             {
@@ -1740,17 +1860,19 @@ internal static class GamepadSupport
 
         private void Step(int dir)
         {
-            float range = _slider!.maxValue - _slider.minValue;
+            float range = EffectiveRange(_slider!);
             if (range <= 0f)
             {
                 return;
             }
 
-            bool reversed = _slider.direction is Slider.Direction.RightToLeft or Slider.Direction.TopToBottom;
+            bool reversed = _slider!.direction is Slider.Direction.RightToLeft or Slider.Direction.TopToBottom;
             float step = _slider.wholeNumbers
                 ? Mathf.Max(1f, Mathf.Round(range * 0.005f))
-                : Mathf.Min(range * 0.1f, range * 0.005f);
-            _slider.value = Mathf.Clamp(_slider.value + step * dir * (reversed ? -1 : 1), _slider.minValue, _slider.maxValue);
+                : StepFor(range);
+            float max = _slider.minValue + range; // never jump into the absurd part of a 0..float.MaxValue slider
+            float next = Mathf.Clamp(_slider.value + step * dir * (reversed ? -1 : 1), _slider.minValue, Mathf.Max(max, _slider.value));
+            _slider.value = next;
         }
     }
 

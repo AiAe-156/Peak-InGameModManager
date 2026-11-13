@@ -43,10 +43,10 @@ internal static partial class OverviewUi
         return button;
     }
 
-    internal static void SaveDialogBody(RectTransform panel, string body, bool attention = false, bool formatted = false, bool horizontalReport = false)
+    internal static void SaveDialogBody(RectTransform panel, string body, bool attention = false, bool formatted = false, bool horizontalReport = false, float top = 0)
     {
         var host = Panel("Message", panel, DialogInset); Fill(host);
-        host.offsetMin = new Vector2(24, 82); host.offsetMax = new Vector2(-24, -124);
+        host.offsetMin = new Vector2(24, 82); host.offsetMax = new Vector2(-24, top > 0 ? -top : -124);
         if (attention)
         {
             var rail = Panel("Attention", host, Gold); rail.anchorMin = Vector2.zero; rail.anchorMax = new Vector2(0, 1);
@@ -62,7 +62,9 @@ internal static partial class OverviewUi
         scroll.viewport = viewport; scroll.content = content;
         scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 40;
         ManagementUi.Scrollbar(host, scroll);
-        GamepadSupport.MarkSelectable(host.gameObject, scroll, content);
+        var reader = host.gameObject.AddComponent<ControllerReadingSurface>(); reader.Scroll = scroll;
+        reader.targetGraphic = host.GetComponent<Image>(); reader.transition = Selectable.Transition.None;
+        GamepadSupport.MarkSelectable(host.gameObject, null, null);
         text.lineSpacing = 8;
         text.margin = new Vector4(0, 2, 12, 4);
         if (horizontalReport)

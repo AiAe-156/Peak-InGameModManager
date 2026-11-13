@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using System.Globalization;
+using System.Linq;
 using Newtonsoft.Json;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -166,6 +167,9 @@ internal sealed class OverviewEntry : MonoBehaviour
         var caption = _button.GetComponentInChildren<TextMeshProUGUI>(true);
         _settingsCaption = caption;
         MatchNativeRibbon(_button, caption);
+        // 1.1.4 (user): the entry sits top-left, away from the menu column, so the controller could never reach it.
+        _button.gameObject.AddComponent<EntryNavLink>();
+        GamepadSupport.MarkSelectable(_button.gameObject, null, null);
         caption.enableAutoSizing = true; caption.fontSizeMin = 13; caption.fontSizeMax = 18;
         _name = OverviewUi.Text(transform, "", 29); _name.gameObject.AddComponent<OverviewFlowingName>().Text = _name;
         _version = OverviewUi.Text(transform, "", 18); _version.color = OverviewUi.Muted;
@@ -229,7 +233,8 @@ internal sealed class OverviewEntry : MonoBehaviour
     {
         if (_parent == null) return;
         if(_opening)return;
-        try { EnsureShell(); } catch(Exception error) { FailOpen(error);return; }
+        EntryNavLink.ReturnFocus = true;
+        try { EnsureShell(); } catch(Exception error) { EntryNavLink.ReturnFocus = false; FailOpen(error);return; }
         _opening=true;_stage=0;
         StepOpen();
     }
@@ -405,9 +410,9 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         var border = OverviewUi.Panel("Frame", transform, OverviewUi.Gold); OverviewUi.Fill(border, 14);
         _frame = OverviewUi.Panel("Paper", border, OverviewUi.Brown); OverviewUi.Fill(_frame, 2);
         _back = OverviewUi.Button(_frame, Loc.T("Back", "返回", "返回"), Back, 85, 35, role: UiActionRole.Neutral); OverviewUi.Place((RectTransform)_back.transform, 14, 15, 85, 35);
-        _listTab = Tab(Loc.T("Mod list", "模组列表", "模組列表"), () => SwitchTab(PageTab.Mods));
+        _listTab = Tab(Loc.T("Mod list", "模组列表", "模組列表"), () => { SwitchTab(PageTab.Mods); FocusTabContent(); });
         _introTab = Tab("", () => SwitchTab(PageTab.Introduction));
-        _hotkeyTab = Tab(Loc.T("Keybindings", "快捷键设置", "快捷鍵設定"), () => SwitchTab(PageTab.Hotkeys));
+        _hotkeyTab = Tab(Loc.T("Keybindings", "快捷键设置", "快捷鍵設定"), () => { SwitchTab(PageTab.Hotkeys); FocusTabContent(); });
         _controls = OverviewUi.Rect("CommonTools", _frame);
         yield return null;
         _refresh = OverviewUi.Button(_controls, Loc.T("Refresh", "刷新", "重新整理"), RefreshData, 90, 34, role: UiActionRole.Neutral);
@@ -470,7 +475,8 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         _list = new OverviewListView(_body, _repo, SetStatus, OnListChanged, OpenModSettings); 
         // The document editor is expensive and unrelated to the default mod-list tab.
         yield return null;
-        _hotkeys = new OverviewHotkeyView(_body, _repo, () => _list.Mods, SetStatus, RefreshHeader, OpenModSettings, () => { EnsureDocument().ExportPackData(); }, (target, mod) => _list.BindDependencyHint(target, mod), mod => _list.GetDisplayNumber(mod)); 
+        _hotkeys = new OverviewHotkeyView(_body, _repo, () => _list.Mods, SetStatus, RefreshHeader, OpenModSettings, () => { EnsureDocument().ExportPackData(); }, (target, mod) => _list.BindDependencyHint(target, mod), mod => _list.GetDisplayNumber(mod));
+        _hotkeys.ToolbarAbove = from => _controls.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && s.IsInteractable()).OrderBy(s => Mathf.Abs(s.transform.position.x - from.transform.position.x)).FirstOrDefault() ?? _hotkeyTab.GetComponent<Button>();
         _list.PendingState = () => _repo.GetPendingState(_document?.IsDirty == true);
         _hotkeys.PendingState = () => _repo.GetPendingState(_document?.IsDirty == true);
         _list.SettingsOwners = () => OverviewSettingsNavigator.SettingsOwners(this);
@@ -542,12 +548,16 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
     }
     public override void OnPageExit()
     {
-        ClearToolHint(); CloseManagement(); CloseUpdateQueue(); StopProfileObservation(); _document?.OnClosed(); _hotkeys?.OnClosed(); _list?.OnClosed(); OverviewUi.ModalParent = null; OverviewUi.CloseModal(); _repo.SetAuthorMode(false); TypingGuard.Active = false; base.OnPageExit();
+        GamepadIntent.Release(this); ClearToolHint(); CloseManagement(); CloseUpdateQueue(); StopProfileObservation(); _document?.OnClosed(); _hotkeys?.OnClosed(); _list?.OnClosed(); OverviewUi.ModalParent = null; OverviewUi.CloseModal(); _repo.SetAuthorMode(false); TypingGuard.Active = false; base.OnPageExit();
     }
     public (UIPage, PageTransistion) GetParentPage()
     {
+        // 1.1.4: recording a key is a lock; only a 1 s B hold leaves it (handled by the keybindings page).
+        if (_hotkeys?.IsRecording == true) return (this, GamepadSupport.NoopTransistion.Shared);
+        if (GamepadSupport.ConsumeTypingBack()) return (this, GamepadSupport.NoopTransistion.Shared); // B only left a text box
         if (TryCloseEditingLayer()) return (this, GamepadSupport.NoopTransistion.Shared);
         if (_document?.IsImporting == true) { SetStatus(Loc.T("Media is being imported. Wait before leaving this page.", "素材正在导入，请稍后再离开。", "素材正在導入，請稍后再離開。")); return (this, GamepadSupport.NoopTransistion.Shared); }
+        if (!BackGuard.Allow()) return (this, GamepadSupport.NoopTransistion.Shared); // 1.1.5: B twice quickly to leave
         if (ProfileHasUnsaved) { RequestProfileLeave(NavigateBack); return (this, GamepadSupport.NoopTransistion.Shared); }
         return (_parent, new SetActivePageTransistion());
     }
@@ -556,7 +566,10 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
     private void OpenModSettings(OverviewMod? mod) => RequestProfileLeave(() => { if (!OverviewSettingsNavigator.Open(this, mod, out string error)) { _returnFromSettings = false; SetStatus(error); } });
     private void Back()
     {
+        if (_hotkeys?.IsRecording == true) return; // recording lock
+        if (GamepadSupport.ConsumeTypingBack()) return; // B only left a text box
         if (TryCloseEditingLayer()) return;
+        if (!BackGuard.Allow()) return;
         RequestProfileLeave(NavigateBack);
     }
     private bool TryCloseEditingLayer()
@@ -674,7 +687,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         string lower = string.Join(" | ", new[] { pack.contact, pack.date }).Trim(' ', '|');
         _metadata.text = info + (lower.Length > 0 ? "\n" + lower : ""); if (_metadata.text.Length == 0 && _author) _metadata.text = Loc.T("Click to edit pack information", "点击填写整合包信息", "點擊填寫整合包資訊");
         _metadata.overflowMode = TextOverflowModes.Ellipsis;
-        OverviewUi.Place(_metadata.rectTransform, metadataX, 10, metadataWidth, 44); OverviewUi.Place(_status.rectTransform, 20, _frame.rect.height - 58, width - 40, 52);
+        OverviewUi.Place(_metadata.rectTransform, metadataX, 10, metadataWidth, 44); OverviewUi.Place(_status.rectTransform, 20, _frame.rect.height - 58, width - 40, _promptShown ? 28 : 52);
     }
     private void AttachToolHint(GameObject target, Func<string> text)
     {
@@ -735,6 +748,8 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         PollPacks();
         PollInstallationPreview();
         if (_profileActualChanged) { RefreshActualProfileStatus(); RefreshHeader(); }
+        WatchToolbarJump();
+        GamepadPageTick();
     }
     private float _managementDirtyAt;
     private bool _resourcesDisposed;

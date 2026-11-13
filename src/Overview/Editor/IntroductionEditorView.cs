@@ -48,6 +48,8 @@ internal sealed class IntroductionEditorView : IDisposable
     private readonly DocEditor _editor;
     private readonly DocCanvas _canvas;
     private readonly DocSurface _surface;
+    private readonly ControllerReadingSurface _reading;
+    private bool _controllerReading = true;
     private readonly OverviewCascade _cascade;
     private readonly DocToolbar _toolbar;
     private readonly DocMediaTools _tools;
@@ -94,6 +96,11 @@ internal sealed class IntroductionEditorView : IDisposable
         scroll.viewport = viewport; scroll.content = content;
 
         _canvas = new DocCanvas(content, scroll, _editor, textFactory, _rootRect) { ResolveMedia = ResolveMedia };
+        var reading = OverviewUi.Rect("MCE_IntroductionReading", _rootRect); OverviewUi.Fill(reading);
+        var readingImage = reading.gameObject.AddComponent<Image>(); readingImage.color = Color.clear; readingImage.raycastTarget = false;
+        _reading = reading.gameObject.AddComponent<ControllerReadingSurface>(); _reading.Scroll = scroll; _reading.targetGraphic = readingImage; _reading.transition = Selectable.Transition.None;
+        _reading.TryMovePage = amount => { float before = _canvas.ScrollOffset; _canvas.ScrollOffset += amount; return Mathf.Abs(_canvas.ScrollOffset - before) > .1f; };
+        GamepadSupport.MarkSelectable(reading.gameObject, null, null);
         if (source != null) _canvas.TextScale = .8f;
         _canvas.Status = s => StatusChanged?.Invoke(s);
         _canvas.ObjectClicked = o => { if (!_author) return; ClosePopover(); _editor.SelectObject(o); _wantFocus = true; _surface.Focus(); Changed(false); };
@@ -138,10 +145,14 @@ internal sealed class IntroductionEditorView : IDisposable
         }
     }
 
+    internal void SetControllerReading(bool enabled) { _controllerReading = enabled; _reading.gameObject.SetActive(enabled && !_author); }
+
     public void SetAuthorMode(bool authorMode)
     {
         _cascade.Finish();
         _author = authorMode;
+        _reading.gameObject.SetActive(_controllerReading && !authorMode);
+        PublicationNavigation.Invalidate(_rootRect);
         ClosePopover(); CloseSource(); _tools.Cancel();
         IntroductionFontRegistry.PackFontsDirectory = PackFontsDirectory();
         _canvas.Author = authorMode; _tools.Author = authorMode; _surface.TypingEnabled = authorMode; _surface.ApplyImeMode();

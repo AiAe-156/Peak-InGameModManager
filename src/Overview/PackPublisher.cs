@@ -20,6 +20,8 @@ internal sealed class PublishRequest
     internal PublishMode Mode;
     internal string Name = "", DisplayName = "", Version = "1.0.0", Description = "", Website = "", DefaultProfile = "", Icon = "", OutputDirectory = "";
     internal bool Sign = true, IncludeBootstrap = true;
+    /// <summary>1.1.4: complete local packs also write a "newcomer" ZIP with the BepInEx loader files and an install note.</summary>
+    internal bool NewcomerZip = true;
     internal string? SigningKeyPath = null;
     internal string LoaderDependency = "BepInEx-BepInExPack_PEAK-5.4.75301";
     internal List<string> Profiles = new(), Languages = new();
@@ -30,7 +32,7 @@ internal sealed class PublishRequest
     internal Dictionary<string,string> ExcludedExtras = new(StringComparer.OrdinalIgnoreCase);
     internal PackConflictFile Conflicts = new();
     internal PublishRequest Snapshot() => new() { Mode = Mode, Name = Name, DisplayName = DisplayName, Version = Version, Description = Description, Website = Website, DefaultProfile = DefaultProfile, Icon = Icon,
-        OutputDirectory = OutputDirectory, SigningKeyPath = SigningKeyPath, Sign = Sign, IncludeBootstrap = IncludeBootstrap, LoaderDependency = LoaderDependency, Profiles = new(Profiles), Languages = new(Languages), Conflicts = PackConflictStore.Clone(Conflicts),
+        OutputDirectory = OutputDirectory, SigningKeyPath = SigningKeyPath, Sign = Sign, IncludeBootstrap = IncludeBootstrap, NewcomerZip = NewcomerZip, LoaderDependency = LoaderDependency, Profiles = new(Profiles), Languages = new(Languages), Conflicts = PackConflictStore.Clone(Conflicts),
         ExtraFiles = new(ExtraFiles, StringComparer.OrdinalIgnoreCase), InlineRoots = new(InlineRoots, StringComparer.OrdinalIgnoreCase), ExtraConfigFiles = new(ExtraConfigFiles, StringComparer.OrdinalIgnoreCase), Dependencies = new(Dependencies, StringComparer.OrdinalIgnoreCase), DraftFiles = new(DraftFiles, StringComparer.OrdinalIgnoreCase), ExcludedExtras=new(ExcludedExtras,StringComparer.OrdinalIgnoreCase) };
 }
 internal static partial class PackPublisher
@@ -222,6 +224,7 @@ internal static partial class PackPublisher
         ValidateDefaults(defaults, mods);
         repo.Configs.PrepareApply(defaults.config).Validate();
         JObject enhance = Chainloader.PluginInfos.TryGetValue(Plugin.PluginGuid, out var own) && own.Instance != null ? PublishedPack.CaptureDefaults(own.Instance.Config) : new();
+        PublicationScrub.ScrubSnapshot(defaults.config); // the default profile's values are written into the package too
         var items = repo.PrepareExport(request.Profiles);
         foreach (var item in items.Where(i => i.Id == (selected.publicationId.Length > 0 ? selected.publicationId : request.DefaultProfile))) item.ConfigValuesJson = JsonConvert.SerializeObject(defaults.config);
         var languages = Loc.SnapshotLanguages(request.Languages);
@@ -241,7 +244,10 @@ internal static partial class PackPublisher
                 string zip = Publish(repo, request, mods, defaults, enhance, export);
                 string name = ExportName(request) + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + Guid.NewGuid().ToString("N").Substring(0, 6) + ".zip";
                 string destination = OverviewProfileAssets.CheckedPath(request.OutputDirectory, name);
-                File.Move(zip, destination); return destination;
+                File.Move(zip, destination);
+                string newcomer = NewcomerPath(zip);
+                if (File.Exists(newcomer)) File.Move(newcomer, NewcomerPath(destination));
+                return destination;
             }
             finally
             {
@@ -408,15 +414,84 @@ internal static partial class PackPublisher
             if (!KeepCopiedFile(source, relative)) continue;
             if (Directory.Exists(source)) CopyTree(source, destination); else CopyFile(source, destination, true);
         }
+        var scrubbed = PublicationScrub.Run(Path.Combine(output, "BepInEx", "config"));
         OverviewRepository.AtomicWrite(Path.Combine(output, "CHANGELOG.md"), Changelog(request));
         if (CompleteMode(request.Mode)) OverviewRepository.AtomicWrite(Path.Combine(output, "README.md"), Readme(request));
         var missing=MissingTargets(repo,request,mods).Concat(request.ExcludedExtras.Select(p=>"Excluded attachment / 已确认排除附带内容："+p.Key+" — "+p.Value)).ToList();
         if(missing.Count>0) File.AppendAllText(Path.Combine(output,"README.md"),"\n\n"+string.Join("\n",missing.Select(m=>"- "+m))+"\n",new UTF8Encoding(false));
+        if(scrubbed.Count>0) File.AppendAllText(Path.Combine(output,"README.md"),"\n\n"+Loc.T("Values that looked private were cleared from the packed configuration (set them again yourself):","打包时清空了疑似私人信息的配置值（需要的话请自己重新填写）：","打包時清空了疑似私人資訊的設定值（需要的話請自行重新填寫）：")+"\n"+string.Join("\n",scrubbed.Select(m=>"- "+m))+"\n",new UTF8Encoding(false));
+        LastScrubbed = scrubbed;
         PublicationDrafts.Apply(request, output, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
         if (CompleteMode(request.Mode)) WriteEnvironmentDescription(output, request, defaults, mods);
         string zip = Path.Combine(export, ExportName(request) + ".zip");
         string partial = zip + ".partial"; ZipFile.CreateFromDirectory(output, partial, CompressionLevel.Optimal, false); File.Move(partial, zip);
+        LastNewcomerNote = "";
+        if (request.Mode == PublishMode.Local && request.NewcomerZip) WriteNewcomerZip(output, zip, request);
         return zip;
+    }
+    internal static List<string> LastScrubbed = new();
+    internal static string LastNewcomerNote = "";
+    internal static string NewcomerPath(string zip) => Path.Combine(Path.GetDirectoryName(zip)!, Path.GetFileNameWithoutExtension(zip) + Loc.T("_newcomer", "_新手版", "_新手版") + ".zip");
+    /// <summary>1.1.4: the same files plus the game-root loader (winhttp.dll, doorstop_config.ini, .doorstop_version) and an
+    /// install note, so a player without BepInEx unzips it into the PEAK folder. Built after the import ZIP, from the same
+    /// folder, so the import ZIP never carries game-root files (its importer rejects them).</summary>
+    private static void WriteNewcomerZip(string output, string zip, PublishRequest request)
+    {
+        try
+        {
+            string winhttp = Path.Combine(GameRoot, "winhttp.dll");
+            if (!File.Exists(winhttp)) { LastNewcomerNote = Loc.T("No newcomer ZIP: winhttp.dll is not in the game folder.", "未生成新手版：游戏目录里没有 winhttp.dll。", "未產生新手版：遊戲目錄裡沒有 winhttp.dll。"); return; }
+            CopyFile(winhttp, Path.Combine(output, "winhttp.dll"), true);
+            string version = Path.Combine(GameRoot, ".doorstop_version");
+            if (File.Exists(version)) CopyFile(version, Path.Combine(output, ".doorstop_version"), true);
+            // The author's ini only when it is the standard BepInEx one; an r2modman ini points into a profile folder.
+            string ini = Path.Combine(GameRoot, "doorstop_config.ini");
+            string text = File.Exists(ini) ? File.ReadAllText(ini) : "";
+            bool standard = System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*target_assembly\s*=\s*BepInEx[\\/]core[\\/]BepInEx\.Preloader\.dll\s*$")
+                && System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*enabled\s*=\s*true\s*$")
+                && !System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*(dll_search_path_override|boot_config_override|doorstop_dll_search_override|mono_dll_search_path_override)\s*=\s*\S");
+            File.WriteAllText(Path.Combine(output, "doorstop_config.ini"), standard ? text : StandardDoorstopIni, new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(output, Loc.T("INSTALL.txt", "安装说明.txt", "安裝說明.txt")), NewcomerNote(request), new UTF8Encoding(true));
+            string target = NewcomerPath(zip), partial = target + ".partial";
+            if (File.Exists(partial)) File.Delete(partial);
+            ZipFile.CreateFromDirectory(output, partial, CompressionLevel.Optimal, false); File.Move(partial, target);
+        }
+        catch (Exception error) { LastNewcomerNote = Loc.T("Newcomer ZIP failed: ", "新手版生成失败：", "新手版產生失敗：") + error.Message; Plugin.Log.LogWarning("[发布包] " + LastNewcomerNote); }
+    }
+    private const string StandardDoorstopIni = "[General]\r\nenabled = true\r\ntarget_assembly = BepInEx\\core\\BepInEx.Preloader.dll\r\nredirect_output_log = false\r\nboot_config_override =\r\nignore_disable_switch = false\r\n\r\n[UnityMono]\r\ndll_search_path_override =\r\ndebug_enabled = false\r\ndebug_address = 127.0.0.1:10000\r\ndebug_suspend = false\r\n";
+    private static string NewcomerNote(PublishRequest request)
+    {
+        string bepinex = "";
+        try { var info = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Paths.BepInExRootPath, "core", "BepInEx.dll")); bepinex = info.ProductVersion ?? info.FileVersion ?? ""; } catch { }
+        string game = UnityEngine.Application.version;
+        // NEWCOMER-NOTE-ZH: the install note is written bilingually on purpose (Chinese block + English block in one file).
+        string zh = "【" + request.Name + " " + request.Version + " · 新手版】\r\n\r\n"
+            + "这个压缩包已经包含模组加载器 BepInEx" + (bepinex.Length > 0 ? "（" + bepinex + "）" : "") + "、全部模组和作者的配置，不需要另外安装 r2modman 或雷霆商店。\r\n"
+            + "制作时的游戏版本：" + game + "\r\n\r\n"
+            + "安装：\r\n"
+            + "1. 在 Steam 里右键 PEAK → 管理 → 浏览本地文件，打开游戏文件夹（里面有 PEAK.exe）。\r\n"
+            + "2. 如果文件夹里已经有 BepInEx，先把它整个复制一份备份。\r\n"
+            + "3. 把这个压缩包里的全部内容解压到这个文件夹，遇到同名文件选「替换」。\r\n"
+            + "4. 启动游戏。第一次进入主菜单时会应用作者的默认方案，按提示重启一次游戏。\r\n\r\n"
+            + "怎么确认装好了：主菜单左上角出现「模组概览」按钮；或者游戏文件夹里出现 BepInEx\\LogOutput.log。\r\n\r\n"
+            + "常见问题：\r\n"
+            + "· 杀毒软件可能把 winhttp.dll 报成可疑文件，这是 BepInEx 的加载器，请把游戏文件夹加入信任。\r\n"
+            + "· 游戏更新后模组失效：等作者发布新版本，或在「模组概览」里检查更新。\r\n"
+            + "· 想恢复原版：删掉游戏文件夹里的 winhttp.dll（或整个 BepInEx 文件夹）即可。\r\n"
+            + "· 这个压缩包只用于直接解压安装；已经装了 IGMM 的人请用不带「新手版」的那个压缩包导入。\r\n";
+        string en = "\r\n----------------------------------------\r\n\r\n"
+            + "[" + request.Name + " " + request.Version + " · Newcomer edition]\r\n\r\n"
+            + "This archive already contains the BepInEx mod loader" + (bepinex.Length > 0 ? " (" + bepinex + ")" : "") + ", every mod and the author's configuration. No r2modman or Thunderstore needed.\r\n"
+            + "Game version when built: " + game + "\r\n\r\n"
+            + "Install:\r\n"
+            + "1. In Steam, right-click PEAK → Manage → Browse local files (the folder with PEAK.exe).\r\n"
+            + "2. If that folder already has a BepInEx folder, back it up first.\r\n"
+            + "3. Extract everything in this archive into that folder and replace existing files.\r\n"
+            + "4. Start the game. The author's default profile is applied on the first main-menu visit; restart once when asked.\r\n\r\n"
+            + "It worked if the main menu shows a \"Mod overview\" button, or BepInEx\\LogOutput.log appears in the game folder.\r\n"
+            + "Antivirus may flag winhttp.dll (the BepInEx loader); allow the game folder. To go back to vanilla, delete winhttp.dll.\r\n"
+            + "This archive is for extracting only; IGMM users should import the archive without \"newcomer\" in its name.\r\n";
+        return zh + en;
     }
     internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and IGMMPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in IGMMPack; personal changes are in config/InGameModManager.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 IGMMPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 IGMMPack，个人修改位于 config/InGameModManager。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 IGMMPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 IGMMPack，個人修改位於 config/InGameModManager。\n");
     internal static string Changelog(PublishRequest request) => "# " + request.Version + "\n\n" + request.Description + "\n";

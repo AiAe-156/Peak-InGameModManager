@@ -89,7 +89,7 @@ internal static class OverviewConfigView
             scrollbar.direction = Scrollbar.Direction.BottomToTop; _scroll.verticalScrollbar = scrollbar;
             _count = OverviewUi.Text(panel, "", 16); _count.color = OverviewUi.Muted;
             OverviewUi.Bottom(_count.rectTransform, 24, 62); _count.rectTransform.sizeDelta = new Vector2(width - 48, 28);
-            var saveParameters = OverviewUi.Button(panel, T("Save settings", "保存参数"), () => {
+            var saveParameters = OverviewUi.Button(panel, Loc.T("Save settings", "保存参数", "儲存參數"), () => {
                 ConfigurationSaveRequest.Run(_repo, _mods, _guid.Length > 0 && _guid != "$unassociated" ? ConfigurationSaveScope.ModParameters : ConfigurationSaveScope.Parameters, _guid,
                     result => { _status(result.Message); _changed(); Open(); });
             }, 150, 36, role: UiActionRole.Commit);
@@ -145,6 +145,7 @@ internal static class OverviewConfigView
         }
         private void RenderRows(bool restoreFocus)
         {
+            PublicationNavigation.Preserve(_panel);
             _pending = _pendingProvider?.Invoke() ?? _repo.GetPendingState();
             _hint.gameObject.SetActive(false); _scroll.StopMovement();
             for (int i = _content.childCount - 1; i >= 0; i--) { var go = _content.GetChild(i).gameObject; go.SetActive(false); UnityEngine.Object.Destroy(go); }
@@ -153,7 +154,7 @@ internal static class OverviewConfigView
             for (int i = 0; i < visible.Count; i++)
             {
                 var item = visible[i]; var diff = item.Diff; var key = item.Key;
-                var row = OverviewUi.Panel("Parameter_" + i, _content, ModConfigLook.Surface(new Color(.10f, .12f, .14f, i % 2 == 0 ? .45f : .22f)));
+                var row = OverviewUi.Panel("Parameter_" + (key?.Identity ?? item.File!.configFile), _content, ModConfigLook.Surface(new Color(.10f, .12f, .14f, i % 2 == 0 ? .45f : .22f)));
                 row.anchorMin = new Vector2(0, 1); row.anchorMax = Vector2.one; row.pivot = new Vector2(0, 1);
                 row.sizeDelta = new Vector2(0, 98); row.anchoredPosition = new Vector2(0, -i * 101);
                 float textWidth = width - 158;
@@ -273,7 +274,7 @@ internal static class OverviewConfigView
             var content = details.rectTransform; content.anchorMin = new Vector2(0, 1); content.anchorMax = Vector2.one; content.pivot = new Vector2(0, 1); content.sizeDelta = Vector2.zero;
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize; scroll.viewport = viewport; scroll.content = content;
             void FocusEditor()
-            { EventSystem.current?.SetSelectedGameObject(first); first.GetComponent<TMP_InputField>()?.ActivateInputField(); }
+            { if (first.GetComponent<TMP_InputField>() is TMP_InputField field) OverviewUi.FocusInput(field); else EventSystem.current?.SetSelectedGameObject(first); }
             void SaveEditor()
             {
                 try

@@ -83,6 +83,9 @@ internal sealed class LogWindow : MonoBehaviour
     {
         var panel = OverviewUi.CreateModalPanel("MCE_LogWindow", 1580, 980); if (panel == null) return;
         var view = panel.gameObject.AddComponent<LogWindow>(); view._repo = repo; view._installedMods = installedMods.ToArray(); view._panel = panel; view.Build();
+        // 1.1.4 (gamepad review): B closes the error details / option panel first, the window only when none is open.
+        OverviewUi.SetModalCloseHandler(() => { if (view == null || !view.CloseTopLayer()) { if (BackGuard.Allow()) OverviewUi.CloseModal(); } });
+        GamepadSupport.MarkSelectable(view._search.gameObject, null, null);
     }
     private string T(string en, string zh) => Loc.T(en, zh, zh);
     private void Build()
@@ -104,6 +107,7 @@ internal sealed class LogWindow : MonoBehaviour
         _followButton = Btn(T("Follow", "跟随最新"), () => { _follow = !_follow; if (_follow) ScrollTo(0); }, 144, h - 48, 104, UiActionRole.Commit);
         Btn("跳到顶部", () => { _follow = false; ScrollTo(1); }, 266, h - 48, 104, UiActionRole.Overview);
         Btn("跳到底部", () => { _follow = true; _hasSelection = false; ScrollTo(0); }, 388, h - 48, 104, UiActionRole.Overview);
+        if (GamepadSupport.IsGamepad) _follow = false; // 1.1.5 (user: "why does it jump to the bottom"): follow only when asked
         _consoleButton=Btn(T("Console: off","控制台：关闭"),()=>{try{BepInExConsoleControl.Toggle();}catch(Exception e){_error=e.Message;}},938,h-48,120,UiActionRole.Overview);
         _activity = OverviewUi.Text(_panel, "", 15); OverviewUi.Place(_activity.rectTransform, 22, h - 130, w - 44, 24);
         var timeHeading = OverviewUi.Text(_panel, Loc.T("Time (* received)", "时间（* 接收时间）", "時間（* 接收時間）"), 12); OverviewUi.Place(timeHeading.rectTransform, 30, 142, TimeWidth, 24);
@@ -114,6 +118,13 @@ internal sealed class LogWindow : MonoBehaviour
         _content = OverviewUi.Rect("Lines", _viewport); _content.anchorMin = new Vector2(0, 1); _content.anchorMax = new Vector2(0, 1); _content.pivot = new Vector2(0, 1); _content.sizeDelta = Vector2.zero;
         _scroll = _viewport.gameObject.AddComponent<ScrollRect>(); _scroll.viewport = _viewport; _scroll.content = _content; _scroll.horizontal = false; _scroll.movementType = ScrollRect.MovementType.Clamped; _scroll.scrollSensitivity = 46;
         _scroll.inertia = false;
+        var reader = _viewport.gameObject.AddComponent<LogReadingSurface>();
+        reader.Scroll = _scroll; reader.targetGraphic = _viewport.GetComponent<Image>(); reader.transition = Selectable.Transition.None;
+        reader.TryMovePage = amount => { _follow = false; float before = _scroll.verticalNormalizedPosition;
+            float range = Mathf.Max(0, _content.rect.height - _viewport.rect.height);
+            if (range < 1) return false;
+            _scroll.StopMovement(); _scroll.verticalNormalizedPosition = Mathf.Clamp01(before - amount / range);
+            return Mathf.Abs(_scroll.verticalNormalizedPosition - before) > .0001f; };
         _measure = OverviewUi.Text(_panel, "", 16); _measure.richText = false; _measure.textWrappingMode = TextWrappingModes.Normal; _measure.gameObject.SetActive(false);
         var selection = _viewport.gameObject.AddComponent<LogTextSelection>(); selection.Owner = this;
         for (int i = 0; i < Math.Ceiling(_viewport.rect.height / LineHeight) + 3; i++)
@@ -139,7 +150,7 @@ internal sealed class LogWindow : MonoBehaviour
         Btn(T("Stack", "展开／收起栈"), ToggleStack, 826, h - 48, 104);
 
         Btn(T("Close", "关闭"), OverviewUi.RequestCloseModal, w - 130, h - 48, 108);
-        var divider = OverviewUi.Text(_panel, "|", 24); OverviewUi.Place(divider.rectTransform, 472, h - 48, 10, 32);
+        // 1.1.5 (user screenshot): the "|" divider was placed inside the jump-to-bottom button (472..482 vs 388..492); removed.
         foreach (var label in _panel.GetComponentsInChildren<TextMeshProUGUI>(true))
             if (!label.transform.IsChildOf(_viewport) && label != _measure) label.text = DiagnosticUiLanguage.Text(label.text);
         Switch("bep");
@@ -332,7 +343,9 @@ internal sealed class LogWindow : MonoBehaviour
         if (_pendingRefilter && !_selecting && !_hasSelection) { _pendingRefilter = false; Refilter(); }
         if (_export?.IsCompleted == true) { _exportSucceeded = !_export.IsFaulted; _error = _export.IsFaulted ? "导出失败：" + _export.Exception!.GetBaseException().Message : (_exportFallbackNote != null ? "导出完成（固定位置）：" : "导出完成：") + _exportDestination; _export = null; }
         _consoleButton.GetComponentInChildren<TextMeshProUGUI>().text=BepInExConsoleControl.Active?T("Console: on","控制台：开启"):T("Console: off","控制台：关闭");
+        bool foldersChanged = _exportFolderButton.interactable != _exportSucceeded || _logFolderButton.interactable != (_path.Length > 0);
         _exportFolderButton.interactable = _exportSucceeded; _logFolderButton.interactable = _path.Length > 0;
+        if (foldersChanged) PublicationNavigation.Invalidate(_panel);
         foreach (var tab in _tabs) UiActionStyle.Select(tab.Value, tab.Key == _tab);
         UiActionStyle.Set(_pauseButton, _paused ? UiActionRole.Commit : UiActionRole.Edit);
         UiActionStyle.Set(_followButton, _follow ? UiActionRole.Commit : UiActionRole.Neutral);
@@ -340,7 +353,9 @@ internal sealed class LogWindow : MonoBehaviour
         _followButton.GetComponentInChildren<TextMeshProUGUI>().text = _follow ? "跟随：开" : "跟随：关";
         for (int i = 0; i < _exportChoices.Count; i++) if (_exportChoices[i] != null) UiActionStyle.Set(_exportChoices[i], i == _scope ? UiActionRole.Commit : UiActionRole.Neutral);
         if (!_paused && !_selecting && !_hasSelection && _read == null && Time.unscaledTime >= _nextRead) { _nextRead = Time.unscaledTime + .6f; StartRead(); }
+        // 1.1.4 (gamepad review): the right stick scrolled, then follow pulled the view straight back to the newest line.
         if (_follow && !_selecting && !_hasSelection) ScrollTo(0);
+        WireLayer(_errorDetails); WireLayer(_options);
         _activity.gameObject.SetActive(false);
         _activity.text = "新增 " + _addedTotal + " 条 · " + _rate.ToString("0.0") + " 条/秒" + (_repeat > 1 ? " · 连续重复 ×" + _repeat : "");
         _activity.color = _rate > 10 ? new Color(1f, .65f, .3f) : new Color(.55f, .8f, .75f);
@@ -502,6 +517,46 @@ internal sealed class LogWindow : MonoBehaviour
     }
     internal void EndSelection() { _selecting = false; _scroll.enabled = true; _pinScroll.enabled = true; _drawnRevision = -1; }
     internal void UserScroll() { _follow = false; }
+    private RectTransform? _wiredLayer; private bool _layerWired; private GameObject? _layerOpener; private CanvasGroup? _baseGroup;
+    /// <summary>1.1.4 (gamepad review): option / detail panels are built under the window, outside its navigation, so the
+    /// controller could not reach them. Each new panel gets its own navigation and the first control; the window behind
+    /// it stops taking input until it closes, then the focus returns to the button that opened it.</summary>
+    private void WireLayer(RectTransform? layer)
+    {
+        var top = _errorDetails != null ? _errorDetails : _options;
+        if (layer != top) return;
+        if (top == null)
+        {
+            if (!_layerWired) return;
+            _wiredLayer = null; _layerWired = false; SetBaseInteractable(true);
+            if (_layerOpener != null && _layerOpener.activeInHierarchy && GamepadSupport.IsGamepad) EventSystem.current?.SetSelectedGameObject(_layerOpener);
+            _layerOpener = null; return;
+        }
+        if (_layerWired && top == _wiredLayer) return;
+        // First panel of a chain: remember the opener. A rebuilt panel (e.g. "favourites only") keeps the first opener.
+        if (!_layerWired) _layerOpener = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        _wiredLayer = top; _layerWired = true;
+        var group = top.GetComponent<CanvasGroup>() ?? top.gameObject.AddComponent<CanvasGroup>(); group.ignoreParentGroups = true;
+        SetBaseInteractable(false);
+        PublicationNavigation.AttachBoundary(top);
+        foreach (var input in top.GetComponentsInChildren<TMP_InputField>(true)) { if (input.readOnly) input.shouldActivateOnSelect = false; else GamepadSupport.MarkSelectable(input.gameObject, null, null); }
+        var first = top.GetComponentsInChildren<Selectable>(false).FirstOrDefault(s => s.IsInteractable() && s is not TMP_InputField);
+        if (first != null && GamepadSupport.IsGamepad) EventSystem.current?.SetSelectedGameObject(first.gameObject);
+    }
+    private void SetBaseInteractable(bool value)
+    {
+        if (_baseGroup == null) _baseGroup = _panel.GetComponent<CanvasGroup>() ?? _panel.gameObject.AddComponent<CanvasGroup>();
+        _baseGroup.interactable = value;
+    }
+    private void LateUpdate() { if (_errorDetails == null && _options == null && _layerWired) WireLayer(null); }
+    private void OnDisable() { if (_baseGroup != null) _baseGroup.interactable = true; _layerWired = false; }
+    /// <summary>B: closes the top panel; false when none is open.</summary>
+    internal bool CloseTopLayer()
+    {
+        if (_errorDetails != null) { Destroy(_errorDetails.gameObject); _errorDetails = null; return true; }
+        if (_options != null) { Destroy(_options.gameObject); _options = null; return true; }
+        return false;
+    }
     internal void HoverName(PointerEventData e)
     {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_viewport, e.position, e.enterEventCamera, out var point);
@@ -569,7 +624,7 @@ internal sealed class LogWindow : MonoBehaviour
         var hover = check.gameObject.AddComponent<LogHoverTip>(); hover.Text = tip;
         var labelHover = label.gameObject.AddComponent<LogHoverTip>(); label.raycastTarget = true; labelHover.Text = tip; tip.gameObject.SetActive(false);
         var note = OverviewUi.Text(_options, Loc.T("Exports the complete source, regardless of search filters. Log text is preserved.", "导出完整来源，不受搜索筛选影响。日志正文保留原文。", "匯出完整來源，不受搜尋篩選影響。日誌正文保留原文。"), 14); OverviewUi.Place(note.rectTransform, 14, 174, _options.rect.width - 28, 28);
-        var save = OverviewUi.Button(_options, Loc.T("Choose location and export", "选择位置并导出", "選擇位置並匯出"), BeginExport, 190, 34, UiActionRole.Commit); OverviewUi.Place((RectTransform)save.transform, 14, 235, 190, 34);
+        var save = OverviewUi.Button(_options, GamepadSupport.IsGamepad ? Loc.T("Export to the export folder", "导出到导出文件夹", "匯出到匯出資料夾") : Loc.T("Choose location and export", "选择位置并导出", "選擇位置並匯出"), BeginExport, 190, 34, UiActionRole.Commit); OverviewUi.Place((RectTransform)save.transform, 14, 235, 190, 34);
         var cancel = OverviewUi.Button(_options, Loc.T("Cancel", "取消", "取消"), () => { Destroy(_options.gameObject); _options = null; }, 100, 34); OverviewUi.Place((RectTransform)cancel.transform, 220, 235, 100, 34);
 
         foreach (var labelText in _options.GetComponentsInChildren<TextMeshProUGUI>(true)) labelText.text = DiagnosticUiLanguage.Text(labelText.text);
@@ -583,7 +638,10 @@ internal sealed class LogWindow : MonoBehaviour
             string fileName = "PEAK日志_" + _exportStarted.ToString("yyyy-MM-dd_HH-mm-ss") + ".zip";
             // 2.4.3: a dialog that cannot open no longer aborts the export; fall back to the fixed export folder and say so.
             string? fallbackNote = null;
-            if (!LogSavePicker.TrySelect(fileName, out string? destination, out string? pickerFailure))
+            string? destination = null, pickerFailure = null;
+            // 1.1.4 (gamepad review): the Win32 save dialog cannot be driven with a controller; use the fixed folder.
+            if (GamepadSupport.IsGamepad) pickerFailure = "controller";
+            if (pickerFailure != null || !LogSavePicker.TrySelect(fileName, out destination, out pickerFailure))
             {
                 destination = LogSavePicker.FallbackPath(_repo.ConfigRootDirectory, fileName);
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
@@ -648,3 +706,6 @@ internal sealed class LogHoverTip : MonoBehaviour, IPointerEnterHandler, IPointe
     public void OnPointerEnter(PointerEventData e) => Text.gameObject.SetActive(true);
     public void OnPointerExit(PointerEventData e) => Text.gameObject.SetActive(false);
 }
+
+/// <summary>Controller reading without forwarding mouse drags, which belong to log text selection.</summary>
+internal sealed class LogReadingSurface : ControllerReadingSurface { }

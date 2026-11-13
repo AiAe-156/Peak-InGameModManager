@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = Updating.ManagerIdentity.Guid;
     public const string PluginName = "In-Game Mod Manager";
-    public const string PluginVersion = "1.0.0";
+    public const string PluginVersion = "0.0.1";
 
     internal static ManualLogSource Log { get; private set; } = null!;
 
@@ -93,10 +93,13 @@ public class Plugin : BaseUnityPlugin
         Harmony harmony = new(PluginGuid);
         SettingsTabActivationPatch.Install(harmony);
         Overview.NativeConfigurationDraft.Install(harmony);
+        Overview.OverviewRepository.RecoveryClock = () => UnityEngine.Time.unscaledTimeAsDouble; // 1.1.4: deferred recovery-draft writes
         Overview.ConfigurationRoundBoundary.Install(harmony);
         Overview.ConfigurationNotificationGate.Install(harmony);
         Overview.AnimatorRestGate.Install(harmony, Config);
         Overview.OverviewController.Register(harmony);
+        GamepadCombos.Install(harmony); // 1.1.2: LT + controller button presses a keyboard-only mod hotkey
+        Overview.ControlsPageJump.Install(harmony); // 1.1.4: controls page "Mod settings" opens the keybindings tab
         // 复查：小数显示是数据正确性（PEAK 3.1 下手打 1.25 会存错），与树形侧栏无关，独立挂载
         ModFloatDisplayPatch.Apply(harmony);
         Log.LogInfo("[小数显示] " + ModFloatDisplayPatch.State);
@@ -119,7 +122,9 @@ public class Plugin : BaseUnityPlugin
             $" / 语言: {(string.IsNullOrEmpty(LanguageFile.Value) ? "跟随游戏" : LanguageFile.Value)}");
     }
 
-    private void OnDestroy() { Overview.AnimatorRestGate.Shutdown(); Diagnostics.RuntimeLogCapture.Stop(); Overview.OverviewController.Dispose(); Overview.OverviewPageCache.Dispose(); }
+    private void Update() { Overview.OverviewRepository.TickRecovery(); CursorWatch.Tick(); }
+    private void OnApplicationQuit() => Overview.OverviewRepository.FlushAllRecovery();
+    private void OnDestroy() { GamepadLock.Shutdown(); Overview.OverviewRepository.FlushAllRecovery(); Overview.AnimatorRestGate.Shutdown(); Diagnostics.RuntimeLogCapture.Stop(); Overview.OverviewController.Dispose(); Overview.OverviewPageCache.Dispose(); }
 
     /// <summary>
     /// If the update worker is mid-write (the game was restarted right after an update was deployed), wait for it
