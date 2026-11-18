@@ -261,7 +261,11 @@ internal sealed class PublishWizard
         if (_request.Description.Length > 250 && PackPublisher.StoreMode(_request.Mode)) throw new InvalidOperationException(T("Description exceeds 250 characters.", "商店简介超过250字符。"));
         if (_request.Languages.Count == 0) throw new InvalidOperationException(T("Select at least one language.", "请至少选择一种发布语言。"));
         _request.OutputDirectory = PackPublisher.ValidateOutputDirectory(_repo, _request.OutputDirectory);
-        var mods = PackPublisher.SelectInventory(_repo, _request, PackPublisher.Inventory(_repo));
+        var inventory = PackPublisher.Inventory(_repo);
+        var mods = PackPublisher.SelectInventory(_repo, _request, inventory);
+        // 0.0.2：已安装、可发布但不在任何勾选方案里的模组，不处理就不会进包；先提醒，作者选存入方案或确认只导出。
+        var unrecorded = Unrecorded(inventory, mods).Where(m => !_exportWithout.Contains(m.Guid)).ToList();
+        if (unrecorded.Count > 0) { ShowUnrecorded(unrecorded); return; }
         if (_request.Mode == PublishMode.Thunderstore && mods.Any(m => !PackPublisher.IsInline(_request, m) && !PackPublisher.ValidDependency(_request.Dependencies.TryGetValue(m.PackageRoot, out var dependency) ? dependency : PackPublisher.Dependency(m)))) { _status(T("Resolve pending packages first.", "请先处理待定模组的发布方式。")); Resolve(); return; }
         var files = PackPublisher.PreviewFiles(_repo, _request, mods);
         var missing=PackPublisher.MissingTargets(_repo,_request,mods).Concat(_request.ExcludedExtras.Select(p=>p.Key+"："+p.Value)).ToList(); if(missing.Count>0) _status(string.Join("\n",missing));
@@ -269,6 +273,81 @@ internal sealed class PublishWizard
         if (previewHost == null) return;
         _preview = PublishFilePreview.Show(previewHost, files, _request, _repo, _drafts, _status, ReturnOptions, Build, OpenOutputFolder,
             () => CollectConfiguration(Preview), () => ConfigFiles(Preview), () => Extras(Preview), _preview?.SelectedCategory);
+    }
+    /// <summary>0.0.2：作者确认「只导出、不存入方案」的模组；同一向导里不再重复提醒，之后新出现的仍会提醒。</summary>
+    private readonly HashSet<string> _exportWithout = new(StringComparer.OrdinalIgnoreCase);
+    private List<OverviewMod> Unrecorded(IReadOnlyList<OverviewMod> inventory, IReadOnlyList<OverviewMod> packed)
+    {
+        string bepinex = Path.GetFullPath(Paths.BepInExRootPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var lookup = new Dictionary<UnrecordedPublication.Candidate, OverviewMod>();
+        foreach (var mod in inventory)
+        {
+            string root = mod.PackageRoot.Length > 0 ? Path.GetFullPath(mod.PackageRoot) : "";
+            var candidate = new UnrecordedPublication.Candidate { Guid = mod.Guid, Name = mod.Name, Version = mod.DisplayVersion, Enabled = mod.TargetEnabled,
+                BepInExRelative = root.StartsWith(bepinex, StringComparison.OrdinalIgnoreCase) ? root.Substring(bepinex.Length) : "" };
+            for (var outer = mod; outer != null; outer = outer.Outer) if (outer.PackageRoot.Length > 0) candidate.Roots.Add(Path.GetFullPath(outer.PackageRoot));
+            lookup[candidate] = mod;
+        }
+        var recorded = _repo.Profiles.ListProfiles().Where(p => _request.Profiles.Contains(p.id)).SelectMany(p => p.mods).Select(m => m.guid);
+        return UnrecordedPublication.Find(lookup.Keys, packed.Where(m => m.PackageRoot.Length > 0).Select(m => Path.GetFullPath(m.PackageRoot)), recorded, Plugin.PluginGuid)
+            .Select(c => lookup[c]).ToList();
+    }
+    private void ShowUnrecorded(IReadOnlyList<OverviewMod> list)
+    {
+        var panel = OverviewUi.CreateModalPanel("MCE_PublishUnrecorded", 880, 640); if (panel == null) return;
+        PublicationNavigation.Attach(panel);
+        OverviewUi.SetModalCloseHandler(ReturnOptions); // B / Esc：回到发布选项
+        float width = panel.rect.width - 44, y = 14;
+        var heading = OverviewUi.Text(panel, Loc.F("{0} installed mod(s) are not in any selected profile", "{0} 个已安装的模组不在勾选的方案里", "{0} 個已安裝的模組不在勾選的方案裡", list.Count), 24);
+        OverviewUi.PlaceClipped(heading, 22, y, width, 38); y += 44;
+        string note = Loc.T("Profiles only list the mods recorded in them, so these will not be in the package unless you record them.", "方案只记录收进来的模组，这些模组不处理的话，不会打进整合包。", "方案只記錄收進來的模組，這些模組不處理的話，不會打進整合包。") + "\n"
+            + (_request.Profiles.Count > 1
+                ? Loc.T("Record into profiles: the default profile keeps each mod's current state; the other selected profiles record it as disabled. The profiles are backed up first. Untick a mod to leave it out.", "存入方案：默认方案按模组当前的启停状态记录，其他勾选的方案记为停用；存入前先备份方案。取消勾选的模组不存入。", "存入方案：預設方案按模組目前的啟停狀態記錄，其他勾選的方案記為停用；存入前先備份方案。取消勾選的模組不存入。")
+                : Loc.T("Record into the profile: each mod keeps its current state. The profile is backed up first. Untick a mod to leave it out.", "存入方案：按模组当前的启停状态记录；存入前先备份方案。取消勾选的模组不存入。", "存入方案：按模組目前的啟停狀態記錄；存入前先備份方案。取消勾選的模組不存入。"));
+        var body = OverviewUi.Text(panel, note, 17); body.textWrappingMode = TextWrappingModes.Normal;
+        float h = Mathf.Max(48, body.GetPreferredValues(note, width, 0).y + 8); OverviewUi.Place(body.rectTransform, 22, y, width, h); y += h + 8;
+        var content = SourceUi.Rows(panel, y, panel.rect.height - y - 70, out var scroll); ManagementUi.Scrollbar((RectTransform)scroll.transform, scroll);
+        var chosen = new HashSet<string>(list.Select(m => m.Guid), StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < list.Count; i++)
+        {
+            var mod = list[i];
+            var check = OverviewUi.Check(content, true, value => { if (value) chosen.Add(mod.Guid); else chosen.Remove(mod.Guid); }); OverviewUi.Place((RectTransform)check.transform, 0, i * 42, 28, 28);
+            string state = mod.TargetEnabled ? Loc.T("Enabled", "启用中", "啟用中") : Loc.T("Disabled", "已停用", "已停用");
+            var label = OverviewUi.Text(content, mod.Name + " · " + (mod.DisplayVersion.Length > 0 ? mod.DisplayVersion : "—") + " · " + state, 18); OverviewUi.PlaceClipped(label, 40, i * 42, panel.rect.width - 100, 34);
+        }
+        content.sizeDelta = new Vector2(0, list.Count * 42);
+        float x = 22;
+        void AddAction(string caption, Action action, UiActionRole role)
+        {
+            var button = OverviewUi.Button(panel, caption, () => Run(action), 160, 34, role: role);
+            float w = Mathf.Clamp(button.GetComponentInChildren<TMP_Text>(true).GetPreferredValues(caption).x + 30, 100, 300);
+            ((RectTransform)button.transform).sizeDelta = new Vector2(w, 34); OverviewUi.Bottom((RectTransform)button.transform, x, 16); x += w + 12;
+        }
+        AddAction(Loc.T("Record into profiles and export", "存入方案并导出", "存入方案並匯出"), () => RecordUnrecorded(list.Where(m => chosen.Contains(m.Guid)).ToList()), UiActionRole.Commit);
+        AddAction(Loc.T("Export without recording", "只导出、不存入方案", "只匯出、不存入方案"), () => ConfirmExportWithout(list), UiActionRole.Edit);
+        AddAction(Loc.T("Back", "返回", "返回"), ReturnOptions, UiActionRole.Neutral);
+    }
+    private void RecordUnrecorded(IReadOnlyList<OverviewMod> chosen)
+    {
+        if (chosen.Count == 0) { _status(Loc.T("Tick at least one mod to record, or choose “Export without recording”.", "请至少勾选一个要存入的模组，或选择“只导出、不存入方案”。", "請至少勾選一個要存入的模組，或選擇「只匯出、不存入方案」。")); return; }
+        var result = _repo.RecordForPublication(chosen, _request.Profiles, _request.DefaultProfile);
+        if (result.ViewedBefore != result.ViewedAfter)
+        {
+            _request.Profiles = _request.Profiles.Select(id => id == result.ViewedBefore ? result.ViewedAfter : id).Distinct().ToList();
+            if (_request.DefaultProfile == result.ViewedBefore) _request.DefaultProfile = result.ViewedAfter;
+        }
+        OverviewUi.CloseModal();
+        Preview(); // 重新验证：存入的模组现在按方案 GUID 进入发布清单
+        _status(Loc.F("Recorded {0} mod(s) into the selected profiles. Profile backup: {1}", "已把 {0} 个模组存入勾选的方案。方案备份：{1}", "已把 {0} 個模組存入勾選的方案。方案備份：{1}", chosen.Count, result.BackupDirectory));
+    }
+    private void ConfirmExportWithout(IReadOnlyList<OverviewMod> list)
+    {
+        string names = string.Join("\n", list.Select(m => "· " + m.Name + " · " + (m.DisplayVersion.Length > 0 ? m.DisplayVersion : "—")));
+        OverviewUi.ConfirmText(Loc.F("Export without these {0} mod(s)?", "不带这 {0} 个模组导出？", "不帶這 {0} 個模組匯出？", list.Count),
+            Loc.T("They stay installed on this computer, but the package will not contain them, so people who use it will not get them. The profiles are not changed.", "它们仍装在本机，但整合包里不会有它们，用这个包的人也就没有这些模组。方案不变。", "它們仍裝在本機，但整合包裡不會有它們，用這個包的人也就沒有這些模組。方案不變。") + "\n\n" + names,
+            () => Run(() => { foreach (var mod in list) _exportWithout.Add(mod.Guid); Preview(); }),
+            UiActionRole.Edit, Loc.T("Export without them", "确认只导出", "確認只匯出"), () => ShowUnrecorded(list));
+        OverviewUi.SetModalCloseHandler(() => ShowUnrecorded(list)); // B / Esc：回到提醒
     }
     private async void Build()
     {

@@ -10,6 +10,7 @@
 - **Groups:** subgroups are listed above their parent's own mods (mod list, keybindings page and settings sidebar); when dragging a group heading in edit mode, dropping on its top or bottom edge places it before or after that group, dropping in the middle makes it a subgroup; new groups are prefilled "New group 1" / "New subgroup 1".
 - **Controller:** LB / RB jump between the toolbar buttons (inside the management center and the update queue they still switch those pages); RT + LB / RB move the focus onto a tab (including Mod Settings) and A opens it; holding the D-pad or left stick keeps moving; with a controller the focus frame follows the selection, with keyboard and mouse it follows the control under the pointer, and each move to a new control plays a short click (the large tabs and game-style buttons use the game's own hover sound); tabs and every control have a focus frame; on the keybindings page the controller and keyboard columns have separate menus and up / down moves row by row; the settings page header and search box can be reached and left with a controller.
 - **Menus:** every drop-down uses one style with a clear title row; the language drop-down shows only the language name so it no longer overlaps the arrow.
+- **Export:** before building, the publish wizard lists installed mods that are not recorded in any selected profile (so they would be left out of the package), with their version and whether they are enabled. "Record into profiles and export" saves the ticked ones: the package's default profile keeps each mod's current state and the other selected profiles record it as disabled; the profiles are backed up first. "Export without recording" asks once more, then builds the package without them as before.
 
 ### 中文
 
@@ -19,6 +20,7 @@
 - **分组：** 子分组排在上级分组的直属模组前面（模组列表、快捷键页、设置页侧栏一致）；编辑模式下拖动分组标题，放在另一个标题的上缘或下缘就排到它前面或后面，放在中间就成为它的子分组；新建分组预填「新分组1」「新子分组1」。
 - **手柄：** LB / RB 在工具栏按钮间跳（管理中心和更新队列里仍切它们自己的页）；RT + LB / RB 把焦点移到页签上（含「模组设置」），按 A 切换；按住十字键或左摇杆可连续移动；焦点框在手柄下跟随选中、在键鼠下跟随鼠标悬停的控件，每换到一个新控件响一声（大页签和游戏样式按钮用游戏自己的悬停音效），页签和所有控件都有焦点框；快捷键页的手柄列与键盘列菜单分开，上下按行移动；设置页的页头和搜索框可以用手柄进出。
 - **菜单：** 所有下拉菜单统一样式、标题行醒目；语言下拉收起时只显示语言名，不再压到箭头。
+- **导出：** 生成前，发布向导会列出已安装、但没记录在任何勾选方案里的模组（不处理就不会进包），附版本和启停状态。「存入方案并导出」把勾选的存进去：整合包的默认方案照当前启停，其他勾选的方案记为停用，存入前先备份方案；「只导出、不存入方案」再确认一次后照原样导出，不带它们。
 
 ## 0.0.1 — First public test release / 首个公开测试版
 

@@ -25,6 +25,8 @@ On this page: [Choose an export type](#types) · [Publishing steps](#steps) · [
    A complete local package also produces a "newcomer" ZIP by default: it adds the BepInEx startup files (winhttp.dll, doorstop_config.ini, .doorstop_version) and a short bilingual install note, so someone who has never modded and does not use r2modman can extract it into the game folder and play. IGMM users should import the archive without "newcomer" in its name.
    Complete packages include the current patchers and monomod startup patches automatically; no manual ownership confirmation is required. In Additional files they start checked. Uncheck an item to exclude it; the exclusion is reflected in the preview and generated archive.
 
+   When you choose **Next: preview and generate**, the wizard first lists any installed mods that are not recorded in any selected profile (for example, mods installed from the store after the profile was made), with their version and whether they are enabled, because mods a profile does not record are not packed. Untick the ones you do not want, then choose **Record into profiles and export**: the package default profile records each mod's current state, the other selected profiles record it as disabled, the profiles are backed up first, and the wizard continues to the file list. Or choose **Export without recording**, confirm once more, and the package is built without them as before.
+
 7. Confirm generation and wait for the final output location. The author performs local installation or store upload.
 
 Normal exports are under `BepInEx/config/InGameModManager/output/packs/<timestamp>/`. Each generation uses a new directory; the completion prompt gives the actual location.

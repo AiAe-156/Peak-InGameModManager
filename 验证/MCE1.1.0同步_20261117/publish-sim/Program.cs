@@ -157,6 +157,86 @@ foreach (string f in files.Where(f => new[] { ".cfg", ".json", ".ini", ".txt", "
     string path = Path.Combine(clean, f); if (new FileInfo(path).Length > 4 * 1024 * 1024) continue;
     foreach (Match m in absolute.Matches(File.ReadAllText(path))) { findings.Add(f + " : " + m.Value.Trim()); break; }
 }
+// ── 4. 已安装但不在任何勾选方案里的模组（0.0.2 导出提醒）──────────────────────
+// 链接生产代码 UnrecordedPublication：Find（偵測）、EnabledFor（存入时的启停）、Merge（只追加）。
+// 「打包清单」按 SelectInventory 的规则简化重放：方案里有 GUID 的模组，其包目录（含同目录成员）进包。
+const string Manager = "com.aiae.igmm";
+UnrecordedPublication.Candidate C(string guid, string name, string rel, bool on, params string[] outer)
+{ var c = new UnrecordedPublication.Candidate { Guid = guid, Name = name, Version = "1.0.0", BepInExRelative = rel, Enabled = on }; c.Roots.Add("B/" + rel); c.Roots.AddRange(outer.Select(o => "B/" + o)); return c; }
+var inventory = new List<UnrecordedPublication.Candidate> {
+    C("a.rec", "Recorded", "plugins/Team-A", true),
+    C("e.member", "SameFolder", "plugins/Team-A", true),
+    C("d.inner", "Nested", "plugins/Team-A/Inner", true, "plugins/Team-A"),
+    C("b.new", "NewEnabled", "plugins/Team-B", true),
+    C("c.new", "NewDisabled", "plugins/Team-C", false),
+    C("f.patch", "NewPatcher", "patchers/Team-F", true),
+    C("g.dup", "Twice", "plugins/Team-G1", true), C("g.dup", "Twice", "plugins/Team-G2", true),
+    C(Manager, "IGMM", "plugins/IGMM", true),
+    C("BepInEx.Preloader", "Preloader", "core/BepInEx", true),
+    C("package:core/Pack", "ManifestOnly", "core/Pack", true),
+    C("package:plugins/Res", "ManifestOnlyRes", "plugins/Res", true),
+    C("", "NoGuid", "plugins/Team-X", true),
+};
+var profiles = new Dictionary<string, List<(string Guid, bool Enabled)>> {
+    ["default"] = new() { ("a.rec", true) }, ["alt"] = new() { ("a.rec", false), ("old.gone", true) } };
+List<(string Guid, bool Enabled)> Copy(List<(string Guid, bool Enabled)> l) => l.ToList();
+HashSet<string> Packed(Dictionary<string, List<(string Guid, bool Enabled)>> ps)
+{
+    var guids = new HashSet<string>(ps.Values.SelectMany(l => l).Select(m => m.Guid), StringComparer.OrdinalIgnoreCase) { Manager };
+    var roots = new HashSet<string>(inventory.Where(m => guids.Contains(m.Guid)).Select(m => m.Roots[0]), StringComparer.OrdinalIgnoreCase);
+    return roots;
+}
+List<UnrecordedPublication.Candidate> Detect(Dictionary<string, List<(string Guid, bool Enabled)>> ps)
+    => UnrecordedPublication.Find(inventory, Packed(ps), ps.Values.SelectMany(l => l).Select(m => m.Guid), Manager);
+var found = Detect(profiles);
+Check(string.Join(",", found.Select(m => m.Guid)) == "c.new,b.new,f.patch,g.dup", "unrecorded: detects new enabled / disabled / patcher / duplicate-once, sorted by name (" + string.Join(",", found.Select(m => m.Name)) + ")");
+Check(!found.Any(m => m.Guid is "a.rec" or "e.member" or "d.inner"), "unrecorded: recorded mods, members of a packed folder and nested mods inside a packed folder are not reported");
+Check(!found.Any(m => m.Guid == Manager || m.Guid.StartsWith("BepInEx") || m.Guid.StartsWith("package:") || m.Guid.Length == 0), "unrecorded: IGMM, BepInEx core, manifest-only packages and GUID-less rows are not reported");
+Check(!UnrecordedPublication.Eligible(C("p.parked", "Parked", "_旧副本_/Team-P", true), Manager), "unrecorded: a folder parked under BepInEx/ is not eligible");
+Check(!found.Any(m => Packed(profiles).Contains(m.Roots[0])), "unrecorded: none of the reported mods is in the package before recording");
+// 4a. 「只导出、不存入方案」：方案、打包清单、提醒内容都与原来一样
+var before = profiles.ToDictionary(p => p.Key, p => Copy(p.Value));
+var packedBefore = Packed(profiles);
+var exportOnly = Detect(profiles);
+Check(profiles.All(p => p.Value.SequenceEqual(before[p.Key])) && Packed(profiles).SetEquals(packedBefore) && exportOnly.Select(m => m.Guid).SequenceEqual(found.Select(m => m.Guid)),
+    "export only: profiles, package list and the omitted mods are unchanged");
+// 4b. 「存入方案并导出」：默认方案照磁盘现状，其他方案记为停用；只追加
+var recorded = profiles.ToDictionary(p => p.Key, p => Copy(p.Value));
+int added = 0;
+foreach (var (id, mods) in recorded)
+    added += UnrecordedPublication.Merge(mods, found.Select(m => (m.Guid, UnrecordedPublication.EnabledFor(m.Enabled, id, "default"))), e => e.Guid);
+Check(added == 8, "record: 4 mods appended to each of the 2 selected profiles (" + added + ")");
+Check(found.All(m => recorded["default"].Single(e => e.Guid == m.Guid).Enabled == m.Enabled), "record: default profile keeps each mod's disk state (new enabled = on, new disabled = off)");
+Check(found.All(m => !recorded["alt"].Single(e => e.Guid == m.Guid).Enabled), "record: other selected profiles record the new mods as disabled");
+Check(recorded["default"].Take(1).SequenceEqual(before["default"]) && recorded["alt"].Take(2).SequenceEqual(before["alt"]), "record: existing entries (including installed=false leftovers) are untouched and stay first");
+Check(recorded.Values.Sum(l => UnrecordedPublication.Merge(l, found.Select(m => (m.Guid, true)), e => e.Guid)) == 0, "record: running it again appends nothing and never flips a recorded state");
+Check(Detect(recorded).Count == 0, "record: re-validation finds nothing left to report");
+var packedAfter = Packed(recorded);
+Check(found.All(m => packedAfter.Contains(m.Roots[0])) && packedBefore.IsSubsetOf(packedAfter) && packedAfter.Count == packedBefore.Count + 5,
+    "record: the package list now contains the 4 mods (5 folders incl. the duplicate copy) and everything it had before");
+Check(!found.Any(m => m.Guid == "g.dup") || inventory.Count(m => m.Guid == "g.dup") == 2,
+    "unrecorded: a GUID installed in two folders is reported once (recording it selects both copies, same as an already-recorded duplicate)");
+Check(UnrecordedPublication.EnabledFor(true, "DEFAULT", "default") && !UnrecordedPublication.EnabledFor(false, "default", "default") && !UnrecordedPublication.EnabledFor(true, "alt", "default"),
+    "record: profile id comparison ignores case");
+// 4c. 作者真实游戏目录（只读，只记发现）：默认方案没记录的插件包（按 manifest 名对照方案里的 packageName / name）
+var liveUnrecorded = new List<string>(); int liveRecorded = 0;
+string liveProfile = Path.Combine(bep, "config", ManagerIdentity.ConfigDirectory, "profiles", "default", "profile.json");
+if (File.Exists(liveProfile))
+{
+    using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(liveProfile));
+    var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (doc.RootElement.TryGetProperty("mods", out var modsElement))
+        foreach (var mod in modsElement.EnumerateArray())
+        { liveRecorded++; foreach (string key in new[] { "packageName", "name" }) if (mod.TryGetProperty(key, out var v) && v.GetString() is { Length: > 0 } s) names.Add(s); }
+    foreach (string manifest in Directory.EnumerateFiles(Path.Combine(bep, "plugins"), "manifest.json*", SearchOption.AllDirectories)
+        .Where(f => (Path.GetFileName(f) == "manifest.json" || Path.GetFileName(f) == "manifest.json.old") && !PublicationFilePolicy.IsShadowCopy(f)))
+    {
+        string text = File.ReadAllText(manifest); var m = Regex.Match(text, "\"name\"\\s*:\\s*\"([^\"]+)\"");
+        if (m.Success && !names.Contains(m.Groups[1].Value)) liveUnrecorded.Add(Rel(bep, Path.GetDirectoryName(manifest)!) + (manifest.EndsWith(".old") ? "（停用）" : ""));
+    }
+}
+Check(File.Exists(liveProfile) ? liveRecorded > 0 : true, $"live: default profile readable ({liveRecorded} recorded mods, {liveUnrecorded.Count} plugin packages not matched by name)");
+
 string report = Path.Combine(work, "summary.txt");
 File.WriteAllLines(report, new[] {
     $"package files: {files.Count}", $"zip bytes: {new FileInfo(zip).Length}", $"plan entries: {plan.Count}",
@@ -164,6 +244,7 @@ File.WriteAllLines(report, new[] {
     $"skipped shadow copies ({skippedShadow.Count}):" }.Concat(skippedShadow.Select(s => "  " + s))
     .Concat(new[] { $"skipped by policy ({skippedPolicy.Count}):" }).Concat(skippedPolicy.Take(60).Select(s => "  " + s)).Concat(skippedPolicy.Count > 60 ? new[] { "  …" } : Array.Empty<string>())
     .Concat(new[] { $"parked folders under BepInEx/ (not loaded by BepInEx): {string.Join(" | ", parked)}" })
+    .Concat(new[] { $"live default profile: {liveRecorded} recorded mods; plugin packages whose manifest name is not in it ({liveUnrecorded.Count}, by name only, informational):" }).Concat(liveUnrecorded.Select(s => "  " + s))
     .Concat(new[] { $"scrubbed config values ({scrubbed.Count}):" }).Concat(scrubbed.Select(s => "  " + s))
     .Concat(new[] { $"absolute / personal paths left in shipped text files ({findings.Count}):" }).Concat(findings.Select(s => "  " + s)), new UTF8Encoding(false));
 Console.WriteLine($"summary: {report}");
