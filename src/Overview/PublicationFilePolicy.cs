@@ -63,8 +63,49 @@ internal static class PublicationFilePolicy
         if (Regex.IsMatch(name, @"\.bak[_.-]|\.before-", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) return false;
         // .dll.old also represents a disabled plugin and is projected to the
         // profile's enabled/disabled filename by the publisher.
-        if (name.EndsWith(".old", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase)) return false;
+        // 0.0.2 导出检查（2026-11-18）：停用带 manifest 的资料包时 ModToggleService 会把 manifest.json 一起改名成
+        // manifest.json.old。原来这里把它当垃圾文件丢掉，接收方拿到的停用资料包没有 manifest（失去商店身份，启用后也补不回来）。
+        if (name.EndsWith(".old", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase)
+            && !name.Equals(DisabledManifest, StringComparison.OrdinalIgnoreCase)) return false;
         return !CaptureName.IsMatch(name);
+    }
+
+    /// <summary>
+    /// 新手版能否原样带上作者的 doorstop_config.ini：加载目标是相对的 BepInEx\core\BepInEx.Preloader.dll、已启用、没有任何指向别处的覆盖路径。
+    /// 0.0.2 导出检查（2026-11-18）：原写法在等号两边用 <c>\s*</c>，多行模式下会越过行尾，把「boot_config_override =」后面空行之后的
+    /// 下一行当成它的值，于是标准 ini 永远判成「非标准」、一律换成内置模板（作者的 redirect_output_log、[Extra] 等设置丢失）。改成只在本行内匹配。
+    /// </summary>
+    internal static bool StandardDoorstopIni(string text)
+        => Regex.IsMatch(text, @"(?im)^[ \t]*target_assembly[ \t]*=[ \t]*BepInEx[\\/]core[\\/]BepInEx\.Preloader\.dll[ \t]*\r?$")
+        && Regex.IsMatch(text, @"(?im)^[ \t]*enabled[ \t]*=[ \t]*true[ \t]*\r?$")
+        && !Regex.IsMatch(text, @"(?im)^[ \t]*(dll_search_path_override|boot_config_override|doorstop_dll_search_override|mono_dll_search_path_override)[ \t]*=[ \t]*[^\s#;]");
+
+    internal const string Manifest = "manifest.json", DisabledManifest = "manifest.json.old";
+    internal static bool IsManifestFile(string path)
+    {
+        string name = Path.GetFileName(path.Replace('\\', '/'));
+        return name.Equals(Manifest, StringComparison.OrdinalIgnoreCase) || name.Equals(DisabledManifest, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 0.0.2 导出检查（2026-11-18）：同一位置已有生效原件时的停用副本 / 备份（<c>x.dll.d</c>、<c>x.dll.old</c>、<c>x.dll.任意后缀</c>
+    /// 旁边有 <c>x.dll</c>；<c>manifest.json.old</c> 旁边有 <c>manifest.json</c>）。作者这边加载的是原件，副本不属于启停状态，
+    /// 不随包发出：原来只跳过 <c>.dll.old</c>，<c>.dll.d</c> 会一起打进去，默认方案停用该模组时还会与投影出的同名文件冲突、发布失败。
+    /// </summary>
+    internal static bool IsShadowCopy(string file)
+    {
+        string name = Path.GetFileName(file);
+        string? directory = Path.GetDirectoryName(file);
+        if (name.Equals(DisabledManifest, StringComparison.OrdinalIgnoreCase)) return directory != null && File.Exists(Path.Combine(directory, Manifest));
+        return ModConfigEnhance.Updating.PluginFileNames.IsDisabled(file) && File.Exists(ModConfigEnhance.Updating.PluginFileNames.OriginalPath(file));
+    }
+
+    /// <summary>把资料包的 manifest 文件名投影成默认方案的启停状态（启用 = manifest.json，停用 = manifest.json.old），与 ModToggleService 的改名一致。</summary>
+    internal static string ProjectManifest(string relative, bool enabled)
+    {
+        string name = Path.GetFileName(relative.Replace('\\', '/'));
+        if (!IsManifestFile(name)) return relative;
+        return relative.Substring(0, relative.Length - name.Length) + (enabled ? Manifest : DisabledManifest);
     }
 
     internal static bool IsUpdaterRuntime(string file, string bepinexDirectory)

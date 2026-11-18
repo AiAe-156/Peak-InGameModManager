@@ -37,7 +37,7 @@ internal static partial class PackPublisher
             foreach (string file in OverviewRepository.SafeFiles(source))
             {
                 RejectPublicationLinks(source, file);
-                if (file.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase) && File.Exists(file.Substring(0, file.Length - 4))) continue;
+                if (PublicationFilePolicy.IsShadowCopy(file)) continue; // 0.0.2 导出检查：原来只跳过 .dll.old
                 Add(file, prefix.TrimEnd('/') + "/" + Relative(source, file), project);
             }
         }

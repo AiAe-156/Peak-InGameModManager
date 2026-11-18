@@ -153,7 +153,7 @@ internal static partial class PackPublisher
         var profile = repo.Profiles.ListProfiles().FirstOrDefault(p => p.id == request.DefaultProfile);
         var goals = profile?.mods.GroupBy(m => m.guid, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Last().enabled, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string,bool>();
         void AddTree(string source, string prefix, Func<string,bool>? include = null)
-        { foreach (string file in OverviewRepository.SafeFiles(source)) { string relative = Relative(source, file).Replace('\\','/'); if (file.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase) && File.Exists(file.Substring(0, file.Length - 4))) continue; if (source == Paths.PluginPath && CompleteMode(request.Mode)) { if (!KeepPluginFile(file, relative, mods)) continue; relative = ProjectPluginRelative(file, relative, mods, goals); } if (KeepCopiedFile(file, relative) && (include == null || include(relative))) files.Add(prefix + relative); } }
+        { foreach (string file in OverviewRepository.SafeFiles(source)) { string relative = Relative(source, file).Replace('\\','/'); if (PublicationFilePolicy.IsShadowCopy(file)) continue; if (source == Paths.PluginPath && CompleteMode(request.Mode)) { if (!KeepPluginFile(file, relative, mods)) continue; relative = ProjectPluginRelative(file, relative, mods, goals); } if (KeepCopiedFile(file, relative) && (include == null || include(relative))) files.Add(prefix + relative); } }
         string payload = request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/";
         foreach (string name in new[] { "profiles.json", "release.json", "sources.json", "conflicts.json" }) files.Add(payload + name);
         if (request.Sign) files.Add(payload + "signature.json");
@@ -380,7 +380,7 @@ internal static partial class PackPublisher
                 string source = PackageSource(package.First());
                 string relative = PublicationRelative(source);
                 if (File.Exists(source)) CopyFile(source, Path.Combine(output, "BepInEx", relative));
-                else CopyTree(source, Path.Combine(output, "BepInEx", relative));
+                else CopyTree(source, Path.Combine(output, "BepInEx", relative), rel => !PublicationFilePolicy.IsShadowCopy(Path.Combine(source, rel))); // 0.0.2 导出检查：不带旁边已有原件的停用副本
             }
             if (!IsIcon(request.Icon)) throw new InvalidOperationException(Loc.T("Choose a 256×256 PNG publication icon.", "请选择 256×256 PNG 发布图标。", "請選擇 256×256 PNG 發布圖標。"));
             CopyFile(request.Icon, Path.Combine(output, "icon.png"), true);
@@ -403,7 +403,7 @@ internal static partial class PackPublisher
         foreach (string relative in request.ExtraConfigFiles)
         {
             if (!ExtraConfigAllowed(relative) || recordedFiles.Contains(relative.Replace('\\', '/')))
-                throw new InvalidOperationException(Loc.T("An additional config file overlaps the profile configuration or private runtime data.", "附加配置与方案配置或私人运行资料重叠。", "附加設定與方案設定或私人執行資料重疊。")); // 0.0.2 导出检查：原来只有中文
+                throw new InvalidOperationException(Loc.T("Additional configuration overlaps profile data or private runtime data.", "附加配置与方案配置或私人运行资料重叠。", "附加設定與方案設定或私人執行資料重疊。")); // 0.0.2 导出检查：原来只有中文
             CopyFile(OverviewProfileAssets.CheckedPath(Paths.ConfigPath, relative), OverviewProfileAssets.CheckedPath(configOutput, relative), true);
         }
         ProjectConfig(configOutput, defaults.config);
@@ -447,9 +447,7 @@ internal static partial class PackPublisher
             // The author's ini only when it is the standard BepInEx one; an r2modman ini points into a profile folder.
             string ini = Path.Combine(GameRoot, "doorstop_config.ini");
             string text = File.Exists(ini) ? File.ReadAllText(ini) : "";
-            bool standard = System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*target_assembly\s*=\s*BepInEx[\\/]core[\\/]BepInEx\.Preloader\.dll\s*$")
-                && System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*enabled\s*=\s*true\s*$")
-                && !System.Text.RegularExpressions.Regex.IsMatch(text, @"(?im)^\s*(dll_search_path_override|boot_config_override|doorstop_dll_search_override|mono_dll_search_path_override)\s*=\s*\S");
+            bool standard = PublicationFilePolicy.StandardDoorstopIni(text);
             File.WriteAllText(Path.Combine(output, "doorstop_config.ini"), standard ? text : StandardDoorstopIni, new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(output, Loc.T("INSTALL.txt", "安装说明.txt", "安裝說明.txt")), NewcomerNote(request), new UTF8Encoding(true));
             string target = NewcomerPath(zip), partial = target + ".partial";
@@ -509,6 +507,15 @@ internal static partial class PackPublisher
     }
     private static string ProjectPluginRelative(string file, string relative, IReadOnlyList<OverviewMod> mods, Dictionary<string,bool> targets)
     {
+            // 0.0.2 导出检查（2026-11-18）：资料包的 manifest 也按默认方案投影。原来只投影 DLL：作者磁盘上停用（manifest.json.old）、
+            // 默认方案却是启用时，接收方拿到的是启用的 DLL 配停用的 manifest；反过来则是停用的 DLL 配生效的 manifest。
+            if (PublicationFilePolicy.IsManifestFile(file))
+            {
+                string directory = Path.GetDirectoryName(Path.GetFullPath(file))!.TrimEnd(Path.DirectorySeparatorChar);
+                var owners = mods.Where(m => m.CanToggle && m.PackageRoot.Length > 0 && targets.ContainsKey(m.Guid) && Directory.Exists(m.PackageRoot)
+                    && Path.GetFullPath(m.PackageRoot).TrimEnd(Path.DirectorySeparatorChar).Equals(directory, StringComparison.OrdinalIgnoreCase)).ToList();
+                return owners.Count == 0 ? relative : PublicationFilePolicy.ProjectManifest(relative, owners.Any(m => targets[m.Guid]));
+            }
             var mod = mods.FirstOrDefault(m => m.AssemblyPaths.Any(p => p.Equals(file, StringComparison.OrdinalIgnoreCase)));
             if (mod != null && targets.TryGetValue(mod.Guid, out bool enabled) && mod.CanToggle)
             {

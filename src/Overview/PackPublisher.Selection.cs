@@ -18,10 +18,10 @@ internal static partial class PackPublisher
         var profiles=repo.Profiles.ListProfiles().Where(p=>request.Profiles.Contains(p.id)).ToList();
         foreach(var profile in profiles)
         foreach(var duplicate in profile.mods.GroupBy(m=>m.guid,StringComparer.OrdinalIgnoreCase).Where(g=>g.Select(m=>m.enabled).Distinct().Count()>1))
-            throw new InvalidOperationException("方案内同一模组的启停目标冲突："+duplicate.Key);
+            throw new InvalidOperationException(Loc.F("Conflicting enablement targets for the same mod in a profile: {0}", "方案内同一模组的启停目标冲突：{0}", "方案內同一模組的啟停目標衝突：{0}", duplicate.Key));
         foreach(var profile in profiles)
         foreach(var duplicate in profile.config.values.GroupBy(v=>v.Identity).Where(g=>g.Select(v=>v.serializedValue).Distinct(StringComparer.Ordinal).Count()>1))
-            throw new InvalidOperationException("方案内同一配置项存在冲突值："+duplicate.Key);
+            throw new InvalidOperationException(Loc.F("Conflicting values for the same setting in a profile: {0}", "方案内同一配置项存在冲突值：{0}", "方案內同一設定項存在衝突值：{0}", duplicate.Key));
         var needed=new HashSet<string>(profiles.SelectMany(p=>p.mods).Select(m=>m.guid).Where(g=>g.Length>0),StringComparer.OrdinalIgnoreCase) { Plugin.PluginGuid };
         var roots=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         bool Inside(string file,string root)
@@ -42,7 +42,7 @@ internal static partial class PackPublisher
         } while(changed);
         var selected=inventory.Where(m=>roots.Contains(m.PackageRoot)).ToList();
         foreach(var duplicate in selected.Where(m=>!m.Guid.StartsWith("package:",StringComparison.OrdinalIgnoreCase)).GroupBy(m=>m.Guid,StringComparer.OrdinalIgnoreCase).Where(g=>g.Select(m=>m.PackageRoot).Distinct(StringComparer.OrdinalIgnoreCase).Count()>1))
-            throw new InvalidOperationException("发布包含重复模组，请确认保留的副本："+duplicate.Key+"\n"+string.Join("\n",duplicate.Select(m=>m.PackageRoot)));
+            throw new InvalidOperationException(Loc.F("The publication contains duplicate copies of a mod; keep only one: {0}", "发布包含重复模组，请确认保留的副本：{0}", "發布包含重複模組，請確認保留的副本：{0}", duplicate.Key)+"\n"+string.Join("\n",duplicate.Select(m=>m.PackageRoot)));
         return selected;
     }
 }

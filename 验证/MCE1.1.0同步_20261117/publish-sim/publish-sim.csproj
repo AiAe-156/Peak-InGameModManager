@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 0.0.2 导出检查：完整包（自带 BepInEx 加载器）模拟夹具。run.py 把本目录与 IGMM 的发布策略源码复制到暂存目录再编译运行。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>CS8632</NoWarn>
+  </PropertyGroup>
+</Project>
