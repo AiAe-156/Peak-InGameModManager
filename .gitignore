@@ -386,3 +386,5 @@ FodyWeavers.xsd
 验证/**/fixtures-*/
 # 第三方调试工具（ProcDump、DbgEng SDK），需要时重新下载
 验证/启动退出_20261101/tools/
+# 宣传视频草稿（约 200 MB 的 mp4 / wav 与渲染脚本），用户 2026-11-18 决定不进仓库
+验证/宣传视频试做/

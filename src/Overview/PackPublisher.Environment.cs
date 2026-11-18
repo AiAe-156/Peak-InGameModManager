@@ -58,6 +58,7 @@ internal static partial class PackPublisher
         foreach (string extra in request.ExtraFiles)
         {
             string relative = extra.Replace('\\', '/');
+            if (PublicationFilePolicy.IsParkedGamePath(relative, Directory.Exists(OverviewProfileAssets.CheckedPath(GameRoot, extra)))) continue; // 0.0.2：停放文件夹一律不带
             if (!relative.StartsWith("BepInEx/", StringComparison.OrdinalIgnoreCase)) throw new IOException("Doorstop/游戏根文件为平台前置条件，不属于独立环境：" + extra);
             Tree(OverviewProfileAssets.CheckedPath(GameRoot, extra), relative.Substring(8), false);
         }

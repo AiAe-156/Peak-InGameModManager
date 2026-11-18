@@ -80,6 +80,26 @@ internal static class PublicationFilePolicy
         && Regex.IsMatch(text, @"(?im)^[ \t]*enabled[ \t]*=[ \t]*true[ \t]*\r?$")
         && !Regex.IsMatch(text, @"(?im)^[ \t]*(dll_search_path_override|boot_config_override|doorstop_dll_search_override|mono_dll_search_path_override)[ \t]*=[ \t]*[^\s#;]");
 
+    /// <summary>
+    /// 0.0.2 导出补查（2026-11-18，用户决定）：<c>BepInEx/</c> 下、BepInEx 会加载的目录（plugins / patchers / core / monomod）与 config 之外的
+    /// 文件夹（手工挪出来的「临时卸载」、旧副本、日志文件夹等）BepInEx 不加载，发布时一律排除：不进发布清单、不能当附带内容。
+    /// 原来发布清单会把里面的 .dll 当成启用模组，选中后放进接收方 plugins/ 被加载，与作者实际状态不一致。
+    /// <paramref name="bepinexRelative"/> 相对 BepInEx 根目录；文件夹本身传 <paramref name="isDirectory"/> = true，BepInEx 根目录下的单个文件不算。
+    /// </summary>
+    internal static bool IsParkedBepInExPath(string bepinexRelative, bool isDirectory)
+    {
+        string[] parts = bepinexRelative.Replace('\\', '/').Trim('/').Split('/');
+        if (parts[0].Length == 0 || !isDirectory && parts.Length < 2) return false;
+        return !LoaderFolders.Contains(parts[0], StringComparer.OrdinalIgnoreCase);
+    }
+    /// <summary>同上，参数相对游戏根目录（附带内容 ExtraFiles 的写法，如 <c>BepInEx/旧副本</c>）。</summary>
+    internal static bool IsParkedGamePath(string gameRelative, bool isDirectory)
+    {
+        string path = gameRelative.Replace('\\', '/').TrimStart('/');
+        return path.StartsWith("BepInEx/", StringComparison.OrdinalIgnoreCase) && IsParkedBepInExPath(path.Substring(8), isDirectory);
+    }
+    private static readonly string[] LoaderFolders = { "plugins", "patchers", "core", "monomod", "config" };
+
     internal const string Manifest = "manifest.json", DisabledManifest = "manifest.json.old";
     internal static bool IsManifestFile(string path)
     {

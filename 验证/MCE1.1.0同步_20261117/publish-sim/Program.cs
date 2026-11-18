@@ -44,8 +44,25 @@ Check(!PublicationFilePolicy.Keep("BepInEx/IGMM/shop/x.json") && !PublicationFil
 Check(!PackEnvironmentPolicy.ManagedPath("config/InGameModManager/profiles/a.json", 2) && PackEnvironmentPolicy.ManagedPath("config/BepInEx.cfg", 2)
     && PackEnvironmentPolicy.ManagedPath("core/BepInEx.dll", 2) && !PackEnvironmentPolicy.ManagedPath("cache/x", 2), "environment v2 boundary");
 
+// 停放文件夹（用户 2026-11-18 决定：BepInEx/ 下加载目录之外的文件夹发布时一律排除）
+Check(PublicationFilePolicy.IsParkedBepInExPath("_旧副本_Foothold-Forked_1.5.1_20261103", true) && PublicationFilePolicy.IsParkedBepInExPath("[依赖]PLL地图与群系库-PLL_Library/PLL.dll", false), "folders beside plugins are parked (folder and files inside)");
+Check(!PublicationFilePolicy.IsParkedBepInExPath("plugins/Grp/PkgA", true) && !PublicationFilePolicy.IsParkedBepInExPath("PATCHERS/x.dll", false) && !PublicationFilePolicy.IsParkedBepInExPath("core", true)
+    && !PublicationFilePolicy.IsParkedBepInExPath("monomod/a.dll", false) && !PublicationFilePolicy.IsParkedBepInExPath("config/BepInEx.cfg", false), "loader folders and config are not parked");
+Check(!PublicationFilePolicy.IsParkedBepInExPath("banned.txt", false) && !PublicationFilePolicy.IsParkedBepInExPath("", true), "a single file in the BepInEx root is not a parked folder");
+Check(PublicationFilePolicy.IsParkedGamePath(@"BepInEx\_旧副本_X", true) && PublicationFilePolicy.IsParkedGamePath("BepInEx/3玩法类模组/a/b.dll", false)
+    && !PublicationFilePolicy.IsParkedGamePath("BepInEx/plugins/X", true) && !PublicationFilePolicy.IsParkedGamePath("SomeRootFolder", true) && !PublicationFilePolicy.IsParkedGamePath("BepInEx/banned.txt", false), "attachment paths (game-relative)");
+
 // ── 2. 用作者真实目录重放完整包 ─────────────────────────────────────────
 string bep = Path.Combine(game, "BepInEx");
+// 真实目录：发布清单扫描的 BepInEx 子目录（PackPublisher.Inventory 的 route 过滤）与可选附带内容（Extras）都不再含停放文件夹
+var bepDirs = Directory.GetDirectories(bep).Select(Path.GetFileName).Select(n => n!).ToList();
+var routes = bepDirs.Where(p => !new[] { "config", "IGMM", "MCE", "cache", "logs", "log" }.Contains(p, StringComparer.OrdinalIgnoreCase) && !PublicationFilePolicy.IsParkedBepInExPath(p, true)).ToList();
+Check(routes.All(r => new[] { "plugins", "patchers", "core", "monomod" }.Contains(r, StringComparer.OrdinalIgnoreCase)), "inventory routes on the real tree are loader folders only: " + string.Join(", ", routes));
+var extraDirs = bepDirs.Where(n => !new[] { "plugins", "config", "core", "patchers", "monomod", "IGMM", "MCE" }.Contains(n, StringComparer.OrdinalIgnoreCase) && !PublicationFilePolicy.IsParkedBepInExPath(n, true)).ToList();
+var parkedReal = bepDirs.Where(n => PublicationFilePolicy.IsParkedBepInExPath(n, true) && !new[] { "cache", "logs", "IGMM", "MCE" }.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
+Check(extraDirs.Count == 0 && parkedReal.Count > 0, $"no parked folder offered as an attachment ({parkedReal.Count} parked folders on the real tree)");
+var parkedDlls = parkedReal.SelectMany(n => Directory.EnumerateFiles(Path.Combine(bep, n), "*", SearchOption.AllDirectories)).Where(PluginFileNames.IsAssembly).ToList();
+Check(parkedDlls.All(f => PublicationFilePolicy.IsParkedBepInExPath(Path.GetRelativePath(bep, f), false)), $"every assembly in parked folders is classified parked ({parkedDlls.Count})");
 string package = Path.Combine(work, "package"); string outBep = Path.Combine(package, "BepInEx");
 var plan = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 var skippedShadow = new List<string>(); var skippedPolicy = new List<string>();

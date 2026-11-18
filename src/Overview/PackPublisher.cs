@@ -69,6 +69,7 @@ internal static partial class PackPublisher
         foreach (var item in new DirectoryInfo(Paths.BepInExRootPath).EnumerateFileSystemInfos())
         {
             if ((item.Attributes & FileAttributes.ReparsePoint) != 0 || new[] { "plugins", "config", "core", "patchers", "monomod", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory }.Contains(item.Name, StringComparer.OrdinalIgnoreCase)) continue;
+            if (item is DirectoryInfo && PublicationFilePolicy.IsParkedBepInExPath(item.Name, true)) continue; // 0.0.2：停放文件夹不能当附带内容
             string relative = "BepInEx/" + item.Name; if (Keep(relative)) result.Add((relative, relative));
         }
         foreach (string folder in new[] { "core", "patchers", "monomod" })
@@ -87,9 +88,9 @@ internal static partial class PackPublisher
     {
         var catalogue = new OverviewCatalogue();
         var mods = catalogue.Scan(repo);
-        mods.AddRange(catalogue.PublicationCache(repo));
+        // 0.0.2 导出补查（用户决定）：不再把 BepInEx/ 下 plugins 等加载目录之外的停放文件夹（PublicationCache 扫的正是这些）算进发布清单。
         var containers = ContainerRoots();
-        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)).Select(p => p!))
+        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)&&!PublicationFilePolicy.IsParkedBepInExPath(p,true)).Select(p => p!))
         foreach (string file in OverviewRepository.SafeFiles(Path.Combine(Paths.BepInExRootPath, route)).Where(p => Path.GetFileName(p) == "manifest.json"))
         {
             string root = Path.GetDirectoryName(file)!;
@@ -187,7 +188,7 @@ internal static partial class PackPublisher
             foreach (string name in new[] { "manifest.json", "README.md", "icon.png" }) files.Add(name);
         }
         if (request.Mode == PublishMode.Thunderstore) foreach (string extra in request.ExtraFiles)
-        { string path = OverviewProfileAssets.CheckedPath(GameRoot, extra); if (!KeepCopiedFile(path, extra)) continue; if (Directory.Exists(path)) AddTree(path, extra.TrimEnd('/') + "/"); else files.Add(extra); }
+        { string path = OverviewProfileAssets.CheckedPath(GameRoot, extra); if (!KeepCopiedFile(path, extra) || PublicationFilePolicy.IsParkedGamePath(extra, Directory.Exists(path))) continue; if (Directory.Exists(path)) AddTree(path, extra.TrimEnd('/') + "/"); else files.Add(extra); }
         if (request.Mode == PublishMode.ThunderstoreComplete) { files.Add("manifest.json"); files.Add("icon.png"); }
         foreach (string draft in request.DraftFiles.Keys) files.Add(draft);
         return files.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();
@@ -411,7 +412,7 @@ internal static partial class PackPublisher
         {
             if (request.Mode == PublishMode.Thunderstore && !new[] { "BepInEx/plugins/", "BepInEx/core/", "BepInEx/patchers/", "BepInEx/monomod/" }.Any(p => relative.StartsWith(p, StringComparison.OrdinalIgnoreCase))) throw new InvalidOperationException(Loc.F("This additional path is only supported in local installation packages: {0}", "此附加路径仅适用于本地安装包：{0}", "此附加路徑僅適用于本地安裝包：{0}", relative));
             string source = OverviewProfileAssets.CheckedPath(GameRoot, relative), destination = OverviewProfileAssets.CheckedPath(output, relative);
-            if (!KeepCopiedFile(source, relative)) continue;
+            if (!KeepCopiedFile(source, relative) || PublicationFilePolicy.IsParkedGamePath(relative, Directory.Exists(source))) continue; // 0.0.2：旧草稿里存过的停放文件夹也不带
             if (Directory.Exists(source)) CopyTree(source, destination); else CopyFile(source, destination, true);
         }
         var scrubbed = PublicationScrub.Run(Path.Combine(output, "BepInEx", "config"));
