@@ -160,9 +160,10 @@ internal sealed class OverviewGroupEditor : IDisposable
                 GamepadSupport.MarkSelectable(button.gameObject, scroll, (RectTransform)button.transform);
             }
         }
-        Heading(content, group == null ? T("New group name", "新建分组名称") : T("Group name", "分组名称"));
-        _name = OverviewUi.Input(content, group?.name ?? ""); _name.characterLimit = 80; Height(_name.gameObject, 45);
-        Heading(content, T("Parent group", "上级分组"));
+        Heading(content, group == null ? T("New group name", "新建分组名称", "新建分組名稱") : T("Group name", "分组名称", "分組名稱"));
+        // 实测修正（用户 2026-11-16）：新建分组 / 子分组预填「新分组1」「新子分组1」，数字递增、避开已有名称；可直接改。
+        _name = OverviewUi.Input(content, group?.name ?? SuggestedName(_parentId)); _name.characterLimit = 80; Height(_name.gameObject, 45);
+        Heading(content, T("Parent group", "上级分组", "上級分組"));
         var parentRow = OverviewUi.Rect("ParentRow", content); Height(parentRow.gameObject, 40);
         var parentButton = OverviewUi.Button(parentRow, "", ChooseParent, 320, 36, UiActionRole.Neutral); OverviewUi.Place((RectTransform)parentButton.transform, 0, 2, 320, 36);
         _parentCaption = parentButton.GetComponentInChildren<TextMeshProUGUI>(true); _parentCaption.overflowMode = TextOverflowModes.Ellipsis; _parentCaption.textWrappingMode = TextWrappingModes.NoWrap;
@@ -394,6 +395,9 @@ internal sealed class OverviewGroupEditor : IDisposable
         }
         if (HasDirty) OverviewUi.ConfirmDiscard(T("Discard the current group draft?", "放弃当前未保存的分组修改？"), Move); else Move();
     }
+    /// <summary>同步自 MCE 1.1.0（实测修正）：新分组的预填名称：顶层「新分组N」，有上级时「新子分组N」（<see cref="GroupSteps.NumberedName"/>）。</summary>
+    private string SuggestedName(string parentId) => GroupSteps.NumberedName(parentId.Length == 0
+        ? Loc.T("New group ", "新分组", "新分組") : Loc.T("New subgroup ", "新子分组", "新子分組"), _repository.State.groups.Select(g => g.name));
     private void RefreshParentCaption()
     {
         if (_parentCaption == null) return;
@@ -415,7 +419,10 @@ internal sealed class OverviewGroupEditor : IDisposable
         OverviewUi.Choose(T("Parent group", "上级分组"), options, _parentId, value =>
         {
             bool recolor = _group == null && string.Equals(_color, GroupPalette.ForNewGroup(_repository.State.groups, _parentId), StringComparison.OrdinalIgnoreCase);
+            // 名称还是预填的那个时，跟着换成「新分组N」/「新子分组N」（用户改过就不动）。
+            bool rename = _group == null && _name != null && string.Equals(_name.text, SuggestedName(_parentId), StringComparison.Ordinal);
             _parentId = value ?? "";
+            if (rename) _name!.text = SuggestedName(_parentId);
             // A new group that still has its suggested colour follows its new parent's family.
             if (recolor) { _color = GroupPalette.ForNewGroup(_repository.State.groups, _parentId); if (_colorCaption != null) _colorCaption.text = _color; if (_colorPreview != null) _colorPreview.color = Parse(_color); RebuildPalette(); }
             RefreshParentCaption();
@@ -455,6 +462,7 @@ internal sealed class OverviewGroupEditor : IDisposable
     }
     public void Dispose() => Close();
     private static string T(string english, string chinese) => Loc.T(english, chinese, chinese);
+    private static string T(string english, string chinese, string traditional) => Loc.T(english, chinese, traditional); // 同步自 MCE 1.1.0：带繁中的词条
     private static Color Parse(string color) => ColorUtility.TryParseHtmlString(color, out Color value) ? value : OverviewUi.Blue;
     private static string? NormalizeColor(string? text)
     {

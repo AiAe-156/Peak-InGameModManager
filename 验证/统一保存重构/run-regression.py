@@ -40,6 +40,8 @@ add('interop-structs', 'interop-structs-checks.log', [sys.executable, '-I', str(
 add('window-navigation', 'window-navigation-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/窗口导航重做/GridChecks/GridChecks.csproj'), '-c', 'Release'])
 add('reader-input', 'reader-input-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/窗口导航重做/ReaderChecks/ReaderChecks.csproj'), '-c', 'Release'])
 add('startup-publication', 'startup-publication-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/0.0.1发布/StartupChecks/StartupChecks.csproj'), '-c', 'Release'])
+add('log-diagnostics', 'log-diagnostics-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/LogDiagnosticsChecks/LogDiagnosticsChecks.csproj'), '-c', 'Release'])
+add('component-layout', 'component-layout-checks.log', [DOTNET, 'run', '--project', str(ROOT / '验证/组件跨目录修复_20261114/Checks/Checks.csproj'), '-c', 'Release'])
 results = []
 for name, log, args in steps:
     with log.open('w', encoding='utf-8') as output:

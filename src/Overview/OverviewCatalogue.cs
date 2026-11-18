@@ -148,7 +148,8 @@ internal sealed partial class OverviewCatalogue
         string plugins = Path.GetFullPath(Paths.PluginPath).TrimEnd(Path.DirectorySeparatorChar);
         var owned = new HashSet<string>(rows.Select(r => Path.GetFullPath(r.PackageRoot).TrimEnd(Path.DirectorySeparatorChar)), StringComparer.OrdinalIgnoreCase);
         var assemblyDirs = inventory.Assemblies.Select(a => Path.GetDirectoryName(Path.GetFullPath(a))!).ToList();
-        var components = new HashSet<string>(InfrastructurePackages.Results.Where(p => p.IdentityConfirmed).Select(p => p.Key), StringComparer.OrdinalIgnoreCase);
+        // Local inventory must work before the first online update check populates Results.
+        var components = new HashSet<string>(InfrastructurePackages.Scan().Where(p => p.IdentityConfirmed).Select(p => p.Key), StringComparer.OrdinalIgnoreCase);
         foreach (string manifest in inventory.Manifests.OrderBy(m => m.Length))
         {
             string folder = Path.GetDirectoryName(Path.GetFullPath(manifest))!.TrimEnd(Path.DirectorySeparatorChar);

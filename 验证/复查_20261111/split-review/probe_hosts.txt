@@ -1,0 +1,5 @@
+HostRoots: ["plugins/0核心&基础模组/[界面]ModConfig增强-ModConfigEnhance", "plugins/0核心&基础模组/[功能]游戏内更改mod配置-ModConfig-1.8.2", "plugins/0核心&基础模组/[0依赖]Mods/[依赖]PEAKLib核心-PEAKLib_Core", "plugins/0核心&基础模组/[0依赖]Mods/[依赖]PEAKLib界面-PEAKLib_UI"]
+ActiveFiles manager entries: ["plugins/0基础模组/ModManager_InGame_2.0.0_20261029_215224/ModConfigEnhance.dll", "plugins/0基础模组/ModManager_InGame_2.0.0_20261029_215224/Tools/Updater/MCE.UpdateWorker.exe", "plugins/0基础模组/ModManager_InGame_2.0.0_20261029_215224/Tools/Updater/MCE.UpdateWorker.exe.config", "plugins/0基础模组/[界面]ModConfig增强-ModConfigEnhance/Tools/Updater/MCE.UpdateWorker.exe"]
+pack 临时整合包 2026-10-25 15:59 env=1 content=revisions/607c673ae75d4369913c9f39716ffebe mgr=[]
+pack Bangers-PEAK_Nearly_Vanilla_Mod_Pack-1.0.1 env=1 content=revisions/79e6b226baad4f428a60367749a98ecc mgr=[]
+pack MCEPack_6b679869 env=1 content=revisions/0be7715f5a034c75b6d5bc84e3a17b43 mgr=[]

@@ -1,0 +1,73 @@
+== runtime
+    8390 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组   <- {'processed': 8384, 'layout-backups/20261111_174549': 6}
+    2731 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\2额外模组   <- {'processed': 2723, 'layout-backups/20261111_174549': 8}
+    2371 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\1拓展模组   <- {'processed': 2365, 'layout-backups/20261111_174549': 6}
+    1269 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0   <- {'resource-batch.json': 724, 'jobs/bd7a58c0e735481db0d7db16f4cd158b': 374, 'jobs/2391edc76b5842688d15bdcd60f15517': 103, 'queue.json': 20, 'jobs/21b178c74fd048dd9dc9ab637d474583': 13}
+     952 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\3玩法类模组(大多数需要全员安装相同版本   <- {'processed': 952}
+     795 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\com.github.MonoDetou   <- {'processed': 768, 'resource-batch.json': 16, 'queue.json': 4, 'jobs/95a864000f174eeba85e2b9dee864153': 3, 'jobs/2391edc76b5842688d15bdcd60f15517': 2}
+     497 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\3   <- {'jobs/bd7a58c0e735481db0d7db16f4cd158b': 250, 'jobs/3094068e873d41788d9c61341914eb99': 117, 'resource-batch.json': 66, 'jobs/11092d5b97b549348eff629220a21569': 15, 'jobs/5f6dce7fcc8f4a82ae1036d562d96126': 13}
+     380 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\ModConfigEnhance|F:   <- {'layout-backups/20261111_174549': 380}
+     315 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\1   <- {'resource-batch.json': 199, 'jobs/2391edc76b5842688d15bdcd60f15517': 24, 'queue.json': 20, 'jobs/3c3fd0b07f1e4391a5d905c728c8b46f': 13, 'jobs/b1cb4dcb427343b8b75c1148ea5f3f9d': 11}
+     313 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\2   <- {'resource-batch.json': 226, 'jobs/2391edc76b5842688d15bdcd60f15517': 28, 'jobs/bd7a58c0e735481db0d7db16f4cd158b': 21, 'queue.json': 14, 'jobs/5828a3acf8044a43b643dd62939fd837': 11}
+     231 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\MCE\\jobs   <- {'jobs/3094068e873d41788d9c61341914eb99': 59, 'history.json': 40, 'queue.json': 10, 'jobs/95a864000f174eeba85e2b9dee864153': 9, 'jobs/11092d5b97b549348eff629220a21569': 8}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\BepInEx.Preloader.dl   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\BepInEx.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\MonoMod.Utils.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\Mono.Cecil.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\Mono.Cecil.Mdb.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\Mono.Cecil.Pdb.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\Mono.Cecil.Rocks.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\MonoMod.RuntimeDetou   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\0Harmony.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\HarmonyXInterop.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\patchers\\Hamunii-AutoHookGenP   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\patchers\\Hamunii-DetourContex   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\XUnity.Common.dll   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     211 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\MMHOOK   <- {'processed': 192, 'resource-batch.json': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 2, 'queue.json': 1}
+     208 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\依赖模组   <- {'processed': 208}
+     205 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\MCE\\backups   <- {'jobs/3094068e873d41788d9c61341914eb99': 59, 'history.json': 40, 'queue.json': 10, 'jobs/11092d5b97b549348eff629220a21569': 8, 'jobs/2391edc76b5842688d15bdcd60f15517': 7}
+     194 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\patchers\\0.com.github.MonoDet   <- {'processed': 192, 'queue.json': 1, 'jobs/613e648df8c04da09b6505bb3d1dfa7e': 1}
+     190 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[优化]掉帧医生-FrameDoctor   <- {'processed': 188, 'layout-backups/20261111_174549': 2}
+     160 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0基础模组   <- {'processed': 160}
+     124 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\   <- {'jobs/bd7a58c0e735481db0d7db16f4cd158b': 96, 'queue.json': 28}
+      81 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\MCE\\backups   <- {'jobs/dd7a1322f85f4903a329c99e49d93212': 23, 'jobs/081845539a48476b988c8ec0e6ebc061': 22, 'jobs/e705a15d019749768d170b4e9114a8c7': 22, 'jobs/0170897714e84e32840cee7f7b6f3848': 8, 'jobs/8a43e351c4ce459980e257b14391c947': 3}
+      79 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\CptPICHU-TrueFinalAs   <- {'jobs/bd7a58c0e735481db0d7db16f4cd158b': 57, 'resource-batch.json': 16, 'processed': 4, 'jobs/2391edc76b5842688d15bdcd60f15517': 2}
+      54 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\core\\MonoDetour-MonoDetou   <- {'resource-batch.json': 48, 'jobs/2391edc76b5842688d15bdcd60f15517': 6}
+      50 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\MCE\\jobs   <- {'jobs/081845539a48476b988c8ec0e6ebc061': 22, 'jobs/e705a15d019749768d170b4e9114a8c7': 22, 'jobs/0170897714e84e32840cee7f7b6f3848': 1, 'jobs/8a43e351c4ce459980e257b14391c947': 1, 'jobs/9f0964f338574d788ba066e2be2147cd': 1}
+      48 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[   <- {'resource-batch.json': 32, 'jobs/bd7a58c0e735481db0d7db16f4cd158b': 11, 'jobs/2391edc76b5842688d15bdcd60f15517': 4, 'queue.json': 1}
+      47 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0   <- {'jobs/e705a15d019749768d170b4e9114a8c7': 43, 'history.json': 2, 'queue.json': 2}
+      46 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[   <- {'jobs/081845539a48476b988c8ec0e6ebc061': 43, 'history.json': 2, 'queue.json': 1}
+      45 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\MCE\\packs   <- {'packs/.transactions': 10, 'processed': 9, 'shop/tasks': 9, 'packs/.view-cache': 6, 'packs/9631b6c93b4296ef8da3bbe4be1ea7b7': 4}
+      40 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\3玩法模组   <- {'processed': 40}
+      26 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\patchers\\MonoDetour-MonoDetou   <- {'resource-batch.json': 16, 'jobs/613e648df8c04da09b6505bb3d1dfa7e': 5, 'history.json': 3, 'jobs/2391edc76b5842688d15bdcd60f15517': 2}
+      18 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\core\\MonoDetour-MonoDetou   <- {'jobs/0170897714e84e32840cee7f7b6f3848': 8, 'jobs/dd7a1322f85f4903a329c99e49d93212': 6, 'jobs/9f0964f338574d788ba066e2be2147cd': 3, 'jobs/8a43e351c4ce459980e257b14391c947': 1}
+      17 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\未分组   <- {'processed': 17}
+      16 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\com.github.LengSword   <- {'history.json': 7, 'resource-batch.json': 2, 'queue.json': 1, 'jobs/2391edc76b5842688d15bdcd60f15517': 1, 'jobs/3c3fd0b07f1e4391a5d905c728c8b46f': 1}
+      15 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\com.CptPICHU.peak.tr   <- {'history.json': 5, 'queue.json': 2, 'processed': 2, 'resource-batch.json': 1, 'jobs/11092d5b97b549348eff629220a21569': 1}
+      15 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\MonoDetour-MonoDetou   <- {'jobs/95a864000f174eeba85e2b9dee864153': 6, 'history.json': 4, 'queue.json': 1, 'jobs/1c07649979a24539b80c2e1c3afe5530': 1, 'jobs/5eb5a6a68b4a405b99d4f529227ea419': 1}
+      15 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\patchers\\MonoDetour-MonoDetou   <- {'jobs/0170897714e84e32840cee7f7b6f3848': 5, 'history.json': 3, 'jobs/8a43e351c4ce459980e257b14391c947': 3, 'jobs/dd7a1322f85f4903a329c99e49d93212': 3, 'jobs/be3d38d9a67145baafd085b10a3c3ce4': 1}
+      10 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\core\\AutoHookGenPatcher-1   <- {'jobs/0170897714e84e32840cee7f7b6f3848': 5, 'jobs/dd7a1322f85f4903a329c99e49d93212': 5}
+      10 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\patchers\\Hamunii-AutoHookGenP   <- {'jobs/0170897714e84e32840cee7f7b6f3848': 5, 'jobs/dd7a1322f85f4903a329c99e49d93212': 5}
+       8 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\config\\com.aiae.modconfigen   <- {'history.json': 4, 'queue.json': 2, 'jobs/081845539a48476b988c8ec0e6ebc061': 1, 'jobs/e705a15d019749768d170b4e9114a8c7': 1}
+       8 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\patchers\\Hamunii-DetourContex   <- {'jobs/0170897714e84e32840cee7f7b6f3848': 4, 'jobs/dd7a1322f85f4903a329c99e49d93212': 4}
+       8 s://github.com/BepInEx/BepInEx   <- {'layout-backups/20261111_174549': 8}
+       8 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[依赖]PLL地图与群系库-PLL_Li   <- {'layout-backups/20261111_174549': 4, 'processed': 4}
+       8 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\MCE\\resource-analysis   <- {'resource-analysis/a654b95ed9de49ecb1326b4d8af36f7b': 8}
+       6 F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\BepInEx\\plugins\\MonoDetour-MonoDetou   <- {'history.json': 3, 'jobs/0170897714e84e32840cee7f7b6f3848': 1, 'jobs/9f0964f338574d788ba066e2be2147cd': 1, 'jobs/af1c8ab7c1a44ecb9f2a5adbe23ae21d': 1}
+       6 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\AeralisFoundation-Un   <- {'jobs/bd7a58c0e735481db0d7db16f4cd158b': 6}
+       5 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\nickklmao.easybackpa   <- {'history.json': 2, 'resource-batch.json': 1, 'jobs/6ebb6c74670d40939643d61f6ad5e9a6': 1, 'jobs/b1cb4dcb427343b8b75c1148ea5f3f9d': 1}
+       5 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\AeralisFoundation-PL   <- {'jobs/bd7a58c0e735481db0d7db16f4cd158b': 5}
+       4 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\Foothold-Forked.cfg   <- {'history.json': 2, 'resource-batch.json': 1, 'jobs/5828a3acf8044a43b643dd62939fd837': 1}
+       4 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\ModConfigEnhance   <- {'layout-backups/20261111_174549': 4}
+== config
+     191 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\ModConfigEnhance|F:   <- {'data/runtime': 191}
+       4 s://github.com/BepInEx/BepInEx   <- {'data/runtime': 4}
+       4 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\2额外模组   <- {'data/runtime': 4}
+       4 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[依赖]PLL地图与群系库-PLL_Li   <- {'data/runtime': 4}
+       3 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\config\\ModConfigEnhance   <- {'profiles': 2, 'data/runtime': 1}
+       3 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\0核心&基础模组   <- {'data/runtime': 3}
+       3 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\1拓展模组   <- {'data/runtime': 3}
+       2 s://thunderstore.io/c/peak/p/BepInEx/BepInExPack_PEAK/   <- {'data/runtime': 2}
+       1 s://thunderstore.io/package/download/BepInEx/BepInExPack_PEAK/5.4.75301   <- {'data/runtime': 1}
+       1 s://thunderstore.io/package/download/BepInEx/BepInExPack_PEAK/5.4.2403   <- {'data/runtime': 1}
+       1 F:\\Games\\Steam\\steamapps\\common\\PEAK\\BepInEx\\plugins\\[优化]掉帧医生-FrameDoctor   <- {'data/runtime': 1}

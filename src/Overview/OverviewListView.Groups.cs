@@ -21,9 +21,9 @@ internal sealed partial class OverviewListView
     private GroupTree Groups => _groupTree ??= new GroupTree(_repo.State.groups);
     private void InvalidateGroupTree() => _groupTree = null;
 
-    /// <summary>Tree position of a row's group; members of a group sort before its child groups because a group's
-    /// position is smaller than every descendant's.</summary>
-    private int GroupSortKey(string groupId) => Groups.Position(groupId);
+    /// <summary>Sort key of a member row. 1.1.0（实测修正，用户 2026-11-16）：子分组排在本组直属模组前面
+    /// （<see cref="GroupTree.RowKey"/>；原来是直属模组在前、子分组在底部）。</summary>
+    private int GroupSortKey(string groupId) => Groups.RowKey(groupId);
 
     private bool RowHiddenByCollapse(string groupId) => Groups.HiddenByCollapse(groupId, _repo.State.collapsedGroups);
 
@@ -157,11 +157,99 @@ internal sealed partial class OverviewListView
     private void BeginGroupDrag(OverviewGroup group)
     {
         if (!_authorMode) return;
-        _draggedGroup = group; HideAllHints();
+        _draggedGroup = group; HideAllHints(); _groupDropStatus = "";
         _dragCaption.text = Groups.Path(group.id);
         _dragGhost.gameObject.SetActive(true); _dragGhost.SetAsLastSibling();
-        _status(T("Drop on another group heading to make it a subgroup there.", "拖到另一个分组标题上松开，即可挂到它下面。"));
+        _status(GroupDragIntro);
+    }
+    private string GroupDragIntro => T("Drop on another group heading: top or bottom edge = before / after it (same level), middle = make it a subgroup.",
+        "拖到另一个分组标题上松开：靠上缘 / 下缘 = 排到它前面 / 后面（同一层），中间 = 成为它的子分组。",
+        "拖到另一個分組標題上放開：靠上緣 / 下緣 = 排到它前面 / 後面（同一層），中間 = 成為它的子分組。");
+
+    private void EndGroupDrag() { _draggedGroup = null; _groupDropStatus = ""; _dragGhost.gameObject.SetActive(false); _dropLine.gameObject.SetActive(false); _dropHighlight.gameObject.SetActive(false); }
+
+    // ── 分组标题的拖放落点（实测修正，用户 2026-11-16）──────────────────────────
+    // 原来拖到另一个分组标题上只会挂成它的子分组。现在按落点分：标题上 1/4 = 插到它前面、下 1/4 = 插到它后面（与它同层，
+    // GroupTree.PlaceBeside），中间 = 成为它的子分组（GroupTree.Attach）。上 / 下缘画蓝线（按目标的层级缩进），中间给整条标题罩半透明蓝色；
+    // 状态行同步写「松开后……」。放不下（超过三层、放进自己的子树）时什么都不画，状态行写原因。「未分组」标题不接受分组。
+    private string _groupDropStatus = "";
+
+    /// <summary>指针在分组标题里的落点（<see cref="GroupSteps.Zone"/>）；换算不了时按中间算。</summary>
+    private static GroupSteps.DropZone ZoneOnHeader(RectTransform row, Vector2 screen, Camera? camera)
+    {
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(row, screen, camera, out var local) || row.rect.height <= 0) return GroupSteps.DropZone.Inside;
+        return GroupSteps.Zone(Mathf.Clamp01((row.rect.yMax - local.y) / row.rect.height));
     }
 
-    private void EndGroupDrag() { _draggedGroup = null; _dragGhost.gameObject.SetActive(false); _dropLine.gameObject.SetActive(false); }
+    /// <summary>松开时的落点：按此刻指针在该分组标题里的位置算（OnDrop 不带坐标）。</summary>
+    private GroupSteps.DropZone GroupDropZoneFor(string groupId)
+    {
+        foreach (var area in _dropAreas)
+            if (area.Value.Before == null && area.Value.Group == groupId && area.Key != null && area.Key.gameObject.activeInHierarchy)
+                return ZoneOnHeader(area.Key, PointerPosition, EventCamera);
+        return GroupSteps.DropZone.Inside;
+    }
+
+    /// <summary>拖分组标题时的提示（由 MoveDragFeedback 调用）：蓝线 = 同层前 / 后，蓝色罩 = 成为子分组。</summary>
+    private void GroupDragFeedback(PointerEventData data, Camera? camera)
+    {
+        var dragged = _draggedGroup; if (dragged == null) return;
+        RectTransform? row = null; string target = "";
+        foreach (var area in _dropAreas)
+        {
+            if (area.Value.Before != null || area.Key == null || !area.Key.gameObject.activeInHierarchy || !RectTransformUtility.RectangleContainsScreenPoint(area.Key, data.position, camera)) continue;
+            row = area.Key; target = area.Value.Group; break;
+        }
+        string message = GroupDragIntro;
+        if (row != null && Groups.Contains(target) && target != dragged.id)
+        {
+            var zone = ZoneOnHeader(row, data.position, camera);
+            string name = Groups.Get(target)?.name ?? "";
+            string parent = zone == GroupSteps.DropZone.Inside ? target : Groups.Parent(target);
+            if (!Groups.CanAttach(dragged.id, parent, out string reason))
+                message = GroupMoveReason(reason);
+            else if (zone == GroupSteps.DropZone.Inside)
+            {
+                OverviewUi.Place(_dropHighlight, row.anchoredPosition.x, -row.anchoredPosition.y, row.rect.width, row.rect.height);
+                _dropHighlight.SetAsLastSibling(); _dropHighlight.gameObject.SetActive(true);
+                message = Loc.F("Release to make it a subgroup of \"{0}\".", "松开后成为「{0}」的子分组。", "放開後成為「{0}」的子分組。", name);
+            }
+            else
+            {
+                bool after = zone == GroupSteps.DropZone.After;
+                float indent = (Math.Max(1, Groups.Depth(target)) - 1) * GroupIndent, top = -row.anchoredPosition.y;
+                float lineY = after ? top + row.rect.height - 1 : Mathf.Max(0, top - 2);
+                OverviewUi.Place(_dropLine, 4 + indent, lineY, Mathf.Max(30, _viewport.rect.width - 8 - indent), 3);
+                _dropLine.SetAsLastSibling(); _dropLine.gameObject.SetActive(true);
+                message = after ? Loc.F("Release to place it after \"{0}\" (same level).", "松开后排到「{0}」后面（同一层）。", "放開後排到「{0}」後面（同一層）。", name)
+                    : Loc.F("Release to place it before \"{0}\" (same level).", "松开后排到「{0}」前面（同一层）。", "放開後排到「{0}」前面（同一層）。", name);
+            }
+        }
+        if (message == _groupDropStatus) return;
+        _groupDropStatus = message; _status(message);
+    }
+
+    private string GroupMoveReason(string reason) => reason == "depth" ? T("Groups nest at most three levels; it cannot go here.", "分组最多嵌套三层，不能放在这里。", "分組最多巢狀三層，不能放在這裡。")
+        : reason == "cycle" ? T("A group cannot go inside its own subgroup.", "分组不能放进它自己的子分组里。", "分組不能放進它自己的子分組裡。")
+        : T("Group not found.", "找不到该分组。", "找不到該分組。");
+
+    /// <summary>分组标题松开在另一个分组标题上：按落点插到前 / 后（同层）或挂成子分组。</summary>
+    private void DropGroupOn(string id, string targetId, GroupSteps.DropZone zone)
+    {
+        if (zone == GroupSteps.DropZone.Inside) { AttachGroup(id, targetId); return; }
+        bool after = zone == GroupSteps.DropZone.After;
+        var undo = GroupEditCheckpoint();
+        try
+        {
+            _repo.EnsureLocalPackCopy();
+            if (!GroupTree.PlaceBeside(_repo.State.groups, id, targetId, after, out string reason)) { _status(GroupMoveReason(reason)); return; }
+            _repo.SavePackInformation(ConfigurationSaveScope.Groups);
+            InvalidateGroupTree(); _pump.Enqueue(Render);
+            string name = Groups.Get(targetId)?.name ?? "";
+            _status(after ? Loc.F("Moved after \"{0}\".", "已排到「{0}」后面。", "已排到「{0}」後面。", name)
+                : Loc.F("Moved before \"{0}\".", "已排到「{0}」前面。", "已排到「{0}」前面。", name)); // 整句带参数：词条表以英文为键，片段会串味
+        }
+        catch (Exception ex) { undo(); _status(T("Unable to save group: ", "分组保存失败：", "分組保存失敗：") + ex.Message); return; }
+        _headersChanged();
+    }
 }

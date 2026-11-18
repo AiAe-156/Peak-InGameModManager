@@ -1,0 +1,17 @@
+== queue.json
+      2 ('$.Jobs[].AssemblyPaths[]', 'Lib', '-')
+      9 ('$.Jobs[].AssemblyPaths[]', 'Steam', '-')
+     10 ('$.Jobs[].BackupDirectory', 'Steam', 'MCE')
+      2 ('$.Jobs[].ConfigurationFiles[]', 'Lib', '-')
+      4 ('$.Jobs[].ConfigurationFiles[]', 'Steam', '-')
+      1 ('$.Jobs[].PackageRoot', 'Lib', '-')
+      9 ('$.Jobs[].PackageRoot', 'Steam', '-')
+     10 ('$.Jobs[].WorkDirectory', 'Steam', 'MCE')
+    304 ('$.LoadedAssemblyPaths[]', 'Steam', '-')
+== history.json
+     40 ('$[].BackupDirectory', 'Steam', 'MCE')
+      4 ('$[].ConfigurationFiles[]', 'Lib', '-')
+     18 ('$[].ConfigurationFiles[]', 'Steam', '-')
+     10 ('$[].PackageRoot', 'Lib', '-')
+     30 ('$[].PackageRoot', 'Steam', '-')
+     40 ('$[].WorkDirectory', 'Steam', 'MCE')

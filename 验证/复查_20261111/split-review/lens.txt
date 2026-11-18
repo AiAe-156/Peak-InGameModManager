@@ -1,0 +1,104 @@
+== F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\config\ModConfigEnhance exists=True
+top: data, exports, language, output, profiles, readme.md
+files=1434
+  264 F exports\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  262 F exports\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  253 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH.dll.disabled-by-mce
+  253 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\Snosz-PhotonCustomPropsUtils-1.1.0\PhotonCustomPropsUtils.dll
+  252 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  251 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\Snosz-PhotonCustomPropsUtils-1.1.0\PhotonCustomPropsUtils.dll
+  246 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.nightshaders.bundle
+  246 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.dll.disabled-by-mce
+  246 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  245 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\samc44-lightning-189909.mp3
+  245 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser\Snosz-UBImGui\System.Runtime.CompilerServices.Unsafe.dll
+  245 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  245 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\GoogleTranslateCompat.ExtProtocol.dll
+  245 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.dll-unrpcpatched.old
+  244 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.nightshaders.bundle
+  244 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  243 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.rtkernels.bundle
+  243 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.giantskin.bundle
+  243 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.avalanche.bundle
+  243 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\samc44-lightning-189909.mp3
+  243 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser\Snosz-UBImGui\System.Runtime.CompilerServices.Unsafe.dll
+  243 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  242 F data\backups\config\20261031_174504_465_1739673cc0f848c99e6e009ab0ae94d1\BE0233165D5B0429_chuxiaaaa.Aiae.BetterPeakVoiceFix__chuxiaaaa.Aiae.BetterPeakVoiceFix.cfg.bak
+  242 F data\backups\config\20261027_031923_571_8a7e38497b544012a79aff5531c723e5\CD8B5573C640983F_com.shuhia.peak.piggybackteammate__com.shuhia.peak.piggybackteammate.cfg.bak
+  241 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.rtkernels.bundle
+  241 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.giantskin.bundle
+  241 F output\packs\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.avalanche.bundle
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.oxygen.bundle
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug3.wav
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug2.wav
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug1.wav
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Badges\underworldmedicine.png
+  240 F output\packs\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\Snosz-PhotonCustomPropsUtils-1.1.0\manifest.json
+  240 F data\backups\config\20261027_031923_571_8a7e38497b544012a79aff5531c723e5\1FC61FBF0EF13811_com.anthony.randomterrainenhance__com.anthony.randomterrainenhance.cfg.bak
+  count>=240: 34
+== F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\config\InGameModManager exists=False
+== F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\MCE exists=True
+top: MCE-Recovery.cmd, MCE-Recovery.ps1, backups, command-receipts, command-rejections, commands, downloads, history.json, jobs, layout-backups, logs, maintenance, operations, pack-task.json, packs, processed, queue.json, resource-analysis, resource-batch.json, shop, tools, update-requests, update-requests-processed, worker-instance.lock, worker.lock
+files=8429
+  279 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  279 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  262 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  262 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  262 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\d91364d4ee2b4c35b6b02dbfa7adde76\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  262 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\607c673ae75d4369913c9f39716ffebe\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  257 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\d91364d4ee2b4c35b6b02dbfa7adde76\plugins\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  257 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\607c673ae75d4369913c9f39716ffebe\plugins\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  257 F packs\.imports\b9112fb0082b494a86bd68990df75e42\raw\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  257 F packs\.imports\4f6544c887604a25b984bb937fc32616\raw\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  257 F packs\.imports\0be7715f5a034c75b6d5bc84e3a17b43\raw\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  256 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.nightshaders.bundle
+  256 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  256 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.nightshaders.bundle
+  256 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\samc44-lightning-189909.mp3
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser\Snosz-UBImGui\System.Runtime.CompilerServices.Unsafe.dll
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\GoogleTranslateCompat.ExtProtocol.dll
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\samc44-lightning-189909.mp3
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]地形定制器fix-TerrainCustomiser\Snosz-UBImGui\System.Runtime.CompilerServices.Unsafe.dll
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  255 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\GoogleTranslateCompat.ExtProtocol.dll
+  255 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\d91364d4ee2b4c35b6b02dbfa7adde76\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  255 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\d91364d4ee2b4c35b6b02dbfa7adde76\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\GoogleTranslateCompat.ExtProtocol.dll
+  255 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\607c673ae75d4369913c9f39716ffebe\plugins\2额外模组\[调试]物品生成器增强-ItemSpawnerEnhanced-1.5.0\plugins\ItemSpawnerEnhanced\ItemSpawnerEnhanced.ChineseSearch.dll
+  255 F packs\1a3467dbbc4b4b6690ca15cf63ce91bf\revisions\607c673ae75d4369913c9f39716ffebe\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\GoogleTranslateCompat.ExtProtocol.dll
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.rtkernels.bundle
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.giantskin.bundle
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.avalanche.bundle
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.rtkernels.bundle
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.giantskin.bundle
+  253 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.avalanche.bundle
+  253 F packs\.imports\b9112fb0082b494a86bd68990df75e42\content\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  253 F packs\.imports\66d84142c2dc422981b29fc3d0eb5753\dependencies\RTLC-XUnity_AutoTranslator-5.6.11\BepInEx\plugins\XUnity.AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  253 F packs\.imports\4f6544c887604a25b984bb937fc32616\content\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  253 F packs\.imports\27f890bd30914b7d811f1045aa9f555b\dependencies\RTLC-XUnity_AutoTranslator-5.6.11\BepInEx\plugins\XUnity.AutoTranslator\Translators\FullNET\XUnity.AutoTranslator.Plugin.ExtProtocol.dll
+  253 F packs\.imports\0be7715f5a034c75b6d5bc84e3a17b43\content\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3
+  252 F layout-backups\20261111_174549\exports\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.oxygen.bundle
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug3.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug2.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug1.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Badges\underworldmedicine.png
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.oxygen.bundle
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug3.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug2.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\Mandrake\GutGenug1.wav
+  250 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Badges\underworldmedicine.png
+  250 F layout-backups\20261111_174549\exports\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[功能]地形随机器-TerrainRandomiser-1.2.0\TerrainRandomiser_ZH\TerrainRandomiser_ZH_Template.txt
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.flood.bundle
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_en.cfg
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_de.cfg
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_cn.cfg
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\1拓展模组\[美化]迷你景观台-汉化-PlantholderOverhaul-0.1.7\PlantholderOverhaul_ZH\PlantholderOverhaul_ZH_Template.txt
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\b9112fb0082b494a86bd68990df75e42\plugins\0核心&基础模组\[0依赖]Mods\[依赖]实时翻译框架-XUnity_AutoTranslator\Translators\FullNET\Common.ExtProtocol.Executor.exe
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\truefinalascent.flood.bundle
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_en.cfg
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_de.cfg
+  249 F packs\9631b6c93b4296ef8da3bbe4be1ea7b7\revisions\0be7715f5a034c75b6d5bc84e3a17b43\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\TrueFinalAscent.Texts_cn.cfg
+  count>=240: 210
+== F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\IGMM exists=False

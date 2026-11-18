@@ -53,6 +53,38 @@ internal sealed class SidebarCascade : MonoBehaviour
         }
     }
 
+    private static SFX_Instance? _focusSfx;
+
+    /// <summary>
+    /// 同步自 MCE 1.1.0 定版：焦点框移到新控件时的那一声。逐行载入同一段音色，但用自己的一份副本（ScriptableObject 复制，不动游戏资源）。
+    /// 逐行载入的音量本来压得低，一页几十行连响才不吵；单独一声就听不清。
+    /// 副本把音量提到约 0.6（原值的两倍起、上限 0.85，接近游戏按钮音），并改成 2D、去掉资源自带的冷却：
+    /// 原来 Play() 在世界原点放 3D 声，离相机远还会再衰减一截；冷却由调用方「同一控件不重响」管。
+    /// </summary>
+    internal static void PlayFocusSound()
+    {
+        if (_focusSfx == null)
+        {
+            SFX_Instance? source = Sfx;
+            if (source == null) return;
+            _focusSfx = Object.Instantiate(source);
+            _focusSfx.name = source.name + " (IGMM focus)";
+            _focusSfx.hideFlags = HideFlags.HideAndDontSave;
+            if (_focusSfx.settings != null)
+            {
+                float original = _focusSfx.settings.volume;
+                _focusSfx.settings.volume = Mathf.Min(0.85f, Mathf.Max(original * 2f, 0.6f));
+                _focusSfx.settings.spatialBlend = 0f;
+                _focusSfx.settings.cooldown = 0f;
+                Plugin.Log.LogInfo($"[焦点音效] 音量 {original:0.##} → {_focusSfx.settings.volume:0.##}");
+            }
+        }
+
+        if (SFX_Player.instance == null) return;
+        Camera? camera = Camera.main;
+        SFX_Player.instance.PlaySFX(_focusSfx, camera != null ? camera.transform.position : Vector3.zero, null, null, 1f, false);
+    }
+
     private void OnEnable()
     {
         List<GameObject> rows = new List<GameObject>();

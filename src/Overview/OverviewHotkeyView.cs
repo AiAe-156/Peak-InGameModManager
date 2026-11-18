@@ -29,6 +29,10 @@ internal sealed class OverviewHotkeyView : IDisposable
     private readonly OverviewListPump _pump;
     private readonly OverviewHotkeyCapture _capture;
     private readonly Dictionary<string, GameObject> _targets = new(StringComparer.Ordinal);
+    /// <summary>同步自 MCE 1.1.0（实测修正）：列表里每一行可聚焦的格子（按渲染顺序），手柄导航按行 / 列显式连接，不再用 Unity 自动导航。</summary>
+    private readonly List<List<Selectable>> _grid = new();
+    private float? _stickyX; // 连续上下移动时记住的列位置（经过只有箭头的标题行也回到原来那一栏）
+    private bool _gridMoving;
     private GameObject? _popup, _popupReturn;
     private string _selectedId = "", _query = "";
     private int _filter, _revision = -1;
@@ -138,7 +142,7 @@ internal sealed class OverviewHotkeyView : IDisposable
             _hint.gameObject.SetActive(false); ClosePopup(); Clear(_content); Clear(_header);
             // Keep the search field alive while typing; tool buttons are rebuilt without replacing that input.
             for(int i=_tools.childCount-1;i>=0;i--) if(_tools.GetChild(i)!=_search.transform) { var go=_tools.GetChild(i).gameObject;go.SetActive(false);UnityEngine.Object.Destroy(go); }
-            _targets.Clear(); _width = _root.rect.width; float width = Mathf.Max(1,_width-15); _revision = OverviewLanguageBridge.Revision;
+            _targets.Clear(); _grid.Clear(); _width = _root.rect.width; float width = Mathf.Max(1,_width-15); _revision = OverviewLanguageBridge.Revision;
             OverviewUi.Place(_tools,0,0,width,34); OverviewUi.Place(_header,0,37,width,32);
             // 1.1.1 (user): the search box used to fill the whole row; same width as the mod list's search box.
             float searchWidth = Mathf.Clamp(width*.32f,220,420); OverviewUi.Place((RectTransform)_search.transform,0,0,searchWidth,32);
@@ -183,7 +187,8 @@ internal sealed class OverviewHotkeyView : IDisposable
                 Hint(columnTitle.gameObject,columnTitle.text);
             }
             var tree=new GroupTree(_repo.State.groups);
-            var visible=Service.Entries.Where(Matches).OrderBy(e=>tree.Position(e.Mod.Rule.groupId)).ThenBy(e=>e.Mod.Rule.order).ThenBy(e=>e.Mod.Name).ThenBy(e=>e.Section).ThenBy(e=>e.Key).ToList();
+            // 同步自 MCE 1.1.0（实测修正）：子分组排在本组直属模组前面（GroupTree.RowKey，与模组列表、设置页侧栏一致）。
+            var visible=Service.Entries.Where(Matches).OrderBy(e=>tree.RowKey(e.Mod.Rule.groupId)).ThenBy(e=>e.Mod.Rule.order).ThenBy(e=>e.Mod.Name).ThenBy(e=>e.Section).ThenBy(e=>e.Key).ToList();
             bool foldApplies=Tags.Count==0&&_filter==0&&string.IsNullOrWhiteSpace(_query);
             var emitted=new HashSet<string>(StringComparer.Ordinal);
             var settingsOwners = OverviewSettingsNavigator.SettingsOwners();
@@ -196,6 +201,7 @@ internal sealed class OverviewHotkeyView : IDisposable
                 bool folded=foldApplies&&_repo.State.collapsedGroups.Contains(id);
                 var row=OverviewUi.Panel("Group_"+id,_content,Color.Lerp(ModConfigLook.Surface(new Color(.1f,.11f,.12f,.95f)),new Color(color.r,color.g,color.b,.95f),depth<=1?.14f:.09f));OverviewUi.Place(row,0,y,width,depth<=1?34:30);
                 float railX=0;int railLevel=0;foreach(var level in group==null?new List<OverviewGroup>():tree.Chain(id)){var rail=OverviewUi.Rail("GroupRail",row,ColorUtility.TryParseHtmlString(level.color,out var lc)?lc:OverviewUi.Muted);float rw=GroupRailShape.Width(OverviewListView.RailWidth,railLevel);var (ry,rh)=GroupRailShape.Vertical(0,depth<=1?34:30,railLevel);OverviewUi.Place(rail,railX,ry,rw,rh);railX+=rw+OverviewListView.RailGap;railLevel++;}
+                _grid.Add(new List<Selectable>());
                 var arrow=OverviewUi.IconButton(row,folded?"triangle-right":"triangle-down",()=> {if(!_repo.State.collapsedGroups.Remove(id))_repo.State.collapsedGroups.Add(id);_repo.SaveUiState();Render();},22,26);OverviewUi.Place((RectTransform)arrow.transform,6+indent,depth<=1?3:2,22,26);Track(arrow,"group:"+id);
                 string title=group?.name??T("Ungrouped","未分组");float size=depth<=1?20:depth==2?18:17;float nameWidth=Mathf.Min(width*.42f,Measure(title,size)+10);
                 var titleText=Label(row,title,32+indent,0,nameWidth,depth<=1?32:28,color,size);OverviewUi.ReadableName(titleText,nameWidth);titleText.richText=false;Hint(titleText.gameObject,group==null?title:tree.Path(id)); titleText.gameObject.AddComponent<OverviewHotkeyTextAction>().DoubleClicked=()=>EditGroup?.Invoke(group);
@@ -216,6 +222,7 @@ internal sealed class OverviewHotkeyView : IDisposable
                 {
                     var mod=modEntries.First().Mod;bool collapsed=Tags.Count==0&&_filter==0&&string.IsNullOrWhiteSpace(_query)&&_repo.State.collapsedHotkeyMods.Contains(mod.Id);
                     var modRow=OverviewUi.Panel("Mod_"+mod.Id,_content,ModConfigLook.Surface(new Color(.11f,.13f,.15f,.75f)));OverviewUi.Place(modRow,14+memberIndent,y,width-14-memberIndent,32);
+                    _grid.Add(new List<Selectable>());
                     var modArrow=OverviewUi.IconButton(modRow,collapsed?"triangle-right":"triangle-down",()=>{if(!_repo.State.collapsedHotkeyMods.Remove(mod.Id))_repo.State.collapsedHotkeyMods.Add(mod.Id);_repo.SaveUiState();Render();},20,24);OverviewUi.Place((RectTransform)modArrow.transform,4,4,20,24);Track(modArrow,"mod:"+mod.Id);
                     var modRail=OverviewUi.Rail("GroupRail",modRow,color);OverviewUi.Place(modRail,0,0,2,32);
                     int? number=_displayNumber(mod);float nameX=28;if(number.HasValue){var index=Label(modRow,number.Value.ToString(),28,0,40,30,OverviewUi.Muted,16);index.name="RowIndex";index.alignment=TextAlignmentOptions.MidlineLeft;nameX=68;}
@@ -229,7 +236,7 @@ internal sealed class OverviewHotkeyView : IDisposable
                     if(collapsed)continue;
                     foreach(var entry in modEntries)
                     {
-                        const float rowIndent=28;
+                        const float rowIndent=28; _grid.Add(new List<Selectable>());
                         var item=OverviewUi.Panel("Key_"+entry.Id,_content,ModConfigLook.Surface(new Color(.1f,.11f,.13f,.45f)));OverviewUi.Place(item,rowIndent,y,width-rowIndent,34);
                         var label=Label(item,entry.Name,xName-rowIndent,2,xDesc-xName-6,30,OverviewUi.Ivory,16);Hint(label.gameObject,entry.Section+" → "+entry.Key);
                         var desc=TextButton(item,entry.ShortDescription,()=> {if(_authorMode||GamepadSupport.IsGamepad)EditDescription(entry);},xDesc-rowIndent,2,xCurrent-xDesc-6,30,OverviewUi.Muted);Track(desc,entry.Id+":description");Hint(desc.gameObject,entry.ShortDescription);
@@ -251,8 +258,8 @@ internal sealed class OverviewHotkeyView : IDisposable
                         else KeyChipsOn(pad,native?RawKey(entry):"");
                         Track(pad,entry.Id+":pad");
                         Hint(pad.gameObject,ComboHint(entry));
-                        pad.gameObject.AddComponent<OverviewHotkeyTextAction>().ContextRequested=()=>KeyMenu(entry,(RectTransform)pad.transform);
-                        current.gameObject.AddComponent<OverviewHotkeyTextAction>().ContextRequested=()=>KeyMenu(entry,(RectTransform)current.transform);
+                        pad.gameObject.AddComponent<OverviewHotkeyTextAction>().ContextRequested=()=>KeyMenu(entry,(RectTransform)pad.transform,KeyColumn.Pad);
+                        current.gameObject.AddComponent<OverviewHotkeyTextAction>().ContextRequested=()=>KeyMenu(entry,(RectTransform)current.transform,KeyColumn.Keyboard);
 
                         bool padConflict=native?entry.Conflicts.Count>0:entry.Conflicts.Any(c=>c.Combo), keyConflict=!native&&entry.Conflicts.Any(c=>!c.Combo);
                         string conflictText=padConflict&&keyConflict?Loc.T("← Duplicate →","← 重复键 →","← 重複鍵 →"):padConflict?Loc.T("← Duplicate","← 重复键","← 重複鍵"):Loc.T("Duplicate →","重复键 →","重複鍵 →");
@@ -282,6 +289,7 @@ internal sealed class OverviewHotkeyView : IDisposable
             _content.sizeDelta=new Vector2(0,y);SetPixel(pixel);
             if(ownFocus){if(_targets.TryGetValue(_selectedId,out var target))EventSystem.current?.SetSelectedGameObject(target);else EventSystem.current?.SetSelectedGameObject(_targets.Values.FirstOrDefault());}
             LinkToolbarNavigation(save);
+            LinkGrid();
             // 1.1.4 (user): moving down on the name column did not scroll; every focusable cell keeps itself in view.
             foreach(var selectable in _content.GetComponentsInChildren<Selectable>(false))
                 if(selectable.GetComponent<ScrollFollow>()==null){var follow=selectable.gameObject.AddComponent<ScrollFollow>();var rect=(RectTransform)selectable.transform;follow.Selected=()=>EnsureVisible(rect);}
@@ -317,6 +325,41 @@ internal sealed class OverviewHotkeyView : IDisposable
         for(int i=0;i<tools.Count;i++)
             tools[i].navigation=new Navigation{mode=Navigation.Mode.Explicit,selectOnLeft=i>0?tools[i-1]:null,selectOnRight=i+1<tools.Count?tools[i+1]:null,selectOnDown=first,selectOnUp=ToolbarAbove?.Invoke(tools[i])};
     }
+    /// <summary>
+    /// 同步自 MCE 1.1.0（实测修正，用户 2026-11-16：分组箭头上按右跳到工具行；一直按下焦点会消失、回不来）：
+    /// 列表格子原来用 Unity 自动导航，会在整个画面里找「那个方向最近的」——同一行没有别的格子时跳到工具行，
+    /// 到底再按下会跳到概览页以外，之后本页的「焦点丢失时补回」也认不出来。
+    /// 现在逐行显式连接：左右只在同一行里走（行尾不动）；上下走到相邻一行里离当前栏最近的格子，
+    /// 连续上下时记住起始栏位（经过只有箭头的标题行再回到原来那一栏）；第一行再上 = 工具行（离得最近的那个），最后一行再下 = 不动。
+    /// </summary>
+    private void LinkGrid()
+    {
+        // 不按 IsActive 过滤：缓存预渲染时页面还没激活，那时 IsActive 全是 false。
+        var rows = _grid.Select(row => row.Where(s => s != null && s.gameObject.activeSelf && s.IsInteractable()).OrderBy(CenterX).ToList()).Where(row => row.Count > 0).ToList();
+        var tools = _tools.GetComponentsInChildren<Selectable>(true).Where(s => s.transform.parent == _tools && s.gameObject.activeSelf).ToList();
+        for (int r = 0; r < rows.Count; r++)
+            for (int i = 0; i < rows[r].Count; i++)
+            {
+                var cell = rows[r][i]; int rowIndex = r;
+                cell.navigation = new Navigation { mode = Navigation.Mode.Explicit,
+                    selectOnLeft = i > 0 ? rows[r][i - 1] : null, selectOnRight = i + 1 < rows[r].Count ? rows[r][i + 1] : null };
+                var mover = cell.GetComponent<HotkeyGridMove>(); if (mover == null) mover = cell.gameObject.AddComponent<HotkeyGridMove>();
+                mover.Move = direction =>
+                {
+                    if (direction != MoveDirection.Up && direction != MoveDirection.Down) return false;
+                    float x = _stickyX ?? CenterX(cell);
+                    int next = rowIndex + (direction == MoveDirection.Down ? 1 : -1);
+                    Selectable? target = next < 0 ? tools.Where(t => t != null && t.IsActive()).OrderBy(t => Math.Abs(CenterX(t) - x)).FirstOrDefault()
+                        : next < rows.Count ? rows[next].Where(t => t != null).OrderBy(t => Math.Abs(CenterX(t) - x)).FirstOrDefault() : null;
+                    if (target == null) return true; // 最后一行：留在原地
+                    if (next >= 0) { _stickyX = x; _gridMoving = true; }
+                    try { EventSystem.current?.SetSelectedGameObject(target.gameObject); }
+                    finally { _gridMoving = false; }
+                    return true;
+                };
+            }
+    }
+    private static float CenterX(Selectable s) { var rect = (RectTransform)s.transform; return rect.TransformPoint(rect.rect.center).x; }
     /// <summary>Gamepad entry into this tab: the remembered binding, else the first one.</summary>
     internal void FocusForGamepad()
     {
@@ -325,7 +368,8 @@ internal sealed class OverviewHotkeyView : IDisposable
         if(target!=null)EventSystem.current?.SetSelectedGameObject(target);
     }
     private void Track(Button button,string id)
-    { _targets[id]=button.gameObject;button.gameObject.AddComponent<OverviewHotkeyFocus>().Selected=()=>{_selectedId=id;EnsureVisible((RectTransform)button.transform);};
+    { _targets[id]=button.gameObject; if(_rendering&&_grid.Count>0)_grid[^1].Add(button); // 同步自 MCE 1.1.0：登记到当前行（LinkGrid）
+      button.gameObject.AddComponent<OverviewHotkeyFocus>().Selected=()=>{_selectedId=id;if(!_gridMoving)_stickyX=null;EnsureVisible((RectTransform)button.transform);};
       GamepadSupport.MarkSelectable(button.gameObject,null,null); } // 1.1.2: this page's buttons never had the gamepad focus ring
     private void EnsureVisible(RectTransform rect)
     {if(!_opened||_rendering)return;var corners=new Vector3[4];rect.GetWorldCorners(corners);float top=-_content.InverseTransformPoint(corners[1]).y;float bottom=-_content.InverseTransformPoint(corners[0]).y;float pixel=_content.anchoredPosition.y;if(top<pixel)SetPixel(top);else if(bottom>pixel+_viewport.rect.height)SetPixel(bottom-_viewport.rect.height);}
@@ -458,6 +502,7 @@ internal sealed class OverviewHotkeyView : IDisposable
     private void ListGestures()
     {
         var pad=Gamepad.current; if(pad==null)return;
+        if(_gestureFrame==Time.frameCount)return; _gestureFrame=Time.frameCount; // 同步自 MCE 1.1.0：同一帧只处理一次
         var selected=EventSystem.current!=null?EventSystem.current.currentSelectedGameObject:null;
         if(GamepadIntent.Layer)
         {
@@ -468,7 +513,7 @@ internal sealed class OverviewHotkeyView : IDisposable
                 case MoveDirection.Left: PageBy(-1); break;
                 case MoveDirection.Right: PageBy(1); break;
             }
-            if(pad.leftStickButton.wasPressedThisFrame)ToggleAllFolds();
+            if(pad.leftStickButton.wasPressedThisFrame)ToggleAllFoldsGuarded();
             return;
         }
         if(pad.leftStickButton.wasPressedThisFrame&&selected!=null)FoldGroupOf(selected);
@@ -512,8 +557,29 @@ internal sealed class OverviewHotkeyView : IDisposable
     private void FoldAllShortcut()
     {
         var pad=Gamepad.current; if(pad==null||pad.leftTrigger.ReadValue()<=.5f)return;
-        if(pad.rightShoulder.wasPressedThisFrame)ToggleAllFolds(true);
-        else if(pad.leftShoulder.wasPressedThisFrame)ToggleAllFolds(false);
+        if(pad.rightShoulder.wasPressedThisFrame)ToggleAllFoldsGuarded(true);
+        else if(pad.leftShoulder.wasPressedThisFrame)ToggleAllFoldsGuarded(false);
+    }
+    private int _gestureFrame=-1;
+    private float _lastFoldAllAt=-1;
+    private bool _foldingAll;
+    /// <summary>
+    /// 同步自 MCE 1.1.0（上线前修正，用户回报「RT + L3 按一下游戏卡死」）：全部展开 / 收起的防重入与防连发。
+    /// 0.3 秒内不再做、正在做或正在建行时不再进；展开全部要一次建出所有快捷键行，模组多时这一帧很重，
+    /// 超过 0.5 秒就在日志里记下耗时与可选格数，供实测判断是不是这里卡住。
+    /// </summary>
+    private void ToggleAllFoldsGuarded(bool? expand=null)
+    {
+        if(_foldingAll||_rendering||!OverviewPadSteps.Cooled(Time.unscaledTime,_lastFoldAllAt,.3f))return;
+        _foldingAll=true; _lastFoldAllAt=Time.unscaledTime;
+        var watch=System.Diagnostics.Stopwatch.StartNew();
+        try{ToggleAllFolds(expand);}
+        finally
+        {
+            _foldingAll=false;
+            if(watch.ElapsedMilliseconds>500)
+                Plugin.Log.LogWarning("[快捷键] 全部展开 / 收起用了 "+watch.ElapsedMilliseconds+" ms（"+_targets.Count+" 个可选格）。");
+        }
     }
     private string ComboHint(OverviewHotkeyEntry entry)
     {
@@ -652,19 +718,37 @@ internal sealed class OverviewHotkeyView : IDisposable
     }
     private void PackKeyMenu(OverviewHotkeyEntry entry,RectTransform anchor)
     {Popup(anchor,new[]{(T("Edit profile preset","调整方案预设"),(Action)(()=>RecordPack(entry)),true),(T("Include current binding","纳入当前按键"),(Action)(()=>Write(()=>Service.SetPackPreset(entry,entry.Config.BoxedValue,out var error)?null:error)),true),(T("Forget profile target","移除方案按键记录"),(Action)(()=>Write(()=>Service.ClearPack(entry,out var error)?null:error)),entry.PackPreset!=null)}, new[] { UiActionRole.Edit, UiActionRole.Commit, UiActionRole.Danger });}
-    private void KeyMenu(OverviewHotkeyEntry entry,RectTransform anchor)
+    /// <summary>同步自 MCE 1.1.0：右键 / Y 菜单是从哪一栏打开的，只改那一栏。</summary>
+    private enum KeyColumn { Keyboard, Pad, Any }
+    /// <summary>
+    /// 同步自 MCE 1.1.0（实测修正，用户：在手柄栏点「重设 / 清空」改的却是键盘键）：菜单按打开它的那一栏动作——
+    /// 键盘栏只改键盘键（不带「移除手柄组合键」；手柄键设置项的键盘格是空的，改值的项变灰）；
+    /// 手柄栏：模组自己的手柄键设置（native）改它本身，只认键盘的模组只给「清空这个手柄组合键」（模组没有手柄默认）。
+    /// 冲突栏两边都可能涉及，保持全部选项。
+    /// </summary>
+    private void KeyMenu(OverviewHotkeyEntry entry,RectTransform anchor,KeyColumn column=KeyColumn.Any)
     {
+        bool native=GamepadCombos.NativeGamepad(entry.Config);
+        bool hasCombo=GamepadCombos.For(entry.Id)!=null;
+        void RemoveCombo(){GamepadCombos.Clear(entry.Id);Service.RefreshConflicts();_status(Loc.T("Controller combo removed.","已移除手柄组合键。","已移除手把組合鍵。"));Render();}
+        if(column==KeyColumn.Pad&&!native)
+        {
+            Popup(anchor,new List<(string Label,Action Action,bool Enabled)>{(Loc.T("Clear this controller combo","清空这个手柄组合键","清空這個手把組合鍵"),RemoveCombo,hasCombo)},new[]{UiActionRole.Danger});
+            return;
+        }
+        // 键盘栏遇到手柄键设置（native）：那一格是空的，不能借它改手柄键。
+        bool editsEntry=!(column==KeyColumn.Keyboard&&native);
         // 1.1.4 (user screenshot): reset to mod default / reset to profile preset / ignore ↔ … / set current as preset.
         // Every item writes at once like recording does (the keybindings page has no draft step).
         var preset=entry.PackPreset;object? presetValue=null;
         if(preset!=null&&!preset.cleared)try{presetValue=entry.Adapter.Deserialize(preset.value);}catch{presetValue=null;}
         var items=new List<(string Label,Action Action,bool Enabled)>{
-            (Loc.T("Reset to the \"Mod default\" key","重设为「模组默认」预设的快捷键","重設為「模組預設」的快捷鍵"),()=>WriteNow(entry,()=>Service.RestoreDefault(entry,out var error)?null:error),true),
-            (Loc.T("Reset to the key set in the current \"Profile preset\"","重设为当前「方案预设」中设定的快捷键","重設為目前「方案預設」中設定的快捷鍵"),()=>{if(presetValue!=null)WriteNow(entry,()=>Service.TrySet(entry,presetValue,out var error)?null:error);},presetValue!=null)};
+            (Loc.T("Reset to the \"Mod default\" key","重设为「模组默认」预设的快捷键","重設為「模組預設」的快捷鍵"),()=>WriteNow(entry,()=>Service.RestoreDefault(entry,out var error)?null:error),editsEntry),
+            (Loc.T("Reset to the key set in the current \"Profile preset\"","重设为当前「方案预设」中设定的快捷键","重設為目前「方案預設」中設定的快捷鍵"),()=>{if(presetValue!=null)WriteNow(entry,()=>Service.TrySet(entry,presetValue,out var error)?null:error);},editsEntry&&presetValue!=null)};
         foreach(var conflict in entry.Conflicts.Where(k=>!k.IsGame&&!k.Combo).ToList()){var c=conflict;items.Add((Loc.T("Ignore conflict ←→ ","忽略冲突 ←→ ","忽略衝突 ←→ ")+OverviewLanguageBridge.GetDisplayName(c.Mod)+" / "+c.Key,()=>{string error;if(Service.IgnoreConflict(entry,c.EntryId,out error)){_status(Loc.T("Conflict ignored.","已忽略这条冲突。","已忽略這條衝突。"));Render();_headersChanged();}else _status(Loc.LocalizeMessage(error));},true));}
         if(entry.IgnoredCount>0)items.Add((T("Restore ignored warnings","恢复已忽略冲突提醒"),()=>{string error;if(Service.RestoreIgnoredFor(entry,out error)){Render();_headersChanged();}else _status(Loc.LocalizeMessage(error));},true));
-        if(GamepadCombos.For(entry.Id)!=null)items.Add((Loc.T("Remove controller combo","移除手柄组合键","移除手把組合鍵"),()=>{GamepadCombos.Clear(entry.Id);Service.RefreshConflicts();_status(Loc.T("Controller combo removed.","已移除手柄组合键。","已移除手把組合鍵。"));Render();},true));
-        items.Add((Loc.T("Set the current key as the current \"Profile preset\"","将「当前快捷键」设为当前的「方案预设」","將「目前快捷鍵」設為目前的「方案預設」"),()=>WriteNow(entry,()=>Service.SetPackPreset(entry,entry.Config.BoxedValue,out var error)?null:error),true));
+        if(column!=KeyColumn.Keyboard&&hasCombo)items.Add((Loc.T("Remove controller combo","移除手柄组合键","移除手把組合鍵"),RemoveCombo,true));
+        items.Add((Loc.T("Set the current key as the current \"Profile preset\"","将「当前快捷键」设为当前的「方案预设」","將「目前快捷鍵」設為目前的「方案預設」"),()=>WriteNow(entry,()=>Service.SetPackPreset(entry,entry.Config.BoxedValue,out var error)?null:error),editsEntry));
         Popup(anchor,items);
     }
     private void Popup(RectTransform anchor,IReadOnlyList<(string Label,Action Action,bool Enabled)> items, UiActionRole[]? roles = null)
@@ -697,6 +781,12 @@ internal sealed class OverviewHotkeyView : IDisposable
     }
     private void ClosePopup(){_root.GetComponent<WindowPopover>()?.Close();if(_popup==null)return;_popup.SetActive(false);UnityEngine.Object.Destroy(_popup);_popup=null;if(_popupReturn!=null&&_popupReturn.activeInHierarchy)EventSystem.current?.SetSelectedGameObject(_popupReturn);_popupReturn=null;}
     public void Dispose(){if(_disposed)return;OnClosed();_disposed=true;Service.Changed-=OnChanged;Service.Dispose();_pump.Tick=null;UnityEngine.Object.Destroy(_root.gameObject);}
+}
+/// <summary>同步自 MCE 1.1.0：快捷键页列表格子的上下导航（见 OverviewHotkeyView.LinkGrid）；左右仍走显式 Navigation。</summary>
+internal sealed class HotkeyGridMove : MonoBehaviour, IMoveHandler
+{
+    internal Func<MoveDirection, bool>? Move;
+    public void OnMove(AxisEventData data) { if (Move != null && Move(data.moveDir)) data.Use(); }
 }
 /// <summary>1.1.4: keeps a focused cell scrolled into view (separate from OverviewHotkeyFocus, whose handlers get replaced).</summary>
 internal sealed class ScrollFollow : MonoBehaviour,ISelectHandler{internal Action? Selected;public void OnSelect(BaseEventData data)=>Selected?.Invoke();}

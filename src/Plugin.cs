@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string PluginGuid = Updating.ManagerIdentity.Guid;
     public const string PluginName = "In-Game Mod Manager";
-    public const string PluginVersion = "0.0.1";
+    public const string PluginVersion = "0.0.2";
 
     internal static ManualLogSource Log { get; private set; } = null!;
 

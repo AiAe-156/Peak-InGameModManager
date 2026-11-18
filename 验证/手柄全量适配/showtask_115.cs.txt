@@ -1,0 +1,124 @@
+    private void ShowTask()
+    {
+        _showingTask=true;StartCoroutine(WireAfterBuild());
+        string path=Path.Combine(Home,"task.json");if(File.Exists(path))_task=JsonConvert.DeserializeObject<ShopTask>(File.ReadAllText(path));
+        // 1.1.5 (user: "the download page is ugly and unclear; redo it"): status card + package list + folded details.
+        // Folder organisation / local import previews belong to the update queue, not to the store's task page.
+        if(_task!=null&&_task.Request.Operation is "layout-preview" or "local-preview")_task=null;
+        if(_task==null||_task.Dismissed){ClearBody();Label(_body,Loc.T("No store task. Install or update a mod from the store and its progress shows here.","当前没有商店任务。在商店中安装或更新模组后，进度会显示在这里。","目前沒有商店任務。在商店中安裝或更新模組後，進度會顯示在這裡。"),8,8,_body.rect.width-16,40,18,OverviewUi.Muted);_status.text=Loc.T("No store task.","没有商店任务。","沒有商店任務。");return;}
+        if(_task.State=="uninstall-preview"){ShowUninstallConfirmation(_task);return;}
+        ClearBody();var t=_task;float W=_body.rect.width,H=_body.rect.height;
+        if(_groupTaskId!=t.Id){_groupTaskId=t.Id;_group=t.Request.GroupId;_newGroup=t.Request.NewGroupName;_groupColor=t.Request.NewGroupColor;}
+        var target=t.Packages.FirstOrDefault(p=>p.Key==t.Request.Namespace+"-"+t.Request.Package);
+        string targetName=t.Request.Package.Length>0?t.Request.Package:target?.Key??"";
+        string targetVersion=target?.Version??t.Request.Version;
+
+        // status card
+        var card=OverviewUi.Panel("TaskCard",_body,ModConfigLook.Surface(new Color(.10f,.14f,.16f,1)));OverviewUi.Place(card,0,0,W,150);
+        bool failed=t.State is "failed" or "recovery-required" or "rolled-back";
+        Color red=new Color(.92f,.42f,.38f);
+        Color accent=failed?red:t.State=="completed"?OverviewUi.Green:t.State=="cancelled"?OverviewUi.Muted:OverviewUi.Blue;
+        var rail=OverviewUi.Rect("Accent",card);OverviewUi.Place(rail,0,0,5,150);rail.gameObject.AddComponent<Image>().color=accent;
+        Label(card,TaskKind(t)+"　<b>"+targetName+"</b>　<color=#8C918E>"+targetVersion+"</color>",20,12,W-260,34,22).richText=true;
+        Label(card,TaskStateName(t.State),W-330,14,310,30,18,accent).alignment=TextAlignmentOptions.MidlineRight;
+        string[] stepNames={Loc.T("Check","检查","檢查"),Loc.T("Download","下载","下載"),Loc.T("Wait for exit","等待退出","等待退出"),Loc.T("Install","安装","安裝"),Loc.T("Done","完成","完成")};
+        int at=TaskStep(t.State);float sx=20,sw=(W-40)/stepNames.Length;
+        for(int i=0;i<stepNames.Length;i++)
+        {
+            bool reached=i<at||(i==at&&!failed),current=i==at;
+            var dot=OverviewUi.Rect("Step",card);OverviewUi.Place(dot,sx+i*sw,56,14,14);var di=dot.gameObject.AddComponent<Image>();di.sprite=ModConfigSidebarWidgets.RoundedSprite;di.type=Image.Type.Sliced;
+            di.color=current&&failed?red:reached?accent:new Color(1,1,1,.18f);
+            if(i<stepNames.Length-1){var line=OverviewUi.Rect("StepLine",card);OverviewUi.Place(line,sx+i*sw+20,62,sw-26,2);line.gameObject.AddComponent<Image>().color=i<at?accent:new Color(1,1,1,.14f);}
+            Label(card,stepNames[i],sx+i*sw-4,74,sw,24,15,current?OverviewUi.Ivory:reached?accent:OverviewUi.Muted);
+        }
+        float progress=t.TotalBytes>0?Mathf.Clamp01((float)t.DownloadedBytes/t.TotalBytes):t.State=="completed"?1f:0f;
+        var track=OverviewUi.Rect("Track",card);OverviewUi.Place(track,20,108,W-360,10);track.gameObject.AddComponent<Image>().color=new Color(1,1,1,.10f);
+        var fill=OverviewUi.Rect("Fill",track);fill.anchorMin=Vector2.zero;fill.anchorMax=new Vector2(progress,1);fill.offsetMin=fill.offsetMax=Vector2.zero;fill.gameObject.AddComponent<Image>().color=accent;
+        string amount=t.TotalBytes>0?(progress*100).ToString("0")+"%　"+Bytes(t.DownloadedBytes)+" / "+Bytes(t.TotalBytes):"";
+        Label(card,amount,W-330,100,310,26,15,OverviewUi.Muted).alignment=TextAlignmentOptions.MidlineRight;
+        Label(card,NextStep(t),20,122,W-40,26,15,failed?new Color(1f,.72f,.55f):OverviewUi.Ivory);
+
+        // package list
+        float listTop=162,footer=52,detailsH=Math.Min(220,H*.28f);
+        var listHost=OverviewUi.Rect("Packages",_body);OverviewUi.Place(listHost,0,listTop,W,H-listTop-footer-detailsH-10);
+        var rows=Scroll(listHost,0,0,W,listHost.rect.height);float y=6;
+        var ordered=new List<ShopPackage>();if(target!=null)ordered.Add(target);ordered.AddRange(t.Packages.Where(p=>p!=target));
+        Label(rows,Loc.F("{0} package(s) in this task","本次涉及 {0} 个包","本次涉及 {0} 個包",ordered.Count),10,y,W-40,26,15,OverviewUi.Muted);y+=30;
+        foreach(var package in ordered)
+        {
+            string previous=t.PreviousPackages.FirstOrDefault(p=>p.Key==package.Key)?.Version??"";
+            var action=ComponentActions.Select(previous,package.Version);
+            string tag;Color tint;
+            if(package.Reuse){tag=Loc.T("Reuse","复用","複用");tint=OverviewUi.Green;}
+            else if(action==ComponentAction.Upgrade){tag=Loc.T("Upgrade","升级","升級");tint=OverviewUi.Blue;}
+            else if(action==ComponentAction.Downgrade){tag=Loc.T("Downgrade","降级","降級");tint=new Color(1f,.72f,.4f);}
+            else if(action==ComponentAction.Reinstall){tag=Loc.T("Reinstall","重装","重裝");tint=OverviewUi.Muted;}
+            else{tag=Loc.T("New","新装","新裝");tint=new Color(.80f,.62f,1f);}
+            var row=OverviewUi.Rect("Package",rows);OverviewUi.Place(row,6,y,W-36,40);row.gameObject.AddComponent<Image>().color=ModConfigLook.Surface(package==target?new Color(.13f,.19f,.22f,1):new Color(.10f,.13f,.15f,1));
+            var chip=OverviewUi.Rect("Tag",row);OverviewUi.Place(chip,10,8,68,24);var ci=chip.gameObject.AddComponent<Image>();ci.sprite=ModConfigSidebarWidgets.RoundedSprite;ci.type=Image.Type.Sliced;ci.color=new Color(tint.r,tint.g,tint.b,.22f);
+            Label(chip,tag,0,0,68,24,14,tint).alignment=TextAlignmentOptions.Center;
+            Label(row,package.Key+(package==target?"":"　<color=#8C918E>"+Loc.T("dependency","依赖","依賴")+"</color>"),92,6,W-400,28,17).richText=true;
+            string versions=previous.Length>0&&previous!=package.Version?previous+"  →  "+package.Version:package.Version;
+            Label(row,versions,W-300,6,250,28,16,OverviewUi.Muted).alignment=TextAlignmentOptions.MidlineRight;
+            y+=46;
+        }
+        foreach(var blocker in t.Blockers){Label(rows,"! "+ShopText(blocker),10,y,W-40,28,15,new Color(1f,.72f,.55f));y+=30;}
+        if(t.State=="completed"&&t.OrphanCandidates.Count>0)
+        {
+            Label(rows,Loc.T("Possibly unused dependencies (nothing is removed automatically):","可能不再使用的依赖（不会自动删除）：","可能不再使用的依賴（不會自動刪除）："),10,y,W-40,28,15,OverviewUi.Muted);y+=32;
+            foreach(var orphan in t.OrphanCandidates){var candidate=orphan;Button(rows,Loc.T("Review cleanup: ","预览清理：","預覽清理：")+candidate.Key,()=>{int dash=candidate.Key.IndexOf('-');OverviewUpdateQueue.SendShop(new ShopRequest{Operation="preview-uninstall",Namespace=candidate.Key.Substring(0,dash),Package=candidate.Key.Substring(dash+1),Version=candidate.Version});},10,y,Math.Min(600,W-60),UiActionRole.Danger);y+=40;}
+        }
+        rows.sizeDelta=new Vector2(rows.rect.width,y+6);
+
+        // folded details
+        var detailsHost=OverviewUi.Rect("Details",_body);OverviewUi.Place(detailsHost,0,H-footer-detailsH,W,detailsH);
+        bool editable=t.State is "preview" or "ready";
+        string group=editable?(_newGroup.Length>0?_newGroup:_repo.State.groups.FirstOrDefault(g=>g.id==_group)?.name??Loc.T("Automatic grouping","自动分组","自動分組"))
+            :(t.Request.NewGroupName.Length>0?t.Request.NewGroupName:_repo.State.groups.FirstOrDefault(g=>g.id==t.Request.GroupId)?.name??Loc.T("Automatic grouping","自动分组","自動分組"));
+        var lines=new List<string>{
+            Loc.F("Install location: {0}","安装位置：{0}","安裝位置：{0}",group)+(editable?"":Loc.T(" (locked)","（已锁定）","（已鎖定）")),
+            Loc.F("Files: write {0}, replace or remove {1}","文件：写入 {0} 个，替换或移除 {1} 个","檔案：寫入 {0} 個，替換或移除 {1} 個",t.Desired.Count,t.Originals.Count)};
+        if(t.Error.Length>0)lines.Add(Loc.T("Error: ","错误：","錯誤：")+ShopText(t.Error));
+        foreach(var verify in t.VerificationPackages)lines.Add(Loc.T("Also downloads for verification: ","另下载用于核对：","另下載用於核對：")+verify.Key+" "+verify.Version);
+        var detailLines=t.Details.Where(s=>!s.StartsWith("Loader already supplied",StringComparison.Ordinal)).Select(ShopText).ToList();
+        var drows=Scroll(detailsHost,0,0,W,detailsH);float dy=6;
+        foreach(var line in lines){Label(drows,line,10,dy,W-40,26,15,OverviewUi.Ivory);dy+=28;}
+        if(detailLines.Count>0){Button(drows,(_taskDetailsOpen?"▾ ":"▸ ")+Loc.F("Detailed record ({0} lines)","详细记录（{0} 行）","詳細記錄（{0} 行）",detailLines.Count),()=>{_taskDetailsOpen=!_taskDetailsOpen;ShowTask();},10,dy,300);dy+=38;}
+        if(_taskDetailsOpen)foreach(var line in detailLines){var l=Label(drows,line,22,dy,W-60,24,14,OverviewUi.Muted);l.textWrappingMode=TextWrappingModes.Normal;float lh=Math.Max(24,l.GetPreferredValues(line,W-60,0).y+4);OverviewUi.Place(l.rectTransform,22,dy,W-60,lh);dy+=lh+2;}
+        drows.sizeDelta=new Vector2(drows.rect.width,dy+6);
+
+        // actions
+        string op=t.State=="preview"?"approve-download":t.State=="ready"?"confirm-install":t.State=="recovery-required"?"recover":"";
+        if(op.Length>0)Button(_body,t.State=="preview"?Loc.T("Confirm download","确认下载","確認下載"):t.State=="recovery-required"?Loc.T("Retry recovery","重试恢复","重試恢復"):Loc.T("Confirm (installs after exit)","确认（退出游戏后安装）","確認（退出遊戲後安裝）"),()=>{
+            if(_submissionPending)return;
+            void Submit(){if(op=="confirm-install"&&(_group.Length>0||_newGroup.Length>0))ShopGroupingPersistence.Bind(Home,t.Id,_repo);_submissionPending=true;_sentAt=Time.unscaledTime;_sentTaskKey=_taskKey;OverviewUpdateQueue.SendShop(new ShopRequest{Operation=op,PreviewId=t.Id,PlanToken=t.PlanToken,GroupId=_group,NewGroupName=_newGroup,NewGroupColor=_groupColor});ShowTask();_status.text=Loc.T("Submitted. Waiting for the helper to confirm.","已提交，等待助手确认。","已提交，等待助手確認。");}
+            if(op=="confirm-install"){
+                var popup=OverviewUi.Panel("ShopFinalConfirm",_panel,ModConfigLook.Surface(new Color(.14f,.12f,.10f,1)));Popup(popup,safeLast:true);OverviewUi.Place(popup,30,_panel.rect.height-280,Math.Min(800,_panel.rect.width-60),180);
+                Label(popup,Loc.T("Install the checked files and dependencies after PEAK exits? Replaced files are backed up first.","确认在退出游戏后安装已检查的文件及依赖？被替换的文件会先备份。","確認在退出遊戲後安裝已檢查的檔案及依賴？被替換的檔案會先備份。"),14,12,popup.rect.width-28,90,18).textWrappingMode=TextWrappingModes.Normal;
+                Button(popup,Loc.T("Confirm","确认执行","確認執行"),()=>{Destroy(popup.gameObject);Submit();},14,126,160,UiActionRole.Commit);Button(popup,Loc.T("Cancel","取消","取消"),()=>Destroy(popup.gameObject),188,126,108);
+            }else Submit();
+        },0,H-42,320,UiActionRole.Commit).interactable=t.Blockers.Count==0&&!_submissionPending;
+        if(editable)Button(_body,Loc.T("Install to group…","安装到分组…","安裝到分組…"),ChooseGroup,336,H-42,200,UiActionRole.Edit).interactable=!_submissionPending;
+        _status.text=targetName.Length>0?targetName+"："+TaskStateName(t.State):TaskStateName(t.State);
+    }
+    private bool _taskDetailsOpen;
+    private static string Bytes(long value)=>value>=1024*1024?(value/(1024.0*1024)).ToString("0.0")+" MB":Math.Max(1,value/1024)+" KB";
+    private static string TaskKind(ShopTask t)=>t.Uninstall?Loc.T("Uninstall","卸载","解除安裝"):t.PreviousPackages.Count>0?Loc.T("Update","更新","更新"):Loc.T("Install","安装","安裝");
+    /// <summary>0 check, 1 download, 2 wait for exit, 3 install, 4 done.</summary>
+    private static int TaskStep(string state)=>state switch{"requested" or "resolving" or "preview"=>0,"downloading"=>1,"ready" or "waiting-exit"=>2,"committing" or "rolling-back" or "recovery-required"=>3,"completed"=>4,"failed" or "cancelled" or "rolled-back"=>1,_=>0};
+    private static string TaskStateName(string state)=>state switch{
+        "requested"=>Loc.T("Requested","已请求","已請求"),"resolving"=>Loc.T("Checking dependencies","正在检查依赖","正在檢查依賴"),"preview"=>Loc.T("Waiting for download confirmation","等待确认下载","等待確認下載"),
+        "downloading"=>Loc.T("Downloading","正在下载","正在下載"),"ready"=>Loc.T("Downloaded, waiting for install confirmation","已下载，等待确认安装","已下載，等待確認安裝"),"waiting-exit"=>Loc.T("Waiting for PEAK to exit","等待游戏退出","等待遊戲退出"),
+        "committing"=>Loc.T("Installing","正在安装","正在安裝"),"completed"=>Loc.T("Completed","已完成","已完成"),"failed"=>Loc.T("Failed","失败","失敗"),"cancelled"=>Loc.T("Cancelled","已取消","已取消"),
+        "rolled-back"=>Loc.T("Rolled back","已回滚","已回滾"),"rolling-back"=>Loc.T("Rolling back","正在回滚","正在回滾"),"recovery-required"=>Loc.T("Needs recovery","需要恢复","需要恢復"),_=>state};
+    private static string NextStep(ShopTask t)=>t.State switch{
+        "requested" or "resolving"=>Loc.T("Next: the helper reads the dependencies; nothing is downloaded yet.","下一步：助手读取依赖清单，尚未下载。","下一步：助手讀取依賴清單，尚未下載。"),
+        "preview"=>Loc.T("Next: check the packages below, then press \"Confirm download\".","下一步：核对下方的包，然后按「确认下载」。","下一步：核對下方的包，然後按「確認下載」。"),
+        "downloading"=>Loc.T("Next: files are downloaded into the cache and checked; installed files are not touched yet.","下一步：文件下载到缓存并检查，现装文件暂不改动。","下一步：檔案下載到快取並檢查，現裝檔案暫不改動。"),
+        "ready"=>Loc.T("Next: press \"Confirm\"; the files are installed after PEAK exits.","下一步：按「确认」，退出游戏后安装。","下一步：按「確認」，退出遊戲後安裝。"),
+        "waiting-exit"=>Loc.T("Next: exit PEAK; the files are installed automatically.","下一步：退出游戏，文件会自动安装。","下一步：退出遊戲，檔案會自動安裝。"),
+        "committing"=>Loc.T("Installing; replaced files are backed up first.","正在安装，被替换的文件会先备份。","正在安裝，被替換的檔案會先備份。"),
+        "completed"=>Loc.T("Done. Start PEAK to use the result.","已完成，启动游戏后生效。","已完成，啟動遊戲後生效。"),
+        "failed" or "rolled-back"=>Loc.T("Installed files were not changed. See the detailed record below.","现装文件未被改动，原因见下方详细记录。","現裝檔案未被改動，原因見下方詳細記錄。"),
+        "recovery-required"=>Loc.T("The last install was interrupted. Press \"Retry recovery\".","上次安装中断，请按「重试恢复」。","上次安裝中斷，請按「重試恢復」。"),
+        "cancelled"=>Loc.T("This task was cancelled.","此任务已取消。","此任務已取消。"),_=>ShopText(t.Message)};

@@ -1180,6 +1180,23 @@ internal static partial class ModConfigSidebarWidgets
             Rescan(notify: false);
         }
 
+        /// <summary>
+        /// 实测修正（2026-11-16）：收起时的框里只写语言名（「简体中文」），不带「(文件名)」——窄框里带文件名必被截断、
+        /// 省略号还会压到箭头。展开列表里仍是「名字 (文件名)」全称。TMP 每次刷新会把框里文字改回全称，所以每帧比对一次（只比字符串）。
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (Dropdown == null || Dropdown.Dropdown == null || Dropdown.Dropdown.captionText == null) return;
+            int value = Dropdown.Dropdown.value;
+            if (value <= 0 || value > _files.Count) return;
+            Loc.LanguageFile file = _files[value - 1];
+            string shortLabel = (file.Display.Length > 0 ? file.Display : file.Stem) + (file.FileCount > 1 ? " ×" + file.FileCount : "");
+            if (Dropdown.Dropdown.captionText.text != shortLabel)
+            {
+                Dropdown.Dropdown.captionText.text = shortLabel;
+            }
+        }
+
         /// <summary>页面重开时下拉文字按当前语言重刷（LANG_FOLLOW 是纯文本选项，不带 LocalizedText 组件）。</summary>
         private void OnEnable()
         {
@@ -1715,6 +1732,12 @@ internal static partial class ModConfigSidebarWidgets
         /// 有分组时其余行按概览的分组顺序分段：每段先放分组标题，段内再按「排序方式」排，未分组段在最后。
         /// 只动 sibling 顺序，不碰 ModConfig 的 Tabs / buttons 列表。
         /// </summary>
+        /// <summary><paramref name="ancestor"/> 是否是 <paramref name="id"/> 的上级（多层也算；「未分组」段不是任何分组的上级）。</summary>
+        private bool IsGroupAncestor(string ancestor, string id)
+        {
+            return ancestor.Length > 0 && id.Length > 0 && _groupTree.Ancestors(id).Exists(g => g.id == ancestor);
+        }
+
         internal void ApplyPinOrder()
         {
             if (ModTabs == null || ListContent == null)
@@ -1758,15 +1781,34 @@ internal static partial class ModConfigSidebarWidgets
             }
             else
             {
-                foreach (GroupSlot slot in _groupSlots)
+                // 1.1.0（实测修正，用户 2026-11-16）：子分组排在本组直属模组前面（与模组列表、快捷键页一致）。
+                // 标题按树序放；一个分组的直属成员等它整棵子树（子分组标题与成员）放完再放。
+                List<GroupSlot> open = new List<GroupSlot>();
+                void PlaceMembers(GroupSlot owner)
                 {
-                    slot.Row.transform.SetSiblingIndex(index++);
-                    List<GameObject> members = rest.FindAll(row => RowGroup(row) == slot.Id);
+                    List<GameObject> members = rest.FindAll(row => RowGroup(row) == owner.Id);
                     SortRest(members);
                     foreach (GameObject row in members)
                     {
                         row.transform.SetSiblingIndex(index++);
                     }
+                }
+
+                foreach (GroupSlot slot in _groupSlots)
+                {
+                    while (open.Count > 0 && !IsGroupAncestor(open[open.Count - 1].Id, slot.Id))
+                    {
+                        PlaceMembers(open[open.Count - 1]);
+                        open.RemoveAt(open.Count - 1);
+                    }
+
+                    slot.Row.transform.SetSiblingIndex(index++);
+                    open.Add(slot);
+                }
+
+                for (int i = open.Count - 1; i >= 0; i--)
+                {
+                    PlaceMembers(open[i]);
                 }
             }
 

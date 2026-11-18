@@ -16,6 +16,8 @@ internal sealed class WindowPopover : MonoBehaviour
     private bool _wasInteractable, _wasRaycast;
     private static WindowPopover? _active;
     private static int _closedFrame=-1;
+    /// <summary>同步自 MCE 1.1.0：窗口内的下拉层开着时，概览页的 LB / RB 不跳工具行。</summary>
+    internal static bool AnyOpen => _active != null && _active._shade != null;
     internal static bool TryCloseTop()
     {
         if(_active!=null&&_active._shade!=null){_active.Close();_closedFrame=Time.frameCount;return true;}
@@ -45,28 +47,10 @@ internal sealed class WindowPopover : MonoBehaviour
     }
     internal static void Menu(RectTransform host,RectTransform anchor,string title,IReadOnlyList<(string Label,string Value)> options,string current,Action<string> pick)
     {
-        if (options.Count <= 16)
-        {
-            OverviewUi.CompactDropdown(anchor, title, options.Select(item => new UiMenuEntry {
-                Label = item.Label, Checked = item.Value == current, Role = UiActionRole.Edit, Invoke = () => pick(item.Value)
-            }).ToList(), host);
-            return;
-        }
-        var panel=Open(host,anchor,"WindowMenu",300,options.Count*38+38);
-        var heading=OverviewUi.Text(panel,title,16);heading.color=OverviewUi.Muted;OverviewUi.Place(heading.rectTransform,12,4,panel.rect.width-24,26);
-        var viewport=OverviewUi.Rect("Choices",panel);OverviewUi.Fill(viewport);viewport.offsetMin=new Vector2(8,8);viewport.offsetMax=new Vector2(-8,-32);
-        viewport.gameObject.AddComponent<RectMask2D>();viewport.gameObject.AddComponent<Image>().color=Color.clear;
-        var rows=OverviewUi.Rect("Rows",viewport);rows.anchorMax=new Vector2(1,1);rows.sizeDelta=new Vector2(0,options.Count*38);
-        var scroll=viewport.gameObject.AddComponent<ScrollRect>();scroll.viewport=viewport;scroll.content=rows;scroll.horizontal=false;scroll.movementType=ScrollRect.MovementType.Clamped;scroll.scrollSensitivity=40;
-        GameObject? focus=null;
-        for(int i=0;i<options.Count;i++)
-        {
-            var item=options[i];var button=OverviewUi.Button(rows,(item.Value==current?"✓ ":"")+item.Label,()=>{host.GetComponent<WindowPopover>()?.Close();pick(item.Value);},panel.rect.width-16,34,UiActionRole.Edit);
-            OverviewUi.Place((RectTransform)button.transform,0,i*38,panel.rect.width-16,34);
-            var label=button.GetComponentInChildren<TextMeshProUGUI>(true);if(label!=null){label.alignment=TextAlignmentOptions.MidlineLeft;label.overflowMode=TextOverflowModes.Ellipsis;}
-            GamepadSupport.MarkSelectable(button.gameObject,scroll,(RectTransform)button.transform);if(focus==null||item.Value==current)focus=button.gameObject;
-        }
-        if(focus!=null)EventSystem.current?.SetSelectedGameObject(focus);
+        // 实测修正（2026-11-16，下拉样式统一）：不论选项多少都用共用紧凑下拉（可滚动）；原来超过 16 项时是另一套外观。
+        OverviewUi.CompactDropdown(anchor, title, options.Select(item => new UiMenuEntry {
+            Label = item.Label, Checked = item.Value == current, Role = UiActionRole.Edit, Invoke = () => pick(item.Value)
+        }).ToList(), host);
     }
     private void Own(RectTransform shade)
     {

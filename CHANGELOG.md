@@ -1,5 +1,25 @@
 # Changelog / 更新日志
 
+## 0.0.2
+
+### English
+
+- **Log window:** pick several log levels at once, with each level shown in the same color as the log text; view the logs of the previous three game launches (each copy capped at 10 MB); the mod filter uses the same drop-down menu as the mod list; the filter buttons line up on the right; exported logs mask your user folder in more path spellings, and export errors follow the interface language.
+- **Mod Settings tab:** a third tab next to Keybindings opens the mod settings page directly; with a controller the focus lands on "Jump to keybindings" there.
+- **Mod list:** a faint hint under the last row explains dragging and editing in edit mode; rows play their loading sound every time the list is rebuilt; the dashed borders of the "Mod overview" entry match the "Mod settings" button.
+- **Groups:** subgroups are listed above their parent's own mods (mod list, keybindings page and settings sidebar); when dragging a group heading in edit mode, dropping on its top or bottom edge places it before or after that group, dropping in the middle makes it a subgroup; new groups are prefilled "New group 1" / "New subgroup 1".
+- **Controller:** LB / RB jump between the toolbar buttons (inside the management center and the update queue they still switch those pages); RT + LB / RB move the focus onto a tab (including Mod Settings) and A opens it; holding the D-pad or left stick keeps moving; with a controller the focus frame follows the selection, with keyboard and mouse it follows the control under the pointer, and each move to a new control plays a short click (the large tabs and game-style buttons use the game's own hover sound); tabs and every control have a focus frame; on the keybindings page the controller and keyboard columns have separate menus and up / down moves row by row; the settings page header and search box can be reached and left with a controller.
+- **Menus:** every drop-down uses one style with a clear title row; the language drop-down shows only the language name so it no longer overlaps the arrow.
+
+### 中文
+
+- **日志窗口：** 日志等级可多选，等级名与日志正文同色；可查看最近 3 次启动的日志（每份副本上限 10 MB）；「模组」筛选改用与模组列表相同的下拉菜单；筛选按钮靠右排齐；导出日志时个人用户目录的遮盖覆盖更多路径写法，导出出错的提示跟随界面语言。
+- **「模组设置」页签：** 「快捷键设置」右边新增第三个页签，按下直接打开模组设置页；用手柄进入时焦点停在「跳转到快捷键设置页」。
+- **模组列表：** 最后一行下方有淡色提示，说明编辑模式下的拖动与编辑；每次列表重建时逐行载入都有音效；「模组概览」入口的虚线与「模组设置」按钮一致。
+- **分组：** 子分组排在上级分组的直属模组前面（模组列表、快捷键页、设置页侧栏一致）；编辑模式下拖动分组标题，放在另一个标题的上缘或下缘就排到它前面或后面，放在中间就成为它的子分组；新建分组预填「新分组1」「新子分组1」。
+- **手柄：** LB / RB 在工具栏按钮间跳（管理中心和更新队列里仍切它们自己的页）；RT + LB / RB 把焦点移到页签上（含「模组设置」），按 A 切换；按住十字键或左摇杆可连续移动；焦点框在手柄下跟随选中、在键鼠下跟随鼠标悬停的控件，每换到一个新控件响一声（大页签和游戏样式按钮用游戏自己的悬停音效），页签和所有控件都有焦点框；快捷键页的手柄列与键盘列菜单分开，上下按行移动；设置页的页头和搜索框可以用手柄进出。
+- **菜单：** 所有下拉菜单统一样式、标题行醒目；语言下拉收起时只显示语言名，不再压到箭头。
+
 ## 0.0.1 — First public test release / 首个公开测试版
 
 ### English
@@ -17,6 +37,10 @@ In-Game Mod Manager expands the settings-focused ModConfig Enhance 1.0.4 into an
 - **Everyday tools:** log browsing/filtering/export, previewed folder organization, and blue/purple themes with optional TimeTheme night switching.
 - **Independent identity:** a separate plugin, configuration folder and runtime directory, with support for reading earlier author material and modpacks.
 
+- **Font compatibility:** ordinary interface text reuses the game's localized font instead of creating a font from Windows system fonts.
+
+- **Installation and diagnostics fixes:** recognize split MonoDetour components locally, avoid duplicate resource rows, and export declared manager versions plus complete component locations and files. The all-in-one archive includes the official BepInEx 5.4.23.5 managed core for Unity 6 logging compatibility.
+
 ### 中文
 
 游戏内模组管理器以侧重设置的 ModConfig Enhance 1.0.4 为基础，扩展为游戏内的模组与整合包管理工具。
@@ -31,3 +55,5 @@ In-Game Mod Manager expands the settings-focused ModConfig Enhance 1.0.4 into an
 - **手柄操作：** 覆盖设置、概览页签与弹窗，列表上下移动保留所在列，支持自定义组合键和 Steam 屏幕键盘；正文按 A 锁定浏览、B 退出，十字键浏览步长为普通步长三倍。
 - **日常工具：** 日志浏览、筛选与导出，执行前可预览的目录整理，以及蓝色／紫色主题和可选 TimeTheme 夜间切换。
 - **独立身份：** 使用独立插件、配置文件夹与运行目录，兼容读取早期作者资料和整合包。
+- **字体兼容：** 普通界面文字复用游戏现有本地化字体，修复部分电脑从 Windows 系统字体创建文字资源失败的问题。
+- **安装与诊断修复：** 本地识别分散安装的 MonoDetour 组件，消除重复资源包条目；日志导出记录正确的管理器版本与完整组件位置、文件。完整安装包采用官方 BepInEx 5.4.23.5 核心，修复 Unity 6 日志写入器错误。

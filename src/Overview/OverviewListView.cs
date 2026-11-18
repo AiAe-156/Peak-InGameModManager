@@ -95,7 +95,7 @@ internal sealed partial class OverviewListView : IDisposable
     private int _hintLanguage=-1;
     private TMP_FontAsset? _hintFont;
     private string _measuredHint="";
-    private readonly RectTransform _dragGhost, _dropLine;
+    private readonly RectTransform _dragGhost, _dropLine, _dropHighlight;
     private readonly TextMeshProUGUI _dragCaption;
     private readonly Dictionary<RectTransform, (string Group, OverviewMod? Before)> _dropAreas = new();
     private List<OverviewMod> _visible = new();
@@ -116,6 +116,7 @@ internal sealed partial class OverviewListView : IDisposable
     public string PackCheckMessage { get; private set; } = "";
     public string PackUpdateNotes { get; private set; } = "";
     private static string T(string en, string zh) => Loc.T(en, zh, zh);
+    private static string T(string en, string zh, string tw) => Loc.T(en, zh, tw); // 同步自 MCE 1.1.0：带繁中的词条
     private float _lastWidth;
     private const float RowHeight = 38;
     private const float GroupHeight = 32, GroupGapBefore = 4, GroupGapAfter = 2;
@@ -172,6 +173,8 @@ internal sealed partial class OverviewListView : IDisposable
         _dragGhost = OverviewUi.Panel("DragPreview", _root, ModConfigLook.Surface(new Color(.12f, .26f, .31f, .92f))); _dragGhost.GetComponent<Image>().raycastTarget = false;
         _dragCaption = OverviewUi.Text(_dragGhost, "", 20); OverviewUi.Fill(_dragCaption.rectTransform, 8); _dragGhost.gameObject.SetActive(false);
         _dropLine = OverviewUi.Panel("DropLine", _content, OverviewUi.Blue); _dropLine.GetComponent<Image>().raycastTarget = false; _dropLine.gameObject.SetActive(false);
+        // 实测修正（2026-11-16）：拖分组标题落在另一个标题中间（= 成为它的子分组）时，整个标题罩一层半透明蓝色；落在上 / 下缘用蓝线。
+        _dropHighlight = OverviewUi.Panel("DropHighlight", _content, new Color(OverviewUi.Blue.r, OverviewUi.Blue.g, OverviewUi.Blue.b, .30f)); _dropHighlight.GetComponent<Image>().raycastTarget = false; _dropHighlight.gameObject.SetActive(false);
         _dependencyHints = new OverviewDependencyHints((RectTransform)parent, repo, () => _mods, GetDisplayNumber, HideExternalHint);
         _pump = parent.gameObject.AddComponent<OverviewListPump>();
         _groupEditor = new OverviewGroupEditor(repo, _mods, status, () => { Save(); Render(); _headersChanged(); });
@@ -193,6 +196,7 @@ internal sealed partial class OverviewListView : IDisposable
             FlushInfrastructureRedraw();
             if (_opened) RefreshVirtualRows();
             if (_opened) RefreshSharedUpdateCache();
+            UpdateFooterHint(); // 同步自 MCE 1.1.0（实测修正）：列表下方空白处的操作提示（OverviewListView.FooterHint.cs）
             WarmVisibleHints();
             float width = Width;
             EnsureFixedChrome();
@@ -225,10 +229,10 @@ internal sealed partial class OverviewListView : IDisposable
         _tools.gameObject.SetActive(true);OverviewUi.Place(_tools,0,0,width,32);
         BuildOverviewSearch(width);
         string enablementNote=EnablementHint;
-        // 1.1.3 (user): one button to expand / collapse every group (controller: LT + RB / LT + LB).
+        // 1.1.3 (user): one button to expand / collapse every group (controller: LT + RB / LT + LB, or RT + L3).
         _foldAllButton=OverviewUi.IconButton(_tools,"triangle-down",()=>SetAllFolded(null),30,30);
         OverviewUi.Place((RectTransform)_foldAllButton.transform,SearchWidth+14,1,30,30);
-        AddHint(_foldAllButton.gameObject,Loc.T("Expand or collapse all groups. Controller: LT + RB expands all, LT + LB collapses all.","展开或收起全部分组。手柄：LT + RB 全部展开，LT + LB 全部收起。","展開或收起全部分組。手把：LT + RB 全部展開，LT + LB 全部收起。"));
+        AddHint(_foldAllButton.gameObject,Loc.T("Expand or collapse all groups. Controller: LT + RB expands all, LT + LB collapses all; RT + L3 toggles.","展开或收起全部分组。手柄：LT + RB 全部展开，LT + LB 全部收起；按住 RT 再按 L3 切换。","展開或收起全部分組。手把：LT + RB 全部展開，LT + LB 全部收起；按住 RT 再按 L3 切換。"));
         RefreshFoldAllIcon();
         var note=Label(_tools,enablementNote,SearchWidth+52,0,Mathf.Max(40,width-SearchWidth-252),32,15);note.color=OverviewUi.Muted;AddHint(note.gameObject,enablementNote);
         OverviewUi.Place(_header,0,33,width,39);
@@ -454,7 +458,7 @@ internal sealed partial class OverviewListView : IDisposable
             bool reuseRows=_reuseRows && rowsSignature==_rowsSignature;
             if(reuseRows)ParkBuiltModRows(); else { DestroyParkedRows();_conflictRefresh.Clear(); }
             _rowsSignature=rowsSignature;
-            ResetVirtualRows(); _dropLine.SetParent(_root, false); Clear(_content); _dropLine.SetParent(_content, false);
+            ResetVirtualRows(); _dropLine.SetParent(_root, false); _dropHighlight.SetParent(_root, false); Clear(_content); _dropLine.SetParent(_content, false); _dropHighlight.SetParent(_content, false);
             cleared = true;
             EnsureFixedChrome();
             var conflicts = PackConflictService.Evaluate(_repo, _mods).Where(c => c.Any).ToList();
@@ -489,7 +493,11 @@ internal sealed partial class OverviewListView : IDisposable
             void EmitHeadersThrough(string id)
             {
                 string key = Groups.Contains(id) ? id : "";
-                int at = headers.IndexOf(key, nextHeader);
+                // 实测修正（2026-11-16）：子分组排在直属模组前面，所以一个分组的第一个直属模组之前要先出完整棵子树的标题
+                // （没有成员的子分组标题也在这里出，不会落到直属模组后面）。标题按树序排，子树在 headers 里是连续的一段。
+                int at = -1;
+                if (key.Length == 0) at = headers.IndexOf(key, nextHeader);
+                else { var subtree = Groups.Subtree(key); for (int i = nextHeader; i < headers.Count; i++) if (subtree.Contains(headers[i])) at = i; else if (at >= 0) break; }
                 if (at < 0) return;
                 for (; nextHeader <= at; nextHeader++) EmitHeader(headers[nextHeader]);
             }
@@ -512,7 +520,7 @@ internal sealed partial class OverviewListView : IDisposable
                 interaction.Clicked = data => Select(mod, VisibleIndex(mod), data);
                 interaction.DragStarted = () => { if (_authorMode) BeginDragFeedback(mod); };
                 interaction.DragMoved = MoveDragFeedback;
-                interaction.Dropped = () => MoveSelected(groupId, mod);
+                interaction.Dropped = () => { if (_draggedGroup == null) MoveSelected(groupId, mod); }; // 拖分组标题时松在模组行上不动（实测修正 2026-11-16）
                 interaction.DragFinished = EndDragFeedback;
                 bool ownMod = string.Equals(mod.Guid, Plugin.PluginGuid, StringComparison.OrdinalIgnoreCase);
                 Label(row, (capturedIndex+1).ToString(), xIndex, 4, indexWidth, 32, 20).name = "RowIndex";
@@ -662,7 +670,7 @@ internal sealed partial class OverviewListView : IDisposable
                     // build must not leave the previous profile's scroll bounds behind.
                     float height = Mathf.Max(60,_virtualHeight);
                     foreach (RectTransform child in _content)
-                        if (child != _dropLine && child.gameObject.activeSelf)
+                        if (child != _dropLine && child != _dropHighlight && child.gameObject.activeSelf)
                             height = Mathf.Max(height, -child.anchoredPosition.y + child.rect.height + 8);
                     _content.sizeDelta = new Vector2(0, height);
                     Vector2 preserved = _content.anchoredPosition; preserved.y = Mathf.Clamp(oldPixelOffset, 0, Mathf.Max(0, _content.rect.height - _viewport.rect.height)); _content.anchoredPosition = preserved;
@@ -800,8 +808,9 @@ internal sealed partial class OverviewListView : IDisposable
         if (!string.IsNullOrWhiteSpace(group?.description)) { var description = Label(row, group!.description, descriptionX, 0, Mathf.Max(0, width - descriptionX - 21), height, 17); description.color = OverviewUi.Muted; OverviewUi.PlaceClipped(description,descriptionX,0,Mathf.Max(0,width-descriptionX-21),height); AddHint(description.gameObject, group.description); }
         var target = row.gameObject.AddComponent<OverviewRowInteraction>();
         target.NativeScroll = _scroll; target.ForwardScroll = () => !_authorMode || group == null;
-        // A group heading dropped here becomes this group's subgroup; dropped mods join this group.
-        target.Dropped = () => { if (_draggedGroup != null) { var dragged = _draggedGroup; EndGroupDrag(); if (group != null && dragged.id != groupId) AttachGroup(dragged.id, groupId); } else MoveSelected(groupId, null); };
+        // A group heading dropped here: on the top / bottom quarter it goes before / after this group (same level),
+        // in the middle it becomes this group's subgroup (实测修正 2026-11-16, see DropGroupOn); dropped mods join this group.
+        target.Dropped = () => { if (_draggedGroup != null) { var dragged = _draggedGroup; var zone = GroupDropZoneFor(groupId); EndGroupDrag(); if (group != null && dragged.id != groupId) DropGroupOn(dragged.id, groupId, zone); } else MoveSelected(groupId, null); };
         if (group != null) { target.DragStarted = () => BeginGroupDrag(group); target.DragMoved = MoveDragFeedback; target.DragFinished = EndGroupDrag; }
         Action<PointerEventData> clicked = data => {
             if (data.button == PointerEventData.InputButton.Right) { ShowGroupMenu(group, data); return; }
@@ -837,8 +846,9 @@ internal sealed partial class OverviewListView : IDisposable
         Camera? camera = EventCamera;
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_root, data.position, camera, out var point))
             OverviewUi.Place(_dragGhost, Mathf.Clamp(point.x - _root.rect.xMin + 15, 0, Mathf.Max(0, Width - 300)), Mathf.Clamp(_root.rect.yMax - point.y + 18, 0, Mathf.Max(0, _root.rect.height - 40)), 300, 40);
-        _dropLine.gameObject.SetActive(false);
-        foreach (var area in _dropAreas)
+        _dropLine.gameObject.SetActive(false); _dropHighlight.gameObject.SetActive(false);
+        if (_draggedGroup != null) GroupDragFeedback(data, camera);
+        else foreach (var area in _dropAreas)
         {
             if (!area.Key.gameObject.activeInHierarchy || !RectTransformUtility.RectangleContainsScreenPoint(area.Key, data.position, camera)) continue;
             if (area.Value.Before != null && _selected.Contains(area.Value.Before.Id)) break;
@@ -853,7 +863,7 @@ internal sealed partial class OverviewListView : IDisposable
             RefreshVirtualRows();
         }
     }
-    private void EndDragFeedback() { _warmAfter=Time.unscaledTime+.25f;_dragged = null; _dragGhost.gameObject.SetActive(false); _dropLine.gameObject.SetActive(false); }
+    private void EndDragFeedback() { _warmAfter=Time.unscaledTime+.25f;_dragged = null; _dragGhost.gameObject.SetActive(false); _dropLine.gameObject.SetActive(false); _dropHighlight.gameObject.SetActive(false); }
     private void RefreshSelectionColors()
     {
         foreach (Transform child in _content)

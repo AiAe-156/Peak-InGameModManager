@@ -1,0 +1,2086 @@
+diff --git a/Desktop/MCE.Desktop.csproj b/Desktop/MCE.Desktop.csproj
+index 8ae61ff..a1c9a77 100644
+--- a/Desktop/MCE.Desktop.csproj
++++ b/Desktop/MCE.Desktop.csproj
+@@ -5,11 +5,12 @@
+     <UseWPF>true</UseWPF>
+     <LangVersion>latest</LangVersion>
+     <Nullable>enable</Nullable>
+-    <AssemblyName>MCE.Desktop</AssemblyName>
+-    <Version>2.5.5</Version>
++    <AssemblyName>IGMM.Desktop</AssemblyName>
++    <Version>1.0.0</Version>
+     <DebugType>none</DebugType>
+     <DebugSymbols>false</DebugSymbols>
+     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+   </PropertyGroup>
+   <ItemGroup><Reference Include="System.Web.Extensions" /></ItemGroup>
++  <ItemGroup><Compile Include="../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" /></ItemGroup>
+ </Project>
+diff --git a/Desktop/Program.cs b/Desktop/Program.cs
+index 632a426..be06ea2 100644
+--- a/Desktop/Program.cs
++++ b/Desktop/Program.cs
+@@ -12,7 +12,7 @@ internal static class Program
+         {
+             if (args.Length == 1 && args[0] == "--self-test") return SelfTest.Run();
+             if (args.Length != 6 || args[0] != "--root" || args[2] != "--task" || args[4] != "--language" || !Protocol.ValidId(args[3]))
+-                throw new ArgumentException("Usage: MCE.Desktop.exe --root <BepInEx directory> --task <32 hex task ID> --language en-us|zh-cn|zh-tw");
++                throw new ArgumentException("Usage: IGMM.Desktop.exe --root <BepInEx directory> --task <32 hex task ID> --language en-us|zh-cn|zh-tw");
+             if (args[5] != "en-us" && args[5] != "zh-cn" && args[5] != "zh-tw") throw new ArgumentException("Unsupported language.");
+             string root = Path.GetFullPath(args[1]); Protocol.NoLinks(root);
+             string tools = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
+diff --git a/Desktop/ProgressProtocol.cs b/Desktop/ProgressProtocol.cs
+index af74756..6547c17 100644
+--- a/Desktop/ProgressProtocol.cs
++++ b/Desktop/ProgressProtocol.cs
+@@ -118,7 +118,7 @@ internal static class Protocol
+                 files.Add(relative, Hash(file));
+             }
+         }
+-        if (!files.ContainsKey("MCE.UpdateWorker.exe") || !files.ContainsKey("Mono.Cecil.LICENSE.txt")) throw new IOException("Incomplete worker cache.");
++        if (!files.ContainsKey(ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable) || !files.ContainsKey("Mono.Cecil.LICENSE.txt")) throw new IOException("Incomplete worker cache.");
+         string manifest = Path.Combine(tools, "worker-protocol.manifest"); NoLinks(manifest);
+         string[] lines = File.ReadAllLines(manifest);
+         string payload = string.Join("\n", files.Select(p => p.Key + "|" + p.Value));
+@@ -128,7 +128,7 @@ internal static class Protocol
+     }
+     internal static string Retry(string root, string tools, string expected, string expectedState)
+     {
+-        string home = Path.Combine(root, "MCE");
++        string home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root);
+         ValidateTools(tools);
+         var task = ReadTask(home); // Revalidate at click, not the last UI snapshot.
+         if (task.Id != expected || task.State != expectedState || task.Request.Operation != "confirm-switch" || (task.State != "failed" && task.State != "recovery-required"))
+@@ -144,7 +144,7 @@ internal static class Protocol
+         // A startup failure does NOT remove a queued request: another worker may consume it.
+         try
+         {
+-            using var worker = Process.Start(new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root " + Quote(root) + " --protocol 2")
++            using var worker = Process.Start(new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root " + Quote(root) + " --protocol 2")
+             { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = tools });
+             if (worker == null) throw new IOException("Worker did not start.");
+         }
+diff --git a/Desktop/ProgressWindow.cs b/Desktop/ProgressWindow.cs
+index bfa4a17..0c932a3 100644
+--- a/Desktop/ProgressWindow.cs
++++ b/Desktop/ProgressWindow.cs
+@@ -28,7 +28,7 @@ internal sealed class ProgressWindow : Window
+ 
+     internal ProgressWindow(string root, string tools, string id, string language)
+     {
+-        this.root = root; home = Path.Combine(root, "MCE"); this.tools = tools; expected = id; this.language = language;
++        this.root = root; home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root); this.tools = tools; expected = id; this.language = language;
+         Title = T("In-Game Mod Manager · Modpack switch", "游戏内模组管理器 · 整合包切换", "遊戲內模組管理器 · 整合包切換");
+         Width = 880; Height = 640; MinWidth = 720; MinHeight = 520;
+         WindowStartupLocation = WindowStartupLocation.CenterScreen;
+@@ -172,7 +172,7 @@ internal sealed class ProgressWindow : Window
+     void Recovery()
+     {
+         if (MessageBox.Show(this, T("Open the recovery-only launcher? It lists existing unfinished transactions and asks for confirmation before recovery. It does not process the normal queue.", "打开仅恢复入口？它只列出既有未完成事务，恢复前还需明确确认，不处理正常命令队列。", "開啟僅復原入口？它只列出既有未完成交易，復原前仍需明確確認，不處理一般命令佇列。"), Title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+-        string script = Path.Combine(home, "MCE-Recovery.ps1"); Protocol.NoLinks(script);
++        string script = Path.Combine(home, ModConfigEnhance.Updating.ManagerIdentity.RecoveryScript); Protocol.NoLinks(script);
+         if (!File.Exists(script)) throw new FileNotFoundException("Prepared recovery launcher not found.");
+         string bootstrap = "& ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" + Convert.ToBase64String(Encoding.UTF8.GetBytes(script)) + "')))";
+         string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+diff --git a/Updater/InstallDependencies.cs b/Updater/InstallDependencies.cs
+index 8bf6b74..e00e97c 100644
+--- a/Updater/InstallDependencies.cs
++++ b/Updater/InstallDependencies.cs
+@@ -16,7 +16,7 @@ internal static class InstallDependencies
+             string key = at > 0 ? text.Substring(0, at) : "", version = at > 0 ? text.Substring(at + 1) : "";
+             int split = key.IndexOf('-');
+             if (at < 1 || split < 1 || InstallInventory.ParseVersion(version) == null) { warnings?.Add("依赖声明格式无法识别（已忽略）：" + text); continue; }
+-            if (PackageRules.IsLoader(key) || key.Equals("AiAeT-ModConfigEnhance", StringComparison.OrdinalIgnoreCase)) continue;
++            if (PackageRules.IsLoader(key) || ManagerIdentity.IsManagerPackage(key)) continue;
+             if (result.Any(r => Files.Compare.Equals(r.Key, key))) continue;
+             result.Add(new DependencyRequirement(key, key.Substring(0, split), key.Substring(split + 1), version));
+         }
+diff --git a/Updater/InstallPlanner.cs b/Updater/InstallPlanner.cs
+index bf2a0b2..6de16ef 100644
+--- a/Updater/InstallPlanner.cs
++++ b/Updater/InstallPlanner.cs
+@@ -196,7 +196,7 @@ internal static class InstallPlanner
+         try
+         {
+             var storage = new PackStorage(root); string active = storage.Read().ActivePackId;
+-            string ledgerPath = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(root, "MCE", "shop", "installed-unmanaged.json");
++            string ledgerPath = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(root, "shop", "installed-unmanaged.json");
+             var owned = File.Exists(ledgerPath) ? Files.Read<ShopLedger>(ledgerPath).Packages.FirstOrDefault(p => Files.Compare.Equals(p.Key, key)) : null;
+             foreach (var file in owned?.Files ?? new List<PackFile>())
+             {
+diff --git a/Updater/Installer.cs b/Updater/Installer.cs
+index 5bc2879..794051a 100644
+--- a/Updater/Installer.cs
++++ b/Updater/Installer.cs
+@@ -210,7 +210,7 @@ internal static class Installer
+             try
+             {
+                 var storage = new PackStorage(plan.Root); string active = storage.Read().ActivePackId;
+-                string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(plan.Root, "MCE", "shop", "installed-unmanaged.json");
++                string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(plan.Root, "shop", "installed-unmanaged.json");
+                 if (File.Exists(path))
+                 {
+                     var ledger = Files.Read<ShopLedger>(path); bool changed = false;
+@@ -328,7 +328,7 @@ internal static class Installer
+             return;
+         }
+         var storage = new PackStorage(plan.Root); string active = storage.Read().ActivePackId;
+-        string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : Path.Combine(plan.Root, "MCE", "shop", "installed-unmanaged.json");
++        string path = active.Length > 0 ? Path.Combine(storage.Workspace(active), "shop-installed.json") : ManagerIdentity.Runtime(plan.Root, "shop", "installed-unmanaged.json");
+         Files.RejectLinks(plan.Root, path);
+         var ledger = File.Exists(path) ? Files.Read<ShopLedger>(path) : new ShopLedger();
+         if (ledger.SchemaVersion != 1) throw new IOException("账本架构版本不受支持。");
+diff --git a/Updater/LayoutPlan.cs b/Updater/LayoutPlan.cs
+index a5486f3..56a741a 100644
+--- a/Updater/LayoutPlan.cs
++++ b/Updater/LayoutPlan.cs
+@@ -62,7 +62,7 @@ internal static class LayoutPlanner
+                 // A folder people can read. The planner's hashed form stays as the fallback for a name that cannot be a folder.
+                 StableOuterFolderName = owned?.LayoutOuterFolder ?? PreferredOuter(request.Mode, translated, name),
+                 OwnershipComplete = true, FileInventoryComplete = true, IsCoreOrPatcher = false,
+-                IsProtectedManager = discovered.Any(p => Files.Compare.Equals(p.Guid, "com.aiae.modconfigenhance")),
++                IsProtectedManager = discovered.Any(p => ManagerIdentity.IsManagerGuid(p.Guid)),
+                 HasLinks = HasLinks(folder) ? LayoutFact.Yes : LayoutFact.No, IsLocked = LayoutFact.No, IsShared = LayoutFact.No
+             };
+             foreach (var plugin in discovered)
+diff --git a/Updater/MCE.UpdateWorker.csproj b/Updater/MCE.UpdateWorker.csproj
+index a296433..7c4dc7c 100644
+--- a/Updater/MCE.UpdateWorker.csproj
++++ b/Updater/MCE.UpdateWorker.csproj
+@@ -8,8 +8,8 @@
+     <ImplicitUsings>enable</ImplicitUsings>
+     <Nullable>enable</Nullable>
+     <UseWPF>true</UseWPF>
+-    <Version>2.5.5</Version>
+-    <AssemblyName>MCE.UpdateWorker</AssemblyName>
++    <Version>1.0.0</Version>
++    <AssemblyName>IGMM.UpdateWorker</AssemblyName>
+     <GameDir Condition="'$(GameDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</GameDir>
+     <SelfContained>false</SelfContained>
+     <AppConfig>$(MSBuildProjectDirectory)/obj/FrameworkApp.config</AppConfig>
+@@ -27,6 +27,7 @@
+     <Reference Include="System.Drawing" />
+     <Reference Include="System.IO.Compression" />
+     <Reference Include="System.IO.Compression.FileSystem" />
++    <Compile Include="../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" />
+     <Compile Include="../src/Updating/PluginFileNames.cs" Link="PluginFileNames.cs" />
+     <Compile Include="../src/Updating/ManifestCopies.cs" Link="ManifestCopies.cs" />
+     <Compile Include="../src/Updating/MceDirectories.cs" Link="MceDirectories.cs" />
+@@ -62,6 +63,6 @@
+     <!-- Legacy protocol2 names are retained; these describe prerequisites, not a bundled runtime. -->
+     <WriteLinesToFile File="$(PublishDir)Runtime-LICENSE.TXT" Lines="Requires Windows .NET Framework 4.8 (system prerequisite). No .NET runtime is redistributed. Microsoft Framework terms: https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48" Overwrite="true" />
+     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\THIRD-PARTY-NOTICES.md" DestinationFiles="$(PublishDir)Runtime-THIRD-PARTY-NOTICES.TXT" />
+-    <Exec Command="&quot;$(PublishDir)MCE.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(PublishDir).&quot;" />
++    <Exec Command="&quot;$(PublishDir)IGMM.UpdateWorker.exe&quot; --write-protocol-manifest &quot;$(PublishDir).&quot;" />
+   </Target>
+ </Project>
+diff --git a/Updater/ManagerProfileSync.cs b/Updater/ManagerProfileSync.cs
+index 74d0a3a..6bce979 100644
+--- a/Updater/ManagerProfileSync.cs
++++ b/Updater/ManagerProfileSync.cs
+@@ -9,7 +9,7 @@ internal static class ManagerProfileSync
+ {
+     internal const string FileName = "manager-sync.json";
+     internal const int Limit = 512;
+-    internal static string PathFor(string root) => Path.Combine(root, "MCE", FileName);
++    internal static string PathFor(string root) => ManagerIdentity.Runtime(root, FileName);
+ 
+     internal static void Record(string root, UpdateJob job, Transaction plan, bool rollback)
+     {
+diff --git a/Updater/NetworkProbe.cs b/Updater/NetworkProbe.cs
+index b19ed07..928cbae 100644
+--- a/Updater/NetworkProbe.cs
++++ b/Updater/NetworkProbe.cs
+@@ -14,7 +14,7 @@ internal static class NetworkProbe
+         if (!Regex.IsMatch(id, "^[a-fA-F0-9]{32}$")) throw new IOException("探测编号必须为 32 位十六进制字符。");
+         Files.ValidateRoot(root);
+         string game = Directory.GetParent(root)!.FullName;
+-        string home = Path.Combine(root, "MCE");
++        string home = ManagerIdentity.Runtime(root);
+         string directory = Path.Combine(home, "probes");
+         Directory.CreateDirectory(directory);
+         Files.RejectLinks(game, home);
+diff --git a/Updater/PackCompleteEnvironment.cs b/Updater/PackCompleteEnvironment.cs
+index e76014f..be90f47 100644
+--- a/Updater/PackCompleteEnvironment.cs
++++ b/Updater/PackCompleteEnvironment.cs
+@@ -52,8 +52,8 @@ internal static class PackCompleteEnvironment
+         foreach (string name in new[] { "BepInEx", "BepInEx.Preloader", "0Harmony" })
+             if (!assemblies.Any(a => a.Name == name && a.Path.StartsWith("core/", StringComparison.OrdinalIgnoreCase)))
+                 issues.Add("目标缺少必要核心程序集：" + name);
+-        if (!assemblies.Any(a => a.Name == "ModConfigEnhance" && a.Path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase))
+-            || !plugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) issues.Add("目标缺少启用的 MCE 管理宿主。");
++        if (!assemblies.Any(a => ManagerIdentity.IsManagerAssembly(a.Name) && a.Path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase))
++            || !plugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) issues.Add("目标缺少启用的 MCE 管理宿主。");
+         foreach (var group in plugins.GroupBy(p => p.Guid, Files.Compare).Where(g => g.Count() > 1)) issues.Add("重复插件身份：" + group.Key);
+         foreach (var dependency in dependencies)
+             if (!plugins.Any(p => Files.Compare.Equals(p.Guid, dependency.Guid) && (dependency.Minimum == null || Version.TryParse(dependency.Minimum, out var minimum) && Version.TryParse(p.Version, out var actual) && actual >= minimum)))
+@@ -67,7 +67,7 @@ internal static class PackCompleteEnvironment
+             foreach (var reference in owner.References)
+             {
+                 if (assemblies.Any(a => Files.Compare.Equals(a.Name, reference.Name) && a.Token == Token(reference) && a.Version >= reference.Version)) continue;
+-                if (reference.Name.StartsWith("BepInEx", StringComparison.OrdinalIgnoreCase) || reference.Name is "0Harmony" or "ModConfigEnhance")
++                if (reference.Name.StartsWith("BepInEx", StringComparison.OrdinalIgnoreCase) || reference.Name == "0Harmony" || ManagerIdentity.IsManagerAssembly(reference.Name))
+                 { issues.Add(owner.Path + " 缺少目标管理程序集：" + reference.FullName); continue; }
+                 string platform = Files.Child(managed, reference.Name + ".dll");
+                 if (File.Exists(platform))
+@@ -96,7 +96,7 @@ internal static class PackCompleteEnvironment
+ 
+     internal static T Clone<T>(T value) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Files.Json), Files.Json)!;
+     internal static string LedgerPath(PackStorage storage, string id) => id.Length == 0
+-        ? Path.Combine(storage.Root, "MCE", "shop", "installed-unmanaged.json") : Path.Combine(storage.Workspace(id), "shop-installed.json");
++        ? ManagerIdentity.Runtime(storage.Root, "shop", "installed-unmanaged.json") : Path.Combine(storage.Workspace(id), "shop-installed.json");
+     internal static string? ReadLedgerText(PackStorage storage, string id)
+     {
+         string path = LedgerPath(storage, id); Files.RejectLinks(storage.Root, path);
+diff --git a/Updater/PackImportEnvironment.cs b/Updater/PackImportEnvironment.cs
+index ad25f98..4101075 100644
+--- a/Updater/PackImportEnvironment.cs
++++ b/Updater/PackImportEnvironment.cs
+@@ -6,7 +6,9 @@ namespace MCE.UpdateWorker;
+ // Portable description is data, never a destination or a command. It is outside the payload.
+ internal sealed class PackImportEnvironment
+ {
+-    internal const string FileName = "MCEEnvironment.json";
++    internal const string FileName = ManagerIdentity.EnvironmentFile;
++    /// <summary>1.0.0 拆分：旧版发布的完整环境用 MCEEnvironment.json，同样认（暂存时统一存成新名）。</summary>
++    internal static bool IsDescription(string name) => name.Equals(FileName, StringComparison.OrdinalIgnoreCase) || name.Equals(ManagerIdentity.LegacyEnvironmentFile, StringComparison.OrdinalIgnoreCase);
+     public string AssemblyMode { get; set; } = "embedded";
+     public List<PackStoreRoot> StorePackages { get; set; } = new();
+     public int SchemaVersion { get; set; }
+diff --git a/Updater/PackImportTarget.cs b/Updater/PackImportTarget.cs
+index 05eba7b..6f63f7b 100644
+--- a/Updater/PackImportTarget.cs
++++ b/Updater/PackImportTarget.cs
+@@ -29,7 +29,7 @@ internal static class PackImportTarget
+         foreach (var group in assemblies.GroupBy(a => a.Name, Files.Compare).Where(g => g.Count() > 1)) issues.Add("目标程序集同名冲突：" + group.Key);
+         foreach (string name in new[] { "BepInEx", "BepInEx.Preloader", "0Harmony" })
+             if (!assemblies.Any(a => a.Name == name && a.Path.Replace('\\', '/').StartsWith("core/", StringComparison.OrdinalIgnoreCase))) issues.Add("独立环境缺少 core 加载器/基础库：" + name);
+-        if (!plugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) issues.Add("独立环境缺少启用的 MCE 宿主。");
++        if (!plugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) issues.Add("独立环境缺少启用的 MCE 宿主。");
+         string managed = Path.Combine(Files.GameRootFor(storage.Root), "PEAK_Data", "Managed");
+         foreach (var owner in assemblies)
+         foreach (var reference in owner.References)
+diff --git a/Updater/PackImports.cs b/Updater/PackImports.cs
+index 50efbb8..9790666 100644
+--- a/Updater/PackImports.cs
++++ b/Updater/PackImports.cs
+@@ -27,13 +27,13 @@ internal static class PackImports
+         foreach (string demo in rawFiles.Where(IsDemo).ToList()) { File.Delete(Files.Child(raw, demo)); rawFiles.Remove(demo); }
+         var single = rawFiles.Where(p => Path.GetFileName(p).Equals("profile.json", StringComparison.OrdinalIgnoreCase)).ToList();
+         var releases = rawFiles.Where(p => Path.GetFileName(p).Equals("release.json", StringComparison.OrdinalIgnoreCase)
+-            && Path.GetFileName(Path.GetDirectoryName(p))!.Equals("MCEPack", StringComparison.OrdinalIgnoreCase)).ToList();
++            && ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))).ToList();
+         if (releases.Count > 1) throw new IOException("导入内容含多个整合包身份，请拆分后分别导入。");
+         JsonObject? release = releases.Count == 0 ? null : JsonNode.Parse(File.ReadAllText(Files.Child(raw, releases[0])))?.AsObject();
+         if (release?["schemaVersion"] is JsonNode schema && schema.GetValue<int>() != 1) throw new IOException("整合包资料版本不受支持。");
+         string publication = release?["packId"]?.GetValue<string>() ?? "";
+         task.SingleProfile = publication.Length == 0 && single.Count == 1 && rawFiles.All(p => !Packages.IsAssembly(p))
+-            && !rawFiles.Any(p => Path.GetFileName(p).Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase));
++            && !rawFiles.Any(p => PackImportEnvironment.IsDescription(Path.GetFileName(p)));
+         if (task.SingleProfile)
+         {
+             var index = storage.Read();
+@@ -52,15 +52,15 @@ internal static class PackImports
+         while (Directory.GetFiles(root).Length == 0 && Directory.GetDirectories(root).Length == 1)
+         {
+             string child = Directory.GetDirectories(root)[0];
+-            if (new[] { "BepInEx", "plugins", "config", "patchers", "core", "monomod", "MCEPack" }.Contains(Path.GetFileName(child), Files.Compare)) break;
++            if (new[] { "BepInEx", "plugins", "config", "patchers", "core", "monomod", ManagerIdentity.PackFolder, ManagerIdentity.LegacyPackFolder }.Contains(Path.GetFileName(child), Files.Compare)) break;
+             root = child;
+         }
+-        var descriptions = Files.Inventory(root).Keys.Where(p => Path.GetFileName(p).Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase)).ToList();
++        var descriptions = Files.Inventory(root).Keys.Where(p => PackImportEnvironment.IsDescription(Path.GetFileName(p))).ToList();
+         if (descriptions.Count > 1) throw new IOException("存在多个独立环境描述。");
+         PackImportEnvironment? environment = descriptions.Count == 0 ? null : PackImportEnvironment.Read(Files.Child(root, descriptions[0]));
+         if (environment != null)
+         {
+-            if (!Files.Compare.Equals(descriptions[0], PackImportEnvironment.FileName)) throw new IOException("独立环境描述必须位于包根目录。");
++            if (!PackImportEnvironment.IsDescription(descriptions[0]) || descriptions[0].Contains('/') || descriptions[0].Contains('\\')) throw new IOException("独立环境描述必须位于包根目录。");
+             task.Proposed.EnvironmentVersion = 2; task.Proposed.MinimumWorkerProtocol = 2;
+             Files.Save(Path.Combine(task.StagingDirectory, PackImportEnvironment.FileName), environment);
+         }
+@@ -172,7 +172,7 @@ internal static class PackImports
+                 visiting.Remove(key); done.Add(key); return;
+             }
+             if (!approvedSet.Contains(key + "|" + version + "|" + resolved.DownloadUrl)) throw new IOException("依赖清单与已同意的预览不一致，未下载：" + key + " " + version + "。请重新预览。");
+-            string cache = Files.Child(Path.Combine(storage.Root, "MCE", "downloads"), value + ".zip"); Directory.CreateDirectory(Path.GetDirectoryName(cache)!);
++            string cache = Files.Child(ManagerIdentity.Runtime(storage.Root, "downloads"), value + ".zip"); Directory.CreateDirectory(Path.GetDirectoryName(cache)!);
+             task.Message = "正在下载依赖：" + PackReportText.Pretty(key) + " " + version + "（已完成 " + done.Count + " 个）"; Files.Save(storage.TaskPath, task);
+             await store.Download(resolved.DownloadUrl, cache, (_, _, _) => { }, CancellationToken.None);
+             string extracted = Path.Combine(task.StagingDirectory, "dependencies", value);
+@@ -263,7 +263,7 @@ internal static class PackImports
+             }
+         }
+         var authorRoots = Files.Inventory(content).Keys.Where(p => Path.GetFileName(p).Equals("profiles.json", StringComparison.OrdinalIgnoreCase)
+-            && Path.GetFileName(Path.GetDirectoryName(p))!.Equals("MCEPack", StringComparison.OrdinalIgnoreCase)).Select(p => Path.GetDirectoryName(p)!.Replace('\\', '/')).ToList();
++            && ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))).Select(p => Path.GetDirectoryName(p)!.Replace('\\', '/')).ToList();
+         if (authorRoots.Count > 1) task.Proposed.Problems.Add("存在多份作者资料根目录。");
+         task.Proposed.AuthorRoot = authorRoots.FirstOrDefault() ?? "";
+         if (task.Proposed.AuthorRoot.Length > 0) PackSignature.Verify(Files.Child(content, task.Proposed.AuthorRoot));
+@@ -543,7 +543,7 @@ internal static class PackImports
+             {
+                 // Root store metadata is not BepInEx payload; payload still has an exact descriptor.
+                 if (relative.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || relative.Equals("icon.png", StringComparison.OrdinalIgnoreCase)) continue;
+-                if (relative.Equals(PackImportEnvironment.FileName, StringComparison.OrdinalIgnoreCase) || Packages.Documentation(relative) && !relative.Contains('/')) continue;
++                if (PackImportEnvironment.IsDescription(relative) || Packages.Documentation(relative) && !relative.Contains('/')) continue;
+                 if (lower.StartsWith("bepinex/")) relative = relative[8..];
+                 if (!PackStorage.ManagedPath(relative, pack) || relative.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) || relative.EndsWith(".sh", StringComparison.OrdinalIgnoreCase))
+                     throw new IOException("完整环境含越界或脚本内容：" + relative);
+@@ -592,14 +592,18 @@ internal static class PackImports
+         var removed = new HashSet<string>(Files.Compare);
+         foreach (var plugin in plugins)
+         {
+-            var host = request.HostPlugins.FirstOrDefault(h => Files.Compare.Equals(h.Guid, plugin.Guid)); if (host == null) continue;
+-            pack.Requirements.Add(new PackHostPlugin { Guid = plugin.Guid, Version = plugin.Version });
+-            if (!Version.TryParse(host.Version, out var actual) || !Version.TryParse(plugin.Version, out var wanted) || actual < wanted)
++            var host = request.HostPlugins.FirstOrDefault(h => Files.Compare.Equals(h.Guid, plugin.Guid))
++                // 1.0.0 拆分：包里带的是旧版管理器（旧 GUID），本机是新管理器：同样视为宿主副本、不比版本
++                ?? (ManagerIdentity.IsManagerGuid(plugin.Guid) ? request.HostPlugins.FirstOrDefault(h => ManagerIdentity.IsManagerGuid(h.Guid)) : null);
++            if (host == null) continue;
++            bool managerSuccession = ManagerIdentity.IsManagerGuid(plugin.Guid) && !Files.Compare.Equals(host.Guid, plugin.Guid);
++            pack.Requirements.Add(new PackHostPlugin { Guid = managerSuccession ? host.Guid : plugin.Guid, Version = managerSuccession ? host.Version : plugin.Version });
++            if (!managerSuccession && (!Version.TryParse(host.Version, out var actual) || !Version.TryParse(plugin.Version, out var wanted) || actual < wanted))
+                 pack.Problems.Add("宿主版本不足：" + plugin.Guid + " 要求 " + plugin.Version + "，本机 " + host.Version);
+             string directory = Path.GetDirectoryName(plugin.File)!;
+             for (var ancestor = new DirectoryInfo(directory); ancestor != null && Files.Within(Path.Combine(content, "plugins"), ancestor.FullName); ancestor = ancestor.Parent)
+                 if (File.Exists(Path.Combine(ancestor.FullName, "manifest.json"))) { directory = ancestor.FullName; break; }
+-            if (plugins.Any(p => Files.Within(directory, p.File) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
++            if (plugins.Any(p => Files.Within(directory, p.File) && !ManagerIdentity.IsManagerGuid(p.Guid) && request.HostPlugins.All(h => !Files.Compare.Equals(h.Guid, p.Guid))))
+             { pack.Problems.Add("宿主与其他模组混放，文件归属需人工确认：" + directory); continue; }
+             foreach (string path in inventory.Keys.Where(p => Files.Within(directory, Files.Child(content, p)))) removed.Add(path);
+         }
+diff --git a/Updater/PackMaintenance.cs b/Updater/PackMaintenance.cs
+index 05322b7..1ff4e1d 100644
+--- a/Updater/PackMaintenance.cs
++++ b/Updater/PackMaintenance.cs
+@@ -198,7 +198,7 @@ internal static class PackMaintenance
+             if (!path.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) || !PackStorage.ManagedPath(path)) Block(p, "scope", "只能删除 plugins 下的模组文件：" + path);
+             else if (!owned.ContainsKey(path)) Block(p, "not-in-pack", "文件不在该整合包清单中：" + path);
+             else if (!PackEnvironmentPolicy.IsComplete(pack) && HostOwned(index, path)) Block(p, "host-file", "这是固定宿主（MCE）的文件，不能删除：" + path);
+-            else if (path.Contains("/MCEPack/", StringComparison.OrdinalIgnoreCase) || pack.AuthorRoot.Length > 0 && path.StartsWith(pack.AuthorRoot.Replace('\\', '/').TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))
++            else if (ManagerIdentity.ContainsPackFolder(path) || pack.AuthorRoot.Length > 0 && path.StartsWith(pack.AuthorRoot.Replace('\\', '/').TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))
+                 Block(p, "author-data", "作者资料受签名保护，不能单独删除：" + path);
+         }
+         if (p.Blockers.Count > 0) return;
+@@ -269,7 +269,7 @@ internal static class PackMaintenance
+         var goneNames = gone.Select(f => f.Name).ToHashSet(Files.Compare);
+         var provided = kept.SelectMany(f => f.Guids).Concat(PackEnvironmentPolicy.IsComplete(pack) ? Array.Empty<string>() : index.HostPlugins.Select(h => h.Guid)).ToHashSet(Files.Compare);
+         var providedNames = kept.Select(f => f.Name).ToHashSet(Files.Compare);
+-        foreach (var guid in gone.SelectMany(f => f.Guids)) if (PackEnvironmentPolicy.IsComplete(pack) ? Files.Compare.Equals(guid, "com.aiae.modconfigenhance") : index.HostPlugins.Any(h => Files.Compare.Equals(h.Guid, guid)))
++        foreach (var guid in gone.SelectMany(f => f.Guids)) if (PackEnvironmentPolicy.IsComplete(pack) ? ManagerIdentity.IsManagerGuid(guid) : index.HostPlugins.Any(h => Files.Compare.Equals(h.Guid, guid)))
+             issues.Add(new MaintenanceIssue { Code = "host-file", Message = "要删除的插件是固定宿主：" + guid });
+         foreach (var other in kept)
+         {
+@@ -321,12 +321,12 @@ internal static class PackMaintenance
+         }
+     }
+ 
+-    internal static string DownloadsDirectory(PackStorage storage) => Path.Combine(storage.Root, "MCE", "downloads");
++    internal static string DownloadsDirectory(PackStorage storage) => ManagerIdentity.Runtime(storage.Root, "downloads");
+     internal static string ViewCacheDirectory(PackStorage storage) => Path.Combine(storage.Home, ".view-cache");
+     internal static string TransactionsDirectory(PackStorage storage) => Path.Combine(storage.Home, ".transactions");
+     internal static string TrashDirectory(PackStorage storage) => Path.Combine(storage.Home, ".trash");
+ 
+-    internal static string ShopTasksDirectory(PackStorage storage)=>Path.Combine(storage.Root,"MCE","shop","tasks");
++    internal static string ShopTasksDirectory(PackStorage storage)=>ManagerIdentity.Runtime(storage.Root,"shop","tasks");
+     internal static string ShopResourcesDirectory(PackStorage storage)=>Path.Combine(MceDirectories.Runtime(MceDirectories.RootFromBepInEx(storage.Root)),"shop-resources");
+     internal static bool CompletedShopTask(string directory,string name)
+     {
+@@ -342,7 +342,7 @@ internal static class PackMaintenance
+         string root=ShopTasksDirectory(storage);if(!Directory.Exists(root))return;Files.RejectLinks(game,root);
+         foreach(string directory in Directory.GetDirectories(root).OrderBy(s=>s,StringComparer.Ordinal)){
+             string name=Path.GetFileName(directory);if(!PackStorage.Id(name)||!CompletedShopTask(directory,name)){plan.Preview.Warnings.Add("商店任务未完成或记录无效，已保留："+name);continue;}
+-            string current=Path.Combine(storage.Root,"MCE","shop","task.json");if(File.Exists(current)){var task=Files.Read<ShopTask>(current);if(task.Id==name&&task.BlocksWrites){plan.Preview.Warnings.Add("商店任务仍被使用，已保留："+name);continue;}}
++            string current=ManagerIdentity.Runtime(storage.Root,"shop","task.json");if(File.Exists(current)){var task=Files.Read<ShopTask>(current);if(task.Id==name&&task.BlocksWrites){plan.Preview.Warnings.Add("商店任务仍被使用，已保留："+name);continue;}}
+             var walk=Walk(game,directory);var item=new MaintenanceItem{Kind="directory",Scope=MaintenanceScopes.ShopTasks,Path=Relative(storage,directory),Bytes=walk.Sum(f=>f.Length),FileCount=walk.Count,Stamp=Digest(walk,"")};
+             plan.Preview.Items.Add(item);plan.Targets.Add(new Target{Item=item,Absolute=directory});
+         }
+@@ -662,7 +662,7 @@ internal static class PackMaintenance
+ 
+     static string MaintenanceDirectory(PackStorage storage)
+     {
+-        string directory = Path.Combine(storage.Root, "MCE", "maintenance");
++        string directory = ManagerIdentity.Runtime(storage.Root, "maintenance");
+         Files.RejectLinks(Directory.GetParent(storage.Root)!.FullName, directory);
+         return directory;
+     }
+diff --git a/Updater/PackPersonalCopy.cs b/Updater/PackPersonalCopy.cs
+index 12b3c3d..cad1b61 100644
+--- a/Updater/PackPersonalCopy.cs
++++ b/Updater/PackPersonalCopy.cs
+@@ -43,7 +43,7 @@ internal static class PackPersonalCopy
+         }
+         var authors = original.Files.Where(f => Path.GetFileName(f.Path).Equals("release.json", StringComparison.OrdinalIgnoreCase))
+             .Select(f => f.Path.Replace('\\', '/')[..f.Path.Replace('\\', '/').LastIndexOf('/')])
+-            .Where(p => Path.GetFileName(p).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)
++            .Where(p => ManagerIdentity.IsPackFolder(Path.GetFileName(p))
+                 || File.Exists(Files.Child(sourceContent, p + "/profiles.json")) || File.Exists(Files.Child(sourceContent, p + "/signature.json")))
+             .Distinct(Files.Compare).ToList();
+         if (original.AuthorRoot.Length > 0 && !authors.Contains(original.AuthorRoot, Files.Compare)) authors.Add(original.AuthorRoot);
+diff --git a/Updater/PackQueue.cs b/Updater/PackQueue.cs
+index 6ddae08..1d82942 100644
+--- a/Updater/PackQueue.cs
++++ b/Updater/PackQueue.cs
+@@ -27,7 +27,7 @@ internal sealed class PackQueue
+     internal bool Watching => Read()?.State is "requested" or "waiting-exit" or "switching" or "recovery-required";
+     internal bool UpdateBlocksEnvironment(UpdateJob job)
+     {
+-        string path = Path.Combine(storage.Root, "MCE", "jobs", job.Id, "transaction.json");
++        string path = ManagerIdentity.Runtime(storage.Root, "jobs", job.Id, "transaction.json");
+         var plan = File.Exists(path) ? Files.Read<Transaction>(path) : null;
+         string? phase = plan?.Phase;
+         if (plan?.RollbackRequested == true || job.RollbackRequested || phase != null && PackageRules.HasUnfinishedWrites(phase)) return true;
+diff --git a/Updater/PackResolvedImport.cs b/Updater/PackResolvedImport.cs
+index 87d2142..ca2d2aa 100644
+--- a/Updater/PackResolvedImport.cs
++++ b/Updater/PackResolvedImport.cs
+@@ -119,7 +119,7 @@ internal static class PackResolvedImport
+                 string relative = file.Key.Replace('\\', '/');
+                 if (!relative.Contains('/') && (relative.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || relative.Equals("icon.png", StringComparison.OrdinalIgnoreCase) || Packages.Documentation(relative))) continue;
+                 if (relative.StartsWith("BepInEx/", StringComparison.OrdinalIgnoreCase)) relative = relative[8..];
+-                if (relative.StartsWith("PEAK_Data/", StringComparison.OrdinalIgnoreCase) || relative.StartsWith("MCE/", StringComparison.OrdinalIgnoreCase) || relative.StartsWith("monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(relative, Files.Compare)) throw new IOException("依赖 ZIP 包含非环境内容：" + relative);
++                if (relative.StartsWith("PEAK_Data/", StringComparison.OrdinalIgnoreCase) || ManagerIdentity.UnderRuntime(relative) || relative.StartsWith("monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(relative, Files.Compare)) throw new IOException("依赖 ZIP 包含非环境内容：" + relative);
+                 relative = ShopQueue.Route(relative, entry.Key);
+                 if (!PackStorage.ManagedPath(relative, 2) || new[] { ".ps1", ".bat", ".cmd", ".sh" }.Any(e => relative.EndsWith(e, StringComparison.OrdinalIgnoreCase))) throw new IOException("依赖 ZIP 路径越界：" + relative);
+                 string target = Files.Child(content, relative); Files.RejectLinks(content, target);
+diff --git a/Updater/PackStorage.cs b/Updater/PackStorage.cs
+index 0f145dd..55c94cb 100644
+--- a/Updater/PackStorage.cs
++++ b/Updater/PackStorage.cs
+@@ -9,8 +9,8 @@ internal sealed class PackStorage
+     internal readonly string Root, Home, IndexPath, TaskPath;
+     internal PackStorage(string root)
+     {
+-        Root = root; Home = Path.Combine(root, "MCE", "packs");
+-        IndexPath = Path.Combine(Home, "index.json"); TaskPath = Path.Combine(root, "MCE", "pack-task.json");
++        Root = root; Home = ManagerIdentity.Runtime(root, "packs");
++        IndexPath = Path.Combine(Home, "index.json"); TaskPath = ManagerIdentity.Runtime(root, "pack-task.json");
+         Files.RejectLinks(Directory.GetParent(root)!.FullName, Home);
+     }
+     // Structure/protocol only: execution must explicitly Validate its target/plan.
+diff --git a/Updater/PackTransactions.cs b/Updater/PackTransactions.cs
+index 4570afb..1907c1b 100644
+--- a/Updater/PackTransactions.cs
++++ b/Updater/PackTransactions.cs
+@@ -178,7 +178,7 @@ internal static class PackTransactions
+     // Layout: <pack>/workspace/language/*.txt holds the personal dictionaries captured at save time (top level only, like config/ModConfigEnhance/language).
+     // Author dictionaries of an installed publication already travel as plugins/**/MCEPack/language inside the revision and are discovered from the file list.
+     // Nothing is added to the plugin inventory or to signed author data, so signatures and plugin discovery are unaffected.
+-    const string AuthorLanguage = "/MCEPack/language/";
++    static readonly string[] AuthorLanguages = { "/" + ManagerIdentity.PackFolder + "/language/", "/" + ManagerIdentity.LegacyPackFolder + "/language/" };
+     internal static List<string> LanguageRoots(PackStorage storage, PackRecord pack)
+     {
+         var roots = new List<string>(); string content = storage.Content(pack);
+@@ -186,9 +186,14 @@ internal static class PackTransactions
+         try { if (pack.AuthorRoot.Length > 0) Add(Files.Child(content, pack.AuthorRoot + "/language")); } catch (IOException) { }
+         foreach (var file in pack.Files)
+         {
+-            string path = file.Path.Replace((char)92, '/'); int at = path.IndexOf(AuthorLanguage, StringComparison.OrdinalIgnoreCase);
+-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguage.Length) >= 0) continue;
+-            try { Add(Files.Child(content, path[..(at + AuthorLanguage.Length - 1)])); } catch (IOException) { }
++            string path = file.Path.Replace((char)92, '/');
++            foreach (string folder in AuthorLanguages)
++            {
++                int at = path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
++                if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
++                try { Add(Files.Child(content, path[..(at + folder.Length - 1)])); } catch (IOException) { }
++                break;
++            }
+         }
+         Add(Path.Combine(storage.Workspace(pack.Id), "language"));
+         return roots;
+@@ -198,9 +203,10 @@ internal static class PackTransactions
+         var roots = new List<string>();
+         foreach (var file in live)
+         {
+-            string path = file.Path; int at = path.IndexOf(AuthorLanguage, StringComparison.OrdinalIgnoreCase);
+-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguage.Length) >= 0) continue;
+-            string directory = Files.Child(storage.Root, path[..(at + AuthorLanguage.Length - 1)]);
++            string path = file.Path; string? folder = AuthorLanguages.FirstOrDefault(f => path.IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0);
++            int at = folder == null ? -1 : path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
++            if (folder == null || at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
++            string directory = Files.Child(storage.Root, path[..(at + folder.Length - 1)]);
+             if (!roots.Contains(directory, Files.Compare)) roots.Add(directory);
+         }
+         roots.Add(MceDirectories.Language(MceDirectories.RootFromBepInEx(storage.Root)));
+@@ -230,7 +236,7 @@ internal static class PackTransactions
+     /// <summary>The "Language file" choice MCE keeps in its own settings; empty means "follow the game language".</summary>
+     static string SelectedLanguage(PackStorage storage)
+     {
+-        string file = Path.Combine(storage.Root, "config", "com.aiae.modconfigenhance.cfg");
++        string file = Path.Combine(storage.Root, "config", ManagerIdentity.ConfigFileName);
+         try
+         {
+             using var input = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+@@ -271,7 +277,7 @@ internal static class PackTransactions
+     }
+     internal static void ValidateHosts(PackStorage storage, PackIndex index)
+     {
+-        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => p.Guid == "com.aiae.modconfigenhance")) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
++        if (index.HostRoots.Count == 0 || !index.HostPlugins.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) throw new IOException("缺少 MCE 宿主及依赖归属，无法接管。");
+         foreach (string root in index.HostRoots)
+         {
+             if (!root.StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) || root.TrimEnd('/') == "plugins") throw new IOException("宿主必须位于独立插件目录。");
+@@ -282,6 +288,8 @@ internal static class PackTransactions
+     {
+         foreach (var requirement in pack.Requirements)
+         {
++            // 1.0.0 拆分：旧整合包固定的宿主是旧 GUID（2.x 版本号）；新管理器接替它，版本号从 1.0.0 重新起算，按「已满足」处理
++            if (ManagerIdentity.IsManagerGuid(requirement.Guid) && hosts.Any(p => ManagerIdentity.IsManagerGuid(p.Guid))) continue;
+             var actual = hosts.FirstOrDefault(p => Files.Compare.Equals(p.Guid, requirement.Guid));
+             if (actual == null || !Version.TryParse(actual.Version, out var version) || !Version.TryParse(requirement.Version, out var minimum) || version < minimum)
+                 throw new IOException("固定宿主版本不满足：" + requirement.Guid + " >= " + requirement.Version);
+@@ -393,9 +401,9 @@ internal static class PackTransactions
+     }
+     static void MigrateWorkspace(PackStorage storage, string id, bool copyLedger = true)
+     {
+-        string old = Path.Combine(storage.Root, "config", "ModConfigEnhance"), workspace = storage.Workspace(id);
++        string old = Path.Combine(storage.Root, "config", ManagerIdentity.ConfigDirectory), workspace = storage.Workspace(id);
+         PackStorage.CopyTree(Path.Combine(old, "profiles"), Path.Combine(workspace, "profiles"));
+-        string shopLedger=Path.Combine(storage.Root,"MCE","shop","installed-unmanaged.json");
++        string shopLedger=ManagerIdentity.Runtime(storage.Root,"shop","installed-unmanaged.json");
+         if(copyLedger && File.Exists(shopLedger))Files.CopyAtomic(shopLedger,Path.Combine(workspace,"shop-installed.json"));
+         foreach (string name in new[] { "applied-profile.json", "pending-profile.json" })
+         {
+diff --git a/Updater/Program.cs b/Updater/Program.cs
+index 9d283c0..3286fc2 100644
+--- a/Updater/Program.cs
++++ b/Updater/Program.cs
+@@ -19,7 +19,7 @@ try
+     if (args.Length == 1 && args[0] == "--protocol")
+     { Console.WriteLine("MCE worker protocol=2 build=" + WorkerRecovery.BuildIdentity); return 0; }
+     int index = Array.IndexOf(args, "--root");
+-    if (index < 0 || index + 1 >= args.Length) throw new ArgumentException("用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw|en-us]");
++    if (index < 0 || index + 1 >= args.Length) throw new ArgumentException("用法：IGMM.UpdateWorker.exe --root <BepInEx目录> [--protocol 2 --once | --recovery-status | --recover [--journal kind:id]] [--language zh-cn|zh-tw|en-us]");
+     string root = Path.GetFullPath(args[index + 1]).TrimEnd('\\', '/');
+     // Optional: the real game folder. Absent it the parent of --root is used, which is only correct for a
+     // plain local installation; a manager profile lives elsewhere and would otherwise be mistaken for it.
+@@ -112,7 +112,7 @@ catch (Exception error)
+     if (!args.Contains("--write-protocol-manifest") && !args.Contains("--validate-protocol-manifest"))
+     {
+         System.Threading.Mutex? dialog = null; bool owned = false;
+-        try { dialog = new System.Threading.Mutex(true, @"Local\MCE.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
++        try { dialog = new System.Threading.Mutex(true, @"Local\IGMM.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
+         try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "In-Game Mod Manager", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
+         finally { if (owned) dialog!.ReleaseMutex(); dialog?.Dispose(); }
+     }
+@@ -124,7 +124,7 @@ catch (Exception error)
+             string root = Path.GetFullPath(args[index + 1]).TrimEnd('\\', '/');
+             if (Directory.Exists(Path.Combine(root, "plugins")))
+             {
+-                string home = Path.Combine(root, "MCE"); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
++                string home = ModConfigEnhance.Updating.ManagerIdentity.Runtime(root); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
+                 Files.Save(Path.Combine(home, "worker-error.json"), new { Message = ModConfigEnhance.Updating.UpdateMessages.Encode(error.Message), UpdatedUtc = DateTime.UtcNow.ToString("O") });
+             }
+         }
+diff --git a/Updater/QueueWorker.cs b/Updater/QueueWorker.cs
+index 7994524..f200c16 100644
+--- a/Updater/QueueWorker.cs
++++ b/Updater/QueueWorker.cs
+@@ -30,7 +30,7 @@ internal sealed partial class QueueWorker : IDisposable
+     {
+         WorkerTargetProtocol.Initialize();
+         WorkerRecovery.ValidateIndex(root);
+-        Files.ValidateRoot(root); this.root = root; home = Path.Combine(root, "MCE");
++        Files.ValidateRoot(root); this.root = root; home = ManagerIdentity.Runtime(root);
+         Directory.CreateDirectory(home); Files.RejectLinks(Directory.GetParent(root)!.FullName, home);
+         WorkerLog.Initialize(home);
+         if (UpdateWriteMarker.IsActive(root)) WorkerLog.Warn("a previous write marker was still active at startup");
+diff --git a/Updater/ShopCoreBatch.cs b/Updater/ShopCoreBatch.cs
+index c42812c..0656aa2 100644
+--- a/Updater/ShopCoreBatch.cs
++++ b/Updater/ShopCoreBatch.cs
+@@ -6,7 +6,7 @@ namespace MCE.UpdateWorker;
+ internal sealed partial class ShopQueue
+ {
+     static bool IsCorePackage(ShopPackage p)=>(Files.Compare.Equals(p.ClaimRoot,"core")||p.ClaimRoot.StartsWith("core/",StringComparison.OrdinalIgnoreCase))||p.Files.Any(f=>f.Path.StartsWith("core/",StringComparison.OrdinalIgnoreCase));
+-    static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||Files.Compare.Equals(p.Key,"AiAeT-ModConfigEnhance")||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetFileName(f.Path).Equals("ModConfigEnhance.dll",StringComparison.OrdinalIgnoreCase))||p.PluginGuids.Contains("com.aiae.modconfigenhance",Files.Compare);
++    static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||ManagerIdentity.IsManagerPackage(p.Key)||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetFileName(f.Path).Equals("ModConfigEnhance.dll",StringComparison.OrdinalIgnoreCase))||p.PluginGuids.Contains("com.aiae.modconfigenhance",Files.Compare);
+     void RequireContext(ShopTask t)
+     {
+         var index=storage.Read();
+diff --git a/Updater/ShopDependencyValidation.cs b/Updater/ShopDependencyValidation.cs
+index 44fd2a1..a7e3011 100644
+--- a/Updater/ShopDependencyValidation.cs
++++ b/Updater/ShopDependencyValidation.cs
+@@ -40,7 +40,7 @@ internal static class ShopDependencyValidation
+         var oldIssues = new HashSet<string>(Validate(baseline), StringComparer.Ordinal);
+         result.Warnings.AddRange(Validate(plugins).Where(i => !oldIssues.Contains(i) && !result.Hard.Contains(i)));
+         var assemblyIssues = CheckAssemblyConsumers(root,stage,originals,desired);
+-        var required = new HashSet<string>(Files.Compare) { "com.aiae.modconfigenhance" };
++        var required = new HashSet<string>(Files.Compare) { ManagerIdentity.Guid, ManagerIdentity.LegacyGuid };
+         bool changed;
+         do { changed = false; foreach (var plugin in baseline.Where(p => required.Contains(p.Guid)))
+             foreach (var dependency in plugin.Dependencies.Where(d => !d.Optional)) changed |= required.Add(dependency.Guid); } while(changed);
+diff --git a/Updater/ShopLocalImport.cs b/Updater/ShopLocalImport.cs
+index b489316..d161268 100644
+--- a/Updater/ShopLocalImport.cs
++++ b/Updater/ShopLocalImport.cs
+@@ -91,8 +91,8 @@ internal sealed partial class ShopQueue
+                 if (entry.Path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) throw new IOException("Executable files are not supported by local mod import: " + entry.Path);
+                 if (entry.Path.StartsWith("core/", StringComparison.OrdinalIgnoreCase)) ApproveCoreFile(task, entry);
+                 else if (!Safe(entry.Path, index)) throw new IOException("Unsupported or protected content: " + entry.Path);
+-                if (Path.GetFileName(entry.Path).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)
+-                    || package.PluginGuids.Contains("com.aiae.modconfigenhance", Files.Compare))
++                if (ManagerIdentity.IsManagerDll(Path.GetFileName(entry.Path))
++                    || package.PluginGuids.Any(ManagerIdentity.IsManagerGuid))
+                     throw new IOException("Use the dedicated manager update flow.");
+                 if (File.Exists(target)) task.Details.Add("Existing file will be backed up and replaced: " + entry.Path);
+                 string staged = Files.Child(Path.Combine(Work(task), "content"), entry.Path);
+diff --git a/Updater/ShopQueue.cs b/Updater/ShopQueue.cs
+index 9d7cfe5..2ad31fa 100644
+--- a/Updater/ShopQueue.cs
++++ b/Updater/ShopQueue.cs
+@@ -13,10 +13,10 @@ internal sealed partial class ShopQueue
+     readonly bool analysisOnly;
+     readonly bool independent;
+     internal static readonly object MetadataGate = new();
+-    string Home => analysisHome ?? Path.Combine(storage.Root,"MCE","shop");
++    string Home => analysisHome ?? ManagerIdentity.Runtime(storage.Root,"shop");
+     string TaskPath => Path.Combine(Home,"task.json");
+     string LedgerPath => LedgerPathFor(storage.Read());
+-    string LedgerPathFor(PackIndex index) => index.ActivePackId.Length>0 ? Path.Combine(storage.Workspace(index.ActivePackId),"shop-installed.json") : Path.Combine(storage.Root,"MCE","shop","installed-unmanaged.json");
++    string LedgerPathFor(PackIndex index) => index.ActivePackId.Length>0 ? Path.Combine(storage.Workspace(index.ActivePackId),"shop-installed.json") : ManagerIdentity.Runtime(storage.Root,"shop","installed-unmanaged.json");
+     internal static HttpMessageHandler? TestHandler = null;
+     internal static Action<string>? StepProbe = null;
+     internal ShopQueue(string root, string? preparationHome = null, bool executeIndependent = false) { analysisHome=preparationHome; analysisOnly=preparationHome!=null && !executeIndependent; independent=executeIndependent; storage=new(root);Files.RejectLinks(Directory.GetParent(root)!.FullName,Home);var task=Read();if(task?.State is "downloading" or "resolving"){task.State="failed";task.Error="Preparation interrupted. Installed files were not changed; preview again.";Save(task);}else if(task!=null&&PackStorage.Id(task.Id)&&!File.Exists(Path.Combine(Work(task),"task.json")))Save(task); }
+@@ -183,7 +183,7 @@ internal sealed partial class ShopQueue
+             }
+             if(reuse){if(previous!.Files.Any(f=>Packages.IsAssembly(f.Path)&&!f.Path.EndsWith(".dll",StringComparison.OrdinalIgnoreCase)))throw new IOException("Required dependency is disabled: "+entry.Key);previous.Reuse=true;t.Packages.Add(previous);continue;}
+             if(previous!=null)t.PreviousPackages.Add(previous);
+-            if(entry.Key=="AiAeT-ModConfigEnhance"&&!reuse)t.Blockers.Add("MCE must use its existing self-update flow.");
++            if(ManagerIdentity.IsManagerPackage(entry.Key)&&!reuse)t.Blockers.Add("MCE must use its existing self-update flow.");
+             t.Packages.Add(new ShopPackage{Key=entry.Key,Version=reuse?installed!.Version:entry.Value.Version,Url=entry.Value.DownloadUrl,Dependencies=entry.Value.Dependencies.ToList(),Reuse=reuse,InstalledAsDependency=entry.Key!=Key(t.Request)&&(installed?.InstalledAsDependency??true),Files=reuse?installed!.Files:new(),PluginGuids=reuse?installed!.PluginGuids:new()});
+         }
+         if(t.Packages.Concat(t.PreviousPackages).Any(IsCorePackage))RequireComplete(t);
+@@ -310,7 +310,7 @@ internal sealed partial class ShopQueue
+         RequireContext(t);
+         RequireComponentUninstall(Key(t.Request));
+         var ledger=Ledger();t.LedgerRevision=ledger.Revision;var target=ledger.Packages.SingleOrDefault(p=>Files.Compare.Equals(p.Key,Key(t.Request)))??FindExternal(Key(t.Request),t.Request.Version,true)??throw new IOException("No verifiable package manifest and independent package ownership were found. No files were removed.");
+-        if(ProtectedHost(target))throw new IOException("Required BepInEx/MCE management host cannot be uninstalled independently: "+target.Key);
++        if(ProtectedHost(target))throw new IOException("Required BepInEx/manager host cannot be uninstalled independently: "+target.Key);
+         // Uninstall is bounded by explicit ownership/protection, not pack migration status.
+         // Installing/replacing core content retains the complete-environment requirement.
+         if(target.VerificationRequired){
+diff --git a/Updater/StoreClient.cs b/Updater/StoreClient.cs
+index 43d4335..1737537 100644
+--- a/Updater/StoreClient.cs
++++ b/Updater/StoreClient.cs
+@@ -24,7 +24,7 @@ internal sealed class StoreClient : IDisposable
+         else if (options.Mode != "direct") throw new IOException("联网方式须为 system、direct 或 custom。");
+         if (testHandler != null) handler.Dispose();
+         http = new HttpClient(testHandler ?? handler) { Timeout = Timeout.InfiniteTimeSpan };
+-        http.DefaultRequestHeaders.UserAgent.ParseAdd("MCE.UpdateWorker/" + typeof(StoreClient).Assembly.GetName().Version!.ToString(3));
++        http.DefaultRequestHeaders.UserAgent.ParseAdd("IGMM.UpdateWorker/" + typeof(StoreClient).Assembly.GetName().Version!.ToString(3));
+     }
+     public void Dispose() => http.Dispose();
+     internal async Task<StoreVersion> Resolve(UpdateJob job, string version, CancellationToken cancellation)
+diff --git a/Updater/WorkerRecovery.cs b/Updater/WorkerRecovery.cs
+index b374ff8..903c32e 100644
+--- a/Updater/WorkerRecovery.cs
++++ b/Updater/WorkerRecovery.cs
+@@ -7,18 +7,18 @@ internal static class WorkerRecovery
+     internal static string BuildIdentity => typeof(WorkerRecovery).Assembly.ManifestModule.ModuleVersionId.ToString("N");
+     internal static void ValidateIndex(string root)
+     {
+-        string path = Path.Combine(root, "MCE", "packs", "index.json"); Files.RejectLinks(root, path);
++        string path = ManagerIdentity.Runtime(root, "packs", "index.json"); Files.RejectLinks(root, path);
+         if (!File.Exists(path)) return;
+         using var document = JsonDocument.Parse(File.ReadAllText(path)); var index = document.RootElement;
+         WorkerProtocol.RequireProtocol(index.TryGetProperty("SchemaVersion", out var schema) ? schema.GetInt32() : 1,
+             index.TryGetProperty("MinimumWorkerProtocol", out var minimum) ? minimum.GetInt32() : 1);
+     }
+     internal sealed record Entry(string Kind, string Id, string Journal, string Phase, int SourceProcessId);
+-    static void Checked(string root, string path) { if (!Files.Within(Path.Combine(root, "MCE"), path)) throw new IOException("Recovery path outside management tree."); Files.RejectLinks(root, path); }
++    static void Checked(string root, string path) { if (!Files.Within(ManagerIdentity.Runtime(root), path)) throw new IOException("Recovery path outside management tree."); Files.RejectLinks(root, path); }
+     internal static List<Entry> Scan(string root)
+     {
+         Files.ValidateRoot(root); ValidateIndex(root); var entries = new List<Entry>();
+-        string home = Path.Combine(root, "MCE"); Checked(root, Path.Combine(home, "queue.json"));
++        string home = ManagerIdentity.Runtime(root); Checked(root, Path.Combine(home, "queue.json"));
+         string queue = Path.Combine(home, "queue.json");
+         if (File.Exists(queue))
+         {
+@@ -121,16 +121,16 @@ internal sealed partial class QueueWorker
+             {
+                 var storage = new PackStorage(root); var plan = Files.Read<PackSwitchPlan>(entry.Journal);
+                 PackTransactions.Rollback(storage, plan);
+-                string path = Path.Combine(root, "MCE", "pack-task.json"); var task = Files.Read<PackTask>(path);
++                string path = ManagerIdentity.Runtime(root, "pack-task.json"); var task = Files.Read<PackTask>(path);
+                 task.State = "failed"; task.Message = "Existing interrupted transaction recovered; preview again to retry."; Files.Save(path, task);
+             }
+             else if (entry.Kind == "shop") ShopQueue.RecoverExistingOnly(root, entry.Id);
+             else if(entry.Kind=="operation")ShopQueue.RecoverIndependentOnly(root,entry.Id);
+             else
+             {
+-                string path = Path.Combine(root, "MCE", "queue.json"); var snapshot = Files.Read<UpdateSnapshot>(path);
++                string path = ManagerIdentity.Runtime(root, "queue.json"); var snapshot = Files.Read<UpdateSnapshot>(path);
+                 var job = snapshot.Jobs.Single(j => j.Id == entry.Id);
+-                job.WorkDirectory = Path.Combine(root, "MCE", "jobs", job.Id); job.BackupDirectory = Path.Combine(root, "MCE", "backups", job.Id);
++                job.WorkDirectory = ManagerIdentity.Runtime(root, "jobs", job.Id); job.BackupDirectory = ManagerIdentity.Runtime(root, "backups", job.Id);
+                 var plan = Files.Read<Transaction>(entry.Journal); Installer.Rollback(job, plan, null, Array.Empty<string>());
+                 job.State = UpdateStates.RolledBack; job.RecoveryRequired = false; snapshot.Revision++; Files.Save(path, snapshot);
+             }
+@@ -144,7 +144,7 @@ internal sealed partial class ShopQueue
+     ShopQueue(string root, bool recoveryOnly) { storage = new PackStorage(root); }
+     internal static void RecoverIndependentOnly(string root,string id)
+     {
+-        var queue=new ShopQueue(root,Path.Combine(root,"MCE","operations",id,"shop"),executeIndependent:true);
++        var queue=new ShopQueue(root,ManagerIdentity.Runtime(root,"operations",id,"shop"),executeIndependent:true);
+         var task=queue.Read()??throw new IOException("Missing operation recovery task.");
+         var plan=WorkerRecovery.ReadJournal<ShopTransaction>(Path.Combine(queue.Work(task),"transaction.json"),"Phase","Before","After","PackBefore","PackAfter","Placed","Removed");
+         queue.Rollback(task,plan);task.State="failed";task.Message="Existing transaction recovered; preview again to retry.";queue.Save(task);
+diff --git a/Updater/WorkerTargetProtocol.cs b/Updater/WorkerTargetProtocol.cs
+index 9db2e54..ed2f936 100644
+--- a/Updater/WorkerTargetProtocol.cs
++++ b/Updater/WorkerTargetProtocol.cs
+@@ -20,15 +20,15 @@ internal static class WorkerTargetProtocol
+         if (candidates.Count != 1) throw new IOException("Target must contain exactly one MCE host with protocol2 metadata and its complete Tools/Updater release; legacy targets cannot be auto-repaired.");
+         string host = Files.Child(content, candidates[0]);
+         using var module = ModuleDefinition.ReadModule(host, new ReaderParameters { ReadSymbols = false });
+-        if (module.Assembly.Name.Name != "ModConfigEnhance") throw new IOException("Target MCE assembly identity mismatch.");
+-        var declaration = module.Assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute" && a.ConstructorArguments.Count == 2 && (string?)a.ConstructorArguments[0].Value == "MCE.WorkerProtocol");
++        if (!ManagerIdentity.IsManagerAssembly(module.Assembly.Name.Name)) throw new IOException("Target MCE assembly identity mismatch.");
++        var declaration = module.Assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute" && a.ConstructorArguments.Count == 2 && (string?)a.ConstructorArguments[0].Value is "IGMM.WorkerProtocol" or "MCE.WorkerProtocol");
+         if (declaration == null || !int.TryParse(declaration.ConstructorArguments[1].Value?.ToString(), out int protocol) || protocol < requiredProtocol || protocol > WorkerProtocol.Current)
+             throw new IOException("Target MCE does not declare the required worker protocol; product version 2.0.0 alone is insufficient.");
+         return WorkerProtocol.ValidateTools(Path.Combine(Path.GetDirectoryName(host)!, "Tools", "Updater"), requiredProtocol, content);
+     }
+     internal static void RequireCachedExecution(string root)
+     {
+-        string tools = Path.Combine(root, "MCE", "tools");
++        string tools = ManagerIdentity.Runtime(root, "tools");
+         string executable = FrameworkCompat.ProcessPath ?? throw new IOException("Cannot locate worker executable.");
+         if (!Files.Within(tools, executable) || !Path.GetFileName(executable).Equals(WorkerProtocol.Executable, StringComparison.OrdinalIgnoreCase)) throw new IOException("Environment writes require the complete worker release cached under MCE/tools, outside pack payloads.");
+         WorkerProtocol.ValidateTools(Path.GetDirectoryName(executable)!, boundary: Directory.GetParent(root)!.FullName);
+diff --git a/Updater/WorkerWindow.cs b/Updater/WorkerWindow.cs
+index 0ee8045..d0dfd97 100644
+--- a/Updater/WorkerWindow.cs
++++ b/Updater/WorkerWindow.cs
+@@ -157,7 +157,7 @@ internal sealed class WorkerWindow : IDisposable
+         clearButton = Make(footer, T("Clear finished", "清空已结束", "清空已結束"), () => Raise("clear-finished", ""));
+         clearButton.IsEnabled = false;
+         stopButton = Make(footer, T("Stop after current safe step", "完成当前安全步骤后停止", "完成目前安全步驟後停止"), RequestStop);
+-        Make(footer, T("Open data folder", "打开数据目录", "開啟資料目錄"), () => OpenFolder(Path.Combine(root, "MCE")));
++        Make(footer, T("Open data folder", "打开数据目录", "開啟資料目錄"), () => OpenFolder(ModConfigEnhance.Updating.ManagerIdentity.Runtime(root)));
+         Make(footer, T("Copy details", "复制详情", "複製詳情"), () => { try { Clipboard.SetText(Report()); Status(T("Copied.", "已复制。", "已複製。")); } catch (Exception e) { Status(e.Message); } });
+ 
+         shell.Closing += (_, e) => { if (!disposed && !finished) { e.Cancel = true; RequestStop(); } };
+diff --git a/src/Diagnostics/RuntimeLogCapture.cs b/src/Diagnostics/RuntimeLogCapture.cs
+index 447df09..dbc845b 100644
+--- a/src/Diagnostics/RuntimeLogCapture.cs
++++ b/src/Diagnostics/RuntimeLogCapture.cs
+@@ -12,7 +12,7 @@ internal sealed class RuntimeLogCapture : ILogListener
+     private static RuntimeLogCapture? _instance;
+     private static readonly object Gate = new();
+     private static MceLogChannel? _language;
+-    private readonly MceLogChannel _runtime = MceLogApi.CreateChannel("com.aiae.modconfigenhance", "runtime-timestamped", "Runtime logs (timestamped)", 10000);
++    private readonly MceLogChannel _runtime = MceLogApi.CreateChannel(Plugin.PluginGuid, "runtime-timestamped", "Runtime logs (timestamped)", 10000);
+     [ThreadStatic] private static bool _writing;
+     internal static void Start()
+     {
+@@ -28,7 +28,7 @@ internal sealed class RuntimeLogCapture : ILogListener
+     }
+     internal static void LanguageDetail(string message)
+     {
+-        lock (Gate) { _language ??= MceLogApi.CreateChannel("com.aiae.modconfigenhance", "language-detail", "Language changes / 语言变更详情", 10000); _language.Write(new MceLogRecord { Level = MceLogLevel.Debug, Category = "Language", Message = message }); }
++        lock (Gate) { _language ??= MceLogApi.CreateChannel(Plugin.PluginGuid, "language-detail", "Language changes / 语言变更详情", 10000); _language.Write(new MceLogRecord { Level = MceLogLevel.Debug, Category = "Language", Message = message }); }
+     }
+     // File records have no emission identity. Text cannot distinguish history from
+     // a later identical event. Original times live only in this Runtime channel.
+diff --git a/src/LanguageReadme.cs b/src/LanguageReadme.cs
+index 83d9a6f..27bf9e8 100644
+--- a/src/LanguageReadme.cs
++++ b/src/LanguageReadme.cs
+@@ -35,7 +35,7 @@ internal static class LanguageReadme
+         - `//` starts a comment. The first line `// display: Name` sets the name shown in the language dropdown.
+         - Inside text, `\n` is a line break and `\=` an equals sign. Keep `{0}` `{1}` placeholders.
+         - **Never change the left side of `=`**: it must match the on-screen text character for character.
+-        - `MCE_KEY=text` lines change this manager's own interface text (the key is a fixed ID; translate the right side only). Leave them out to use the built-in text.
++        - `IGMM_KEY=text` lines change this manager's own interface text (the key is a fixed ID; translate the right side only). Leave them out to use the built-in text.
+         - Empty right side = not translated, the original shows.
+ 
+         ### Regex rules
+@@ -79,7 +79,7 @@ internal static class LanguageReadme
+ 
+         Not needed: all translation is done by these language files. If XUnity is installed with online machine translation on (`Endpoint` in `AutoTranslatorConfig.ini` is not empty), the manager reminds you once per launch — the two would mix — and can turn its machine translation off for you (the ini is backed up first). Option: `2. Localization / Warn about XUnity machine translation`.
+ 
+-        Feedback and translations: `2323086800@qq.com` · QQ group `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
++        Feedback and translations: `2323086800@qq.com` · QQ group `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
+ 
+         """;
+ 
+@@ -107,7 +107,7 @@ internal static class LanguageReadme
+         - `//` 开头是注释。首行 `// display: 名字` 决定语言下拉框里显示的名字。
+         - 文字里 `\n` 是换行，`\=` 是等号；`{0}` `{1}` 占位符原样保留。
+         - **等号左边一个字都别改**：它要和屏幕上的原文逐字一致才对得上。
+-        - `MCE_键=文字` 的行用来改本管理器自己的界面文字（键是固定 ID，只改右边）。不写就用内置文字。
++        - `IGMM_键=文字` 的行用来改本管理器自己的界面文字（键是固定 ID，只改右边）。不写就用内置文字。
+         - 等号右边留空 = 未翻，显示原文。
+ 
+         ### 正则规则
+@@ -151,7 +151,7 @@ internal static class LanguageReadme
+ 
+         不需要它：翻译全部由这里的语言文件完成。如果装了 XUnity 并且开着在线机翻（`AutoTranslatorConfig.ini` 的 `Endpoint` 不为空），两边的译文会混在一起，管理器每次启动会提醒一次，并可以替你关掉它的在线机翻（先备份 ini）。开关：`2. Localization / Warn about XUnity machine translation`。
+ 
+-        问题反馈和投稿译文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
++        问题反馈和投稿译文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
+ 
+         """;
+ 
+@@ -179,7 +179,7 @@ internal static class LanguageReadme
+         - `//` 開頭是註解。首行 `// display: 名字` 決定語言下拉選單裡顯示的名字。
+         - 文字裡 `\n` 是換行，`\=` 是等號；`{0}` `{1}` 佔位符原樣保留。
+         - **等號左邊一個字都別改**：它要和螢幕上的原文逐字一致才對得上。
+-        - `MCE_鍵=文字` 的行用來改本管理器自己的介面文字（鍵是固定 ID，只改右邊）。不寫就用內建文字。
++        - `IGMM_鍵=文字` 的行用來改本管理器自己的介面文字（鍵是固定 ID，只改右邊）。不寫就用內建文字。
+         - 等號右邊留空 = 未翻，顯示原文。
+ 
+         ### 正則規則
+@@ -223,7 +223,7 @@ internal static class LanguageReadme
+ 
+         不需要它：翻譯全部由這裡的語言檔案完成。如果裝了 XUnity 並且開著線上機翻（`AutoTranslatorConfig.ini` 的 `Endpoint` 不為空），兩邊的譯文會混在一起，管理器每次啟動會提醒一次，並可以替你關掉它的線上機翻（先備份 ini）。開關：`2. Localization / Warn about XUnity machine translation`。
+ 
+-        問題回報和投稿譯文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-ModConfigEnhance
++        問題回報和投稿譯文：`2323086800@qq.com` · QQ 群 `1104320838` · https://github.com/AiAe-156/Peak-InGameModManager
+ 
+         """;
+ }
+diff --git a/src/Loc.GeneratedTerms.cs b/src/Loc.GeneratedTerms.cs
+index d366251..befae4f 100644
+--- a/src/Loc.GeneratedTerms.cs
++++ b/src/Loc.GeneratedTerms.cs
+@@ -4,7 +4,7 @@ internal static partial class Loc
+ {
+     internal static readonly Term[] AdditionalTerms =
+     {
+-        new("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and MCEPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in MCEPack; personal changes are in config/ModConfigEnhance.\n", "\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and MCEPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in MCEPack; personal changes are in config/ModConfigEnhance.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 MCEPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 MCEPack，个人修改位于 config/ModConfigEnhance。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 MCEPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 MCEPack，個人修改位於 config/ModConfigEnhance。\n"),
++        new("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and IGMMPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in IGMMPack; personal changes are in config/InGameModManager.\n", "\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and IGMMPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in IGMMPack; personal changes are in config/InGameModManager.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 IGMMPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 IGMMPack，个人修改位于 config/InGameModManager。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 IGMMPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 IGMMPack，個人修改位於 config/InGameModManager。\n"),
+         new("\n\nThe author's default profile is applied on the first main-menu visit after installation. Later upgrades preserve personal settings.\n", "\n\nThe author's default profile is applied on the first main-menu visit after installation. Later upgrades preserve personal settings.\n", "\n\n安装后首次进入主菜单自动应用作者默认方案。后续升级保留个人设置。\n", "\n\n安裝後首次進入主選單自動套用作者預設方案。後續升級保留個人設定。\n"),
+         new("  |  XUnityTranslate dictionary: {0} entries.", "  |  XUnityTranslate dictionary: {0} entries.", "  |  已加载 XUnityTranslate 词典 {0} 条。", "  |  已載入 XUnityTranslate 詞典 {0} 條。"),
+         new(" (click to retry)", " (click to retry)", "（点击重试）", "（點擊重試）"),
+@@ -666,7 +666,7 @@ internal static partial class Loc
+         ["GIF 超过当前像素预算"] = "GIF exceeds the current pixel budget",
+         ["GIF 颜色索引越界"] = "GIF color index is out of bounds",
+         ["JSON 内容为空。"] = "JSON content is empty.",
+-        ["Localize ModConfig's own UI (Search, Default, Clear, filters …) and this mod's buttons and notices. Texts come from language files in config\\ModConfigEnhance\\language\\, picked in the language row above the mod list. Restart to apply."] = "Localize ModConfig's UI and this mod's buttons and notices. English is the source text; Simplified and Traditional Chinese are built in. Optional language files in config\\ModConfigEnhance\\language\\ override the built-in text. Pick a language above the mod list. Restart to apply this switch.",
++        ["Localize ModConfig's own UI (Search, Default, Clear, filters …) and this mod's buttons and notices. Texts come from language files in config\\InGameModManager\\language\\, picked in the language row above the mod list. Restart to apply."] = "Localize ModConfig's UI and this mod's buttons and notices. English is the source text; Simplified and Traditional Chinese are built in. Optional language files in config\\InGameModManager\\language\\ override the built-in text. Pick a language above the mod list. Restart to apply this switch.",
+         ["Markdown 副本已保存："] = "Markdown copy saved:",
+         ["ModConfig 未能停留在该模组的设置页，请确认该模组仍有可显示的设置项。"] = "ModConfig could not remain on this mod's settings page. Check that the mod still provides visible settings.",
+         ["ModConfig/PEAKLib 导航接口不匹配。"] = "The ModConfig/PEAKLib navigation interface is incompatible.",
+diff --git a/src/Loc.Hotkeys.cs b/src/Loc.Hotkeys.cs
+index 4b0eff9..c963efe 100644
+--- a/src/Loc.Hotkeys.cs
++++ b/src/Loc.Hotkeys.cs
+@@ -15,11 +15,16 @@ internal static partial class Loc
+         var result = new StringBuilder(); foreach (byte b in digest.ComputeHash(Encoding.UTF8.GetBytes(input))) result.Append(b.ToString("x2"));
+         return result.ToString();
+     }
+-    internal static string HotkeyDescriptionKey(string guid, string section, string key) => "ModConfigEnhance.HotkeyDescription." + HotkeyStableId(guid, section, key);
++    /// <summary>写入与导出用新前缀 <c>IGMM.HotkeyDescription.</c>；读取时旧前缀 <c>ModConfigEnhance.HotkeyDescription.</c>（旧语言文件、旧作者词典）同样认。</summary>
++    internal static string HotkeyDescriptionKey(string guid, string section, string key) => Updating.ManagerIdentity.HotkeyPrefix + HotkeyStableId(guid, section, key);
+     internal static string GetHotkeyDescription(string guid, string section, string key)
+     {
+-        string id = HotkeyDescriptionKey(guid, section, key);
+-        return SelectedLanguageGroup?.Entries.TryGetValue(id, out string? value) == true && !string.IsNullOrWhiteSpace(value) && value != id ? value : "";
++        var entries = SelectedLanguageGroup?.Entries;
++        if (entries == null) return "";
++        string stable = HotkeyStableId(guid, section, key);
++        foreach (string id in new[] { Updating.ManagerIdentity.HotkeyPrefix + stable, Updating.ManagerIdentity.LegacyHotkeyPrefix + stable })
++            if (entries.TryGetValue(id, out string? value) && !string.IsNullOrWhiteSpace(value) && value != id) return value;
++        return "";
+     }
+     internal static bool HasHotkeyDescription(string guid, string section, string key) => GetHotkeyDescription(guid, section, key).Length > 0;
+ }
+diff --git a/src/Loc.Import.cs b/src/Loc.Import.cs
+index 25b099f..ad38eb1 100644
+--- a/src/Loc.Import.cs
++++ b/src/Loc.Import.cs
+@@ -111,8 +111,7 @@ internal static partial class Loc
+     private static bool IsPlaceholder(string key, string value)
+     {
+         if (string.Equals(key.Trim(), value.Trim(), StringComparison.Ordinal)) return true;
+-        if (!key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase)) return false;
+-        string id = key.Substring(KeyPrefix.Length).ToUpperInvariant();
++        if (!TryStripTermPrefix(key, out string id)) return false;
+         foreach (Term term in Terms)
+             if (term.Key == id) return string.Equals(term.English, value, StringComparison.Ordinal);
+         return false;
+@@ -213,8 +212,8 @@ internal static class LanguageMigration
+                     int eq = Loc.FindUnescapedEquals(line);
+                     if (eq <= 0) return false;
+                     string key = Loc.Unescape(line.Substring(0, eq)).Trim();
+-                    bool termKey = key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase);
+-                    if (termKey) key = key.Substring(Loc.KeyPrefix.Length).ToUpperInvariant();
++                    bool termKey = Loc.TryStripTermPrefix(key, out string termId);
++                    if (termKey) key = termId;
+                     // 2.5.4（二次审查）：只删 MCE 自己的退役词条与旧版 MCE 的 cfg 原文（精确清单），不按「含 XUnity」模糊删，
+                     // 免得误删新提醒文字、别的模组提到 XUnity 的选项、或用户给 XUnity 起的译名。
+                     return termKey ? Loc.RetiredTerm(key) : RetiredOriginal(key);
+@@ -283,8 +282,8 @@ internal static class LanguageMigration
+         foreach (string key in order)
+         {
+             string value = values[key];
+-            if (key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase) && Loc.SameAsBuiltIn(key.Substring(Loc.KeyPrefix.Length).ToUpperInvariant(), value, code)) continue;
+-            if (!key.StartsWith(Loc.KeyPrefix, StringComparison.OrdinalIgnoreCase) && !Loc.IsRegexKey(key) && Loc.SameAsBuiltInConfig(key, value, code)) continue;
++            if (Loc.TryStripTermPrefix(key, out string termId) && Loc.SameAsBuiltIn(termId, value, code)) continue;
++            if (!Loc.HasTermPrefix(key) && !Loc.IsRegexKey(key) && Loc.SameAsBuiltInConfig(key, value, code)) continue;
+             sb.Append(Loc.Escape(key)).Append('=').Append(Loc.Escape(value)).Append('\n');
+             kept++;
+         }
+diff --git a/src/Loc.InlineTerms.cs b/src/Loc.InlineTerms.cs
+index 754fb34..10a6326 100644
+--- a/src/Loc.InlineTerms.cs
++++ b/src/Loc.InlineTerms.cs
+@@ -917,7 +917,7 @@ internal static partial class Loc
+         new("//   ★ Format: one entry per line — \"original=translation\". Left of = is the original text; write your translation on the right.", "//   ★ Format: one entry per line — \"original=translation\". Left of = is the original text; write your translation on the right.", "//   ★ 基本格式：每行一条「原文=译文」—— = 左边是原文，右边写译文。", "//   ★ 基本格式：每行一條「原文=譯文」—— = 左邊是原文，右邊寫譯文。"),
+         new("//   ★ Never touch the left side of =: it is the key the dictionary matches character-for-character against on-screen text. Change one character (including writing \\= as =) and the entry can never match — the translation is wasted.", "//   ★ Never touch the left side of =: it is the key the dictionary matches character-for-character against on-screen text. Change one character (including writing \\= as =) and the entry can never match — the translation is wasted.", "//   ★ 永远不要碰 = 左边：它是词典用来逐字匹配屏幕文字的键，改动任何一个字符（包括把 \\= 写成 =），这条译文就再也对不上原文、等于白翻。", "//   ★ 永遠不要碰 = 左邊：它是詞典用來逐字比對螢幕文字的鍵，改動任何一個字元（包括把 \\= 寫成 =），這條譯文就再也對不上原文、等於白翻。"),
+         new("//   ★ Inside the original, = and newlines are escaped as \\= and \\n, so a line may contain many \\= (e.g. \"Hold\\=Hold to show; Toggle\\=…flag.=\"). The real separator is the first = without a backslash — in a well-formed export, the rightmost one. Use \\= and \\n in your translation too.", "//   ★ Inside the original, = and newlines are escaped as \\= and \\n, so a line may contain many \\= (e.g. \"Hold\\=Hold to show; Toggle\\=…flag.=\"). The real separator is the first = without a backslash — in a well-formed export, the rightmost one. Use \\= and \\n in your translation too.", "//   ★ 原文里的 = 和换行已转义成 \\= 和 \\n，一条里可能有很多个 \\=（如 \"Hold\\=按住显示；Toggle\\=切换…flag.=\"）；真正的分隔符是第一个不带 \\ 的 =，正常导出时就是最右边那个。译文里要用 = 或换行，同样写 \\= 和 \\n。", "//   ★ 原文裡的 = 和換行已轉義成 \\= 和 \\n，一條裡可能有很多個 \\=（如 \"Hold\\=按住顯示；Toggle\\=切換…flag.=\"）；真正的分隔符是第一個不帶 \\ 的 =，正常匯出時就是最右邊那個。譯文裡要用 = 或換行，同樣寫 \\= 和 \\n。"),
+-        new("//   How to use: see BepInEx\\config\\ModConfigEnhance\\readme.md (translate > save as code[-variant][_part].txt > put in language\\ > Refresh > pick; // display: <name> sets the dropdown label).", "//   How to use: see BepInEx\\config\\ModConfigEnhance\\readme.md (translate > save as code[-variant][_part].txt > put in language\\ > Refresh > pick; // display: <name> sets the dropdown label).", "//   用法见 BepInEx\\config\\ModConfigEnhance\\readme.md（翻译 → 另存为「语言码[-变体][_分包].txt」→ 放进 language\\ → 刷新 → 选中；首行 // display: 名字 改下拉框显示名）。", "//   用法見 BepInEx\\config\\ModConfigEnhance\\readme.md（翻譯 → 另存為「語言碼[-變體][_分包].txt」→ 放進 language\\ → 重新整理 → 選中；首行 // display: 名字 改下拉框顯示名）。"),
++        new("//   How to use: see BepInEx\\config\\InGameModManager\\readme.md (translate > save as code[-variant][_part].txt > put in language\\ > Refresh > pick; // display: <name> sets the dropdown label).", "//   How to use: see BepInEx\\config\\InGameModManager\\readme.md (translate > save as code[-variant][_part].txt > put in language\\ > Refresh > pick; // display: <name> sets the dropdown label).", "//   用法见 BepInEx\\config\\InGameModManager\\readme.md（翻译 → 另存为「语言码[-变体][_分包].txt」→ 放进 language\\ → 刷新 → 选中；首行 // display: 名字 改下拉框显示名）。", "//   用法見 BepInEx\\config\\InGameModManager\\readme.md（翻譯 → 另存為「語言碼[-變體][_分包].txt」→ 放進 language\\ → 重新整理 → 選中；首行 // display: 名字 改下拉框顯示名）。"),
+         new("//   Keep existing files. Save additions as a new file such as zh-cn_20_additions.txt, then reload the same language group.", "//   Keep existing files. Save additions as a new file such as zh-cn_20_additions.txt, then reload the same language group.", "//   保留已有文件；补翻请另存为 zh-cn_20_补翻.txt，再重载同一语言组。", "//   保留已有檔案；補翻請另存為 zh-tw_20_補翻.txt，再重載同一語言組。"),
+         new("// # Rules for translators / AI", "// # Rules for translators / AI", "// # 给翻译者 / AI 的规则", "// # 給翻譯者 / AI 的規則"),
+         new("//   - // lines are comments. \"// ==== Mod (GUID version) ====\" and \"// -- [Section]\" are block markers: don't translate or delete them.", "//   - // lines are comments. \"// ==== Mod (GUID version) ====\" and \"// -- [Section]\" are block markers: don't translate or delete them.", "//   · // 开头是注释；「// ==== 模组名 (GUID 版本) ====」与「// -- [分区]」只是分块标记，不用翻、不要删。", "//   · // 開頭是註解；「// ==== 模組名 (GUID 版本) ====」與「// -- [分區]」只是分塊標記，不用翻、不要刪。"),
+diff --git a/src/Loc.Release23Terms.cs b/src/Loc.Release23Terms.cs
+index 19d0a7f..98d5382 100644
+--- a/src/Loc.Release23Terms.cs
++++ b/src/Loc.Release23Terms.cs
+@@ -221,6 +221,9 @@ internal static partial class Loc
+         new("Independent package folder", "Independent package folder", "独立模组文件夹名称", "獨立模組資料夾名稱"),
+         new("Preparing folder preview…", "Preparing folder preview…", "正在准备目录预览……", "正在準備目錄預覽……"),
+         new("Waiting for running updates to finish before preparing the preview…", "Waiting for running updates to finish before preparing the preview…", "正在等待当前更新结束后再准备预览……", "正在等待目前更新結束後再準備預覽……"),
++        new("ModConfig Enhance is also enabled", "ModConfig Enhance is also enabled", "同时启用了 ModConfig Enhance", "同時啟用了 ModConfig Enhance"),
++        new("This manager already includes everything ModConfig Enhance does.", "This manager already includes everything ModConfig Enhance does.", "本管理器已包含 ModConfig Enhance 的全部功能。", "本管理器已包含 ModConfig Enhance 的全部功能。"),
++        new("Got it", "Got it", "知道了", "知道了"),
+         new("Unsaved mod operations", "Unsaved mod operations", "未保存的模组变更", "未儲存的模組變更"),
+         new("Remove pending: ", "Remove pending: ", "撤销待办：", "撤銷待辦："),
+         new("Installation folders", "Installation folders", "安装目录整理", "安裝目錄整理"),
+@@ -307,7 +310,6 @@ internal static partial class Loc
+         new("XUnity machine translation turned off; restart the game to apply (don't change XUnity's settings before that). Backup: {0}", "XUnity machine translation turned off; restart the game to apply (don't change XUnity's settings before that). Backup: {0}", "已关闭 XUnity 在线机翻，重启游戏后生效（重启前别动 XUnity 的设置）。备份：{0}", "已關閉 XUnity 線上機翻，重新啟動遊戲後生效（重新啟動前別動 XUnity 的設定）。備份：{0}"),
+         new("Could not change AutoTranslatorConfig.ini: {0}", "Could not change AutoTranslatorConfig.ini: {0}", "无法修改 AutoTranslatorConfig.ini：{0}", "無法修改 AutoTranslatorConfig.ini：{0}"),
+         new("Don't remind again", "Don't remind again", "不再提醒", "不再提醒"),
+-        new("Got it", "Got it", "知道了", "知道了"),
+         new("Configuration saved: {0}.", "Configuration saved: {0}.", "配置已保存：{0}。", "設定已儲存：{0}。"),
+         new("{0} changes take effect next round.", "{0} changes take effect next round.", "{0} 项重新开局生效。", "{0} 項重新開局生效。"),
+         new("{0} items were skipped and remain unsaved; see parameter details.", "{0} items were skipped and remain unsaved; see parameter details.", "{0} 项已跳过并保留未保存标记，原因见参数详情。", "{0} 項已略過並保留未儲存標記，原因見參數詳情。"),
+diff --git a/src/Loc.cs b/src/Loc.cs
+index c9b6cac..ad8c69e 100644
+--- a/src/Loc.cs
++++ b/src/Loc.cs
+@@ -27,13 +27,29 @@ namespace ModConfigEnhance;
+ /// </summary>
+ internal static partial class Loc
+ {
+-    internal const string KeyPrefix = "MCE_";
++    /// <summary>本管理器界面词条的键前缀（写语言文件、导出、LocalizedText 索引都用它）。旧文件里的 <c>MCE_</c> 读取时同样认，见 <see cref="TryStripTermPrefix"/>。</summary>
++    internal const string KeyPrefix = Updating.ManagerIdentity.TermPrefix;
++    internal const string LegacyKeyPrefix = Updating.ManagerIdentity.LegacyTermPrefix;
++
++    /// <summary>键以 IGMM_ 或旧的 MCE_ 开头 → 去掉前缀、转大写返回 true。</summary>
++    internal static bool TryStripTermPrefix(string key, out string id)
++    {
++        foreach (string prefix in new[] { KeyPrefix, LegacyKeyPrefix })
++        {
++            if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { id = key.Substring(prefix.Length).ToUpperInvariant(); return true; }
++        }
++
++        id = key;
++        return false;
++    }
++
++    internal static bool HasTermPrefix(string key) => TryStripTermPrefix(key, out _);
+     internal const string FollowGame = "";
+     internal const string ReadmeFile = "readme.md";
+ 
+     private const string DisplayMarker = "// display:";
+ 
+-    internal static string RootDirectory => Path.Combine(Paths.ConfigPath, "ModConfigEnhance");
++    internal static string RootDirectory => Path.Combine(Paths.ConfigPath, Updating.ManagerIdentity.ConfigDirectory);
+     internal static string LanguageDirectory => Updating.MceDirectories.Language(RootDirectory);
+     /// <summary>2.5.0：导出的待翻文本（原 export\，与整合包导出的 exports\ 分开）。</summary>
+     internal static string ExportDirectory => Updating.MceDirectories.TranslationOutput(RootDirectory);
+@@ -139,9 +155,9 @@ internal static partial class Loc
+         new("NOTICE_REFRESHED", "Language folder rescanned: {0} language group(s).", "已重新扫描语言目录：{0} 个语言组。", "已重新掃描語言目錄：{0} 個語言組。"),
+         // 悬停注释（说明面板显示；首行是标题，`…` 包住的部分用标题色强调）
+         new("TIP_EXPORT_V2",
+-            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
+-            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
+-            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
++            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\InGameModManager\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
++            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\InGameModManager\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
++            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\InGameModManager\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
+         new("TIP_UNTRANSLATED_V2",
+             "Untranslated\nExports only the entries the current language group doesn't cover yet: exact lines and `r:` regex rules both count as translated.\n\nOutput lands in `output\\translation\\`; fill it in, then use `Import additions` in the language row.",
+             "补漏翻\n只导出当前语言组还没覆盖的原文条目：整句译文和 `r:` 正则规则命中的都算已翻。\n\n产物落在 `output\\translation\\`，填好后用语言行的`导入补翻`合进语言文件。",
+@@ -161,9 +177,9 @@ internal static partial class Loc
+         // 2.5.5：按钮改为直接打开翻译导出目录，含义变了，换 _V3 键（旧 _V2 进 RetiredTerms）。
+         // 个人数据文件夹仍叫 config\ModConfigEnhance（内部目录名，拆分时再定），提示里如实写出。
+         new("TIP_OPEN_DIR_V3",
+-            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\` (the folder keeps its internal name).",
+-            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（文件夹沿用内部名称）。",
+-            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（資料夾沿用內部名稱）。"),
++            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\InGameModManager\\output\\translation\\` (the folder keeps its internal name).",
++            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\InGameModManager\\output\\translation\\`（文件夹沿用内部名称）。",
++            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\InGameModManager\\output\\translation\\`（資料夾沿用內部名稱）。"),
+         new("TIP_SORT",
+             "Sort\nSidebar mod order:\n\n`Default` (load order) / `Load reversed` / `Name` / `Name reversed`.",
+             "排序\n侧栏模组行的排序方式：\n\n`默认`（加载顺序）/ `加载倒序` / `名称` / `名称倒序`。",
+@@ -259,8 +275,8 @@ internal static partial class Loc
+             "右上方面板显示悬停选项的说明、默认值与取值范围 / 可选项。需要树形侧栏。重启生效。",
+             "右上方板面顯示懸停選項的說明、預設值與取值範圍 / 可選項。需要樹形側欄。重啟生效。"),
+         new(Plugin.DescUiLocalization, Plugin.DescUiLocalization,
+-            "本地化 ModConfig 界面与本模组按钮和提示。英文为原文，内置简体与繁体中文；config\\ModConfigEnhance\\language\\ 中的可选语言文件覆盖内置文字。在模组列表上方选择语言。此开关重启生效。",
+-            "本地化 ModConfig 介面與本模組按鈕和提示。英文為原文，內建簡體與繁體中文；config\\ModConfigEnhance\\language\\ 中的選用語言檔案覆寫內建文字。在模組列表上方選擇語言。此開關重新啟動生效。"),
++            "本地化 ModConfig 界面与本模组按钮和提示。英文为原文，内置简体与繁体中文；config\\InGameModManager\\language\\ 中的可选语言文件覆盖内置文字。在模组列表上方选择语言。此开关重启生效。",
++            "本地化 ModConfig 介面與本模組按鈕和提示。英文為原文，內建簡體與繁體中文；config\\InGameModManager\\language\\ 中的選用語言檔案覆寫內建文字。在模組列表上方選擇語言。此開關重新啟動生效。"),
+         new(Plugin.DescHideLocalizationButtons, Plugin.DescHideLocalizationButtons,
+             "收起模组列表上方的导出与翻译工具两排按钮，只留语言下拉 + 刷新；列表上移，「导出」列同步隐藏，勾选状态保留。即时生效。",
+             "收起模組列表上方的導出與翻譯工具兩排按鈕，只留語言下拉 + 重新整理；列表上移，「導出」欄同步隱藏，勾選狀態保留。即時生效。"),
+@@ -578,9 +594,9 @@ internal static partial class Loc
+                 continue;
+             }
+ 
+-            if (key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
++            if (TryStripTermPrefix(key, out string termId))
+             {
+-                key = key.Substring(KeyPrefix.Length).ToUpperInvariant();
++                key = termId;
+             }
+ 
+             bool incomingEffective = IsEffectiveTranslation(key, value, result.Code);
+diff --git a/src/MceDirectoryMigration.cs b/src/MceDirectoryMigration.cs
+index a49d662..f40ece4 100644
+--- a/src/MceDirectoryMigration.cs
++++ b/src/MceDirectoryMigration.cs
+@@ -44,14 +44,14 @@ internal static class MceDirectoryMigration
+         if (workerRunning?.Invoke() == true)
+         {
+             report.Deferred = true;
+-            Plugin.Log.LogInfo("[目录] 更新助手正在运行，config\\ModConfigEnhance 的整理推迟到下次启动（期间继续使用原来的文件夹）。");
++            Plugin.Log.LogInfo("[目录] 更新助手正在运行，config\\InGameModManager 的整理推迟到下次启动（期间继续使用原来的文件夹）。");
+             return report;
+         }
+ 
+         try
+         {
+             // 超长等原因留在原处的文件会让旧目录一直在、每次启动都走到这里：沿用第一次的备份目录、已备份的文件不重复复制，备份不会越堆越多
+-            string backups = Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "layout-backups");
++            string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "layout-backups");
+             string? first = Directory.Exists(backups) ? Directory.GetDirectories(backups).OrderBy(d => d, StringComparer.Ordinal).FirstOrDefault() : null;
+             report.Backup = first ?? Path.Combine(backups, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+             foreach (var (oldName, _) in pending) Copy(Path.Combine(root, oldName), Path.Combine(report.Backup, oldName), report);
+@@ -76,7 +76,7 @@ internal static class MceDirectoryMigration
+             catch (Exception ex) { report.Skipped.Add(Relative(root, json) + "（改写路径）：" + ex.Message); }
+         }
+ 
+-        Plugin.Log.LogInfo($"[目录] 整理 config\\ModConfigEnhance：搬了 {report.Moved} 个文件（同名改留 {report.Renamed} 个），改写 {report.Rewritten} 处保存的路径；备份 {report.Backup}");
++        Plugin.Log.LogInfo($"[目录] 整理 config\\InGameModManager：搬了 {report.Moved} 个文件（同名改留 {report.Renamed} 个），改写 {report.Rewritten} 处保存的路径；备份 {report.Backup}");
+         foreach (string skipped in report.Skipped.Take(20)) Plugin.Log.LogWarning("[目录] 没搬动，留在原处，下次启动再试：" + skipped);
+         if (report.Skipped.Count > 20) Plugin.Log.LogWarning($"[目录] 另有 {report.Skipped.Count - 20} 项没搬动。");
+         return report;
+@@ -103,7 +103,7 @@ internal static class MceDirectoryMigration
+         {
+             string text;
+             try { text = File.ReadAllText(file, Encoding.UTF8); } catch { continue; }
+-            if (text.IndexOf("ModConfigEnhance", StringComparison.OrdinalIgnoreCase) >= 0) yield return file;
++            if (text.IndexOf(Updating.ManagerIdentity.ConfigDirectory, StringComparison.OrdinalIgnoreCase) >= 0) yield return file;
+         }
+     }
+ 
+diff --git a/src/ModConfigTranslationExport.cs b/src/ModConfigTranslationExport.cs
+index cd8261f..1356653 100644
+--- a/src/ModConfigTranslationExport.cs
++++ b/src/ModConfigTranslationExport.cs
+@@ -444,9 +444,9 @@ internal static class ModConfigTranslationExport
+                "//   ★ 原文里的 = 和换行已转义成 \\= 和 \\n，一条里可能有很多个 \\=（如 \"Hold\\=按住显示；Toggle\\=切换…flag.=\"）；真正的分隔符是第一个不带 \\ 的 =，正常导出时就是最右边那个。译文里要用 = 或换行，同样写 \\= 和 \\n。",
+                "//   ★ 原文裡的 = 和換行已轉義成 \\= 和 \\n，一條裡可能有很多個 \\=（如 \"Hold\\=按住顯示；Toggle\\=切換…flag.=\"）；真正的分隔符是第一個不帶 \\ 的 =，正常匯出時就是最右邊那個。譯文裡要用 = 或換行，同樣寫 \\= 和 \\n。"));
+         Line("//");
+-        Line(L("//   How to use: fill in the right side, save, then click \"Import additions\" in the language row of the settings page — the filled lines are merged into the current language file (language\\<code>.txt). See BepInEx\\config\\ModConfigEnhance\\readme.md.",
+-               "//   用法：填好等号右边并保存，在设置页语言行点「导入补翻」，填好的行会合进当前语言文件（language\\<语言码>.txt）。详见 BepInEx\\config\\ModConfigEnhance\\readme.md。",
+-               "//   用法：填好等號右邊並儲存，在設定頁語言列點「匯入補翻」，填好的行會合進目前語言檔案（language\\<語言碼>.txt）。詳見 BepInEx\\config\\ModConfigEnhance\\readme.md。"));
++        Line(L("//   How to use: fill in the right side, save, then click \"Import additions\" in the language row of the settings page — the filled lines are merged into the current language file (language\\<code>.txt). See BepInEx\\config\\InGameModManager\\readme.md.",
++               "//   用法：填好等号右边并保存，在设置页语言行点「导入补翻」，填好的行会合进当前语言文件（language\\<语言码>.txt）。详见 BepInEx\\config\\InGameModManager\\readme.md。",
++               "//   用法：填好等號右邊並儲存，在設定頁語言列點「匯入補翻」，填好的行會合進目前語言檔案（language\\<語言碼>.txt）。詳見 BepInEx\\config\\InGameModManager\\readme.md。"));
+         Line(L("//   Regex rules are supported in language files: r:\"^(\\d+) players$\"=$1 名玩家 (same format as XUnity, $1 refers to the first group).",
+                "//   语言文件支持正则规则：r:\"^(\\d+) players$\"=$1 名玩家（与 XUnity 同格式，$1 引用第一个括号）。",
+                "//   語言檔案支援正則規則：r:\"^(\\d+) players$\"=$1 名玩家（與 XUnity 同格式，$1 引用第一個括號）。"));
+diff --git a/src/Overview/Authoring/IntroductionFontRegistry.cs b/src/Overview/Authoring/IntroductionFontRegistry.cs
+index 3842511..74caab1 100644
+--- a/src/Overview/Authoring/IntroductionFontRegistry.cs
++++ b/src/Overview/Authoring/IntroductionFontRegistry.cs
+@@ -24,7 +24,7 @@ internal static class IntroductionFontRegistry
+     private static readonly List<TMP_FontAsset> Fallbacks = new();
+     private static int _users;
+     /// <summary>1.2.4–1.2.5 global folder; still read so earlier imports keep working.</summary>
+-    internal static string FontsDirectory => Path.Combine(BepInEx.Paths.ConfigPath, "ModConfigEnhance", "fonts");
++    internal static string FontsDirectory => Path.Combine(BepInEx.Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "fonts");
+     /// <summary>The viewed scheme's own <c>fonts/</c> folder.</summary>
+     private static string _packFontsDirectory = "";
+     internal static string PackFontsDirectory
+diff --git a/src/Overview/Authoring/OverviewDocumentView.cs b/src/Overview/Authoring/OverviewDocumentView.cs
+index 96c3428..7a1a255 100644
+--- a/src/Overview/Authoring/OverviewDocumentView.cs
++++ b/src/Overview/Authoring/OverviewDocumentView.cs
+@@ -125,7 +125,7 @@ internal sealed class OverviewDocumentView : IDisposable
+         {
+             if(!TrySave())return false;Commit();string source=SourceText;string root=_repository.EnsureLocalPackCopy();
+             string exportRoot=Path.Combine(Loc.PackOutputDirectory,"introduction",DateTime.Now.ToString("yyyyMMdd_HHmmss")+"_"+Guid.NewGuid().ToString("N").Substring(0,6));
+-            string package=Path.Combine(exportRoot,"plugins","MCEPack");Directory.CreateDirectory(package);
++            string package=Path.Combine(exportRoot,"plugins",ModConfigEnhance.Updating.ManagerIdentity.PackFolder);Directory.CreateDirectory(package);
+             // A complete author-state snapshot includes grouping, aliases and global/per-mod update permissions.
+             JObject metadata=JObject.Parse(JsonConvert.SerializeObject(_repository.State));
+             metadata["pack"]!["introFile"]="introduction.md";metadata["pack"]!["introEnabled"]=_repository.State.pack.introEnabled;
+@@ -151,13 +151,13 @@ internal sealed class OverviewDocumentView : IDisposable
+             }
+             File.WriteAllText(Path.Combine(package,"introduction.md"),source,new UTF8Encoding(false));
+             File.WriteAllText(Path.Combine(package,"packinfo.json"),metadata.ToString(Formatting.Indented),new UTF8Encoding(false));
+-            string languageRoot=Path.Combine(exportRoot,"config","ModConfigEnhance","language");
++            string languageRoot=Path.Combine(exportRoot,"config",ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory,"language");
+             if(Directory.Exists(Loc.LanguageDirectory))foreach(string file in OverviewRepository.SafeFiles(Loc.LanguageDirectory).Where(f=>f.EndsWith(".txt",StringComparison.OrdinalIgnoreCase)))
+             {
+                 string relative=file.Substring(Path.GetFullPath(Loc.LanguageDirectory).TrimEnd(Path.DirectorySeparatorChar).Length+1);
+                 string destination=OverviewRepository.SafePath(languageRoot,relative);if(destination.Length==0)throw new IOException(Loc.T("Invalid language file path", "语言文件路径无效", "語言文件路徑無效"));Directory.CreateDirectory(Path.GetDirectoryName(destination)!);File.Copy(file,destination,false);
+             }
+-            string fontsRoot=Path.Combine(exportRoot,"config","ModConfigEnhance","fonts");
++            string fontsRoot=Path.Combine(exportRoot,"config",ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory,"fonts");
+             if(Directory.Exists(IntroductionFontRegistry.FontsDirectory))foreach(string file in OverviewRepository.SafeFiles(IntroductionFontRegistry.FontsDirectory).Where(f=>f.EndsWith(".ttf",StringComparison.OrdinalIgnoreCase)||f.EndsWith(".otf",StringComparison.OrdinalIgnoreCase)))
+             {
+                 string relative=file.Substring(Path.GetFullPath(IntroductionFontRegistry.FontsDirectory).TrimEnd(Path.DirectorySeparatorChar).Length+1);
+diff --git a/src/Overview/ConfigurationPackageInventory.cs b/src/Overview/ConfigurationPackageInventory.cs
+index fa83ee1..bebb8a0 100644
+--- a/src/Overview/ConfigurationPackageInventory.cs
++++ b/src/Overview/ConfigurationPackageInventory.cs
+@@ -12,7 +12,7 @@ internal static class ConfigurationPackageInventory
+     internal static ShopInstalled.Snapshot Get(IReadOnlyList<OverviewMod> mods)
+     {
+         string context = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
+-            : Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
++            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
+         string key = context + "|" + OverviewPageCache.Inventory + "|" + ModSources.ChoiceRevision + "|" + string.Join(";", mods.Select(m =>
+             m.Location + "|" + m.SourceConfirmed + "|" + m.SourceNamespace + "|" + m.SourceName + "|" + m.PackageVersion));
+         if (_snapshot != null && key == _key) return _snapshot;
+diff --git a/src/Overview/ManagerProfileSync.cs b/src/Overview/ManagerProfileSync.cs
+index da11920..c089078 100644
+--- a/src/Overview/ManagerProfileSync.cs
++++ b/src/Overview/ManagerProfileSync.cs
+@@ -24,7 +24,7 @@ internal static class ManagerProfileSync
+     private const int BackupLimit = 20;
+     private static bool _applied;
+ 
+-    internal static string PendingPath => Path.Combine(Paths.BepInExRootPath, "MCE", "manager-sync.json");
++    internal static string PendingPath => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "manager-sync.json");
+ 
+     /// <summary>Configured profile when that folder holds mods.yml, else the folder beside BepInEx when it is
+     /// one (r2modman/Thunderstore keep mods.yml there), else empty for a plain local installation.</summary>
+@@ -103,7 +103,7 @@ internal static class ManagerProfileSync
+         }
+         if (changed.Count == 0) { File.Delete(pending); return; }
+         string output = string.Join(newline, lines) + (trailingNewline ? newline : "");
+-        string backups = Path.Combine(Paths.BepInExRootPath, "MCE", "manager-sync-backups");
++        string backups = ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "manager-sync-backups");
+         Directory.CreateDirectory(backups);
+         File.WriteAllBytes(Path.Combine(backups, DateTime.Now.ToString("yyyyMMdd_HHmmss_fff") + "_mods.yml.before"), original);
+         // The manager owns this file and reads it at start: a crash mid-write must leave the old bytes, never a truncated profile.
+diff --git a/src/Overview/ModSources.Installed.cs b/src/Overview/ModSources.Installed.cs
+index fa1a32c..9b48e94 100644
+--- a/src/Overview/ModSources.Installed.cs
++++ b/src/Overview/ModSources.Installed.cs
+@@ -14,7 +14,7 @@ internal static partial class ModSources
+     private static ShopLedger? InstalledLedger()
+     {
+         string path = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
+-            : Path.Combine(BepInEx.Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
++            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
+         lock (Gate)
+         {
+             try {
+diff --git a/src/Overview/ModToggleService.cs b/src/Overview/ModToggleService.cs
+index eef4a9c..8aa2d89 100644
+--- a/src/Overview/ModToggleService.cs
++++ b/src/Overview/ModToggleService.cs
+@@ -409,7 +409,7 @@ internal sealed class ModToggleService
+     {
+         if (plan.Moves.Count == 0) return null;
+         string ledgerPath = PackLibrary.Active != null ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
+-            : Path.Combine(bepinexRoot, "MCE", "shop", "installed-unmanaged.json");
++            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(bepinexRoot, "shop", "installed-unmanaged.json");
+         SafePath(bepinexRoot, ledgerPath);
+         if (!File.Exists(ledgerPath)) return null;
+         byte[] before = File.ReadAllBytes(ledgerPath);
+diff --git a/src/Overview/OverviewCatalogue.cs b/src/Overview/OverviewCatalogue.cs
+index b0c2efd..3b82933 100644
+--- a/src/Overview/OverviewCatalogue.cs
++++ b/src/Overview/OverviewCatalogue.cs
+@@ -255,7 +255,7 @@ internal sealed partial class OverviewCatalogue
+         var rows = new List<OverviewMod>();
+         foreach (string directory in Directory.GetDirectories(Paths.BepInExRootPath))
+         {
+-            if (new[] { "plugins", "core", "config", "patchers", "monomod", "MCE", "cache", "logs" }.Contains(Path.GetFileName(directory), StringComparer.OrdinalIgnoreCase)) continue;
++            if (new[] { "plugins", "core", "config", "patchers", "monomod", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory, "cache", "logs" }.Contains(Path.GetFileName(directory), StringComparer.OrdinalIgnoreCase)) continue;
+             foreach (string path in OverviewRepository.SafeFiles(directory).Where(PluginFileNames.IsAssembly))
+             {
+                 if (path.Substring(directory.Length).Replace('\\','/').Split('/').Any(p => p == "Demo" || p == "备份" || p == "验证" || p.StartsWith("待安装",StringComparison.OrdinalIgnoreCase))) continue;
+diff --git a/src/Overview/OverviewConfigService.cs b/src/Overview/OverviewConfigService.cs
+index 894d648..5640399 100644
+--- a/src/Overview/OverviewConfigService.cs
++++ b/src/Overview/OverviewConfigService.cs
+@@ -23,7 +23,7 @@ internal sealed class OverviewConfigService
+     public OverviewConfigService(string? configRoot = null, string? runtimeDirectory = null)
+     {
+         _configRoot = Path.GetFullPath(configRoot ?? Paths.ConfigPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+-        _backupRoot = runtimeDirectory ?? Path.Combine(Updating.MceDirectories.Runtime(Path.Combine(_configRoot, "ModConfigEnhance")), "config-backups");
++        _backupRoot = runtimeDirectory ?? Path.Combine(Updating.MceDirectories.Runtime(Path.Combine(_configRoot, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory)), "config-backups");
+     }
+     internal OverviewConfigService(string configRoot, string runtimeDirectory, Func<IEnumerable<(string Guid, ConfigFile File)>> configProvider)
+         : this(configRoot, runtimeDirectory) { _configProvider = configProvider; }
+diff --git a/src/Overview/OverviewController.cs b/src/Overview/OverviewController.cs
+index 288f4ab..a2fc708 100644
+--- a/src/Overview/OverviewController.cs
++++ b/src/Overview/OverviewController.cs
+@@ -538,6 +538,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
+         if (_intro && _author && _document != null) _document.ActivateEditor();
+         MaybeOfferSmartGrouping();
+         MaybeWarnXUnity(); // 2.5.0：智能分组弹窗在前，它开着就留到下次进入
++        MaybeWarnLegacyMce(); // 1.0.0 拆分：简化版 MCE 同时启用时提醒一次
+     }
+     public override void OnPageExit()
+     {
+diff --git a/src/Overview/OverviewListView.cs b/src/Overview/OverviewListView.cs
+index 5db5365..a3a7074 100644
+--- a/src/Overview/OverviewListView.cs
++++ b/src/Overview/OverviewListView.cs
+@@ -890,7 +890,7 @@ internal sealed partial class OverviewListView : IDisposable
+     private void OpenEnhanceHomepage()
+     {
+         var own = _mods.FirstOrDefault(mod => mod.Guid == Plugin.PluginGuid);
+-        Application.OpenURL(own?.SourceConfirmed == true ? ThunderstoreUpdateService.HomeUrl(own.SourceNamespace, own.SourceName) : "https://github.com/AiAe-156/Peak-ModConfigEnhance");
++        Application.OpenURL(own?.SourceConfirmed == true ? ThunderstoreUpdateService.HomeUrl(own.SourceNamespace, own.SourceName) : "https://github.com/AiAe-156/Peak-InGameModManager");
+     }
+     private void EditSource()
+     {
+diff --git a/src/Overview/OverviewNetworkSettings.cs b/src/Overview/OverviewNetworkSettings.cs
+index 2de1660..1a192cd 100644
+--- a/src/Overview/OverviewNetworkSettings.cs
++++ b/src/Overview/OverviewNetworkSettings.cs
+@@ -80,7 +80,7 @@ internal sealed class OverviewNetworkSettings : IDisposable
+         try
+         {
+             _result.text = Loc.T("Testing store and download connections…", "正在测试商店与下载连接……", "正在測試商店與下載連線……");
+-            string id = Guid.NewGuid().ToString("N"), directory = OverviewProfileAssets.CheckedPath(BepInEx.Paths.BepInExRootPath, "MCE/probes"); Directory.CreateDirectory(directory);
++            string id = Guid.NewGuid().ToString("N"), directory = OverviewProfileAssets.CheckedPath(BepInEx.Paths.BepInExRootPath, ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/probes"); Directory.CreateDirectory(directory);
+             var request = new ProbeRequest { Network = new UpdateNetworkOptions { Mode = _mode, ProxyAddress = _mode == "custom" ? _address.text.Trim() : "" }, Namespace = "PEAKModding", Package = "PEAKLib_Core" };
+             OverviewRepository.AtomicWrite(Path.Combine(directory, id + ".request.json"), JsonConvert.SerializeObject(request));
+             _probe = OverviewUpdateQueue.StartProbe(id);
+diff --git a/src/Overview/OverviewPageCache.cs b/src/Overview/OverviewPageCache.cs
+index 8eec111..28cfac9 100644
+--- a/src/Overview/OverviewPageCache.cs
++++ b/src/Overview/OverviewPageCache.cs
+@@ -48,8 +48,8 @@ internal static class OverviewPageCache
+         if (_started) return; _started = true; _reliable = true;
+         _plugins = FullRoot(Paths.BepInExRootPath);
+         _config = FullRoot(Paths.ConfigPath);
+-        _data = FullRoot(Path.Combine(Paths.ConfigPath, "ModConfigEnhance"));
+-        _packIndex = Path.GetFullPath(Path.Combine(Paths.BepInExRootPath, "MCE", "packs", "index.json"));
++        _data = FullRoot(Path.Combine(Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory));
++        _packIndex = Path.GetFullPath(ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "packs", "index.json"));
+         _appliedPath = Path.Combine(Updating.MceDirectories.Runtime(_data), "applied-profile.json");
+         _legacyPath = Path.Combine(Updating.MceDirectories.Legacy(_data), "state.json");
+         _informationPath = Path.Combine(_data, "pack-information.json");
+@@ -98,7 +98,7 @@ internal static class OverviewPageCache
+         if (full.StartsWith(_plugins, StringComparison.OrdinalIgnoreCase))
+         {
+             if (name.IndexOf(".dll", StringComparison.OrdinalIgnoreCase) >= 0 || name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) || name.Equals("manifest.json.old", StringComparison.OrdinalIgnoreCase) || !Path.HasExtension(name)) Interlocked.Increment(ref _inventory);
+-            if (full.Replace('\\', '/').IndexOf("/MCEPack/", StringComparison.OrdinalIgnoreCase) >= 0) Interlocked.Increment(ref _content);
++            if (ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder(full)) Interlocked.Increment(ref _content);
+         }
+     }
+     private static long _nextExternalRefresh;
+diff --git a/src/Overview/OverviewProfileExport.cs b/src/Overview/OverviewProfileExport.cs
+index 97ef8a4..cdea410 100644
+--- a/src/Overview/OverviewProfileExport.cs
++++ b/src/Overview/OverviewProfileExport.cs
+@@ -67,7 +67,7 @@ internal static class OverviewProfileExport
+         string exportParent = parentDirectory == null ? OverviewProfileAssets.CheckedPath(configRoot, "output/packs") : Path.GetFullPath(parentDirectory);
+         string exportRoot = Path.Combine(exportParent, DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + PackPublisher.SafeLabel(displayName ?? items[0].Name) + "_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+         if (Directory.Exists(exportRoot) || File.Exists(exportRoot)) throw new IOException(Loc.T("The selected export folder already exists. Choose another folder and try again.", "生成目录发生冲突，请更换输出目录后重试。", "產生目錄發生衝突，請更換輸出資料夾後重試。"));
+-        string package = OverviewProfileAssets.CheckedPath(exportRoot, "plugins/MCEPack");
++        string package = OverviewProfileAssets.CheckedPath(exportRoot, "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder);
+         Directory.CreateDirectory(package);
+         var profiles = new JArray();
+         foreach (var entry in selected)
+diff --git a/src/Overview/OverviewProfileStore.cs b/src/Overview/OverviewProfileStore.cs
+index 63aa318..4870a12 100644
+--- a/src/Overview/OverviewProfileStore.cs
++++ b/src/Overview/OverviewProfileStore.cs
+@@ -32,7 +32,7 @@ internal sealed partial class OverviewProfileStore
+ 
+     public OverviewProfileStore(string? rootDirectory = null, string? pluginsDirectory = null)
+     {
+-        RootDirectory = rootDirectory ?? Path.Combine(Paths.ConfigPath, "ModConfigEnhance", "profiles");
++        RootDirectory = rootDirectory ?? Path.Combine(Paths.ConfigPath, ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "profiles");
+         _pluginsRoot = pluginsDirectory ?? Paths.PluginPath;
+     }
+ 
+@@ -391,7 +391,7 @@ internal sealed partial class OverviewProfileStore
+         foreach (string manifestPath in PublishedPack.Packs.Select(p => Path.Combine(p.Root, "profiles.json")))
+         {
+             string? packDir = Path.GetDirectoryName(manifestPath);
+-            if (packDir == null || !Path.GetFileName(packDir).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)) continue;
++            if (packDir == null || !ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(packDir))) continue;
+             if (!PublishedPack.CanRead(packDir)) continue;
+             try
+             {
+@@ -821,7 +821,7 @@ internal sealed partial class OverviewProfileStore
+         foreach (string file in SafeFiles(_pluginsRoot, fileName))
+         {
+             string? packDir = Path.GetDirectoryName(file);
+-            if (packDir == null || !Path.GetFileName(packDir).Equals("MCEPack", StringComparison.OrdinalIgnoreCase)) continue;
++            if (packDir == null || !ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(packDir))) continue;
+             if (!seen.Add(packDir)) continue;
+             if (!PublishedPack.CanRead(packDir)) continue;
+             string source = RelativePluginPath(packDir);
+diff --git a/src/Overview/OverviewRepository.cs b/src/Overview/OverviewRepository.cs
+index 96d7c7e..5ef3b83 100644
+--- a/src/Overview/OverviewRepository.cs
++++ b/src/Overview/OverviewRepository.cs
+@@ -52,7 +52,7 @@ internal sealed partial class OverviewRepository
+         PackDirectory = _legacyRootDirectory;
+         if (Directory.Exists(_plugins))
+         {
+-            var packs = SafeFiles(_plugins).Where(p => string.Equals(Path.GetFileName(Path.GetDirectoryName(p)), "MCEPack", StringComparison.OrdinalIgnoreCase)
++            var packs = SafeFiles(_plugins).Where(p => ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))
+                 && new[] { "packinfo.cfg", "packinfo.json", "pack.json" }.Contains(Path.GetFileName(p).ToLowerInvariant())).OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
+             foreach (string file in packs)
+             {
+diff --git a/src/Overview/OverviewUpdateQueue.cs b/src/Overview/OverviewUpdateQueue.cs
+index 3ff8611..3c002c4 100644
+--- a/src/Overview/OverviewUpdateQueue.cs
++++ b/src/Overview/OverviewUpdateQueue.cs
+@@ -37,7 +37,7 @@ internal static class OverviewUpdateQueue
+     /// <see cref="Snapshot"/> is the empty placeholder, which must not be mistaken for "the queue is empty".</summary>
+     private static bool _hasRead;
+     internal static bool HasRead { get { lock (Gate) return _hasRead; } }
+-    internal static string Root => Path.Combine(Paths.BepInExRootPath, "MCE");
++    internal static string Root => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath);
+     internal static UpdateSnapshot Snapshot { get { Poll(); return _snapshot; } }
+     /// <summary>Network settings for any thread. Unlike <see cref="Snapshot"/> it never schedules a queue read (Poll
+     /// captures Unity-owned state and is UI-thread only); it returns the last published value.</summary>
+@@ -264,7 +264,7 @@ internal static class OverviewUpdateQueue
+             try { using var probe = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
+             catch (IOException) { return; }
+             lock(Gate) { if (DateTime.UtcNow < _launchAt) return; }
+-            var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + bepRoot.TrimEnd('\\', '/') + "\" --game-root \"" + Paths.GameRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --language " + Loc.T("en-us", "zh-cn", "zh-tw") + (Plugin.DebugLogging.Value ? " --debug" : "")) {
++            var start = new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root \"" + bepRoot.TrimEnd('\\', '/') + "\" --game-root \"" + Paths.GameRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --language " + Loc.T("en-us", "zh-cn", "zh-tw") + (Plugin.DebugLogging.Value ? " --debug" : "")) {
+                 UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools
+             };
+             Diagnostics.ManagerLog.Debug("启动更新助手：" + Path.GetFileName(start.FileName) + " " + start.Arguments);
+@@ -298,7 +298,7 @@ internal static class OverviewUpdateQueue
+     {
+         if (!Guid.TryParseExact(id, "N", out _)) throw new ArgumentException("Invalid probe ID");
+         string tools = PrepareWorkerTools();
+-        var start = new ProcessStartInfo(Path.Combine(tools, "MCE.UpdateWorker.exe"), "--root \"" + Paths.BepInExRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --probe " + id) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools };
++        var start = new ProcessStartInfo(Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.WorkerExecutable), "--root \"" + Paths.BepInExRootPath.TrimEnd('\\', '/') + "\" --protocol 2 --probe " + id) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = tools };
+         start.EnvironmentVariables["DOTNET_BUNDLE_EXTRACT_BASE_DIR"] = Path.Combine(Root, "tools", ".extract");
+         return Process.Start(start) ?? throw new IOException("Could not start the connection test.");
+     }
+diff --git a/src/Overview/PackLibrary.cs b/src/Overview/PackLibrary.cs
+index 7e0b737..34c3d2e 100644
+--- a/src/Overview/PackLibrary.cs
++++ b/src/Overview/PackLibrary.cs
+@@ -12,8 +12,8 @@ namespace ModConfigEnhance.Overview;
+ 
+ internal static class PackLibrary
+ {
+-    internal static string Home => Path.Combine(Paths.BepInExRootPath, "MCE", "packs");
+-    internal static string TaskPath => Path.Combine(Paths.BepInExRootPath, "MCE", "pack-task.json");
++    internal static string Home => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "packs");
++    internal static string TaskPath => ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "pack-task.json");
+     private static string _indexStamp = "", _taskStamp = "";
+     private static PackIndex? _indexCache;
+     private static PackTask? _taskCache;
+@@ -51,7 +51,7 @@ internal static class PackLibrary
+     {
+         var index = Read(); if (index.ActivePackId.Length == 0) return null;
+         return index.ActiveFiles.Where(f => Path.GetFileName(f.Path).Equals("profiles.json", StringComparison.OrdinalIgnoreCase)
+-                && string.Equals(Path.GetFileName(Path.GetDirectoryName(f.Path)), "MCEPack", StringComparison.OrdinalIgnoreCase))
++                && ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(f.Path))))
+             .Select(f => OverviewProfileAssets.CheckedPath(Paths.BepInExRootPath, Path.GetDirectoryName(f.Path)!)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+     }
+     internal static PackTask? Task()
+diff --git a/src/Overview/PackPreviewLanguage.cs b/src/Overview/PackPreviewLanguage.cs
+index ee27d8d..2340e5b 100644
+--- a/src/Overview/PackPreviewLanguage.cs
++++ b/src/Overview/PackPreviewLanguage.cs
+@@ -21,8 +21,8 @@ internal static class PackPreviewLanguage
+         if (task.Proposed.AuthorRoot.Length > 0) directories.Add(OverviewProfileAssets.CheckedPath(root, task.Proposed.AuthorRoot + "/language"));
+         foreach (string p in task.Proposed.Files.Select(f => f.Path.Replace((char)92, '/')))
+         {
+-            int at = p.IndexOf("/MCEPack/language/", StringComparison.OrdinalIgnoreCase);
+-            if (at >= 0) directories.Add(OverviewProfileAssets.CheckedPath(root, p[..(at + "/MCEPack/language".Length)]));
++            int at = ModConfigEnhance.Updating.ManagerIdentity.IndexOfPackSubfolder(p, "language", out int marker);
++            if (at >= 0) directories.Add(OverviewProfileAssets.CheckedPath(root, p[..(at + marker - 1)]));
+         }
+         if (task.Request.Operation == "view-stored") directories.Add(OverviewProfileAssets.CheckedPath(PackLibrary.Home, task.Proposed.Id + "/workspace/language"));
+         foreach (string directory in directories.Distinct(StringComparer.OrdinalIgnoreCase).Where(Directory.Exists))
+diff --git a/src/Overview/PackPublisher.Environment.cs b/src/Overview/PackPublisher.Environment.cs
+index 0016064..e912816 100644
+--- a/src/Overview/PackPublisher.Environment.cs
++++ b/src/Overview/PackPublisher.Environment.cs
+@@ -13,7 +13,7 @@ namespace ModConfigEnhance.Overview;
+ 
+ internal static partial class PackPublisher
+ {
+-    internal const string EnvironmentFile = "MCEEnvironment.json";
++    internal const string EnvironmentFile = ModConfigEnhance.Updating.ManagerIdentity.EnvironmentFile;
+     // Local now means a self-contained BepInEx environment. Data/store formats stay legacy.
+     private static Dictionary<string, string> EnvironmentPlan(PublishRequest request, IReadOnlyList<OverviewMod> mods, OverviewProfile defaults)
+     {
+@@ -110,14 +110,14 @@ internal static partial class PackPublisher
+         if (hosts.Count != 1) throw new IOException("完整发布必须包含唯一 MCE protocol2 宿主。");
+         using var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(hosts[0]);
+         var metadata = assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute"
+-            && a.ConstructorArguments.Count == 2 && a.ConstructorArguments[0].Value?.ToString() == "MCE.WorkerProtocol");
++            && a.ConstructorArguments.Count == 2 && a.ConstructorArguments[0].Value?.ToString() is "IGMM.WorkerProtocol" or "MCE.WorkerProtocol");
+         if (metadata == null || metadata.ConstructorArguments[1].Value?.ToString() != "2") throw new IOException("目标 MCE 未声明 worker protocol2；产品版本不能代替管理协议。");
+         WorkerProtocol.ValidateTools(Path.Combine(Path.GetDirectoryName(hosts[0])!, "Tools", "Updater"));
+     }
+     private static ShopLedger PublicationLedger(List<PackFile> files, PublishRequest request, OverviewProfile defaults, IReadOnlyList<OverviewMod> mods)
+     {
+         string path = PackLibrary.Managed ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
+-            : Path.Combine(Paths.BepInExRootPath, "MCE", "shop", "installed-unmanaged.json");
++            : ModConfigEnhance.Updating.ManagerIdentity.Runtime(Paths.BepInExRootPath, "shop", "installed-unmanaged.json");
+         if (!File.Exists(path))
+         {
+             if (PackLibrary.Active != null && PackEnvironmentPolicy.IsComplete(PackLibrary.Active)) throw new IOException("当前完整环境的 workspace 组件记录缺失；不能借 saved 状态发布。");
+@@ -186,7 +186,7 @@ internal static partial class PackPublisher
+                 CopyFile(OverviewProfileAssets.CheckedPath(Paths.ConfigPath, relative), OverviewProfileAssets.CheckedPath(Path.Combine(work, "BepInEx", "config"), relative), true);
+             }
+             ProjectConfig(Path.Combine(work, "BepInEx", "config"), defaults.config);
+-            PublicationDrafts.Apply(request, work, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/MCEPack/");
++            PublicationDrafts.Apply(request, work, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
+             WriteEnvironmentDescription(work, request, defaults, mods);
+             return OverviewRepository.SafeFiles(Path.Combine(work, "BepInEx")).Select(f => "BepInEx/" + Relative(Path.Combine(work, "BepInEx"), f).Replace((char)92, (char)47)).ToList();
+         }
+diff --git a/src/Overview/PackPublisher.cs b/src/Overview/PackPublisher.cs
+index 5b01545..caaea9b 100644
+--- a/src/Overview/PackPublisher.cs
++++ b/src/Overview/PackPublisher.cs
+@@ -66,7 +66,7 @@ internal static partial class PackPublisher
+         }
+         foreach (var item in new DirectoryInfo(Paths.BepInExRootPath).EnumerateFileSystemInfos())
+         {
+-            if ((item.Attributes & FileAttributes.ReparsePoint) != 0 || new[] { "plugins", "config", "core", "patchers", "monomod", "MCE" }.Contains(item.Name, StringComparer.OrdinalIgnoreCase)) continue;
++            if ((item.Attributes & FileAttributes.ReparsePoint) != 0 || new[] { "plugins", "config", "core", "patchers", "monomod", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory }.Contains(item.Name, StringComparer.OrdinalIgnoreCase)) continue;
+             string relative = "BepInEx/" + item.Name; if (Keep(relative)) result.Add((relative, relative));
+         }
+         foreach (string folder in new[] { "core", "patchers", "monomod" })
+@@ -87,7 +87,7 @@ internal static partial class PackPublisher
+         var mods = catalogue.Scan(repo);
+         mods.AddRange(catalogue.PublicationCache(repo));
+         var containers = ContainerRoots();
+-        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config","MCE","cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)).Select(p => p!))
++        foreach (string route in Directory.GetDirectories(Paths.BepInExRootPath).Select(Path.GetFileName).Where(p=>p!=null&&!new[]{"config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","log"}.Contains(p,StringComparer.OrdinalIgnoreCase)).Select(p => p!))
+         foreach (string file in OverviewRepository.SafeFiles(Path.Combine(Paths.BepInExRootPath, route)).Where(p => Path.GetFileName(p) == "manifest.json"))
+         {
+             string root = Path.GetDirectoryName(file)!;
+@@ -138,7 +138,7 @@ internal static partial class PackPublisher
+     }
+     private static bool ExtraConfigAllowed(string relative) => Keep(relative) && !Path.IsPathRooted(relative)
+         && !relative.Replace('\\', '/').Split('/').Any(p => p == "..")
+-        && !relative.Replace('\\', '/').StartsWith("ModConfigEnhance/", StringComparison.OrdinalIgnoreCase)
++        && !ModConfigEnhance.Updating.ManagerIdentity.IsConfigDirectory(relative.Replace('\\', '/').Split('/')[0])
+         && !relative.Equals(Plugin.PluginGuid + ".cfg", StringComparison.OrdinalIgnoreCase);
+     private static string PackageSource(OverviewMod mod) => Directory.Exists(mod.PackageRoot) || File.Exists(mod.PackageRoot) ? mod.PackageRoot
+         : mod.AssemblyPaths.FirstOrDefault(path => File.Exists(path) && !OverviewCatalogue.IsUpdateCandidate(path)
+@@ -152,7 +152,7 @@ internal static partial class PackPublisher
+         var goals = profile?.mods.GroupBy(m => m.guid, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Last().enabled, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string,bool>();
+         void AddTree(string source, string prefix, Func<string,bool>? include = null)
+         { foreach (string file in OverviewRepository.SafeFiles(source)) { string relative = Relative(source, file).Replace('\\','/'); if (file.EndsWith(".dll.old", StringComparison.OrdinalIgnoreCase) && File.Exists(file.Substring(0, file.Length - 4))) continue; if (source == Paths.PluginPath && CompleteMode(request.Mode)) { if (!KeepPluginFile(file, relative, mods)) continue; relative = ProjectPluginRelative(file, relative, mods, goals); } if (KeepCopiedFile(file, relative) && (include == null || include(relative))) files.Add(prefix + relative); } }
+-        string payload = request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + request.Name + "/MCEPack/";
++        string payload = request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/";
+         foreach (string name in new[] { "profiles.json", "release.json", "sources.json", "conflicts.json" }) files.Add(payload + name);
+         if (request.Sign) files.Add(payload + "signature.json");
+         foreach (string language in request.Languages) files.Add(payload + "language/" + language + ".txt");
+@@ -329,7 +329,7 @@ internal static partial class PackPublisher
+             dependencies.Clear(); dependencies.UnionWith(resolved);
+         }
+         // All output is new. Live configs, plugins and author originals are never rewritten.
+-        string payload = Path.Combine(export, "plugins", "MCEPack");
++        string payload = Path.Combine(export, "plugins", ModConfigEnhance.Updating.ManagerIdentity.PackFolder);
+         string id = PackId();
+         PackConflictStore.WritePublished(payload, request.Conflicts, mods);
+         foreach (string file in OverviewRepository.SafeFiles(payload).Where(p => Path.GetFileName(p) == "profile.json"))
+@@ -356,11 +356,11 @@ internal static partial class PackPublisher
+             ["enhanceDefaults"] = enhance, ["containers"] = new JArray(ContainerRoots().Select(p => Relative(Paths.BepInExRootPath, p).Replace('\\', '/')))
+             , ["warnings"] = new JArray(MissingTargets(repo,request,mods).Concat(request.ExcludedExtras.Select(p=>"Excluded attachment / 已确认排除附带内容："+p.Key+" — "+p.Value)))
+         }.ToString(Formatting.Indented));
+-        PublicationDrafts.Apply(request, payload, request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + request.Name + "/MCEPack/");
++        PublicationDrafts.Apply(request, payload, request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
+         if (request.Sign) { PublishedPack.Sign(payload, request.SigningKeyPath); PublishedPack.Verify(payload, true); }
+         if (request.Mode == PublishMode.Data) return export;
+         string output = Path.Combine(export, CompleteMode(request.Mode) ? "Local" : "Thunderstore"); Directory.CreateDirectory(output);
+-        CopyTree(payload, Path.Combine(output, "BepInEx", "plugins", request.Name, "MCEPack"), preservePublishedFiles: true);
++        CopyTree(payload, Path.Combine(output, "BepInEx", "plugins", request.Name, ModConfigEnhance.Updating.ManagerIdentity.PackFolder), preservePublishedFiles: true);
+         if (CompleteMode(request.Mode))
+         {
+             foreach (var entry in EnvironmentPlan(request, mods, defaults))
+@@ -412,13 +412,13 @@ internal static partial class PackPublisher
+         if (CompleteMode(request.Mode)) OverviewRepository.AtomicWrite(Path.Combine(output, "README.md"), Readme(request));
+         var missing=MissingTargets(repo,request,mods).Concat(request.ExcludedExtras.Select(p=>"Excluded attachment / 已确认排除附带内容："+p.Key+" — "+p.Value)).ToList();
+         if(missing.Count>0) File.AppendAllText(Path.Combine(output,"README.md"),"\n\n"+string.Join("\n",missing.Select(m=>"- "+m))+"\n",new UTF8Encoding(false));
+-        PublicationDrafts.Apply(request, output, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/MCEPack/");
++        PublicationDrafts.Apply(request, output, "", skipPrefix: "BepInEx/plugins/" + request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/");
+         if (CompleteMode(request.Mode)) WriteEnvironmentDescription(output, request, defaults, mods);
+         string zip = Path.Combine(export, ExportName(request) + ".zip");
+         string partial = zip + ".partial"; ZipFile.CreateFromDirectory(output, partial, CompressionLevel.Optimal, false); File.Move(partial, zip);
+         return zip;
+     }
+-    internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and MCEPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in MCEPack; personal changes are in config/ModConfigEnhance.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 MCEPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 MCEPack，个人修改位于 config/ModConfigEnhance。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 MCEPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 MCEPack，個人修改位於 config/ModConfigEnhance。\n");
++    internal static string Readme(PublishRequest request) => "# " + request.Name + " " + request.Version + Loc.T("\n\nNew installation: copy this package into the PEAK game directory. The author's default profile is applied on the first main-menu visit; follow any restart prompts.\n\nExisting installation: back up first and preserve personal configuration in BepInEx/config, then update the mods and IGMMPack author data. Check the current enablement targets in profile management after starting the game.\n\nAuthor translations and presets are stored in IGMMPack; personal changes are in config/InGameModManager.\n", "\n\n新安装：将包内文件放到 PEAK 游戏目录。首次进入主菜单将应用作者默认方案，按提示完成所需重启。\n\n更新已有安装：先备份，保留现有 BepInEx/config 个人配置，再更新模组和 IGMMPack 作者资料；启动后可在方案管理里核对当前启停目标。\n\n作者译文与预设位于 IGMMPack，个人修改位于 config/InGameModManager。\n", "\n\n新安裝：將包內檔案放到 PEAK 遊戲目錄。首次進入主選單將套用作者預設方案，按提示完成所需重新啟動。\n\n更新既有安裝：先備份，保留現有 BepInEx/config 個人設定，再更新模組和 IGMMPack 作者資料；啟動後可在方案管理裡核對目前啟停目標。\n\n作者譯文與預設位於 IGMMPack，個人修改位於 config/InGameModManager。\n");
+     internal static string Changelog(PublishRequest request) => "# " + request.Version + "\n\n" + request.Description + "\n";
+     internal static bool IsIcon(string path)
+     {
+diff --git a/src/Overview/PackStorageBrowser.cs b/src/Overview/PackStorageBrowser.cs
+index feca449..d531b8c 100644
+--- a/src/Overview/PackStorageBrowser.cs
++++ b/src/Overview/PackStorageBrowser.cs
+@@ -26,12 +26,12 @@ internal static class PackStorageBrowser
+     internal static Task<List<StorageTreeNode>> Load(string bepRoot) => Task.Run(() => {
+         var result = new List<StorageTreeNode>();
+         foreach (var spec in new[] {
+-            ("下载缓存", "MCE/downloads", MaintenanceScopes.Downloads),
+-            ("详情缓存", "MCE/packs/.view-cache", MaintenanceScopes.ViewCache),
+-            ("商店下载与操作备份", "MCE/shop/tasks", MaintenanceScopes.ShopTasks),
+-            ("商店图标与文档缓存", "config/ModConfigEnhance/data/runtime/shop-resources", MaintenanceScopes.ShopResources),
+-            ("切换恢复备份", "MCE/packs/.transactions", MaintenanceScopes.Transactions),
+-            ("整合包回收区", "MCE/packs/.trash", MaintenanceScopes.PackTrash) })
++            ("下载缓存", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/downloads", MaintenanceScopes.Downloads),
++            ("详情缓存", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.view-cache", MaintenanceScopes.ViewCache),
++            ("商店下载与操作备份", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/shop/tasks", MaintenanceScopes.ShopTasks),
++            ("商店图标与文档缓存", "config/InGameModManager/data/runtime/shop-resources", MaintenanceScopes.ShopResources),
++            ("切换恢复备份", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.transactions", MaintenanceScopes.Transactions),
++            ("整合包回收区", ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory + "/packs/.trash", MaintenanceScopes.PackTrash) })
+         {
+             var root = new StorageTreeNode { Name = spec.Item1, Path = Path.Combine(bepRoot, spec.Item2), Scope = spec.Item3, Directory = true, Category = true };
+             if (System.IO.Directory.Exists(root.Path))
+diff --git a/src/Overview/PackSwitchProgressWindow.cs b/src/Overview/PackSwitchProgressWindow.cs
+index 4c19c50..1157574 100644
+--- a/src/Overview/PackSwitchProgressWindow.cs
++++ b/src/Overview/PackSwitchProgressWindow.cs
+@@ -16,7 +16,7 @@ internal static class PackSwitchProgressWindow
+         if (Environment.OSVersion.Platform != PlatformID.Win32NT || !PackLibrary.ValidId(previewId)) return;
+         // Prepare the complete immutable tools cache before the pack can remove its host files.
+         string tools = OverviewUpdateQueue.PrepareWorkerTools();
+-        string viewer = Path.Combine(tools, "MCE.Desktop.exe");
++        string viewer = Path.Combine(tools, ModConfigEnhance.Updating.ManagerIdentity.DesktopExecutable);
+         WorkerProtocol.RejectLinks(Path.GetDirectoryName(BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/'))!, viewer);
+         if (!File.Exists(viewer)) throw new IOException("MCE progress viewer is missing. Reinstall the complete Tools/Updater bundle; recovery remains available.");
+         string root = BepInEx.Paths.BepInExRootPath.TrimEnd('\\', '/');
+diff --git a/src/Overview/PublicationDrafts.cs b/src/Overview/PublicationDrafts.cs
+index 6d3bdaa..e16771f 100644
+--- a/src/Overview/PublicationDrafts.cs
++++ b/src/Overview/PublicationDrafts.cs
+@@ -41,7 +41,7 @@ internal sealed class PublicationDrafts : IContentFiles
+         "修改僅用於本次發布，原方案維持原樣。關閉管理中心後不會還原本次草稿，請先產生 ZIP 留存。");
+     internal PublicationDrafts(OverviewRepository repo, PublishRequest request)
+     { _repo = repo; _request = request; Root = OverviewProfileAssets.CheckedPath(repo.ConfigRootDirectory, "data/runtime/publication-drafts/" + Guid.NewGuid().ToString("N")); }
+-    internal string PayloadPrefix => _request.Mode == PublishMode.Data ? "plugins/MCEPack/" : "BepInEx/plugins/" + _request.Name + "/MCEPack/";
++    internal string PayloadPrefix => _request.Mode == PublishMode.Data ? "plugins/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/" : "BepInEx/plugins/" + _request.Name + "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/";
+     public bool IsIntroduction(string relative) => relative.StartsWith(PayloadPrefix + "profiles/" + OverviewProfileExport.PortableId(_repo.ViewedProfile.publicationId.Length > 0 ? _repo.ViewedProfile.publicationId : _repo.ViewedProfileId) + "/", StringComparison.OrdinalIgnoreCase)
+         && (relative.EndsWith("/introduction.md", StringComparison.OrdinalIgnoreCase) || relative.EndsWith("/introduction.mcedoc.json", StringComparison.OrdinalIgnoreCase));
+     public bool CanEdit(string relative) => !relative.StartsWith(PayloadPrefix, StringComparison.OrdinalIgnoreCase)
+diff --git a/src/Overview/PublicationFilePolicy.cs b/src/Overview/PublicationFilePolicy.cs
+index b6430f5..3fa01b4 100644
+--- a/src/Overview/PublicationFilePolicy.cs
++++ b/src/Overview/PublicationFilePolicy.cs
+@@ -17,12 +17,12 @@ internal static class PublicationFilePolicy
+         string file = Path.GetFileName(path);
+         return path.Length > 0 && !Path.IsPathRooted(path) && !path.Contains(':')
+             && !path.Split('/').Any(p => p == ".." || p.Length == 0)
+-            && !file.Equals("com.aiae.modconfigenhance.cfg", StringComparison.OrdinalIgnoreCase)
++            && !ModConfigEnhance.Updating.ManagerIdentity.IsManagerConfigFile(file)
+             && !file.Equals("AutoTranslatorConfig.ini", StringComparison.OrdinalIgnoreCase)
+             && !path.StartsWith("Translation/", StringComparison.OrdinalIgnoreCase)
+             && path.IndexOf("/_AutoGeneratedTranslations", StringComparison.OrdinalIgnoreCase) < 0
+-            && !path.StartsWith("ModConfigEnhance/", StringComparison.OrdinalIgnoreCase)
+-            && !path.StartsWith("MCE/", StringComparison.OrdinalIgnoreCase)
++            && !ModConfigEnhance.Updating.ManagerIdentity.IsConfigDirectory(path.Split('/')[0])
++            && !ModConfigEnhance.Updating.ManagerIdentity.UnderRuntime(path)
+             && !path.StartsWith("XUnity", StringComparison.OrdinalIgnoreCase);
+     }
+     private static readonly HashSet<string> ExcludedFolders = new(StringComparer.OrdinalIgnoreCase)
+@@ -35,8 +35,8 @@ internal static class PublicationFilePolicy
+         string[] parts = relative.Replace('\\', '/').Split('/');
+         // This exact installation-level path is private runtime state. A plugin
+         // package named MCE below plugins remains ordinary publishable content.
+-        if (parts.Length >= 2 && parts[0].Equals("BepInEx", StringComparison.OrdinalIgnoreCase) && parts[1].Equals("MCE", StringComparison.OrdinalIgnoreCase)) return false;
+-        if (parts.Any(p => ExcludedFolders.Contains(p) || p.StartsWith("待安装", StringComparison.OrdinalIgnoreCase) || p.Equals("MCEPack", StringComparison.OrdinalIgnoreCase))) return false;
++        if (parts.Length >= 2 && parts[0].Equals("BepInEx", StringComparison.OrdinalIgnoreCase) && ModConfigEnhance.Updating.ManagerIdentity.IsRuntimeDirectory(parts[1])) return false;
++        if (parts.Any(p => ExcludedFolders.Contains(p) || p.StartsWith("待安装", StringComparison.OrdinalIgnoreCase) || ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(p))) return false;
+         string name = parts[parts.Length - 1];
+         if (name.Equals("HowManyTimesWeClimbedTogether.json", StringComparison.OrdinalIgnoreCase)) return false;
+         if (ModConfigEnhance.Updating.PluginFileNames.IsAssembly(name)) return true;
+@@ -51,9 +51,13 @@ internal static class PublicationFilePolicy
+ 
+     internal static bool IsUpdaterRuntime(string file, string bepinexDirectory)
+     {
+-        string root = Path.GetFullPath(Path.Combine(bepinexDirectory, "MCE")).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+         string full = Path.GetFullPath(file).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+-        return full.Equals(root, StringComparison.OrdinalIgnoreCase) || full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
++        foreach (string name in new[] { ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory, ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory })
++        {
++            string root = Path.GetFullPath(Path.Combine(bepinexDirectory, name)).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
++            if (full.Equals(root, StringComparison.OrdinalIgnoreCase) || full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return true;
++        }
++        return false;
+     }
+ 
+     internal static bool IsSelfDemo(string file, string selfDirectory)
+diff --git a/src/Overview/PublishFilePreview.cs b/src/Overview/PublishFilePreview.cs
+index f9d83a4..882fd1f 100644
+--- a/src/Overview/PublishFilePreview.cs
++++ b/src/Overview/PublishFilePreview.cs
+@@ -160,12 +160,12 @@ internal sealed class PublishFilePreview
+     {
+         string normalized = path.Replace('\\', '/');
+         if (_request.ExtraFiles.Any(extra => normalized.Equals(extra.TrimEnd('/') , StringComparison.OrdinalIgnoreCase) || normalized.StartsWith(extra.TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase))) return CategoryNames[4];
+-        bool profileResource = normalized.IndexOf("/MCEPack/profiles/", StringComparison.OrdinalIgnoreCase) >= 0 || normalized.StartsWith("plugins/MCEPack/profiles/", StringComparison.OrdinalIgnoreCase);
++        bool profileResource = ModConfigEnhance.Updating.ManagerIdentity.IndexOfPackSubfolder("/" + normalized, "profiles", out _) >= 0;
+         if (profileResource && (OverviewProfileAssets.SupportedMedia(normalized) || normalized.IndexOf("/fonts/", StringComparison.OrdinalIgnoreCase) >= 0)) return CategoryNames[4];
+         if (normalized.StartsWith("BepInEx/config/", StringComparison.OrdinalIgnoreCase)) return CategoryNames[2];
+         if (normalized.StartsWith("BepInEx/core/", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("BepInEx/patchers/", StringComparison.OrdinalIgnoreCase)
+             || normalized.StartsWith("BepInEx/monomod/", StringComparison.OrdinalIgnoreCase) || new[] { "winhttp.dll", "doorstop_config.ini", ".doorstop_version" }.Contains(normalized, StringComparer.OrdinalIgnoreCase)) return CategoryNames[3];
+-        if (normalized.Contains("/MCEPack/", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("plugins/MCEPack/", StringComparison.OrdinalIgnoreCase)) return CategoryNames[1];
++        if (ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder("/" + normalized)) return CategoryNames[1];
+         if (normalized is "manifest.json" or "README.md" or "icon.png") return CategoryNames[1];
+         return CategoryNames[0];
+     }
+diff --git a/src/Overview/PublishWizard.cs b/src/Overview/PublishWizard.cs
+index 8697165..aca7546 100644
+--- a/src/Overview/PublishWizard.cs
++++ b/src/Overview/PublishWizard.cs
+@@ -46,7 +46,7 @@ internal sealed class PublishWizard
+     internal PublishWizard(OverviewRepository repo, IEnumerable<string> ids, Action<string> status, bool authorMode = false)
+     {
+         _repo = repo; _status = status; _authorMode = authorMode;
+-        _request = new PublishRequest { Profiles = ids.ToList(), Languages = Loc.Scan().Select(g => g.Key).ToList(), Name = ThunderstoreUpdateService.ValidPart(repo.State.pack.name) ? repo.State.pack.name : "MCEPack_" + PackPublisher.PackId().Substring(0, 8), Version = System.Version.TryParse(repo.State.pack.version, out var version) && version.Build >= 0 ? version.ToString(3) : "1.0.0", Website = repo.State.pack.sourceNamespace.Length > 0 ? ThunderstoreUpdateService.HomeUrl(repo.State.pack.sourceNamespace, repo.State.pack.sourceName) : "", OutputDirectory = PackPublisher.DefaultOutputDirectory(repo) };
++        _request = new PublishRequest { Profiles = ids.ToList(), Languages = Loc.Scan().Select(g => g.Key).ToList(), Name = ThunderstoreUpdateService.ValidPart(repo.State.pack.name) ? repo.State.pack.name : ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "_" + PackPublisher.PackId().Substring(0, 8), Version = System.Version.TryParse(repo.State.pack.version, out var version) && version.Build >= 0 ? version.ToString(3) : "1.0.0", Website = repo.State.pack.sourceNamespace.Length > 0 ? ThunderstoreUpdateService.HomeUrl(repo.State.pack.sourceNamespace, repo.State.pack.sourceName) : "", OutputDirectory = PackPublisher.DefaultOutputDirectory(repo) };
+         _request.Description = repo.State.pack.name.Length > 0 ? repo.State.pack.name : T("A PEAK modpack", "一个 PEAK 整合包");
+         _request.DisplayName = repo.State.pack.name.Length > 0 ? repo.State.pack.name : repo.ViewedProfile.name;
+         _drafts = new PublicationDrafts(repo, _request);
+diff --git a/src/Overview/PublishedPack.cs b/src/Overview/PublishedPack.cs
+index 89cb498..cb114b1 100644
+--- a/src/Overview/PublishedPack.cs
++++ b/src/Overview/PublishedPack.cs
+@@ -40,7 +40,7 @@ internal sealed class PublishedPack
+     internal static List<PublishedPack> Discover(string plugins)
+     {
+         var result = new List<PublishedPack>();
+-        foreach (string file in OverviewRepository.SafeFiles(plugins).Where(p => Path.GetFileName(p) == "profiles.json" && Path.GetFileName(Path.GetDirectoryName(p)) == "MCEPack"))
++        foreach (string file in OverviewRepository.SafeFiles(plugins).Where(p => Path.GetFileName(p) == "profiles.json" && ModConfigEnhance.Updating.ManagerIdentity.IsPackFolder(Path.GetFileName(Path.GetDirectoryName(p)))))
+         {
+             if (ArchivePath(file, plugins)) continue;
+             var pack = new PublishedPack { Root = Path.GetDirectoryName(file)! };
+@@ -75,7 +75,7 @@ internal sealed class PublishedPack
+         return relative.IndexOf("Demo/profile-format/", StringComparison.OrdinalIgnoreCase) >= 0 || relative.Split('/').Any(p => p == "验证" || p == "备份" || p.StartsWith("待安装", StringComparison.OrdinalIgnoreCase));
+     }
+     internal static string Read(string root, string relative) => File.ReadAllText(OverviewProfileAssets.CheckedPath(root, relative), Encoding.UTF8);
+-    internal static string KeyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ModConfigEnhance", "signing", "author-key.json");
++    internal static string KeyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ModConfigEnhance.Updating.ManagerIdentity.ConfigDirectory, "signing", "author-key.json");
+     internal static void Sign(string root, string? keyPath = null)
+     {
+         keyPath ??= KeyPath;
+diff --git a/src/Overview/RecoveryLauncher.cs b/src/Overview/RecoveryLauncher.cs
+index 9b0c9d6..8615cfd 100644
+--- a/src/Overview/RecoveryLauncher.cs
++++ b/src/Overview/RecoveryLauncher.cs
+@@ -10,8 +10,8 @@ namespace ModConfigEnhance.Overview;
+ /// <summary>Recovery-only launcher. Independent of the installed plugin and normal worker queue.</summary>
+ internal static class RecoveryLauncher
+ {
+-    internal const string ScriptName = "MCE-Recovery.ps1";
+-    internal const string EntryName = "MCE-Recovery.cmd";
++    internal const string ScriptName = ModConfigEnhance.Updating.ManagerIdentity.RecoveryScript;
++    internal const string EntryName = ModConfigEnhance.Updating.ManagerIdentity.RecoveryEntry;
+ 
+     internal static string Write(string home, string validatedCache, string gameRoot)
+     {
+@@ -44,7 +44,7 @@ internal static class RecoveryLauncher
+         // Do not prepare from current plugins: an interrupted switch may have removed them.
+         string script = Path.Combine(Path.GetFullPath(home), ScriptName);
+         WorkerProtocol.RejectLinks(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(home)))!, script);
+-        if (!File.Exists(script)) throw new IOException("Recovery launcher is not prepared. A verified MCE/tools cache is required.");
++        if (!File.Exists(script)) throw new IOException("Recovery launcher is not prepared. A verified IGMM/tools cache is required.");
+         string bootstrap = "& ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" + Convert.ToBase64String(Encoding.UTF8.GetBytes(script)) + "')))";
+         Process.Start(new ProcessStartInfo("powershell.exe", "-NoProfile -STA -ExecutionPolicy Bypass -EncodedCommand " + Convert.ToBase64String(Encoding.Unicode.GetBytes(bootstrap)))
+         { UseShellExecute = false, CreateNoWindow = true })?.Dispose();
+@@ -55,7 +55,7 @@ param([switch]$Headless)
+ $ErrorActionPreference='Stop'
+ $script:root=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('ROOT_BASE64'))
+ $script:gameRoot=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('GAMEDIR_BASE64'))
+-$script:mceHome=Join-Path $script:root 'MCE'
++$script:mceHome=Join-Path $script:root 'IGMM'
+ function Assert-NoLink([string]$path) {
+  $p=[IO.Path]::GetFullPath($path)
+  $boundary=[IO.Path]::GetDirectoryName($script:root)
+@@ -108,7 +108,7 @@ function Test-RecoveryTools([string]$directory) {
+    $files.Add($relative,(Get-Sha256 $file))
+   }
+  }
+- foreach($required in @('MCE.UpdateWorker.exe','Mono.Cecil.LICENSE.txt','Runtime-LICENSE.TXT','Runtime-THIRD-PARTY-NOTICES.TXT')){if(!$files.ContainsKey($required)){throw "Incomplete tool release: $required"}}
++ foreach($required in @('IGMM.UpdateWorker.exe','Mono.Cecil.LICENSE.txt','Runtime-LICENSE.TXT','Runtime-THIRD-PARTY-NOTICES.TXT')){if(!$files.ContainsKey($required)){throw "Incomplete tool release: $required"}}
+  $payload=(@($files.GetEnumerator()|ForEach-Object {$_.Key+'|'+$_.Value}) -join "`n")
+  $sha=[Security.Cryptography.SHA256]::Create()
+  try{$build=([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload)))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
+@@ -138,7 +138,7 @@ function Get-RecoveryArguments([string]$mode,[string]$selector='') {
+ function Start-RecoveryProcess([string]$mode,[string]$selector='') {
+  $tools=Find-RecoveryTools
+  $info=New-Object Diagnostics.ProcessStartInfo
+- $info.FileName=Join-Path $tools 'MCE.UpdateWorker.exe';$info.Arguments=Get-RecoveryArguments $mode $selector
++ $info.FileName=Join-Path $tools 'IGMM.UpdateWorker.exe';$info.Arguments=Get-RecoveryArguments $mode $selector
+  $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.WorkingDirectory=$tools
+  $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
+  $info.EnvironmentVariables['DOTNET_BUNDLE_EXTRACT_BASE_DIR']=Join-Path $script:mceHome 'tools\.extract'
+@@ -157,7 +157,7 @@ if($Headless){return}
+ try{
+  Add-Type -AssemblyName System.Windows.Forms
+  Add-Type -AssemblyName System.Drawing
+- $form=New-Object Windows.Forms.Form;$form.Text='MCE Recovery / 仅恢复既有未完成事务';$form.Size=New-Object Drawing.Size(820,580);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
++ $form=New-Object Windows.Forms.Form;$form.Text='In-Game Mod Manager Recovery / 仅恢复既有未完成事务';$form.Size=New-Object Drawing.Size(820,580);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
+  $label=New-Object Windows.Forms.Label;$label.Location=New-Object Drawing.Point(16,16);$label.Size=New-Object Drawing.Size(770,65);$label.Text='Recovery only: no new commands, switch retries or migrations. Exit PEAK first. Select a listed unfinished transaction and confirm. / 不处理新命令、重试或迁移；请先退出游戏。';$form.Controls.Add($label)
+  $details=New-Object Windows.Forms.TextBox;$details.Location=New-Object Drawing.Point(16,88);$details.Size=New-Object Drawing.Size(770,335);$details.Multiline=$true;$details.ReadOnly=$true;$details.ScrollBars='Both';$details.Anchor='Top,Bottom,Left,Right';$form.Controls.Add($details)
+  $list=New-Object Windows.Forms.ComboBox;$list.Location=New-Object Drawing.Point(16,440);$list.Size=New-Object Drawing.Size(770,28);$list.DropDownStyle='DropDownList';$list.Anchor='Bottom,Left,Right';$form.Controls.Add($list)
+@@ -213,6 +213,6 @@ try{
+  $form.Add_FormClosing({param($sender,$eventArgs) if($script:active -or $script:starting){$eventArgs.Cancel=$true;[Windows.Forms.MessageBox]::Show('Recovery worker is running. Wait for it to finish; do not interrupt file recovery. / 恢复进程仍在运行，请等待。')|Out-Null}})
+  $form.Add_Shown({Begin-Recovery '--recovery-status'})
+  $timer.Start();[Windows.Forms.Application]::Run($form);$timer.Dispose()
+-}catch{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show($_.Exception.ToString(),'MCE Recovery FAILED / 未完成','OK','Error')|Out-Null}
++}catch{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show($_.Exception.ToString(),'In-Game Mod Manager Recovery FAILED / 未完成','OK','Error')|Out-Null}
+ """;
+ }
+diff --git a/src/Overview/ShopInstallationState.cs b/src/Overview/ShopInstallationState.cs
+index 0dbef50..01d5ef5 100644
+--- a/src/Overview/ShopInstallationState.cs
++++ b/src/Overview/ShopInstallationState.cs
+@@ -54,8 +54,8 @@ internal sealed class ShopInstallationState
+     }
+     internal bool CanInstall(string key)=>BlockReason(key).Length==0;
+     internal Func<string,string>? DependencyUninstallReason { get; set; }
+-    internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
+-        ? "Required BepInEx/MCE management host cannot be uninstalled independently." : BlockReason(key, true);
++    internal string UninstallBlockReason(string key)=>DependencyUninstallReason?.Invoke(key) is string protection && protection.Length>0 ? protection : ModConfigEnhance.Updating.ManagerIdentity.IsManagerPackage(key) || key.Equals("AiAeT-ModConfigEnhance",StringComparison.OrdinalIgnoreCase)||key.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)
++        ? "Required BepInEx/manager host cannot be uninstalled independently." : BlockReason(key, true);
+     internal bool CanUninstall(string key,bool owned)=>UninstallBlockReason(key).Length==0&&Snapshot.Has(key)&&
+         (owned||Snapshot.Packages[key].All(r=>r.Area=="plugins"||r.Area=="patchers"||r.Area=="core"));
+     // Serialize sorted tuples, not delimiter joins or object identity. Dictionary/list order is irrelevant.
+diff --git a/src/Overview/ShopInstalled.cs b/src/Overview/ShopInstalled.cs
+index 61d3698..031331b 100644
+--- a/src/Overview/ShopInstalled.cs
++++ b/src/Overview/ShopInstalled.cs
+@@ -58,7 +58,7 @@ internal static class ShopInstalled
+         var sources=confirmed.ToList();
+         // One inventory walk per refresh, not per card. Stored packs and system directories are excluded.
+         var roots=new List<(string path,string area)>{(System.IO.Path.Combine(root,"plugins"),"plugins"),(System.IO.Path.Combine(root,"core"),"core"),(System.IO.Path.Combine(root,"patchers"),"patchers")};
+-        if(Directory.Exists(root))foreach(var dir in Directory.GetDirectories(root))if(!new[]{"plugins","core","patchers","config","MCE","cache","logs","monomod","interop","unhollowed"}.Contains(System.IO.Path.GetFileName(dir),StringComparer.OrdinalIgnoreCase))roots.Add((dir,"cache"));
++        if(Directory.Exists(root))foreach(var dir in Directory.GetDirectories(root))if(!new[]{"plugins","core","patchers","config",ModConfigEnhance.Updating.ManagerIdentity.RuntimeDirectory,ModConfigEnhance.Updating.ManagerIdentity.LegacyRuntimeDirectory,"cache","logs","monomod","interop","unhollowed"}.Contains(System.IO.Path.GetFileName(dir),StringComparer.OrdinalIgnoreCase))roots.Add((dir,"cache"));
+         var all=roots.SelectMany(r=>Files(r.path,error=>snapshot.Failure=error).Select(f=>(file:System.IO.Path.GetFullPath(f),area:r.area))).ToList();
+         var paths=new HashSet<string>(all.Select(f=>System.IO.Path.GetFullPath(f.file)),StringComparer.OrdinalIgnoreCase);
+         var manifests=all.Where(f=>System.IO.Path.GetFileName(f.file).Equals("manifest.json",StringComparison.OrdinalIgnoreCase)).Select(f=>System.IO.Path.GetDirectoryName(f.file)!).ToList();
+diff --git a/src/Overview/ShopNetwork.cs b/src/Overview/ShopNetwork.cs
+index 9279ba8..e43f290 100644
+--- a/src/Overview/ShopNetwork.cs
++++ b/src/Overview/ShopNetwork.cs
+@@ -97,7 +97,7 @@ internal static class ShopNetwork
+         // Unity Mono rejects assigning Proxy=null even before the first request.
+         if (proxy != null) handler.Proxy = proxy;
+         var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+-        client.DefaultRequestHeaders.UserAgent.ParseAdd("ModConfigEnhance/2.0.0");
++        client.DefaultRequestHeaders.UserAgent.ParseAdd(ModConfigEnhance.Updating.ManagerIdentity.AssemblyName + "/" + Plugin.PluginVersion);
+         Routes.Add(client, new Route { Proxy = proxy });
+         Report("client mode=" + network.Mode);
+         return client;
+diff --git a/src/Overview/ShopWindow.cs b/src/Overview/ShopWindow.cs
+index 332ba9b..a12d866 100644
+--- a/src/Overview/ShopWindow.cs
++++ b/src/Overview/ShopWindow.cs
+@@ -131,7 +131,7 @@ internal sealed class ShopWindow : MonoBehaviour
+     private string _openPackage="";
+     private float _sentAt;
+     private string _sentTaskKey="";
+-    private string Home=>Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop");
++    private string Home=>ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop");
+     private string FavoritePath=>Path.Combine(Loc.RuntimeDirectory,"shop-favorites.json");
+     internal static void Open(OverviewRepository repo,IReadOnlyList<OverviewMod> installed,bool showTask=false,string packageKey="",bool uninstall=false)
+     {
+@@ -397,7 +397,7 @@ internal sealed class ShopWindow : MonoBehaviour
+     }
+     internal static void ResumeGrouping(OverviewRepository repo)
+     {
+-        string home=Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop"),file=Path.Combine(home,"task.json");
++        string home=ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath, "shop"),file=Path.Combine(home,"task.json");
+         if(!File.Exists(file))return;
+         try
+         {
+diff --git a/src/Overview/SourceUi.cs b/src/Overview/SourceUi.cs
+index 1403201..78b6fe7 100644
+--- a/src/Overview/SourceUi.cs
++++ b/src/Overview/SourceUi.cs
+@@ -133,7 +133,7 @@ internal static partial class SourceUi
+             if(action=="uninstall"){
+                 string reason=UninstallReason(mod.SourceKey);
+                 if(reason.Length>0){ShowRelationships(repo, mods ?? new[] { mod }, mod);return;}
+-                string ledgerPath=PackLibrary.Managed?System.IO.Path.Combine(PackLibrary.Workspace,"shop-installed.json"):System.IO.Path.Combine(BepInEx.Paths.BepInExRootPath,"MCE","shop","installed-unmanaged.json");
++                string ledgerPath=PackLibrary.Managed?System.IO.Path.Combine(PackLibrary.Workspace,"shop-installed.json"):ModConfigEnhance.Updating.ManagerIdentity.Runtime(BepInEx.Paths.BepInExRootPath,"shop","installed-unmanaged.json");
+                 var ledger=System.IO.File.Exists(ledgerPath)?Newtonsoft.Json.JsonConvert.DeserializeObject<ModConfigEnhance.Updating.ShopLedger>(System.IO.File.ReadAllText(ledgerPath)):null;
+                 var owned=ledger?.Packages.FirstOrDefault(p=>p.PluginGuids.Contains(mod.Guid,StringComparer.OrdinalIgnoreCase));
+                 if(owned==null&&mod.SourceConfirmed&&System.IO.Directory.Exists(mod.PackageRoot)&&!System.IO.Path.GetFullPath(mod.PackageRoot).TrimEnd('\\','/').Equals(System.IO.Path.GetFullPath(BepInEx.Paths.PluginPath).TrimEnd('\\','/'),StringComparison.OrdinalIgnoreCase)&&System.IO.File.Exists(System.IO.Path.Combine(mod.PackageRoot,"manifest.json"))&&Version.TryParse(mod.PackageVersion,out _))owned=new ModConfigEnhance.Updating.ShopPackage{Key=mod.SourceNamespace+"-"+mod.SourceName,Version=mod.PackageVersion};
+diff --git a/src/Overview/StoredPackDetails.cs b/src/Overview/StoredPackDetails.cs
+index 065e91a..db79086 100644
+--- a/src/Overview/StoredPackDetails.cs
++++ b/src/Overview/StoredPackDetails.cs
+@@ -83,7 +83,7 @@ internal static class StoredPackDetails
+         report.Headline = "已保存到整合包库。查看内容不会下载文件或切换整合包。";
+         report.Kind = "stored";
+         if (report.KindText.Length == 0) report.KindText = pack.PublicationId.Length == 0 ? "类型：临时整合包快照。" : "类型：已导入整合包。";
+-        report.Files = pack.Files.Select(f => new PackReportFile { Path = f.Path.Replace((char)92, '/'), Group = f.Path.StartsWith("config/", StringComparison.OrdinalIgnoreCase) ? "配置文件" : f.Path.StartsWith("patchers/", StringComparison.OrdinalIgnoreCase) ? "启动补丁" : f.Path.IndexOf("/MCEPack/", StringComparison.OrdinalIgnoreCase) >= 0 ? "作者资料" : "模组文件" }).ToList();
++        report.Files = pack.Files.Select(f => new PackReportFile { Path = f.Path.Replace((char)92, '/'), Group = f.Path.StartsWith("config/", StringComparison.OrdinalIgnoreCase) ? "配置文件" : f.Path.StartsWith("patchers/", StringComparison.OrdinalIgnoreCase) ? "启动补丁" : ModConfigEnhance.Updating.ManagerIdentity.ContainsPackFolder(f.Path) ? "作者资料" : "模组文件" }).ToList();
+         if (copy.Report == null)
+         {
+             report.Lines.AddRange(pack.Problems.Select(PackReportText.Problem));
+@@ -128,7 +128,7 @@ internal static class StoredPackDetails
+         copy.Report = report;
+         return new PackTask { Id = "stored-" + pack.Id + "-" + pack.Content, State = "preview", Request = new PackRequest { Operation = "view-stored", PackId = pack.Id }, Proposed = copy, Report = report, StagingDirectory = root };
+     }
+-    private const string AuthorLanguageFolder = "/MCEPack/language/";
++    private static readonly string[] AuthorLanguageFolders = { "/" + ModConfigEnhance.Updating.ManagerIdentity.PackFolder + "/language/", "/" + ModConfigEnhance.Updating.ManagerIdentity.LegacyPackFolder + "/language/" };
+     /// <summary>
+     /// Language groups of a stored revision, grouped by the shared PackLanguages rules. Read-only; never writes the library.
+     /// Sources: the declared author root, any MCEPack/language folder listed in the revision (older temporary snapshots), and workspace/language (snapshots saved with the player's own dictionaries).
+@@ -140,9 +140,14 @@ internal static class StoredPackDetails
+         try { if (pack.AuthorRoot.Length > 0) Add(OverviewProfileAssets.CheckedPath(root, pack.AuthorRoot + "/language")); } catch (IOException) { }
+         foreach (var file in pack.Files)
+         {
+-            string path = file.Path.Replace((char)92, '/'); int at = path.IndexOf(AuthorLanguageFolder, StringComparison.OrdinalIgnoreCase);
+-            if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + AuthorLanguageFolder.Length) >= 0) continue;
+-            try { Add(OverviewProfileAssets.CheckedPath(root, path.Substring(0, at + AuthorLanguageFolder.Length - 1))); } catch (IOException) { }
++            string path = file.Path.Replace((char)92, '/');
++            foreach (string folder in AuthorLanguageFolders)
++            {
++                int at = path.IndexOf(folder, StringComparison.OrdinalIgnoreCase);
++                if (at < 0 || !path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) || path.IndexOf('/', at + folder.Length) >= 0) continue;
++                try { Add(OverviewProfileAssets.CheckedPath(root, path.Substring(0, at + folder.Length - 1))); } catch (IOException) { }
++                break;
++            }
+         }
+         try { Add(OverviewProfileAssets.CheckedPath(PackLibrary.Home, pack.Id + "/workspace/language")); } catch (IOException) { }
+         var merged = new Dictionary<string, PackLanguage>(StringComparer.OrdinalIgnoreCase);
+diff --git a/src/Updating/ComponentDependencyGraph.cs b/src/Updating/ComponentDependencyGraph.cs
+index 3d58135..7807658 100644
+--- a/src/Updating/ComponentDependencyGraph.cs
++++ b/src/Updating/ComponentDependencyGraph.cs
+@@ -8,7 +8,7 @@ namespace ModConfigEnhance.Updating;
+ /// <summary>Immutable-by-convention evidence snapshot. IDs are package keys or file paths, never invented plugin GUIDs.</summary>
+ public sealed class ComponentDependencyGraph
+ {
+-    public const string MceGuid = "com.aiae.modconfigenhance";
++    public const string MceGuid = ManagerIdentity.Guid;
+     /// <summary>What MCE itself runs on: the ModConfig host it hard-depends on, plus the two PEAKLib assemblies it
+     /// references. Deliberately a short, fixed list — the graph walk used to decide this, and it gave MCE a hard
+     /// edge to every assembly it could not resolve ("possible provider"), which put unrelated mods under
+@@ -22,7 +22,7 @@ public sealed class ComponentDependencyGraph
+     /// <summary>2.3.9 (user decision): the protected whitelist — MCE plus <see cref="MceRequiredIdentities"/>. These
+     /// cannot be enabled/disabled or uninstalled from MCE; everything else can.</summary>
+     public static bool IsProtected(string guid) => !string.IsNullOrEmpty(guid)
+-        && (Compare.Equals(guid, MceGuid) || MceRequiredIdentities.Contains(guid, Compare));
++        && (ManagerIdentity.IsManagerGuid(guid) || MceRequiredIdentities.Contains(guid, Compare));
+     internal static IReadOnlyList<string> MceRequiredBy(Component component)
+     {
+         var required = new List<string>();
+@@ -79,7 +79,7 @@ public sealed class ComponentDependencyGraph
+         var target = Components.FirstOrDefault(c => Compare.Equals(c.Id, id) || (c.PackageKey.Length > 0 && Compare.Equals(c.PackageKey, id)));
+         var paths = new Dictionary<string, List<string>>(Compare);
+         var pending = new Queue<string>();
+-        foreach (var seed in Components.Where(c => c.PluginGuids.Contains(MceGuid, Compare)))
++        foreach (var seed in Components.Where(c => c.PluginGuids.Any(ManagerIdentity.IsManagerGuid)))
+             if (!paths.ContainsKey(seed.Id)) { paths[seed.Id] = new List<string> { seed.Id }; pending.Enqueue(seed.Id); }
+         bool noSeed = pending.Count == 0;
+         var unresolved = new List<string>();
+diff --git a/src/Updating/GroupFolderPlanner.cs b/src/Updating/GroupFolderPlanner.cs
+index 839cf47..2190acc 100644
+--- a/src/Updating/GroupFolderPlanner.cs
++++ b/src/Updating/GroupFolderPlanner.cs
+@@ -30,7 +30,7 @@ namespace ModConfigEnhance.Updating
+         public string BepInExAbsolutePath = "";
+         public int MaximumFullPathLength = 240;
+         public string UngroupedFolderName = "Ungrouped";
+-        public string ManagerGuid = "com.aiae.modconfigenhance";
++        public string ManagerGuid = ManagerIdentity.Guid;
+         public List<FolderGroup> Groups = new List<FolderGroup>();
+         public List<FolderEntry> Entries = new List<FolderEntry>();
+         public List<FolderRow> Rows = new List<FolderRow>();
+@@ -83,7 +83,7 @@ namespace ModConfigEnhance.Updating
+         {
+             var parts = Normalize(path).Split('/');
+             if (parts.Length < 2 || !parts[0].Equals("plugins", StringComparison.OrdinalIgnoreCase)) return false;
+-            return parts[1].Equals("MMHOOK", StringComparison.OrdinalIgnoreCase) || parts[1].StartsWith("MCEPack_", StringComparison.OrdinalIgnoreCase);
++            return parts[1].Equals("MMHOOK", StringComparison.OrdinalIgnoreCase) || ManagerIdentity.IsPackFolderPrefixed(parts[1]);
+         }
+ 
+         /// <summary>A group name as a folder name: characters Windows does not allow are dropped (not replaced).</summary>
+diff --git a/src/Updating/InstallationLayoutPlanner.cs b/src/Updating/InstallationLayoutPlanner.cs
+index bb120c5..302fece 100644
+--- a/src/Updating/InstallationLayoutPlanner.cs
++++ b/src/Updating/InstallationLayoutPlanner.cs
+@@ -55,7 +55,7 @@ namespace ModConfigEnhance.Updating
+                 if (unit.IsCoreOrPatcher) reasons.Add("CoreOrPatcherExcluded");
+                 // The manager moves like any package: it runs from its cached tools, and the move happens after the game exits.
+                 var notes = new List<string>();
+-                if (unit.IsProtectedManager || unit.Plugins.Any(p => p != null && IgnoreCase.Equals(p.Id, "com.aiae.modconfigenhance"))) notes.Add("ManagerMovedLast");
++                if (unit.IsProtectedManager || unit.Plugins.Any(p => p != null && ManagerIdentity.IsManagerGuid(p.Id))) notes.Add("ManagerMovedLast");
+                 if (!input.InventoryComplete) reasons.Add("InventoryIncomplete");
+                 if (!unit.OwnershipComplete || !unit.FileInventoryComplete || unit.Files.Count == 0) reasons.Add("OwnershipOrFilesIncomplete");
+                 if (unit.HasLinks != LayoutFact.No || unit.Files.Any(f => f.HasLinks != LayoutFact.No)) reasons.Add("LinkFactsUnknown");
+diff --git a/src/Updating/MaintenanceContracts.cs b/src/Updating/MaintenanceContracts.cs
+index f9c2c62..8a28ff1 100644
+--- a/src/Updating/MaintenanceContracts.cs
++++ b/src/Updating/MaintenanceContracts.cs
+@@ -20,10 +20,10 @@ public static class MaintenanceOperations
+ 
+ public static class MaintenanceScopes
+ {
+-    public const string Downloads = "downloads";       // BepInEx/MCE/downloads
+-    public const string ViewCache = "view-cache";      // BepInEx/MCE/packs/.view-cache
+-    public const string Transactions = "transactions"; // BepInEx/MCE/packs/.transactions/<id> whose switch plan is installed or rolled-back
+-    public const string PackTrash = "pack-trash";      // BepInEx/MCE/packs/.trash/<id>; only used by purge-pack-trash
++    public const string Downloads = "downloads";       // BepInEx/IGMM/downloads
++    public const string ViewCache = "view-cache";      // BepInEx/IGMM/packs/.view-cache
++    public const string Transactions = "transactions"; // BepInEx/IGMM/packs/.transactions/<id> whose switch plan is installed or rolled-back
++    public const string PackTrash = "pack-trash";      // BepInEx/IGMM/packs/.trash/<id>; only used by purge-pack-trash
+ 
+     public const string ShopTasks = "shop-tasks";
+     public const string ShopResources = "shop-resources";
+diff --git a/src/Updating/MceDirectories.cs b/src/Updating/MceDirectories.cs
+index b312c36..ac30ae4 100644
+--- a/src/Updating/MceDirectories.cs
++++ b/src/Updating/MceDirectories.cs
+@@ -53,7 +53,7 @@ internal static class MceDirectories
+     }
+ 
+     /// <summary>从 BepInEx 根（助手的 <c>--root</c>）算 config\ModConfigEnhance。</summary>
+-    internal static string RootFromBepInEx(string bepInExRoot) => Path.Combine(bepInExRoot, "config", "ModConfigEnhance");
++    internal static string RootFromBepInEx(string bepInExRoot) => Path.Combine(bepInExRoot, "config", ManagerIdentity.ConfigDirectory);
+ 
+     /// <summary>旧布局 → 新布局（相对 config\ModConfigEnhance）。顺序有意义：先搬整目录，再并入。</summary>
+     internal static readonly (string Old, string New)[] Moves =
+diff --git a/src/Updating/PackContracts.cs b/src/Updating/PackContracts.cs
+index 8d51d35..e65fba2 100644
+--- a/src/Updating/PackContracts.cs
++++ b/src/Updating/PackContracts.cs
+@@ -178,16 +178,17 @@ public static class PackEnvironmentPolicy
+     public static bool LegacyGlobalConfig(string relative)
+     {
+         string p = relative.Replace('\\', '/');
+-        return Equal(p, "com.aiae.modconfigenhance.cfg") || Equal(p, "BepInEx.cfg") || Equal(p, "AutoTranslatorConfig.ini")
+-            || Under(p, "ModConfigEnhance") || Under(p, "MCE") || Under(p, "Translation")
++        return ManagerIdentity.IsManagerConfigFile(p) || Equal(p, "BepInEx.cfg") || Equal(p, "AutoTranslatorConfig.ini")
++            || Under(p, ManagerIdentity.ConfigDirectory) || Under(p, ManagerIdentity.LegacyConfigDirectory)
++            || Under(p, ManagerIdentity.RuntimeDirectory) || Under(p, ManagerIdentity.LegacyRuntimeDirectory) || Under(p, "Translation")
+             || p.StartsWith("XUnity", StringComparison.OrdinalIgnoreCase)
+             || p.IndexOf("/_AutoGeneratedTranslations", StringComparison.OrdinalIgnoreCase) >= 0;
+     }
+ 
+     // Management/preferences are not runtime dependencies. Translator config/cache/dictionaries ARE runtime data.
+-    public static bool ManagementConfig(string relative) => Equal(relative, "com.aiae.modconfigenhance.cfg")
+-        || Equal(relative, "ModConfigEnhance") || Under(relative, "ModConfigEnhance")
+-        || Equal(relative, "MCE") || Under(relative, "MCE");
++    public static bool ManagementConfig(string relative) => ManagerIdentity.IsManagerConfigFile(relative)
++        || ManagerIdentity.IsConfigDirectory(relative) || Under(relative, ManagerIdentity.ConfigDirectory) || Under(relative, ManagerIdentity.LegacyConfigDirectory)
++        || ManagerIdentity.IsRuntimeDirectory(relative) || Under(relative, ManagerIdentity.RuntimeDirectory) || Under(relative, ManagerIdentity.LegacyRuntimeDirectory);
+ 
+     public static bool ManagedPath(string path, int environmentVersion)
+     {
+diff --git a/src/Updating/PackReportText.cs b/src/Updating/PackReportText.cs
+index 00e1d55..2ebdc6d 100644
+--- a/src/Updating/PackReportText.cs
++++ b/src/Updating/PackReportText.cs
+@@ -52,7 +52,7 @@ public static class PackReportText
+         else if (Starts("缺少必需插件依赖：", out rest)) Set("缺少前置模组：" + rest, "整合包内的某个模组依赖它。", "补充该模组，或先在本机安装。");
+         else if (Starts("插件依赖版本不足：", out rest)) Set("前置模组版本过低", rest.Replace(" 要求 ", "，至少需要 "), "需由整合包作者升级打包的版本。");
+         else if (Starts("需人工安装的不支持内容：", out rest)) Set("包含不会自动处理的内容：" + rest, "monomod 和脚本类文件不会被自动放入游戏。", "如确有需要，请手动安装；整合包仍可存入。");
+-        else if (Starts("含本机运行数据：", out rest)) Set("包内含有管理器运行数据：" + rest, "", "重新打包时排除管理器运行目录（BepInEx/MCE）。");
++        else if (Starts("含本机运行数据：", out rest)) Set("包内含有管理器运行数据：" + rest, "", "重新打包时排除管理器运行目录（BepInEx/IGMM）。");
+         else if (Starts("BepInEx 下的额外内容需要人工归类：", out rest)) Set("无法判断存放位置的文件：" + rest, "", "将其放入 plugins、patchers 或 config 后重新打包。");
+         else if (Starts("作者根清单版本锁冲突：", out rest)) Set("同一依赖被固定为多个版本：" + Pretty(rest), "", "需由整合包作者统一版本后重新发布。");
+         else if (Starts("同一 DLL 中的模组启停目标冲突：", out rest)) Set("同一文件内的模组启停目标冲突：" + rest, "", "需由整合包作者修正默认方案。");
+diff --git a/src/Updating/UpdateContracts.cs b/src/Updating/UpdateContracts.cs
+index 7af53fb..c939ab1 100644
+--- a/src/Updating/UpdateContracts.cs
++++ b/src/Updating/UpdateContracts.cs
+@@ -9,7 +9,7 @@ namespace ModConfigEnhance.Updating;
+ /// <summary>Ordinary updates may follow a cached package, but never write loader/game/runtime data.</summary>
+ public static class UpdateWritePolicy
+ {
+-    private static readonly string[] Reserved = { "core", "config", "patchers", "plugins", "MCE", "cache", "interop", "unhollowed", "monomod" };
++    private static readonly string[] Reserved = { "core", "config", "patchers", "plugins", ManagerIdentity.RuntimeDirectory, ManagerIdentity.LegacyRuntimeDirectory, "cache", "interop", "unhollowed", "monomod" };
+     private static bool Within(string root, string path) => Path.GetFullPath(path).StartsWith(Path.GetFullPath(root).TrimEnd('\\', '/') + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+     public static bool PackageRootAllowed(string root, string packageRoot)
+     {
+@@ -208,7 +208,7 @@ public sealed class InstallationWriteLease : IDisposable
+         if (!Path.IsPathFullyQualified(root)) throw new IOException("Installation root must be an absolute path.");
+         installationRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+         gameBoundary = Path.GetDirectoryName(installationRoot) ?? throw new IOException("Installation root has no selected game boundary.");
+-        string home = Path.Combine(installationRoot, "MCE");
++        string home = ManagerIdentity.Runtime(installationRoot);
+         RejectLinks(home); Directory.CreateDirectory(home);
+         string lockPath = Path.Combine(home, lockName); RejectLinks(lockPath);
+         try { handle = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
+diff --git a/src/Updating/UpdateMessageCatalog.cs b/src/Updating/UpdateMessageCatalog.cs
+index 9384bd4..9b90de8 100644
+--- a/src/Updating/UpdateMessageCatalog.cs
++++ b/src/Updating/UpdateMessageCatalog.cs
+@@ -38,7 +38,7 @@ public static partial class UpdateMessages
+         new UpdateMessageTerm("rollback-backup-incomplete", "回退备份不完整：", "Rollback backup is incomplete: ", "回復備份不完整："),
+         new UpdateMessageTerm("prepared-file-changed", "准备文件发生变化：", "A prepared file has changed: ", "準備檔案有所變更："),
+         new UpdateMessageTerm("store-cache-invalid", "商店缓存格式异常。", "The store cache has an invalid format.", "商店快取格式異常。"),
+-        new UpdateMessageTerm("worker-usage", "用法：MCE.UpdateWorker.exe --root <BepInEx目录> [--once]", "Usage: MCE.UpdateWorker.exe --root <BepInEx directory> [--once]", "用法：MCE.UpdateWorker.exe --root <BepInEx目錄> [--once]"),
++        new UpdateMessageTerm("worker-usage", "用法：IGMM.UpdateWorker.exe --root <BepInEx目录> [--once]", "Usage: IGMM.UpdateWorker.exe --root <BepInEx directory> [--once]", "用法：IGMM.UpdateWorker.exe --root <BepInEx目錄> [--once]"),
+         new UpdateMessageTerm("queue-schema-unsupported", "更新队列版本不受支持，保留原队列。", "The update queue version is unsupported; the queue was preserved.", "更新佇列版本不受支援，已保留原佇列。"),
+         new UpdateMessageTerm("queue-job-id-invalid", "队列任务编号无效。", "The queued job ID is invalid.", "佇列工作編號無效。"),
+         new UpdateMessageTerm("recovering-interrupted-job", "正在恢复中断的任务。", "Recovering an interrupted task.", "正在復原中斷的工作。"),
+diff --git a/src/Updating/UpdateWriteMarker.cs b/src/Updating/UpdateWriteMarker.cs
+index 9757563..aa3d28f 100644
+--- a/src/Updating/UpdateWriteMarker.cs
++++ b/src/Updating/UpdateWriteMarker.cs
+@@ -17,7 +17,7 @@ public static class UpdateWriteMarker
+ {
+     public static readonly TimeSpan MaximumAge = TimeSpan.FromMinutes(5);
+ 
+-    public static string PathFor(string root) => Path.Combine(root, "MCE", "updating.lock");
++    public static string PathFor(string root) => ManagerIdentity.Runtime(root, "updating.lock");
+ 
+     public static void Write(string root, string job, string name)
+     {
+diff --git a/src/Updating/WorkerProtocol.cs b/src/Updating/WorkerProtocol.cs
+index 39cb76a..2a8fa55 100644
+--- a/src/Updating/WorkerProtocol.cs
++++ b/src/Updating/WorkerProtocol.cs
+@@ -7,7 +7,7 @@ using System.Security.Cryptography;
+ using System.Text;
+ using System.Reflection;
+ 
+-[assembly: AssemblyMetadata("MCE.WorkerProtocol", "2")]
++[assembly: AssemblyMetadata("IGMM.WorkerProtocol", "2")]
+ namespace ModConfigEnhance.Updating;
+ 
+ /// <summary>Local release integrity and capability declaration, NOT a security signature.</summary>
+@@ -30,7 +30,7 @@ public static class WorkerProtocol
+             throw new IOException("An older worker instance is still running. Wait for it to exit before submitting resource operations; no command was published.");
+     }
+     public const string ManifestName = "worker-protocol.manifest";
+-    public const string Executable = "MCE.UpdateWorker.exe";
++    public const string Executable = ManagerIdentity.WorkerExecutable;
+     public static string Hash(string file) { using var sha = SHA256.Create(); using var input = File.OpenRead(file); return Hex(sha.ComputeHash(input)); }
+     static string Hex(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+     static string Digest(string value) { using var sha = SHA256.Create(); return Hex(sha.ComputeHash(Encoding.UTF8.GetBytes(value))); }

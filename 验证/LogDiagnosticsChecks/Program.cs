@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 int checks = 0;
 void Check(bool value, string name) { if (!value) throw new Exception(name); checks++; }
 void Reject(Action action, string name) { bool failed = false; try { action(); } catch { failed = true; } Check(failed, name); }
-string root = Path.Combine(AppContext.BaseDirectory, "runs", DateTime.Now.ToString("yyyyMMdd_HHmmss_fff")); Directory.CreateDirectory(root);
+string root = Path.Combine(Path.GetTempPath(), "IGMM-LogDiagnostics", DateTime.Now.ToString("yyyyMMdd_HHmmss_fff")); Directory.CreateDirectory(root);
 var parsed = LogParser.Parse("[Error  :Voice] failure", "e", 1);
 Check(parsed.Level == MceLogLevel.Error && parsed.Category == "Voice" && parsed.Message == "failure", "BepInEx header");
 Check(LogParser.Parse("NullReferenceException: test", "e", 2).Level == MceLogLevel.Error, "Unity exception");
@@ -53,6 +53,27 @@ LogExport.Save(Path.Combine(root, "custom.zip"), new[] { new LogExportSource { N
 Check(File.Exists(Path.Combine(root, "custom.zip")), "custom snapshot export");
 var pendingSecret = LogExport.Scrub(JObject.Parse("{ 'target':{'key':'Password','serializedValue':'new'}, 'previous':'old' }"));
 Check(pendingSecret["previous"]!.ToString() == "[已遮盖]" && pendingSecret["target"]!.ToString() == "[已遮盖]", "pending previous and target redacted together");
+// 0.0.2 导出检查（2026-11-18）：个人路径遮盖不分大小写、正反斜杠都认，不误伤同前缀的别的用户名
+Check(LogExport.RedactPath(@"C:\Users\Alice\AppData\x.cfg", @"C:\Users\Alice") == @"%USERPROFILE%\AppData\x.cfg", "redact backslash path");
+Check(LogExport.RedactPath("c:/users/alice/Documents/PEAK", @"C:\Users\Alice") == "%USERPROFILE%/Documents/PEAK", "redact lower-case forward-slash path");
+Check(LogExport.RedactPath(@"C:\Users\Alice", @"C:\Users\Alice\") == "%USERPROFILE%", "redact bare profile with trailing separator");
+Check(LogExport.RedactPath(@"C:\Users\Alice2\x", @"C:\Users\Alice") == @"C:\Users\Alice2\x", "longer user name untouched");
+Check(LogExport.RedactPath(@"D:\Games\PEAK", "") == @"D:\Games\PEAK", "empty profile leaves path");
+string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+Check(LogExport.Scrub(new JValue(home.ToUpperInvariant().Replace('\\', '/') + "/x")).ToString() == "%USERPROFILE%/x", "scrub redacts unity-style profile path");
+// 中文、空格、方括号、# 与 & 的目录照常导出
+string odd = Path.Combine(root, "导出 测试 [x] #1 & 'q'"); Directory.CreateDirectory(odd);
+string oddZip = Path.Combine(odd, "PEAK日志_测试.zip"); LogExport.Save(oddZip, sources, new JObject { ["schemaVersion"] = 1 });
+using (var archive = ZipFile.OpenRead(oddZip)) Check(archive.Entries.Count == 3 && archive.GetEntry("运行信息.json") != null, "unicode / special path export");
+// 来源正被游戏写着（共享写）照样能导出
+using (var live = new FileStream(other, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite)) { LogExport.Save(Path.Combine(root, "live.zip"), new[] { sources[0] }, null); }
+Check(File.Exists(Path.Combine(root, "live.zip")), "source held open by writer still exports");
+// 目标文件被别的程序独占：导出失败、原文件不变、不留 .partial
+string lockedZip = Path.Combine(root, "locked.zip"); File.WriteAllText(lockedZip, "previous");
+using (var held = new FileStream(lockedZip, FileMode.Open, FileAccess.Read, FileShare.None)) Reject(() => LogExport.Save(lockedZip, new[] { sources[0] }, null), "locked destination fails");
+Check(File.ReadAllText(lockedZip) == "previous" && Directory.GetFiles(root, "*.partial").Length == 0, "locked destination left intact, no partial");
+// 目标文件夹被删掉：报错，不静默
+Reject(() => LogExport.Save(Path.Combine(root, "gone", "x.zip"), new[] { sources[0] }, null), "missing destination folder fails");
 string large = Path.Combine(root, "large.log"); using (var writer = new StreamWriter(large)) for (int i = 0; i < 80000; i++) writer.WriteLine($"[Info:Large] {i:D6} " + new string('x', 60));
 using (var reader = new LogFileReader(large)) { var recent = reader.Read(); var earlier = reader.Read(true); Check(recent.Length > 0 && earlier.Length > 0 && string.CompareOrdinal(earlier[^1].Message, recent[^1].Message) < 0, "earlier view loads previous bounded block"); }
 var repeats = new LogRepeatIndex();
@@ -86,4 +107,47 @@ audit.Update(Array.Empty<MceLogRecord>()); Check(audit.Groups.Count==0, "empty s
 Check(LogViewRules.Collapse(new[]{"a","b","c","d","e"},false).SequenceEqual(new[]{"a","b","···+3"}), "long entries show two lines and remaining count");
 Check(LogViewRules.Collapse(new[]{"a","b","c","d"},true).Length==4, "expanded entry preserves all visual lines");
 Check(LogViewRules.CycleLevel(0,-1,7)==6 && LogViewRules.CycleLevel(6,1,7)==0, "mouse wheel level cycles wrap at boundaries");
+
+// Serialize the actual diagnostic metadata with controlled Unity/configuration boundaries.
+BepInEx.Paths.BepInExRootPath = root;
+string componentA = Path.Combine(root, "core", "MonoDetour", "runtime.dll");
+string componentB = Path.Combine(root, "patchers", "MonoDetour", "patcher.dll");
+Directory.CreateDirectory(Path.GetDirectoryName(componentA)!); Directory.CreateDirectory(Path.GetDirectoryName(componentB)!);
+File.WriteAllText(componentA, "runtime"); File.WriteAllText(componentB, "patcher");
+ModConfigEnhance.Overview.InfrastructurePackages.Local.Add(new() {
+    Name = "MonoDetour", Key = "MonoDetour-MonoDetour", Version = "0.7.1701",
+    RuntimeFiles = new() { componentA }, Areas = new() { "core" },
+    Locations = new() { new() { Area = "core", Path = Path.GetDirectoryName(componentA)! } }
+});
+ModConfigEnhance.Overview.InfrastructurePackages.Local.Add(new() {
+    Name = "MonoDetour_BepInEx_5", Key = "MonoDetour-MonoDetour_BepInEx_5", Version = "0.7.1701",
+    RuntimeFiles = new() { componentA, componentB }, Areas = new() { "core", "patchers" },
+    Locations = new() { new() { Area = "core", Path = Path.GetDirectoryName(componentA)! }, new() { Area = "patchers", Path = Path.GetDirectoryName(componentB)! } }
+});
+string resource = Path.Combine(root, "manifest.json"); File.WriteAllText(resource, "{}");
+var repository = new ModConfigEnhance.Overview.OverviewRepository();
+var modRows = new[] { new ModConfigEnhance.Overview.OverviewMod { RawName = "Textures", Guid = "resource:Textures", PluginVersion = "1.0.0", Location = resource, ResourcePack = true } };
+var diagnostic = repository.CaptureDiagnosticMetadata(modRows);
+Check((string?)diagnostic["igmmVersion"] == "0.0.1" && (string?)diagnostic["mceVersion"] == "0.0.1", "declared plugin version instead of test assembly version");
+Check((string?)diagnostic["gameVersion"] == "3.1.0" && (string?)diagnostic["gameVersionRaw"] == "3.1.0--logFile", "clean game version and preserve raw build string");
+Check(diagnostic["components"]!.Count() == 2 && diagnostic["components"]!.Sum(c => c["locations"]!.Count()) == 3, "all components and every core/patcher location exported");
+Check(diagnostic["components"]!.All(c => (string?)c["version"] == "0.7.1701" && (bool)c["installed"]!), "component version and existence captured");
+Check(diagnostic["components"]![1]!["runtimeFiles"]!.Count() == 2, "runtime files retained across loader areas");
+Check(!(bool)diagnostic["components"]![0]!["locations"]![0]!["manifestVerified"]!, "cross-directory manifest evidence not mislabeled local");
+Check((bool)diagnostic["mods"]![0]!["enabledNextStart"]!, "enabled resource manifest is not treated as disabled DLL");
+Check(!diagnostic["components"]!.Any(c => c["loaded"] != null), "component load state is not invented from Chainloader plugin inventory");
+UnityEngine.Application.version = "3.1.0-beta.2";
+Check((string?)repository.CaptureDiagnosticMetadata(modRows)["gameVersion"] == "3.1.0-beta.2", "legitimate prerelease suffix preserved");
+UnityEngine.Application.version = "3.1.0 --logFile path";
+Check((string?)repository.CaptureDiagnosticMetadata(modRows)["gameVersion"] == "3.1.0", "spaced command suffix removed");
+UnityEngine.Application.version = "3.1.0";
+Check((string?)repository.CaptureDiagnosticMetadata(modRows)["gameVersion"] == "3.1.0", "normal release version unchanged");
+LogExport.Save(Path.Combine(root, "metadata.zip"), sources, diagnostic);
+using (var archive = ZipFile.OpenRead(Path.Combine(root, "metadata.zip")))
+using (var reader = new StreamReader(archive.GetEntry("运行信息.json")!.Open()))
+{
+    var roundtrip = JObject.Parse(reader.ReadToEnd());
+    Check(roundtrip["components"]!.Count() == 2 && (string?)roundtrip["igmmVersion"] == "0.0.1", "fixed metadata survives the actual ZIP export path");
+}
+
 Console.WriteLine($"PASS {checks} diagnostic checks; fixtures: {root}");

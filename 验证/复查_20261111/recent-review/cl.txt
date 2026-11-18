@@ -1,0 +1,40 @@
+# Changelog
+
+## 2.5.4 二次审查修复（2.4.6–2.5.3）
+
+审查报告 18 条，逐条核实后全部修复；记录 `验证/2.5.4二次审查修复/结果.md`。
+
+- **目录搬家重写（高危 2–6）：**
+  - `MceDirectories` 逐目录回退：旧目录在、新目录不在时继续用旧目录，搬家没做或失败都不会另起一份空数据（原来失败后会新建默认文件，下次重试把真实数据挤成 `.old-layout`）。
+  - `MceDirectoryMigration` 每次启动都检查（不再靠标记），旧目录还在就并入：整合包自带旧版 MCE 写出的旧目录切回来后会并回来。并入时较新的一份留在新位置，另一份改名 `.old-layout` 保留。
+  - 单个文件失败（被占用、新路径超过 259 字符）只记警告、留在原处，其余照搬；现场两份旧整合包导出里有 6 个超长路径文件，会留在 `exports/` 原处。
+  - 等更新写入结束后才搬（移到 `WaitForPendingUpdateWrite` 之后），更新助手在跑就推迟到下次启动。
+  - 备份改到 `BepInEx/MCE/layout-backups/`（原 `MCE/backups/` 会被助手 14 天清理），沿用第一次的备份目录、已备份的不重复复制。
+  - 改写 JSON 旧路径支持转义反斜杠、正斜杠、根目录用正斜杠三种写法；补扫根目录 `pack-information.json`、`data/legacy`、旧 `overview/`。
+- **作者整合包覆盖个人配置（高危 1）：** `PublishedPack` 判断已有个人安装时，未托管改查 `config/ModConfigEnhance/profiles/index.json`（2.5.2 后原写法永远找不到）。
+- **词条：** 改了含义的 7 个界面词条（及导入结果提示）换新键名 `_V2`，其他语言和作者词典可以照常翻；旧键名列为退役并从个人文件里清掉。`DropRetired` 只删精确清单（MCE 退役键与旧版 MCE 自己的旧 cfg 说明原文），不再按「含 XUnity」模糊删。
+- **导入补翻：** 跳过译文等于原文、或 MCE_ 键译文等于内置英文的行（完整导出预填的英文不再盖掉内置中文），结果里报「没翻的行」数。
+- **正则：** 与 XUnity 5.6.1 一致：取第一个匹配、`Match.Result` 作整句结果、命中即停；`r:` 行按 XUnity 词典的转义读（双反斜杠、换行、回车、等号、Unicode 码点、`%3D`）。
+- **转义：** `Escape` 在反斜杠后跟等号、`n`、反斜杠或位于末尾时写两个反斜杠，`FindUnescapedEquals` 按转义状态扫描，原文以反斜杠结尾不再让整个语言组加载失败；导出改用同一套。拆出 `Loc.Escaping.cs` 供夹具直接测。
+- **跳转：** 中途离开设置页（`OpenDriver.OnDisable`）取消这次打开并复位 `_driven` / `_openHotkeys`；所有取消与失败路径都复位。
+- **其余：** cfg 两个旧 XUnity 开关真正删掉（BepInEx `OrphanedEntries`）；语言合并改为先写临时文件再挪原文件；关 XUnity 机翻的提示写明重启前别动 XUnity 设置；未托管时个人语言目录不再扫两遍；`OverviewRepository` 夹具分支与生产同布局；`OverviewProfileStore.RuntimeDirectory` 改比完整路径。
+- **夹具：** `layout-checks` 28 项（新增占用、超长、旧版写回、助手在跑、三种 JSON 写法）；`regex-checks` 28 项（新增 XUnity 语义、转义往返）。
+
+## 2.5.3 说明文字跟上新目录
+
+- 2.5.2 把 `config/ModConfigEnhance/` 归成四类后，界面和说明里还写着旧路径。全部改到新位置：三语使用说明（`authoring` 说明覆盖、`export` 发布输出、`faq` 日志导出兜底、`translation` 导出位置），`translation.md` 新增「文件放在哪」一节（`#folders`）；配置目录 `readme.md`（`LanguageReadme`）的目录列表；导出翻译 / 补漏翻 / 打开目录三条悬停提示；README「个人文件位置」表；介绍站首页新增「文件放在哪」、多语言页导出位置；`文档/MCE文件脉络.html` 的目录卡片、补翻流程（改成「导入补翻」）与说明覆盖路径。
+- 模组「打开文件夹」菜单新增「导出的整合包」。
+- 项目 `AGENTS.md` 新增「个人数据目录」规则：顶层只允许四类、路径只从 `MceDirectories` 取、改目录要同步的文档清单。
+
+## 2.5.2 config\ModConfigEnhance 目录归成四大类
+
+- **用户拍板（截图：目录太乱）：** 顶层只留 `language/`（语言文件）、`profiles/`（配置方案、整合包介绍与素材）、`output/`（`translation/` 导出翻译与补漏翻、`packs/` 整合包与介绍导出、`logs/` 日志导出兜底）、`data/`（`runtime/` 运行状态与商店缓存、`backups/` 全部自动备份、`help/` 使用说明本地覆盖、`legacy/` 10 月前旧版概览数据），外加 `readme.md`。
+- **路径唯一来源：** 新文件 `src/Updating/MceDirectories.cs`（插件与更新助手共用），30 处写死的子目录改走它；没有激活整合包时 `PackLibrary.RuntimeRoot` 与作者语言目录回落不再拼出旧 `runtime/`。
+- **首次启动搬家：** `MceDirectoryMigration.Run` 在 `Plugin.Awake` 最前面执行：先把要动的状态文件（json / txt / md 等，单个 ≤16 MB）复制到 `BepInEx/MCE/backups/directory-layout-before-时间/`，再同盘移动（目标已存在则逐个并入，同名改名「.old-layout」不覆盖），JSON 里的旧绝对路径按 `MceDirectories.Moves` 改写；写 `data/.mce-layout-v2`，失败不写下次接着搬。旧 `backup/` 并进 `data/backups/legacy-backup/`。
+- **夹具：** `验证/2.5.2目录重排/layout-checks`（链接真实两份源码，复制现场 1441 个文件跑搬家）：1239 个非 JSON 文件字节一致、202 个 JSON 都到位、顶层只剩四类、无旧路径残留、二次运行零变化、备份在被搬目录之外，12/12。
+
+## 2.5.1 「跳转到快捷键设置页」能点了；旧语言文件不再盖住新提示
+
+- **跳转点了没反应（用户实机）：** 概览入口挂在「设置」页上，从模组设置页跳转时「设置」页是隐藏的，入口的 `Update` 不跑，分帧打开停在第一步；入口的 `Update` 还会因父页未激活直接取消打开。改为由当前页挂一个 `OverviewEntry.OpenDriver` 代推进，打开完成自毁；父页未激活时只取消用户自己离开的那种打开。找页面管理器改用 `GetComponentInParent<UIPageHandler>(true)`。
+- **按钮样式（用户改）：** 靠右、按文字宽度收紧（`JumpWidth`，随语言重算，不越过导出 / 置顶两列）；底色换成语言行方形钮同款纸面（白天米白、夜里深纸面），方框、箭头、文字用金色。
+- **过时提示（用户实机截图：补漏翻提示仍写「需要 XUnityAutoTranslate、输出放 export\」）：** 旧语言文件与整合包作者词典里存着 2.4.x 的界面词条译文，读取时盖过了 2.5.0 的新内置文字。新增 `Loc.RetiredTerms`（含义改过或已删除的 14 个键），读取时一律跳过、回落内置；个人语言文件里这些行与提到 XUnity 联动的旧 cfg 原文首次启动时删掉（先备份进 `language/_迁移前备份_时间/`，`.mce-language-v3` 标记只做一次）。整合包作者原件只读不改。

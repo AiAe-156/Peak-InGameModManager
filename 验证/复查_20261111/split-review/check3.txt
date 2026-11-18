@@ -1,0 +1,9 @@
+== config-json has BepInEx\\MCE: follow-chars {'\\': 191}
+   by dir {'data/runtime': 191}
+== config-json has config\\MCE: follow-chars {'\\': 3, '|': 191}
+   by dir {'data/runtime': 192, 'profiles/index.json': 2}
+== runtime-json has BepInEx\\MCE: follow-chars {'\\': 620}
+   by dir {'jobs/3094068e873d41788d9c61341914eb99': 118, 'history.json': 80, 'jobs/081845539a48476b988c8ec0e6ebc061': 44, 'jobs/e705a15d019749768d170b4e9114a8c7': 44, 'jobs/dd7a1322f85f4903a329c99e49d93212': 24, 'queue.json': 20, 'jobs/11092d5b97b549348eff629220a21569': 16, 'jobs/2391edc76b5842688d15bdcd60f15517': 14, 'jobs/3c3fd0b07f1e4391a5d905c728c8b46f': 14, 'jobs/5f6dce7fcc8f4a82ae1036d562d96126': 14, 'jobs/21b178c74fd048dd9dc9ab637d474583': 13, 'jobs/5828a3acf8044a43b643dd62939fd837': 12}
+sources.json: {'records': 45, 'env': 11, 'instance': 11, 'user': 6, 'user+env': 6, 'explicitLocal': 4}
+source-identities.json keys: 169
+queue.json u-escapes: 1365 literal CJK: 0

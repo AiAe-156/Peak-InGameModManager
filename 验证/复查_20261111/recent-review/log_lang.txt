@@ -1,0 +1,8 @@
+125:[Info   :In-Game Mod Manager] [目录] 整理 config\ModConfigEnhance：搬了 1404 个文件（同名改留 0 个），改写 0 处保存的路径；备份 F:\Games\Steam\steamapps\common\PEAK\BepInEx\MCE\layout-backups\20261111_174549
+126:[Warning:In-Game Mod Manager] [目录] 没搬动，留在原处，下次启动再试：F:\Games\Steam\steamapps\common\PEAK\BepInEx\config\ModConfigEnhance\exports\20261017_022718_777640\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3：新位置的路径太长，游戏打不开，留在原处
+127:[Warning:In-Game Mod Manager] [目录] 没搬动，留在原处，下次启动再试：F:\Games\Steam\steamapps\common\PEAK\BepInEx\config\ModConfigEnhance\exports\20261022_120945_841fa66f\Local\BepInEx\plugins\3玩法类模组(大多数需要全员安装相同版本)\[玩法]真正的最终天阶-TrueFinalAscent\CptPICHU-TrueFinalAscent\Sounds\680460__pnmcarrierailfan__thunderstorm-takes-07.mp3：新位置的路径太长，游戏打不开，留在原处
+128:[Info   :In-Game Mod Manager] [语言] 2.5.1 清掉个人语言文件里 39 行过时词条（XUnity 旧说法），原文件备份在 F:\Games\Steam\steamapps\common\PEAK\BepInEx\config\ModConfigEnhance\language\_迁移前备份_20261111_174552
+318:[Info   :In-Game Mod Manager] [语言] 已应用语言文件： | 简体中文 ×5  |  已加载 MCE 词典 79 条 |  | 文件列表： | - zh-cn.txt（简体中文）（修改日期：2026-10-25） | - zh-cn_合并_20260918.txt（简体中文）（修改日期：2026-10-25） | - zh-cn_补翻_20261010.txt（修改日期：2026-10-25） | - zh-cn_补翻_20261012.txt（修改日期：2026-10-25） | - zh-cn.txt（简体中文）（修改日期：2026-11-11）
+489:[Info   :In-Game Mod Manager] [语言] Applied language file: | English ×2  |  MCE dictionary: 79 entries |  | Files: | - en-us.txt（English） (modified 2026-10-25) | - en-us.txt（English） (modified 2026-11-11)
+135:[Info   :In-Game Mod Manager] [In-Game Mod Manager v2.5.4] 已加载。
+136:[Info   :In-Game Mod Manager] [MCE] 已加载 In-Game Mod Manager v2.5.4 · 技术日志(debug)：关

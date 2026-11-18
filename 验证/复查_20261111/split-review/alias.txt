@@ -1,0 +1,43 @@
+2026-10-21 22:52 jobs/081845539a48476b988c8ec0e6ebc061/transaction.json {'SteamLibrary': 89}
+2026-10-24 00:13 jobs/6b241f06941847c5b1719ac34eeb52cd/transaction.json {'Steam': 25}
+2026-10-24 02:33 jobs/e705a15d019749768d170b4e9114a8c7/transaction.json {'SteamLibrary': 89}
+2026-10-27 03:14 pack-task.json {}
+2026-11-01 23:04 jobs/b1cb4dcb427343b8b75c1148ea5f3f9d/transaction.json {'Steam': 25}
+2026-11-01 23:05 jobs/3094068e873d41788d9c61341914eb99/transaction.json {'Steam': 237}
+2026-11-01 23:05 jobs/2391edc76b5842688d15bdcd60f15517/transaction.json {'Steam': 29}
+2026-11-01 23:05 jobs/21b178c74fd048dd9dc9ab637d474583/transaction.json {'Steam': 27}
+2026-11-01 23:05 jobs/3c3fd0b07f1e4391a5d905c728c8b46f/transaction.json {'Steam': 29}
+2026-11-02 02:25 jobs/2391edc76b5842688d15bdcd60f15517/c550f50134f44b8c8a63b27453f2b62c.json {'Steam': 306}
+2026-11-02 02:25 jobs/2391edc76b5842688d15bdcd60f15517/13819772e6934109b1aefa5ca521fae4.json {'Steam': 306}
+2026-11-02 14:11 resource-batch.json {'Steam': 4916}
+2026-11-02 14:12 jobs/5828a3acf8044a43b643dd62939fd837/transaction.json {'Steam': 25}
+2026-11-02 14:12 jobs/95a864000f174eeba85e2b9dee864153/transaction.json {'Steam': 19}
+2026-11-02 14:13 jobs/11092d5b97b549348eff629220a21569/transaction.json {'Steam': 33}
+2026-11-02 14:13 jobs/28d38b39b99f499083949809643cac32/transaction.json {'Steam': 17}
+2026-11-02 14:35 jobs/6ebb6c74670d40939643d61f6ad5e9a6/transaction.json {'Steam': 21}
+2026-11-02 14:35 jobs/a80cb5ddea7a480299db0c42d0777ffd/transaction.json {'Steam': 17}
+2026-11-02 14:35 jobs/99a314bda6474836b64d234396c8cc08/transaction.json {'Steam': 21}
+2026-11-02 14:35 jobs/706fb78ce9324b639b50ab74edc0d478/transaction.json {'Steam': 21}
+2026-11-02 15:23 jobs/5eb5a6a68b4a405b99d4f529227ea419/transaction.json {'Steam': 3}
+2026-11-02 17:06 jobs/1c07649979a24539b80c2e1c3afe5530/transaction.json {'Steam': 3}
+2026-11-02 17:08 jobs/613e648df8c04da09b6505bb3d1dfa7e/transaction.json {'Steam': 17}
+2026-11-02 20:40 jobs/92cbf61ae5794cd8ba357de37ff3402c/transaction.json {'Steam': 3}
+2026-11-02 21:31 jobs/be3d38d9a67145baafd085b10a3c3ce4/transaction.json {'SteamLibrary': 3}
+2026-11-02 21:31 jobs/af1c8ab7c1a44ecb9f2a5adbe23ae21d/transaction.json {'SteamLibrary': 3}
+2026-11-02 21:51 jobs/0170897714e84e32840cee7f7b6f3848/transaction.json {'SteamLibrary': 39}
+2026-11-02 21:51 jobs/dd7a1322f85f4903a329c99e49d93212/transaction.json {'SteamLibrary': 49}
+2026-11-02 22:02 jobs/8a43e351c4ce459980e257b14391c947/transaction.json {'SteamLibrary': 9}
+2026-11-02 22:02 jobs/9f0964f338574d788ba066e2be2147cd/transaction.json {'SteamLibrary': 9}
+2026-11-03 02:16 jobs/5f6dce7fcc8f4a82ae1036d562d96126/transaction.json {'Steam': 29}
+2026-11-05 01:25 jobs/9fc5d17ebfc049588e6262dd6fcfd402/transaction.json {'Steam': 17}
+2026-11-05 01:25 jobs/b5d77bf53cb146f386693c59ee234792/transaction.json {'Steam': 17}
+2026-11-08 19:51 jobs/7d9b68f7071f441aa8957e7505a64dce/transaction.json {'Steam': 17}
+2026-11-08 19:51 jobs/6f8816109edc4f648971889b8199e9a9/transaction.json {'Steam': 25}
+2026-11-09 12:46 jobs/bd7a58c0e735481db0d7db16f4cd158b/transaction.json {'Steam': 822}
+2026-11-10 19:56 history.json {'Steam': 128, 'SteamLibrary': 14}
+2026-11-10 19:57 jobs/b0cbec59364841ba8a0f920471842044/transaction.json {'Steam': 3}
+2026-11-10 19:57 jobs/30181b555cbd44f0a4dfe61b1eac9e7d/transaction.json {'Steam': 17}
+2026-11-10 20:10 queue.json {'Steam': 346, 'SteamLibrary': 5}
+logs: worker-20261104.log, worker-20261105.log, worker-20261108.log, worker-20261109.log, worker-20261110.log
+MCE-Recovery.cmd mtime 2026-11-10 20:10 Steam=0 Lib=0 len=545
+MCE-Recovery.ps1 mtime 2026-11-10 20:10 Steam=0 Lib=0 len=11964

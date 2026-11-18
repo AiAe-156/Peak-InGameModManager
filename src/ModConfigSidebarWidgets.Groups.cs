@@ -198,6 +198,7 @@ internal static partial class ModConfigSidebarWidgets
         /// <summary>2.3.0 nested groups: the tree the slots were built from.</summary>
         private GroupTree _groupTree = new GroupTree(Array.Empty<OverviewGroup>());
         private readonly HashSet<GameObject> _collapsedHidden = new HashSet<GameObject>();
+        private readonly HashSet<string> _shownGroups = new HashSet<string>(StringComparer.Ordinal);
         private bool _built;
         private int _groupLanguageRevision = -1, _groupSettingsCount = -1, _groupPluginsCount = -1;
         private string _lastGroupSummary = "";
@@ -549,7 +550,9 @@ internal static partial class ModConfigSidebarWidgets
             OverviewRepository? repository = _groupSlots.Count > 0 ? SidebarGroupStore.Get() : null;
             bool searching = Searching;
             GameObject? selected = Menu != null && Menu.ModTabs != null && Menu.ModTabs.selectedButton != null ? Menu.ModTabs.selectedButton.gameObject : null;
-            HashSet<string> shown = new HashSet<string>(StringComparer.Ordinal);
+            // 同步自 MCE 1.1.0 定版：每帧 LateUpdate 都会走到这里，复用同一个集合，不每帧分配
+            HashSet<string> shown = _shownGroups;
+            shown.Clear();
             bool changed = false;
             foreach (RowWidgets widgets in _rows)
             {

@@ -1,0 +1,5 @@
+path prefixes before BepInEx in JSON:
+  1638  F:\\Games\\Steam\\steamapps\\common\\PEAK\\
+  131  F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\
+matches containing \u escapes: 0
+LogOutput sample path: F:\Games\Steam\steamapps\common\PEAK

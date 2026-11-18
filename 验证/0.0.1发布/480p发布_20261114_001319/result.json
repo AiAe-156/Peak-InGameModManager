@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "bytes": 4690880,
+  "MiB": 4.47,
+  "backup": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\InGameModManager\\备份\\示范视频480p替换前_20261114_001319",
+  "changed": [
+    "BepInEx/plugins/InGameModManager/Demo/media/existing-video.mp4"
+  ],
+  "deployed": false,
+  "running": [
+    "PEAK.exe"
+  ]
+}

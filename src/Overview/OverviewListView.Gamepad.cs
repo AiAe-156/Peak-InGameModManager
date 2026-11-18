@@ -14,7 +14,8 @@ namespace ModConfigEnhance.Overview;
 ///   · 每一列都是独立的焦点格；选中哪格按 A 就做哪格的事，不设跨列快捷键。
 ///   · 名称格按 A、任意格按 Y：打开这一行的菜单（代替双击 / 右键；角标对应的动作也在里面）。
 ///   · 提示框继续用悬浮框，但贴着焦点格弹出、不读鼠标；名称格额外并排一张「角标」卡，和依赖卡一左一右。
-///   · 按住 RT：↑↓ 跳到上 / 下一个分组标题，←→ 翻页，Y 分组菜单，L3 全部折叠 / 展开。
+///   · 按住 RT：↑↓ 跳到上 / 下一个分组标题，←→ 翻页，Y 分组菜单，L3 全部折叠 / 展开（防重入、防连发见 FoldAllGuarded，同步自 MCE 1.1.0）。
+///   · 同步自 MCE 1.1.0：LB / RB 归外壳（工具行按钮间跳；RT + LB / RB 在页签按钮间移焦点）；LT + RB / LT + LB 全部展开 / 收起保留。
 ///   · L3 折叠 / 展开所在分组；R3 跳到搜索框；右摇杆只滚动，焦点不动。
 ///   · 作者模式的多选、排序、拖进分组仍用键鼠，这里不做。
 /// </summary>
@@ -63,6 +64,8 @@ internal sealed partial class OverviewListView
         }
         if (GamepadIntent.Layer)
         {
+            // L3 先于方向处理：同一帧既推了摇杆又按了 L3 时，先折叠、再按折叠后的行跳 / 翻页，不在要被重建的行上落焦点。
+            if (pad.leftStickButton.wasPressedThisFrame) { FoldAllGuarded(); return; }
             switch (GamepadIntent.PressedDirection())
             {
                 case MoveDirection.Up: JumpGroup(row, -1); break;
@@ -71,7 +74,6 @@ internal sealed partial class OverviewListView
                 case MoveDirection.Right: PageBy(row, 1); break;
             }
             if (pad.buttonNorth.wasPressedThisFrame && row != null && !IsComponentRow(row)) GroupMenuFor(row, selected!);
-            if (pad.leftStickButton.wasPressedThisFrame) FoldAll();
             return;
         }
         if (pad.buttonNorth.wasPressedThisFrame && row != null && selected != null)
@@ -298,6 +300,25 @@ internal sealed partial class OverviewListView
         bool anyFolded = _repo.State.groups.Any(g => _repo.State.collapsedGroups.Contains(g.id));
         var icon = _foldAllButton.GetComponentInChildren<OverviewIconGraphic>(true);
         if (icon != null) { icon.Kind = anyFolded ? "triangle-right" : "triangle-down"; icon.SetVerticesDirty(); }
+    }
+    private float _lastFoldAllAt = -1;
+    private bool _foldingAll;
+    /// <summary>
+    /// 上线前修正（用户 2026-11-16 回报「RT + L3 按一下游戏卡死」）：RT + L3 的防重入与防连发。正在折叠、正在建行（_building）
+    /// 或 0.3 秒内刚折叠过都不再做；超过 0.5 秒记一条耗时日志，供下次实测判断卡在哪里。
+    /// </summary>
+    private void FoldAllGuarded()
+    {
+        if (_foldingAll || _building || !OverviewPadSteps.Cooled(Time.unscaledTime, _lastFoldAllAt, .3f)) return;
+        _foldingAll = true; _lastFoldAllAt = Time.unscaledTime;
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        try { FoldAll(); }
+        finally
+        {
+            _foldingAll = false;
+            if (watch.ElapsedMilliseconds > 500)
+                Plugin.Log.LogWarning("[概览] 模组列表全部折叠 / 展开用了 " + watch.ElapsedMilliseconds + " ms（" + _virtualRows.Count + " 行）。");
+        }
     }
     private void FoldAll()
     {

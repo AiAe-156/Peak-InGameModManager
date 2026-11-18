@@ -1,0 +1,14 @@
+phases: {('rolled-back', 'v3'): 2, ('installed', None): 2, ('installed', 'v3'): 4}
+57 ('.Retired[].Target', 'other')
+42 ('.Originals[].Target', 'other')
+42 ('.Originals[].Backup', 'MCE')
+42 ('.Desired[].Source', 'MCE')
+42 ('.Desired[].Target', 'other')
+37 ('.Retired[].Backup', 'MCE')
+8 ('.Root', 'other')
+8 ('.PackageRoot', 'other')
+8 ('.NewTree', 'MCE')
+2 ('.Parameters[].Target', 'other')
+2 ('.Parameters[].Backup', 'MCE')
+queue job state=superseded keys=[]
+queue job state=superseded keys=['PackageRoot']

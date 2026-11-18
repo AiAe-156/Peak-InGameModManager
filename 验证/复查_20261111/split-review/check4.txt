@@ -1,0 +1,21 @@
+0170897714e84e32840cee7f7b6f3848 phase=rolled-back libRefs=9 inQueue=None inHistory=rolled-back backupsDir=True
+081845539a48476b988c8ec0e6ebc061 phase=installed libRefs=44 inQueue=superseded inHistory=None backupsDir=True
+8a43e351c4ce459980e257b14391c947 phase=installed libRefs=4 inQueue=None inHistory=completed backupsDir=True
+9f0964f338574d788ba066e2be2147cd phase=installed libRefs=4 inQueue=None inHistory=completed backupsDir=True
+af1c8ab7c1a44ecb9f2a5adbe23ae21d phase=installed libRefs=1 inQueue=None inHistory=superseded backupsDir=False
+be3d38d9a67145baafd085b10a3c3ce4 phase=installed libRefs=1 inQueue=None inHistory=superseded backupsDir=False
+dd7a1322f85f4903a329c99e49d93212 phase=rolled-back libRefs=24 inQueue=None inHistory=rolled-back backupsDir=True
+e705a15d019749768d170b4e9114a8c7 phase=installed libRefs=44 inQueue=superseded inHistory=None backupsDir=True
+config refs to 'output\\\\packs': []
+config refs to '\\\\exports\\\\': []
+config refs to 'output/packs': []
+non-json with runtime path: packs\.transactions\742a99177ad54318b8a362f255e66c5b\switch.json.c48674bfaab6443884cbcb147af2bb39.tmp
+non-json with runtime path: packs\.transactions\f176e34320444e63821074bd4c0c0009\switch.json.4d4042be968a4314978624f479dc0626.tmp
+non-json with runtime path: packs\.transactions\fb980b9e4d454613b2a1489bf753de86\switch.json.3dcca5a6349c4999918c5e7fed070fc4.tmp
+non-json with runtime path: packs\1629cb8c7de7479aa695c6633f0984b0\workspace\profiles\index.json.lastvalid
+non-json with runtime path: packs\1a3467dbbc4b4b6690ca15cf63ce91bf\workspace\profiles\index.json.bak
+non-json with runtime path: packs\1a3467dbbc4b4b6690ca15cf63ce91bf\workspace\profiles\index.json.lastvalid
+non-json with runtime path: packs\9631b6c93b4296ef8da3bbe4be1ea7b7\workspace\pack-information.json.bak
+non-json with runtime path: packs\9631b6c93b4296ef8da3bbe4be1ea7b7\workspace\profiles\index.json.bak
+non-json with runtime path: packs\9631b6c93b4296ef8da3bbe4be1ea7b7\workspace\profiles\index.json.lastvalid
+non-json with runtime path: packs\9631b6c93b4296ef8da3bbe4be1ea7b7\workspace\runtime\applied-profile.json.bak

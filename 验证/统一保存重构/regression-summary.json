@@ -140,6 +140,31 @@
       "name": "interop-structs",
       "exitCode": 0,
       "log": "interop-structs-checks.log"
+    },
+    {
+      "name": "window-navigation",
+      "exitCode": 0,
+      "log": "window-navigation-checks.log"
+    },
+    {
+      "name": "reader-input",
+      "exitCode": 0,
+      "log": "reader-input-checks.log"
+    },
+    {
+      "name": "startup-publication",
+      "exitCode": 0,
+      "log": "startup-publication-checks.log"
+    },
+    {
+      "name": "log-diagnostics",
+      "exitCode": 0,
+      "log": "log-diagnostics-checks.log"
+    },
+    {
+      "name": "component-layout",
+      "exitCode": 0,
+      "log": "component-layout-checks.log"
     }
   ]
 }

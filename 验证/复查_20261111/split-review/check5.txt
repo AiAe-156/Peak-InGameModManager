@@ -1,0 +1,4 @@
+runtime entries with length 258/259/260 under alias F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\MCE: {}
+runtime entries with length 258/259/260 under alias F:\Games\Steam\steamapps\common\PEAK\BepInEx\MCE: {}
+index.json field with config path: $.profiles[].directory endswith-sep=False
+index.json field with config path: $.profiles[].directory endswith-sep=False

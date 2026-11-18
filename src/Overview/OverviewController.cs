@@ -355,6 +355,7 @@ internal sealed class OverviewEntry : MonoBehaviour
         float fontMax = _settingsReferenceText == null ? 22 : Mathf.Min(30,
             _settingsReferenceText.enableAutoSizing ? _settingsReferenceText.fontSizeMax : _settingsReferenceText.fontSize);
         var layout = new SettingsEntryLayout(reference, fontMax, Loc.TranslationRevision);
+        MatchReferenceStitches(reference);
         if (_settingsLayout.HasValue && _settingsLayout.Value.Equals(layout)) return;
         _settingsLayout = layout; 
         var rect = (RectTransform)transform;
@@ -364,6 +365,42 @@ internal sealed class OverviewEntry : MonoBehaviour
         OverviewUi.Fill((RectTransform)_button.transform);
         _settingsCaption.fontSizeMax = fontMax;
         _settingsCaption.fontSizeMin = Mathf.Min(13, fontMax);
+    }
+    /// <summary>
+    /// 同步自 MCE 1.1.0（实测修正）：入口缎带的两条虚线照抄上面「模组设置」按钮的虚线（锚点、轴心、位置、尺寸）。
+    /// 原因：入口先按 180×43 建（OverviewUi.Button 里 FitBorders 按 43/67 把虚线往中间缩），随后 PositionSettingsEntry
+    /// 用 Fill 把按钮改成拉满父物体的拉伸锚点，实际高度变成「模组设置」的高度，可 sizeDelta.y 成了 0，
+    /// FitBorders（读 sizeDelta.y）此后直接返回，虚线一直停在 43 高时的内缩位置，离上下边都偏远。
+    /// 入口与「模组设置」同父物体、同锚点、同尺寸，直接抄它的虚线最准；只在值不同时写，每帧调用也不脏布局。
+    /// 找不到参照的虚线（不是 PeakMenuButton、也没有 Border 子物体）时不动，保留原状。
+    /// </summary>
+    private void MatchReferenceStitches(RectTransform reference)
+    {
+        if (_button == null) return;
+        var peak = _button.GetComponent<PEAKLib.UI.Elements.PeakMenuButton>();
+        if (peak == null) return;
+        RectTransform? top = null, bottom = null;
+        var native = reference.GetComponent<PEAKLib.UI.Elements.PeakMenuButton>();
+        if (native != null && native.BorderTop != null && native.BorderBottom != null)
+        { top = native.BorderTop.rectTransform; bottom = native.BorderBottom.rectTransform; }
+        else
+        {
+            // 与 ModConfigSidebarWidgets.ResolveBorderTemplate 同一套找法：名为 Border 的子物体 + 它的下一个兄弟。
+            var border = reference.Find("Border");
+            if (border != null && border.GetSiblingIndex() + 1 < reference.childCount)
+            { top = border as RectTransform; bottom = reference.GetChild(border.GetSiblingIndex() + 1) as RectTransform; }
+        }
+        if (top == null || bottom == null) return;
+        if (peak.BorderTop != null) Copy(top, peak.BorderTop.rectTransform);
+        if (peak.BorderBottom != null) Copy(bottom, peak.BorderBottom.rectTransform);
+        static void Copy(RectTransform from, RectTransform to)
+        {
+            if (to.anchorMin != from.anchorMin) to.anchorMin = from.anchorMin;
+            if (to.anchorMax != from.anchorMax) to.anchorMax = from.anchorMax;
+            if (to.pivot != from.pivot) to.pivot = from.pivot;
+            if (to.sizeDelta != from.sizeDelta) to.sizeDelta = from.sizeDelta;
+            if (to.anchoredPosition != from.anchoredPosition) to.anchoredPosition = from.anchoredPosition;
+        }
     }
     private void OnDestroy() { (_shell as IDisposable)?.Dispose();_shell=null; if (_page != null) { _page.DisposeResources();UnityEngine.Object.Destroy(_page.gameObject); } }
 }
@@ -377,7 +414,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
     private OverviewHotkeyView? _hotkeys;
     private enum PageTab { Mods, Introduction, Hotkeys }
     private PageTab _tab;
-    private RectTransform _frame = null!, _body = null!, _listTab = null!, _introTab = null!, _hotkeyTab = null!, _controls = null!;
+    private RectTransform _frame = null!, _body = null!, _listTab = null!, _introTab = null!, _hotkeyTab = null!, _settingsTab = null!, _controls = null!;
     private TextMeshProUGUI _packName = null!, _metadata = null!, _status = null!;
     private Button _edit = null!, _hide = null!, _language = null!, _theme = null!;
     /// <summary>2.4.1：工具条主题钮。切换后概览要按新主题重建：先回到上一层再立即重新打开（见 OverviewEntry 的 Epoch 判断）。</summary>
@@ -413,6 +450,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         _listTab = Tab(Loc.T("Mod list", "模组列表", "模組列表"), () => { SwitchTab(PageTab.Mods); FocusTabContent(); });
         _introTab = Tab("", () => SwitchTab(PageTab.Introduction));
         _hotkeyTab = Tab(Loc.T("Keybindings", "快捷键设置", "快捷鍵設定"), () => { SwitchTab(PageTab.Hotkeys); FocusTabContent(); });
+        _settingsTab = Tab(SettingsTabLabel, OpenSettingsTab); // 同步自 MCE 1.1.0：样式同页签，按下跳到 ModConfig 的模组设置页
         _controls = OverviewUi.Rect("CommonTools", _frame);
         yield return null;
         _refresh = OverviewUi.Button(_controls, Loc.T("Refresh", "刷新", "重新整理"), RefreshData, 90, 34, role: UiActionRole.Neutral);
@@ -508,7 +546,10 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         shape.raycastTarget = true;
         var button = rect.gameObject.AddComponent<Button>(); button.targetGraphic = shape; button.onClick.AddListener(() => click());
         var text = OverviewUi.Text(rect, label, 20); OverviewUi.Fill(text.rectTransform); text.margin = new Vector4(6, 0, 6, 0); text.alignment = TextAlignmentOptions.Midline;
-        text.enableAutoSizing = true; text.fontSizeMax = 20; text.fontSizeMin = 12; text.overflowMode = TextOverflowModes.Overflow; text.raycastTarget = false; return rect;
+        text.enableAutoSizing = true; text.fontSizeMax = 20; text.fontSizeMin = 12; text.overflowMode = TextOverflowModes.Overflow; text.raycastTarget = false;
+        GamepadSupport.MarkSelectable(rect.gameObject, null, null); // 实测修正（2026-11-16）：RT+LB/RB 在页签间移焦点时要看得到焦点框
+        rect.gameObject.AddComponent<GamepadSupport.RibbonHoverSound>(); // 同步自 MCE 1.1.0 定版：选中响缎带钮同款音效
+        return rect;
     }
     // First entry's expensive half, run while the page is still inactive: styling the page tree, the
     // repository-backed page preparation and the config observers. OnPageEnter skips what already ran.
@@ -548,7 +589,7 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
     }
     public override void OnPageExit()
     {
-        GamepadIntent.Release(this); ClearToolHint(); CloseManagement(); CloseUpdateQueue(); StopProfileObservation(); _document?.OnClosed(); _hotkeys?.OnClosed(); _list?.OnClosed(); OverviewUi.ModalParent = null; OverviewUi.CloseModal(); _repo.SetAuthorMode(false); TypingGuard.Active = false; base.OnPageExit();
+        GamepadIntent.Release(this); ReleaseMoveRepeat(); ClearToolHint(); CloseManagement(); CloseUpdateQueue(); StopProfileObservation(); _document?.OnClosed(); _hotkeys?.OnClosed(); _list?.OnClosed(); OverviewUi.ModalParent = null; OverviewUi.CloseModal(); _repo.SetAuthorMode(false); TypingGuard.Active = false; base.OnPageExit();
     }
     public (UIPage, PageTransistion) GetParentPage()
     {
@@ -563,6 +604,18 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
     }
     internal void MarkReturnFromSettings() { _returnFromSettings = true; _settingsScrollPosition = _list?.ScrollPosition ?? 1; }
     internal void ShowHotkeysTab() => SwitchTab(PageTab.Hotkeys);
+    private static string SettingsTabLabel => Loc.T("Mod Settings", "模组设置", "模組設定");
+    /// <summary>
+    /// 同步自 MCE 1.1.0（用户 2026-11-17 要求 IGMM 也加）：第三个页签「模组设置」不是本页的内容，按下像齿轮一样打开模组设置页、
+    /// 不指定模组（停在设置页当前选中的模组），焦点落在表头「跳转到快捷键设置页」（OverviewSettingsNavigator.FocusJumpHotkeys）；
+    /// 在设置页按 B 回到这里。录键锁定中不响应；失败写状态行。
+    /// </summary>
+    private void OpenSettingsTab()
+    {
+        if (_hotkeys?.IsRecording == true) return;
+        ClearToolHint(); _list?.HideAllHints();
+        OpenModSettings(null);
+    }
     private void OpenModSettings(OverviewMod? mod) => RequestProfileLeave(() => { if (!OverviewSettingsNavigator.Open(this, mod, out string error)) { _returnFromSettings = false; SetStatus(error); } });
     private void Back()
     {
@@ -652,16 +705,18 @@ internal sealed partial class OverviewPage : UIPage, IHaveParentPage
         _listTab.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Mod list", "模组列表", "模組列表");
         _introTab.GetComponentInChildren<TextMeshProUGUI>(true).text = pack.introTitle.Length > 0 ? pack.introTitle : Loc.T("Modpack info", "整合包介绍", "整合包介紹");
         _hotkeyTab.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Keybindings", "快捷键设置", "快捷鍵設定");
+        _settingsTab.GetComponentInChildren<TextMeshProUGUI>(true).text = SettingsTabLabel;
         float tabX = 112;
-        float tabScale = Mathf.Min(1, Mathf.Max(.25f, (width - 112 - Mathf.Clamp(width * .17f, 90, 220) - 38) / (showIntro ? 395 : 260)));
-        void PlaceTab(RectTransform tab, PageTab kind, float tabWidth)
+        float tabScale = Mathf.Min(1, Mathf.Max(.25f, (width - 112 - Mathf.Clamp(width * .17f, 90, 220) - 38) / (showIntro ? 525 : 390))); // 设计宽度之和：模组列表 120 +（介绍 135）+ 快捷键 140 + 模组设置 130
+        void PlaceTab(RectTransform tab, PageTab? kind, float tabWidth)
         {
             tabWidth *= tabScale;
-            bool active = _tab == kind; OverviewUi.Place(tab, tabX, active ? 12 : 16, tabWidth, active ? 38 : 32); tabX += tabWidth - 1;
+            bool active = kind == _tab; OverviewUi.Place(tab, tabX, active ? 12 : 16, tabWidth, active ? 38 : 32); tabX += tabWidth - 1;
             tab.GetComponent<OverviewTabGraphic>().color = active ? ModConfigLook.Surface(new Color(.20f, .48f, .60f)) : UiActionStyle.ColorFor(UiActionRole.Neutral, ModConfigLook.IsDark);
             var caption = tab.GetComponentInChildren<TextMeshProUGUI>(true); caption.overflowMode = TextOverflowModes.Overflow;
         }
         PlaceTab(_listTab, PageTab.Mods, 120); if (showIntro) PlaceTab(_introTab, PageTab.Introduction, 135); PlaceTab(_hotkeyTab, PageTab.Hotkeys, 140);
+        PlaceTab(_settingsTab, null, 130); // 「模组设置」不是本页的内容，永远画成未选中；页头挤时整合包名称区按剩余宽度缩短并加省略号
         float packRight = LayoutUpdateTools(width, tabX);
         OverviewUi.Place(_controls, 20, 68, width - 40, 36);
         LayoutToolbar(width);

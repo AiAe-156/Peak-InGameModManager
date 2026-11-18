@@ -1,0 +1,21 @@
+5,11d4
+< MCE_BTN_UNTRANSLATED=查漏翻
+< MCE_SORT_LOAD_DESC=加载顺序（倒序）
+< MCE_NOTICE_REFRESHED=已重新扫描语言目录：{0} 个文件。
+< MCE_TIP_SELECTED_ONLY=仅已选\n勾选后，侧边栏的每个模组行都会显示“导出”复选框——“导出文本”/“未翻译”只处理已勾选模组。\n\n本模组始终包含（导出的文件本身也可作为它的语言文件）。
+< MCE_TIP_SORT=排序\n侧边栏模组排序：\n\n`默认`（加载顺序）/ `加载顺序倒序` / `名称` / `名称倒序`。
+< MCE_TIP_LANGUAGE=语言\n选择界面语言：“跟随游戏语言”或 `language\` 下的语言组；立即生效，无需重启。\n\n命名规则 `code[-variant][_part].txt` 见 `readme.md`。
+< MCE_TIP_REFRESH=刷新\n重新扫描 `language\` 目录\n\n— 点击后，新语言文件会出现在下拉列表中。
+15d7
+< Localize ModConfig's own UI (Search, Default, Clear, filters …) and this mod's buttons and notices. Texts come from language files in config\ModConfigEnhance\language\, picked in the language row above the mod list. Restart to apply.=本地化 ModConfig 自身界面（搜索、默认、清空、筛选器……）以及本模组的按钮和提示。文本来自 config\ModConfigEnhance\language\ 下的语言文件，在模组列表上方的语言行中选择。重启后生效。
+215,216d206
+< Mod Config Enhance=[界面]ModConfig增强
+< ModConfig settings page enhancements: tree sidebar, description panel, translation tools, language files.=增强 ModConfig 设置页面：树状侧栏、说明面板、翻译工具和语言文件支持。
+703,705d692
+< MCE_NOTICE_GROUPS_UNAVAILABLE=无法打开分组编辑器，详见日志。
+< MCE_TIP_GROUPS=分组\n创建或编辑分组：名称、说明、颜色和成员。与“模组概览”的分组共用数据。\n\n置顶模组保留在顶部的置顶区域；其分组会以彩色条显示在蓝色置顶条旁。
+< MCE_TIP_GROUP_HEADER=点击可折叠或展开。折叠状态与“模组概览”共用；搜索时会临时展开所有分组。
+770d756
+< Native mod overview and pack introduction editor, update checks, groups, and ModConfig settings enhancements.=提供原生模组概览、整合包介绍编辑器、更新检查、分组，以及 ModConfig 设置增强。
+842d827
+< ModConfig Enhance=[界面]ModConfig增强

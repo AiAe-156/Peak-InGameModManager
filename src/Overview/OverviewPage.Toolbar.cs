@@ -134,7 +134,7 @@ internal sealed partial class OverviewPage
         // It was left out whenever it was briefly non-interactable (an automatic check running) and never linked back.
         var navigation = _controls.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && (s.IsInteractable() || s == _sourceToolsRefreshButton)).OrderBy(s => s.transform.position.x).ToList();
         var bodyTargets = _body.GetComponentsInChildren<Selectable>(false).Where(s => s.IsActive() && s.IsInteractable()).ToList();
-        var pageTabs = new[] { _back, _listTab.GetComponent<Button>(), _introTab.GetComponent<Button>(), _hotkeyTab.GetComponent<Button>() }.Where(s => s.IsActive() && s.IsInteractable()).ToList();
+        var pageTabs = new[] { _back, _listTab.GetComponent<Button>(), _introTab.GetComponent<Button>(), _hotkeyTab.GetComponent<Button>(), _settingsTab.GetComponent<Button>() }.Where(s => s.IsActive() && s.IsInteractable()).ToList();
         for (int i = 0; i < navigation.Count; i++)
         {
             var control = navigation[i];
@@ -147,6 +147,9 @@ internal sealed partial class OverviewPage
         if (movedFocus) EventSystem.current?.SetSelectedGameObject(_more.gameObject.activeSelf ? _more.gameObject : _profileChoice.gameObject);
         RefreshActiveToolHint();
     }
+    /// <summary>同步自 MCE 1.1.0（上线前修正）：手柄 LB / RB 在第二行工具行的按钮间跳的顺序 = 屏幕上从左到右（含「更多」「日志」）。</summary>
+    private List<Selectable> ToolbarStops() => _controls.GetComponentsInChildren<Selectable>(false)
+        .Where(s => s.IsActive() && s.IsInteractable()).OrderBy(s => s.transform.position.x).ToList();
     private RectTransform ToolAnchor(Button button) => (RectTransform)(button.gameObject.activeInHierarchy ? button.transform : _more.transform);
     private void ShowToolbarMore()
     {

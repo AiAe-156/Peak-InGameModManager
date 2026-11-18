@@ -1,0 +1,160 @@
+diff --git a/ModConfigEnhance.csproj b/ModConfigEnhance.csproj
+index 006a0d5..6ffc50a 100644
+--- a/ModConfigEnhance.csproj
++++ b/ModConfigEnhance.csproj
+@@ -8,7 +8,7 @@
+     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+     <TargetFramework>netstandard2.1</TargetFramework>
+     <Nullable>enable</Nullable>
+-    <Version>1.0.2</Version>
++    <Version>1.0.3</Version>
+   </PropertyGroup>
+ 
+   <PropertyGroup>
+@@ -39,21 +39,15 @@
+          ModConfig 是硬依赖（BepInDependency），XUnity / TimeTheme 全反射、不引用 DLL。
+          引用三层兜底：$(PluginsDir) 现用整合包扁平布局 → BepInEx3 扁平布局 → BepInEx 分区布局。 -->
+     <Reference Include="PEAKLib.Core">
+-      <HintPath Condition="Exists('$(PluginsDir)PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll')">$(PluginsDir)PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll') And Exists('$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll')">$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll') And !Exists('$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll')">$(GameDir)BepInEx\plugins\0核心&amp;基础模组\[0依赖]Mods\PEAKModding-PEAKLib_Core\plugins\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
++      <HintPath>$(PluginsDir)依赖模组\[依赖]PEAKLib核心-PEAKLib_Core\plugins\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
+       <Private>false</Private>
+     </Reference>
+     <Reference Include="PEAKLib.UI">
+-      <HintPath Condition="Exists('$(PluginsDir)PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll')">$(PluginsDir)PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll') And Exists('$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll')">$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll') And !Exists('$(GameDir)BepInEx3\plugins\PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll')">$(GameDir)BepInEx\plugins\0核心&amp;基础模组\[0依赖]Mods\PEAKModding-PEAKLib_UI-1.7.0\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
++      <HintPath>$(PluginsDir)依赖模组\[依赖]PEAKLib界面-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
+       <Private>false</Private>
+     </Reference>
+     <Reference Include="PEAKLib.ModConfig" Publicize="true">
+-      <HintPath Condition="Exists('$(PluginsDir)PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll')">$(PluginsDir)PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll') And Exists('$(GameDir)BepInEx3\plugins\PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll')">$(GameDir)BepInEx3\plugins\PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll</HintPath>
+-      <HintPath Condition="!Exists('$(PluginsDir)PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll') And !Exists('$(GameDir)BepInEx3\plugins\PEAKModding-ModConfig\com.github.PEAKModding.PEAKLib.ModConfig.dll')">$(GameDir)BepInEx\plugins\0核心&amp;基础模组\[功能]游戏内更改mod配置-ModConfig-1.8.1\com.github.PEAKModding.PEAKLib.ModConfig.dll</HintPath>
++      <HintPath>$(PluginsDir)0基础模组\[功能]游戏内更改mod配置-ModConfig-1.8.2\com.github.PEAKModding.PEAKLib.ModConfig.dll</HintPath>
+       <Private>false</Private>
+     </Reference>
+     <Reference Include="0Harmony">
+diff --git a/src/ModConfigDescriptionPanel.cs b/src/ModConfigDescriptionPanel.cs
+index 651b346..a7f805e 100644
+--- a/src/ModConfigDescriptionPanel.cs
++++ b/src/ModConfigDescriptionPanel.cs
+@@ -236,6 +236,14 @@ internal static class ModConfigDescriptionPanel
+         {
+             if (mod == null)
+             {
++                if (Plugin.InGameModManagerLoaded)
++                {
++                    // 1.0.3：完整版同时在场时提示一次（只提示，不拦截）
++                    ShowNotice(Loc.T("In-Game Mod Manager is also installed. It already includes everything ModConfig Enhance does, and running both changes this page twice. Keep only one of them.",
++                        "同时装了「游戏内模组管理器」：它已包含 ModConfig Enhance 的全部功能，两个一起开会重复修改这个页面。建议只保留其中一个。",
++                        "同時裝了「遊戲內模組管理器」：它已包含 ModConfig Enhance 的全部功能，兩個一起開會重複修改這個頁面。建議只保留其中一個。"), warning: true);
++                    return;
++                }
+                 ShowNotice(Loc.T("Select a mod to view its information.", "选择左侧模组查看信息。", "選擇左側模組查看資訊。"));
+                 return;
+             }
+diff --git a/src/ModConfigTreeLayoutPatch.cs b/src/ModConfigTreeLayoutPatch.cs
+index 685928f..db06490 100644
+--- a/src/ModConfigTreeLayoutPatch.cs
++++ b/src/ModConfigTreeLayoutPatch.cs
+@@ -225,6 +225,10 @@ internal static class ModConfigTreeLayoutPatch
+         // 手柄支持的全局补丁：滑条 A 键调值门控 + 步进上限 + B 键分级返回（单个失败只警告，不连累布局）
+         GamepadSupport.ApplyPatches(harmony);
+ 
++        // 1.0.3：PEAK 3.1.0 起模组的小数参数被取整显示、手打时小数点会被吞；只接管模组参数，原版设置不受影响
++        ModFloatDisplayPatch.Apply(harmony);
++        Plugin.Log.LogInfo("[小数显示] " + ModFloatDisplayPatch.State);
++
+         Attached = true;
+         State = $"已挂载（ModConfig {ModConfigSupport.InstalledVersion}{(TimeThemeBridge.Available ? "，随 TimeTheme 昼夜跟色" : "")}）";
+         ModConfigSupport.LogVersionNote("面板布局");
+diff --git a/src/ModFloatDisplayPatch.cs b/src/ModFloatDisplayPatch.cs
+new file mode 100644
+index 0000000..cc1a2db
+--- /dev/null
++++ b/src/ModFloatDisplayPatch.cs
+@@ -0,0 +1,56 @@
++#nullable enable
++using System;
++using System.Globalization;
++using HarmonyLib;
++using PEAKLib.ModConfig;
++using Zorro.Settings;
++using Zorro.Settings.UI;
++
++namespace ModConfigEnhance;
++
++/// <summary>
++/// PEAK 3.1.0 changed <see cref="FloatSettingUI"/> to show every slider value through a new private
++/// <c>GetFormattedString</c>, which for the default display type returns <c>value.ToString("0")</c>. That was meant for
++/// the game's own sliders, but PEAKLib.ModConfig's float/double settings reuse the same cell, so every mod parameter
++/// lost its decimals (0.35 → "0", 1.25 → "1"). Worse, the cell's <c>OnChanged</c> re-parses the field on every
++/// keystroke and writes the rounded text back, so typing "1.25" ends up storing a wrong value.
++///
++/// This patch only takes over for settings that belong to a mod (<see cref="IBepInExProperty"/>): their values are
++/// shown with up to three decimals ("0.###"), and while the user is typing in the field the text is left as typed so
++/// the value is parsed from what they entered. The game's own settings are untouched and keep the new look.
++/// </summary>
++internal static class ModFloatDisplayPatch
++{
++    internal static string State { get; private set; } = "not installed";
++
++    internal static void Apply(Harmony harmony)
++    {
++        try
++        {
++            var target = AccessTools.Method(typeof(FloatSettingUI), "GetFormattedString", new[] { typeof(float) });
++            if (target == null) { State = "GetFormattedString not found (game older than 3.1.0); nothing to fix"; return; }
++            harmony.Patch(target, prefix: new HarmonyMethod(typeof(ModFloatDisplayPatch), nameof(Prefix)));
++            State = "installed";
++        }
++        catch (Exception ex) { State = "failed: " + ex.Message; Plugin.Log.LogWarning("[小数显示] 补丁挂载失败：" + ex.Message); }
++    }
++
++    private static bool Prefix(FloatSettingUI __instance, float value, ref string __result)
++    {
++        if (__instance == null || __instance._listeningSetting is not IBepInExProperty) return true;
++        // While the field has focus the user is typing: hand back their own text so the next keystroke parses what
++        // they typed, instead of the cell overwriting "1.2" with a re-formatted value mid-edit.
++        var field = __instance.inputField;
++        if (field != null && field.isFocused && float.TryParse(field.text, NumberStyles.Float, CultureInfo.CurrentCulture, out float typed)
++            && Math.Abs(typed - value) < 1e-6f)
++        {
++            __result = field.text;
++            return false;
++        }
++        __result = Format(value);
++        return false;
++    }
++
++    /// <summary>Up to three decimals, no trailing zeros; integers stay plain ("2", "0.35", "1.25", "0.001").</summary>
++    internal static string Format(float value) => value.ToString("0.###", CultureInfo.CurrentCulture);
++}
+diff --git a/src/Plugin.cs b/src/Plugin.cs
+index 6fce5ac..de5e589 100644
+--- a/src/Plugin.cs
++++ b/src/Plugin.cs
+@@ -21,7 +21,11 @@ public class Plugin : BaseUnityPlugin
+ {
+     public const string PluginGuid = "com.aiae.modconfigenhance";
+     public const string PluginName = "ModConfig Enhance";
+-    public const string PluginVersion = "1.0.2";
++    public const string PluginVersion = "1.0.3";
++
++    /// <summary>完整版「游戏内模组管理器」（In-Game Mod Manager）。它自带同样的设置页增强，两者同开会重复改同一个页面：只提示，不拦截。</summary>
++    internal const string InGameModManagerGuid = "com.aiae.ingamemodmanager";
++    internal static bool InGameModManagerLoaded => BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(InGameModManagerGuid);
+ 
+     internal static ManualLogSource Log { get; private set; } = null!;
+ 
+@@ -74,6 +78,8 @@ public class Plugin : BaseUnityPlugin
+         }
+ 
+         Log.LogInfo($"[{PluginName} v{PluginVersion}] 已加载。");
++        if (InGameModManagerLoaded)
++            Log.LogWarning("[共存] 同时装了「游戏内模组管理器」（In-Game Mod Manager）：它已包含本模组的全部功能，两个一起开会重复修改设置页。建议只保留其中一个。");
+         Log.LogInfo($"  树形侧栏: {(EnableTreeLayout.Value ? ModConfigTreeLayoutPatch.State : "关")}" +
+             $" / 界面本地化: {(EnableLocalization.Value ? ModConfigLocalizationPatch.State : "关")}" +
+             $" / 说明面板: {(EnableDescriptionPanel.Value ? "开" : "关")}" +

@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using PEAKLib.ModConfig;
@@ -111,8 +112,19 @@ internal static class GamepadSupport
     /// 只认明确的玩家操作件——陀螺仪 / 加速度计噪声不遍历 allControls 就不会进来。
     /// 同帧键鼠与手柄都有输入时键鼠优先（鼠标一动立刻退出手柄态，正是修复目标）。
     /// </summary>
-    private static void InputHandlerUpdatePostfix()
+    private static void InputHandlerUpdatePostfix() => TrackInput();
+
+    private static int _trackedFrame = -1;
+
+    /// <summary>
+    /// 实测修正（2026-11-16，用户：手柄操作日志窗口 / 分组管理仍看不到焦点框）：设备跟踪原来只挂在游戏 InputHandler.Update 上，
+    /// 那个 Update 在菜单里不一定每帧跑；跟踪停住时 IsGamepad 停在旧值（之前键鼠下焦点框消不掉、现在手柄下焦点框出不来，同一个根因）。
+    /// 现在另有一个常驻的 <see cref="InputTicker"/> 每帧调用；两边谁先到谁做，同一帧只做一次。
+    /// </summary>
+    internal static void TrackInput()
     {
+        if (_trackedFrame == Time.frameCount) return;
+        _trackedFrame = Time.frameCount;
         try
         {
             if (!_lastInputInited)
@@ -131,6 +143,8 @@ internal static class GamepadSupport
             {
                 _lastInputIsGamepad = true;
             }
+
+            FocusHighlight.Sync(); // 实测修正（2026-11-16）：焦点框跟着最后输入设备显示 / 收起
         }
         catch (Exception ex)
         {
@@ -547,6 +561,7 @@ internal static class GamepadSupport
             {
                 Plugin.Log.LogWarning("[手柄] 找不到 InputHandler.Update，最后输入设备跟踪未挂载。");
             }
+            InputTicker.Ensure(); // 同步自 MCE 1.1.0 实测修正：菜单里 InputHandler.Update 不一定每帧跑，另挂常驻每帧钩子
         }
         catch (Exception ex)
         {
@@ -1242,6 +1257,10 @@ internal static class GamepadSupport
 
             // 4. 赋链：格内上下 = 同列堆叠项（默认↔清空）；出格到相邻行的同列/最近列；左右 = 同行相邻格
             Selectable? searchField = Sidebar ? FindSearchField() : null;
+            if (Sidebar && lines[0].Groups.Count > 0)
+            {
+                LinkHeader(lines[0].Groups[0].Items[0]);
+            }
             for (int i = 0; i < lines.Count; i++)
             {
                 Line line = lines[i];
@@ -1341,6 +1360,84 @@ internal static class GamepadSupport
             }
 
             return items.Count > 0 ? items : null;
+        }
+
+        private List<Selectable> _header = new List<Selectable>();
+        private float _headerAt = -10f;
+        private static readonly Vector3[] HeaderCorners = new Vector3[4];
+
+        /// <summary>
+        /// 实测修正（2026-11-16，用户：设置页「搜索」框把手柄焦点抓死，移不出去）：页头的控件（返回、搜索框、主题钮、
+        /// 导出翻译 / 补漏翻 / 仅导出已选、筛选下拉……）原来没人连导航——ModConfig 的搜索框导航不通，侧栏顶行按上进了搜索框就出不来。
+        /// 现在页头所有控件（不在任何滚动区里的）按位置互连：左右走同一排，上下走相邻一排里最近的；最下一排再按下 = 侧栏第一项。
+        /// 页头控件每 0.5 秒重收一次（避免每帧遍历整页）。
+        /// </summary>
+        private void LinkHeader(Selectable firstSidebar)
+        {
+            if (Page == null) return;
+            if (Time.unscaledTime - _headerAt > 0.5f)
+            {
+                _headerAt = Time.unscaledTime;
+                _header = Page.GetComponentsInChildren<Selectable>(false)
+                    .Where(s => s is not Scrollbar && s.GetComponentInParent<ScrollRect>() == null
+                        && (s is TMP_Dropdown || s.GetComponentInParent<TMP_Dropdown>() == null))
+                    .ToList();
+                // 页头控件凡是还没焦点框的一并补上（主题钮、排序 / 语言下拉、刷新、分组管理等，免得逐个漏）
+                foreach (Selectable s in _header)
+                {
+                    if (s.GetComponent<FocusHighlight>() == null) MarkSelectable(s.gameObject, null, null);
+                }
+            }
+
+            List<(Selectable S, Vector2 C, float H)> items = new List<(Selectable, Vector2, float)>();
+            foreach (Selectable s in _header)
+            {
+                if (s == null || !s.gameObject.activeInHierarchy || !s.IsInteractable()) continue;
+                ((RectTransform)s.transform).GetWorldCorners(HeaderCorners);
+                items.Add((s, (HeaderCorners[0] + HeaderCorners[2]) / 2f, Mathf.Abs(HeaderCorners[2].y - HeaderCorners[0].y)));
+            }
+
+            foreach (var item in items)
+            {
+                Selectable? Pick(int dx, int dy)
+                {
+                    Selectable? best = null;
+                    float bestScore = float.MaxValue;
+                    foreach (var other in items)
+                    {
+                        if (other.S == item.S) continue;
+                        float ox = other.C.x - item.C.x, oy = other.C.y - item.C.y;
+                        bool sameRow = Mathf.Abs(oy) < Mathf.Max(item.H, other.H) * 0.5f;
+                        float score;
+                        if (dx != 0)
+                        {
+                            if (!sameRow || ox * dx <= 0) continue;
+                            score = Mathf.Abs(ox);
+                        }
+                        else
+                        {
+                            if (sameRow || oy * dy <= 0) continue;
+                            score = Mathf.Abs(oy) + Mathf.Abs(ox) * 0.5f;
+                        }
+
+                        if (score < bestScore)
+                        {
+                            bestScore = score;
+                            best = other.S;
+                        }
+                    }
+
+                    return best;
+                }
+
+                Navigation nav = item.S.navigation;
+                nav.mode = Navigation.Mode.Explicit;
+                nav.selectOnLeft = Pick(-1, 0);
+                nav.selectOnRight = Pick(1, 0);
+                nav.selectOnUp = Pick(0, 1);
+                nav.selectOnDown = Pick(0, -1) ?? firstSidebar;
+                item.S.navigation = nav;
+            }
         }
 
         private Selectable? FindSearchField()
@@ -1445,6 +1542,137 @@ internal static class GamepadSupport
         }
     }
 
+    /// <summary>常驻的每帧钩子：不依赖游戏 InputHandler 是否在跑，保证设备跟踪与焦点框同步每帧都做（见 <see cref="TrackInput"/>）。</summary>
+    internal sealed class InputTicker : MonoBehaviour
+    {
+        private static InputTicker? _instance;
+
+        internal static void Ensure()
+        {
+            if (_instance != null) return;
+            GameObject go = new GameObject("IGMM_InputTicker");
+            go.hideFlags = HideFlags.HideAndDontSave;
+            DontDestroyOnLoad(go);
+            _instance = go.AddComponent<InputTicker>();
+        }
+
+        private void Update()
+        {
+            // 跟踪只读输入状态；焦点框同步放在 TrackInput 末尾，同帧只做一次。
+            TrackInput();
+        }
+    }
+
+    /// <summary>
+    /// 同步自 MCE 1.1.0 定版（2026-11-18）。实测修正（2026-11-16，用户）：焦点框每移到一个新控件响一声（逐行载入那一声的音色），键鼠、手柄都响。
+    /// 同一个控件不重响；拖动中（键鼠态按住左键）、输入框打字中、手柄录组合键锁定中都不响。
+    /// 2026-11-17（用户）：去掉两声之间的最小间隔；音量单独调大，见 <see cref="SidebarCascade.PlayFocusSound"/>。
+    /// </summary>
+    internal static class FocusMoveSound
+    {
+        private static GameObject? _last;
+        /// <summary>碰到过的缎带钮音效组件（RibbonHoverSound 从这里抄 sfxHover）。</summary>
+        internal static NicksButtonSFX? RibbonSource;
+
+        internal static void Moved(GameObject target)
+        {
+            if (target == _last) return;
+            _last = target;
+            if (Suppressed()) return;
+            try
+            {
+                // 实测修正（2026-11-17，用户：图标钮、缎带钮本来就有选中音效，重复了）：游戏的缎带钮模板带 NicksButtonSFX，
+                // 悬停（OnPointerEnter）和手柄选中（OnSelect）都自己响 sfxHover。这类控件不再加我们这一声。
+                // 概览页顶部大页签挂了 RibbonHoverSound，它会给页签补一个同款 NicksButtonSFX，这里同样跳过。
+                NicksButtonSFX? own = OwnSound(target);
+                if (own != null)
+                {
+                    if (RibbonSource == null) RibbonSource = own;
+                    return;
+                }
+
+                SidebarCascade.PlayFocusSound();
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogDebug($"[焦点音效] 播放失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>控件自己（或它所在的缎带钮）带的游戏悬停音效；没有返回 null。</summary>
+        private static NicksButtonSFX? OwnSound(GameObject target)
+        {
+            // 只看控件自己和它所属的缎带钮；不往子孙里找（整行被选中时，行里的小按钮不算这一行自带音效）
+            NicksButtonSFX? sfx = target.GetComponent<NicksButtonSFX>();
+            if (sfx == null)
+            {
+                PeakMenuButton? ribbon = target.GetComponentInParent<PeakMenuButton>();
+                if (ribbon != null) sfx = ribbon.GetComponentInChildren<NicksButtonSFX>(false);
+            }
+
+            return sfx != null && sfx.isActiveAndEnabled && sfx.sfxHover != null ? sfx : null;
+        }
+
+        private static bool Suppressed()
+        {
+            if (GamepadLock.Active) return true;
+            if (!IsGamepad && Mouse.current != null && Mouse.current.leftButton.isPressed) return true; // 拖动 / 按住
+            EventSystem? system = EventSystem.current;
+            GameObject? selected = system != null ? system.currentSelectedGameObject : null;
+            TMP_InputField? field = selected != null ? selected.GetComponent<TMP_InputField>() : null;
+            return field != null && field.isFocused;
+        }
+    }
+
+    /// <summary>
+    /// 实测修正（2026-11-17，用户：概览页顶部大页签的选中音效要跟缎带钮一样）：给页签补一个游戏自己的 NicksButtonSFX，
+    /// sfxHover 抄自缎带钮，悬停与手柄选中由游戏代码照缎带钮的方式播（上一版自己调 PlaySFX 没响）。
+    /// 只换选中音效，不加点击音效（sfxClick 留空，PlaySFX 遇空直接返回）。
+    /// 页签可能比缎带钮先建：找不到来源就每 0.5 秒再找一次，补上后本组件自毁。
+    /// </summary>
+    internal sealed class RibbonHoverSound : MonoBehaviour
+    {
+        private float _nextSearch;
+
+        private void Update()
+        {
+            NicksButtonSFX? source = FocusMoveSound.RibbonSource;
+            if (source == null || source.sfxHover == null)
+            {
+                if (Time.unscaledTime < _nextSearch) return;
+                _nextSearch = Time.unscaledTime + 0.5f;
+                source = null;
+                NicksButtonSFX? any = null;
+                foreach (NicksButtonSFX candidate in Object.FindObjectsByType<NicksButtonSFX>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (candidate.sfxHover == null) continue;
+                    if (candidate.GetComponentInParent<PeakMenuButton>(true) != null)
+                    {
+                        source = candidate;
+                        break;
+                    }
+
+                    any ??= candidate; // 没有缎带钮就用游戏菜单按钮的（缎带钮模板本来就取自游戏菜单按钮）
+                }
+
+                source ??= any;
+                if (source == null) return;
+                FocusMoveSound.RibbonSource = source;
+            }
+
+            Button? button = GetComponent<Button>();
+            if (button != null && GetComponent<NicksButtonSFX>() == null)
+            {
+                NicksButtonSFX sfx = gameObject.AddComponent<NicksButtonSFX>();
+                sfx.button = button; // Start 里给 onClick 挂 OnClick，必须非空
+                sfx.sfxHover = source.sfxHover;
+                sfx.sfxClick = null!;
+            }
+
+            Destroy(this);
+        }
+    }
+
     // ── 焦点框 ────────────────────────────────────────────────────
 
     /// <summary>
@@ -1452,7 +1680,7 @@ internal static class GamepadSupport
     /// 行自己的底图盖住中心、只露一圈描边；选中才激活。米白在 TimeTheme 表里，夜里自动变紫。
     /// <see cref="SetEngaged"/> 给滑条调值态用：焦点框换亮橙，提示「正在调值」。
     /// </summary>
-    internal sealed class FocusHighlight : MonoBehaviour, ISelectHandler, IDeselectHandler
+    internal sealed class FocusHighlight : MonoBehaviour, IDeselectHandler, IPointerEnterHandler, IPointerExitHandler
     {
         private const float Outset = 2f;
         private static readonly Color EngagedColor = new Color(1f, 0.72f, 0.28f);
@@ -1460,27 +1688,129 @@ internal static class GamepadSupport
         private GameObject? _frame;
         private bool _engaged;
 
-        public void OnSelect(BaseEventData eventData)
-        {
-            // 1.1.0：鼠标点击选中不画焦点框（概览行内格子现在也挂了焦点框，鼠标行为要保持原样）。
-            if (eventData is PointerEventData || !IsGamepad)
-            {
-                return;
-            }
+        /// <summary>
+        /// 显示规则（实测修正 2026-11-16，用户：键鼠下框要跟着鼠标走；框每移到新控件响一声）：
+        ///   · 手柄态：框画在 EventSystem 当前选中的控件上（每帧直接看选中对象，不靠 OnSelect——弹窗先选中、下一帧才挂框也不会漏）。
+        ///   · 键鼠态：框画在鼠标悬停的控件上（嵌套时取最深的那个，如行里的格子而不是整行）；移到空白处框消失。
+        ///     控件不可交互时不画。
+        /// 全场同一时刻只有一个框（<see cref="_shown"/>）；每帧由 <see cref="Sync"/> 统一决定，组件自己不直接显示。
+        /// 只有挂了本组件的控件（本模组自己的页面：概览、快捷键页、模组设置页、日志窗、分组管理、各种下拉）才参与。
+        /// </summary>
+        private static FocusHighlight? _shown;
+        private static readonly List<FocusHighlight> Hovered = new List<FocusHighlight>();
+        private static GameObject? _probed;
+        private static FocusHighlight? _selectedCache;
 
-            SetVisible(true);
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            Hovered.Remove(this);
+            Hovered.Add(this);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            // 指针移进子控件时父级也会收到 exit / enter；Unity 只在真正离开本对象（含子孙）时才发 exit，这里直接移除即可。
+            Hovered.Remove(this);
         }
 
         public void OnDeselect(BaseEventData eventData)
         {
-            SetVisible(false);
             _engaged = false;
         }
 
         private void OnDisable()
         {
+            Hovered.Remove(this);
+            if (_shown == this) _shown = null;
+            if (_selectedCache == this) _selectedCache = null;
             SetVisible(false);
             _engaged = false;
+        }
+
+        // 已选中的对象后来才挂上焦点框（PublicationNavigation 下一帧才 MarkSelectable）：让 Sync 重新认它。
+        private void Awake()
+        {
+            if (_probed == gameObject) _probed = null;
+        }
+
+        /// <summary>每帧调用一次（<see cref="TrackInput"/> 末尾）：决定这一帧框画在谁身上；换了控件就响一声。</summary>
+        internal static void Sync()
+        {
+            FocusHighlight? target = IsGamepad ? SelectedHighlight() : HoveredHighlight();
+            FocusHighlight? shown = _shown;
+            if (shown is not null && shown != target)
+            {
+                if (shown != null) shown.SetVisible(false);
+                _shown = null;
+            }
+
+            if (target == null)
+            {
+                return;
+            }
+
+            target.SetVisible(true);
+            if (_shown != target)
+            {
+                _shown = target;
+                FocusMoveSound.Moved(target.gameObject);
+            }
+        }
+
+        private static FocusHighlight? SelectedHighlight()
+        {
+            EventSystem? system = EventSystem.current;
+            GameObject? selected = system == null ? null : system.currentSelectedGameObject;
+            if (selected == null)
+            {
+                _probed = null;
+                return null;
+            }
+
+            if (_selectedCache != null && _selectedCache.gameObject == selected)
+            {
+                return _selectedCache;
+            }
+
+            if (_probed == selected) return null; // 这个对象已经查过、没有焦点框
+            FocusHighlight? found = selected.GetComponent<FocusHighlight>();
+            if (found == null)
+            {
+                _probed = selected;
+                _selectedCache = null;
+                return null;
+            }
+
+            _probed = null;
+            _selectedCache = found;
+            return found;
+        }
+
+        private static FocusHighlight? HoveredHighlight()
+        {
+            FocusHighlight? best = null;
+            int bestDepth = -1;
+            for (int i = Hovered.Count - 1; i >= 0; i--)
+            {
+                FocusHighlight item = Hovered[i];
+                if (item == null || !item.isActiveAndEnabled)
+                {
+                    Hovered.RemoveAt(i);
+                    continue;
+                }
+
+                Selectable? selectable = item.GetComponent<Selectable>();
+                if (selectable != null && !selectable.IsInteractable()) continue;
+                int depth = 0;
+                for (Transform? t = item.transform; t != null; t = t.parent) depth++;
+                if (depth > bestDepth)
+                {
+                    bestDepth = depth;
+                    best = item;
+                }
+            }
+
+            return best;
         }
 
         internal void SetEngaged(bool engaged)

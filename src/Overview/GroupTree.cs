@@ -20,7 +20,7 @@ internal sealed class GroupTree
     private readonly Dictionary<string, List<OverviewGroup>> _children = new(Ids);
     private readonly List<OverviewGroup> _roots = new();
     private readonly List<OverviewGroup> _flat = new();
-    private readonly Dictionary<string, int> _position = new(Ids), _depth = new(Ids);
+    private readonly Dictionary<string, int> _position = new(Ids), _depth = new(Ids), _end = new(Ids);
 
     internal IReadOnlyList<OverviewGroup> Roots => _roots;
     /// <summary>Every group, depth first: a group, then its children in sibling order.</summary>
@@ -47,6 +47,7 @@ internal sealed class GroupTree
     {
         _position[group.id] = _flat.Count; _depth[group.id] = depth; _flat.Add(group);
         if (_children.TryGetValue(group.id, out var list)) foreach (var child in list) Walk(child, depth + 1);
+        _end[group.id] = _flat.Count - 1; // 子树最后一个分组的位置（成员行排序用，见 RowKey）
     }
 
     /// <summary>The parent this group really hangs under: missing parents, cycles and over-deep chains fall back to the top level.</summary>
@@ -140,9 +141,13 @@ internal sealed class GroupTree
         return members.Count(m => subtree.Contains(groupOf(m) ?? ""));
     }
 
-    /// <summary>Sort key for a member row: its group's tree position, members of a group before that group's children,
-    /// ungrouped last. Rows inside one group keep their own order as the secondary key.</summary>
-    internal int RowKey(string groupId) => Position(groupId);
+    /// <summary>Sort key for a member row; ungrouped (and unknown ids) last. Rows inside one group keep their own order as the
+    /// secondary key. 1.1.0（实测修正，用户 2026-11-16）：子分组排在本组直属模组的前面——原来是直属模组在前、子分组在底部；
+    /// 现在一个分组的直属成员排在它整棵子树（各子分组的标题与成员）之后（<see cref="GroupSteps.MemberRank"/>）。
+    /// 标题仍按 <see cref="Flat"/>（先父后子）排。模组列表、快捷键页、设置页侧栏都按这个顺序。</summary>
+    internal int RowKey(string groupId) => _end.TryGetValue(groupId ?? "", out int end) ? GroupSteps.MemberRank(end, Depth(groupId!), MaxDepth) : int.MaxValue;
+    /// <summary>Position of the last group in this group's subtree (itself when it has no children); -1 for an unknown id.</summary>
+    internal int SubtreeEnd(string id) => _end.TryGetValue(id ?? "", out int end) ? end : -1;
 
     // ---- edits ----
 
@@ -176,6 +181,29 @@ internal sealed class GroupTree
         var siblings = groups.Where(g => g != group && new GroupTree(groups).Parent(g.id) == group.parentId).ToList();
         group.order = siblings.Count == 0 ? 0 : siblings.Max(g => g.order) + 1;
         Renumber(groups, old);
+        return true;
+    }
+
+    /// <summary>
+    /// 1.1.0（实测修正，用户 2026-11-16）：把分组 <paramref name="id"/> 插到 <paramref name="targetId"/> 的前面或后面，成为它的同层分组
+    /// （上级 = 目标的上级）。嵌套层数与「不能放进自己的子分组」照 <see cref="CanAttach"/>。不允许时返回 false、不改动。
+    /// </summary>
+    internal static bool PlaceBeside(List<OverviewGroup> groups, string id, string targetId, bool after, out string reason)
+    {
+        reason = "";
+        var tree = new GroupTree(groups);
+        if (string.IsNullOrEmpty(id) || id == targetId || !tree.Contains(id) || !tree.Contains(targetId)) { reason = "missing"; return false; }
+        string parent = tree.Parent(targetId);
+        if (!tree.CanAttach(id, parent, out reason)) return false;
+        var group = tree.Get(id)!;
+        string old = tree.Parent(id);
+        var siblings = (parent.Length == 0 ? tree.Roots : tree.Children(parent)).Where(g => g.id != id).ToList();
+        int at = siblings.FindIndex(g => g.id == targetId);
+        if (at < 0) { reason = "missing"; return false; }
+        siblings.Insert(after ? at + 1 : at, group);
+        group.parentId = parent;
+        for (int i = 0; i < siblings.Count; i++) siblings[i].order = i;
+        if (!string.Equals(old, parent, StringComparison.Ordinal)) Renumber(groups, old);
         return true;
     }
 

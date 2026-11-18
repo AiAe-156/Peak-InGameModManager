@@ -28,20 +28,38 @@ internal sealed partial class OverviewRepository
             ["pluginGuid"] = (d.ProfileValue ?? d.CurrentValue)?.pluginGuid, ["section"] = (d.ProfileValue ?? d.CurrentValue)?.section,
             ["key"] = (d.ProfileValue ?? d.CurrentValue)?.key, ["previous"] = d.ProfileValue?.serializedValue, ["current"] = d.CurrentValue?.serializedValue }));
         var mods = installedMods;
+        // Read local components even if no online update check has populated Results yet.
+        var components = InfrastructureOverviewModel.Create(InfrastructurePackages.Scan());
+        var gameVersion = Application.version;
+        var versionPrefix = System.Text.RegularExpressions.Regex.Match(gameVersion, @"^(\d+\.\d+(?:\.\d+){0,2})(?=\s*--)");
         var metadata = new JObject {
             ["schemaVersion"] = 1, ["purpose"] = "仅用于 Debug 和故障排查", ["captured"] = DateTimeOffset.Now,
-            ["gameVersion"] = Application.version, ["unityVersion"] = Application.unityVersion,
+            ["gameVersion"] = versionPrefix.Success ? versionPrefix.Groups[1].Value : gameVersion,
+            ["gameVersionRaw"] = gameVersion, ["unityVersion"] = Application.unityVersion,
             ["bepInExVersion"] = typeof(BaseUnityPlugin).Assembly.GetName().Version?.ToString(),
-            ["mceVersion"] = typeof(Plugin).Assembly.GetName().Version?.ToString(),
+            ["igmmVersion"] = Plugin.PluginVersion,
+            ["mceVersion"] = Plugin.PluginVersion,
             ["pack"] = PackLibrary.Active?.Name ?? State.pack.name, ["appliedProfile"] = applied?.name ?? "",
             ["comparisonBaseline"] = applied == null ? "无比较基准" : "当前已应用方案快照",
             ["runtimeDifferences"] = differences, ["savedNotApplied"] = savedDiff, ["otherSavedProfiles"] = savedProfiles,
             ["pendingConfiguration"] = JObject.FromObject(_pendingConfiguration),
             ["mods"] = new JArray(mods.Select(m => new JObject { ["name"] = m.RawName, ["guid"] = m.Guid, ["version"] = m.PluginVersion,
                 ["installed"] = File.Exists(m.Location), ["loaded"] = Chainloader.PluginInfos.TryGetValue(m.Guid, out var loaded) && loaded.Instance != null,
-                ["enabledNextStart"] = m.Location.EndsWith(".dll", StringComparison.OrdinalIgnoreCase),
+                ["enabledNextStart"] = File.Exists(m.Location) && (m.ResourcePack ? Path.GetFileName(m.Location).Equals("manifest.json", StringComparison.OrdinalIgnoreCase)
+                    : m.Location.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)),
                 ["appliedTarget"] = applied?.mods.FirstOrDefault(x => x.guid.Equals(m.Guid, StringComparison.OrdinalIgnoreCase))?.enabled,
                 ["path"] = Path.GetRelativePath(Paths.BepInExRootPath, m.Location) })),
+            ["components"] = new JArray(components.Select(c => new JObject {
+                ["name"] = c.Name, ["packageKey"] = c.Key, ["version"] = c.Version,
+                ["identityConfirmed"] = c.IdentityConfirmed,
+                ["installed"] = c.RuntimeFiles.Any(File.Exists), ["enabledNextStart"] = c.Enabled,
+                ["areas"] = JArray.FromObject(c.Areas),
+                ["locations"] = new JArray(c.Locations.Select(l => new JObject {
+                    ["area"] = l.Area, ["path"] = Path.GetRelativePath(Paths.BepInExRootPath, l.Path),
+                    ["identityConfirmed"] = l.IdentityConfirmed, ["manifestVerified"] = l.ManifestVerified })),
+                ["runtimeFiles"] = new JArray(c.RuntimeFiles.Select(f => new JObject {
+                    ["path"] = Path.GetRelativePath(Paths.BepInExRootPath, f), ["exists"] = File.Exists(f),
+                    ["enabled"] = f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) })) })),
             ["notes"] = "日志正文保留原文；配置元信息遮盖已识别的敏感字段。未纳入方案的配置不进行基准比较。"
         };
         return (JObject)LogExport.Scrub(metadata);

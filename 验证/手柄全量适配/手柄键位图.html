@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>IGMM 手柄键位图 · 草案</title>
+<style>
+:root{
+  --bg:#1b1d1f; --panel:#25282b; --panel2:#2d3134; --line:#3a3f43; --ink:#ece6d6; --mute:#9aa09c;
+  --native:#7f8a93; --cur:#6fa8dc; --new:#9fd36a; --warn:#f0a050; --bad:#e0605a; --rt:#c8f05a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 "Microsoft YaHei UI","PingFang SC",system-ui,sans-serif}
+header{padding:18px 28px 6px}
+h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.5px}
+h2{font-size:17px;margin:28px 0 10px;font-weight:600}
+.sub{color:var(--mute);font-size:13px}
+main{padding:0 28px 40px;max-width:1380px}
+.bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel);color:var(--ink);border:0;padding:6px 12px;cursor:pointer;font:inherit;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:#3f4a3a;color:#fff}
+.seg-label{color:var(--mute);font-size:12px;margin-right:6px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+svg{width:100%;height:auto;display:block}
+.btn{cursor:pointer;transition:filter .12s}
+.btn:hover{filter:brightness(1.35)}
+.lbl{font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#detail h3{margin:0 0 6px;font-size:16px}
+#detail .k{color:var(--mute);font-size:12px;margin-top:10px}
+#detail p{margin:3px 0}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;color:#111}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--panel2);font-weight:600}
+td.ok{background:rgba(159,211,106,.13)} td.mid{background:rgba(240,160,80,.13)} td.no{background:rgba(224,96,90,.13)} td.na{color:var(--mute)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;vertical-align:1px}
+/* --- mock list --- */
+.mockwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px}
+.mock{background:#1f2224;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+.mhead,.mrow{display:grid;grid-template-columns:44px 40px minmax(0,1fr) 36px 36px 36px 90px minmax(0,.9fr);align-items:center;height:40px;padding:0 8px;gap:4px}
+.mhead{background:#2a2e31;color:var(--mute);font-size:12px;height:32px}
+.mgroup{height:32px;display:flex;align-items:center;padding-left:10px;gap:8px;font-size:13px;position:relative}
+.mgroup .rail{position:absolute;left:0;top:0;bottom:0;width:3px}
+.mrow{border-top:1px solid #2a2e31;position:relative}
+.mrow.focusrow{background:#2c3236}
+.cell{position:relative;height:32px;display:flex;align-items:center;border-radius:5px;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell.focus{outline:2px solid #f4ead2;outline-offset:-1px;background:rgba(244,234,210,.06)}
+.chk{width:18px;height:18px;border:2px solid #b8b09c;border-radius:4px;margin:auto}
+.chk.on::after{content:"✓";display:block;color:#b9e08e;font-size:14px;line-height:14px;text-align:center}
+.ico{color:#d8cfb8;text-align:center;justify-content:center}
+.desc{color:var(--mute);font-size:12px}
+.lane{position:absolute;right:6px;top:3px;display:flex;flex-direction:row-reverse;gap:2px}
+.chip{width:8px;height:8px;border-radius:2px}
+.chip.empty{background:transparent}
+.orig{color:#8b8f8b;font-size:11px;margin-left:6px}
+.dock{border-top:1px solid var(--line);background:#24282b;padding:8px 12px;min-height:76px;font-size:13px}
+.dock .t{font-weight:600}
+.dock .c{color:var(--mute);font-size:12px;margin-top:2px}
+.prompt{display:flex;gap:14px;justify-content:flex-end;padding:6px 12px;background:#1a1c1e;border-top:1px solid var(--line);font-size:12px;color:#d8d2c2}
+.g{display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;margin-right:4px;vertical-align:-4px}
+.g.sq{border-radius:4px;width:24px}
+.ga{background:#7cc36a}.gb{background:#e0605a}.gx{background:#5aa0e0}.gy{background:#e8c84a}.gs{background:#c9c9c9}
+.float{position:absolute;background:#101214;border:1px solid #555;border-radius:8px;padding:8px 10px;font-size:12px;width:330px;box-shadow:0 6px 18px rgba(0,0,0,.5);display:none;z-index:3}
+.cardpop{position:absolute;left:96px;right:24px;background:#15181a;border:1px solid #6b6f6a;border-radius:10px;padding:10px 12px;display:none;z-index:4;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.cardpop .it{padding:5px 8px;border-radius:6px;display:flex;gap:8px;align-items:center}
+.cardpop .it.focus{outline:2px solid #f4ead2;background:rgba(244,234,210,.06)}
+.pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,36px);gap:4px;justify-content:start}
+.pad button,.face button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;cursor:pointer;font:inherit}
+.face{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.face button{padding:5px 10px}
+.log{font-size:12px;color:var(--mute);margin-top:10px;min-height:40px}
+ul{margin:6px 0;padding-left:20px} li{margin:3px 0}
+code{background:#30353a;padding:0 4px;border-radius:3px;font-size:12px}
+.src{color:var(--mute);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>游戏内模组管理器 · 手柄键位图（草案，待拍板）</h1>
+  <div class="sub">2026-11-12 · 游戏原生绑定取自现装 PEAK 3.1 的 <code>globalgamemanagers.assets</code> / <code>sharedassets0.assets</code> 输入动作表；IGMM 现状取自 <code>MODs/InGameModManager/src</code>；第三方占用取自现装模组配置与反编译。点任一按键看细节。</div>
+</header>
+<main>
+<div class="bar">
+  <div><span class="seg-label">场景</span><span class="seg" id="scene"></span></div>
+  <div><span class="seg-label">图层</span><span class="seg" id="layer"></span></div>
+  <div><span class="seg-label">修饰键</span><span class="seg" id="mod"></span></div>
+</div>
+<div class="legend">
+  <span><i style="background:var(--native)"></i>游戏原生语义</span>
+  <span><i style="background:var(--cur)"></i>IGMM 已实现</span>
+  <span><i style="background:var(--new)"></i>提案新增 / 改动</span>
+  <span><i style="background:var(--warn)"></i>可用但有坑</span>
+  <span><i style="background:var(--bad)"></i>冲突 / 不建议</span>
+  <span><i style="background:#555"></i>空闲</span>
+</div>
+<div class="grid" style="margin-top:10px">
+  <div class="card"><svg id="pad" viewBox="0 0 1200 480"></svg></div>
+  <div class="card" id="detail"><h3>点一个按键</h3><p class="sub">左侧手柄的按键、标签都能点。切到「提案」图层、修饰键选「按住 RT」可以看组合键层。</p></div>
+</div>
+
+<h2>组合键可行性（修饰键 × 动作键）</h2>
+<div class="card">
+<table id="matrix"></table>
+<p class="src">判定依据：游戏 UI 动作表里 LT / RT / Y / L3 / R3 在界面上没有绑定；LB/RB = UITabLeft/Right；Start = 暂停（暂停菜单里等于返回）；View = OpenDebugMenu。第三方：peakReconnect 1.0.2 在「不在 Steam 大厅」时按 LT 就重连（主菜单即触发）；ItemSpawnerEnhanced 1.5.0 用 View+RT 开窗口；Piggyback 1.4.3 局内 LB+RB 放下队友。</p>
+</div>
+
+<h2>名称列获得焦点时：显示什么、角标放哪</h2>
+<div class="mockwrap">
+  <div class="mock" id="mock">
+    <div class="mhead"><div>启用</div><div>#</div><div>名称</div><div>⚙</div><div>⌂</div><div>📁</div><div>版本</div><div>简介</div></div>
+    <div id="mrows"></div>
+    <div class="dock" id="dock"></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="float" id="float"></div>
+    <div class="cardpop" id="cardpop"></div>
+  </div>
+  <div class="card">
+    <div class="seg-label">提示方式</div>
+    <span class="seg" id="hintmode"></span>
+    <div class="seg-label" style="margin-top:12px">模拟手柄</div>
+    <div class="pad">
+      <span></span><button data-k="up">↑</button><span></span>
+      <button data-k="left">←</button><span></span><button data-k="right">→</button>
+      <span></span><button data-k="down">↓</button><span></span>
+    </div>
+    <div class="face">
+      <button data-k="a"><span class="g ga">A</span>详情</button>
+      <button data-k="b"><span class="g gb">B</span>返回</button>
+      <button data-k="x"><span class="g gx">X</span>启停</button>
+      <button data-k="y"><span class="g gy">Y</span>更多</button>
+      <button data-k="rtdown"><span class="g gs sq">RT</span>+↓ 下一分组</button>
+    </div>
+    <div class="log" id="log"></div>
+    <p class="sub" style="margin-top:10px">要点：8×8 的角标不做单独焦点（间距 10，手柄逐个落焦既难看又慢）。名称格就是这一行角标的「热区」：落焦后底部详情栏逐条解释本行角标；按 A 展开详情卡，角标对应的动作（看变动并标已读、看版本、看冲突建议）在卡里成为可选项。鼠标路径完全不变。</p>
+  </div>
+</div>
+
+<h2>现状缺口（按影响排序，节选）</h2>
+<div class="card">
+<ol>
+<li>作者模式的多选、拖动排序、拖进分组只能用鼠标（<code>OverviewListView.cs:500-507, 791-799</code>；<code>AssignGroup</code> 无调用）。</li>
+<li>「模组操作」菜单（更改模组信息、查看依赖）只能双击名称/简介打开（<code>OverviewListView.cs:544, 558</code>）；名称虽可落焦，按 A 无反应。</li>
+<li>分组标题菜单（新建子分组、移到顶层、删除）只能右键（<code>OverviewListView.cs:785</code>）。</li>
+<li>列表里手柄落焦弹出的提示框定位在<b>上一次鼠标所在位置</b>，每帧还跟着鼠标坐标重算（<code>OverviewListView.cs:746, 184</code>）。快捷键页已经做对：落焦时锚定控件（<code>OverviewHotkeyView.cs:276</code>）。</li>
+<li>弹窗长正文无法滚动：正文区没有可落焦控件，滚动条又被环形导航接管（<code>PublicationNavigation.cs:36-37</code>）。问题报告的横向滚动只认 Shift+滚轮。</li>
+<li>蓝色「未读变动」角标手柄打不开也标不了已读（<code>ChangeLedger.cs:143, 176-194</code>）。</li>
+<li>模组介绍页：手柄不能滚动、不能点链接（<code>DocSurface.cs:129</code> 导航为 None）；使用说明页已有右摇杆滚动，可照搬。</li>
+<li>日志窗：选中复制、复制单条只能鼠标拖选；导出选项面板拿不到焦点，按 B 直接关掉整个日志窗。</li>
+<li>更新队列普通任务的详情/错误只能点状态文字打开（<code>UpdateQueueView.cs:269</code>）。</li>
+<li>对话框一打开就把输入框切进编辑态（<code>OverviewUi.cs:289</code>），绕过了「先选中、按 A 才编辑」的设计（<code>GamepadSupport.cs:288-292</code>），手柄一进来就弹输入法/吞方向键。</li>
+<li>页签（模组列表 / 介绍 / 快捷键）只能把焦点挪上去按 A；LB/RB 在概览里没接。</li>
+<li>没有任何屏幕按键提示，快捷键页「Y 打开键位菜单」这种已有功能用户也发现不了。</li>
+</ol>
+<p class="src">另：右摇杆在游戏 UI 动作表里也绑定了 Navigate，所以快捷键页/使用说明页「右摇杆滚动」很可能同时在移动焦点——需实机确认。</p>
+</div>
+
+<h2>做不到 / 只能部分做到</h2>
+<div class="card">
+<ul>
+<li><b>文字输入</b>：普通桌面模式下只能键盘。Steam 大屏幕模式和 Steam Deck 下可以调用游戏自己用过的 <code>SteamUtils.ShowGamepadTextInput</code>（加入房间页就是这样做的），搜索框、改译名、分组名都能弹出屏幕键盘——可作为增强，桌面模式不提示。</li>
+<li><b>文件导出后的操作</b>：打开资源管理器、在外部程序里编辑，必须键鼠。</li>
+<li><b>日志自由拖选</b>：改成「按条选择」（A 选中一条、RT+A 多条），复制仍然可行；任意字符级选择不做。</li>
+<li><b>介绍页编辑器</b>（作者工具栏、图片缩放拖拽）：只给阅读（滚动、点链接、放大图片），编辑仍要键鼠。</li>
+</ul>
+</div>
+</main>
+
+<script>
+const C={native:'#7f8a93',cur:'#6fa8dc',new:'#9fd36a',warn:'#f0a050',bad:'#e0605a',idle:'#555'};
+const SCENES=[['list','概览 · 模组列表'],['hotkey','概览 · 快捷键页'],['dialog','弹窗与菜单'],['settings','模组设置页']];
+const LAYERS=[['native','游戏原生'],['current','IGMM 现状'],['proposal','提案']];
+const MODS=[['none','无'],['rt','按住 RT'],['lt','按住 LT'],['lb','按住 LB']];
+let scene='list',layer='proposal',mod='none';
+
+// geometry (controller drawn at offset 100)
+const B={
+ lt:{shape:'rect',x:380,y:28,w:84,h:40,r:12,name:'LT 左扳机'},
+ rt:{shape:'rect',x:736,y:28,w:84,h:40,r:12,name:'RT 右扳机'},
+ lb:{shape:'rect',x:360,y:80,w:124,h:24,r:10,name:'LB 左肩键'},
+ rb:{shape:'rect',x:716,y:80,w:124,h:24,r:10,name:'RB 右肩键'},
+ ls:{shape:'circ',x:430,y:205,r:38,name:'左摇杆'},
+ l3:{shape:'circ',x:430,y:205,r:14,name:'L3 按下左摇杆'},
+ rs:{shape:'circ',x:690,y:290,r:38,name:'右摇杆'},
+ r3:{shape:'circ',x:690,y:290,r:14,name:'R3 按下右摇杆'},
+ dpad:{shape:'dpad',x:510,y:290,name:'十字键'},
+ y:{shape:'circ',x:770,y:168,r:17,name:'Y（北）',t:'Y',fill:'#e8c84a'},
+ x:{shape:'circ',x:735,y:203,r:17,name:'X（西）',t:'X',fill:'#5aa0e0'},
+ b:{shape:'circ',x:805,y:203,r:17,name:'B（东）',t:'B',fill:'#e0605a'},
+ a:{shape:'circ',x:770,y:238,r:17,name:'A（南）',t:'A',fill:'#7cc36a'},
+ view:{shape:'rect',x:548,y:196,w:30,h:16,r:8,name:'View / Select'},
+ menu:{shape:'rect',x:622,y:196,w:30,h:16,r:8,name:'Menu / Start'}
+};
+const LBL={lt:[330,48,'end'],lb:[330,96,'end'],ls:[330,170,'end'],l3:[330,232,'end'],dpad:[330,330,'end'],view:[330,420,'end'],
+ rt:[870,48,'start'],rb:[870,96,'start'],y:[870,148,'start'],x:[870,190,'start'],b:[870,232,'start'],a:[870,274,'start'],rs:[870,330,'start'],r3:[870,372,'start'],menu:[870,420,'start']};
+
+const N='native',U='cur',P='new',W='warn',X='bad',I='idle';
+const NATIVE={
+ ls:['导航（移动焦点）',N],rs:['导航（也移动焦点）',N,'游戏 UI 动作表把右摇杆和左摇杆、十字键一起绑在 Navigate 上。'],dpad:['导航（移动焦点）',N],
+ a:['确认 Submit / UIConfirm',N],x:['UIConfirm（游戏自家窗口）',N,'X 在游戏表里也是 UIConfirm，只有游戏自己的 MenuWindow 读它；uGUI 的 Submit 只认 A。'],
+ b:['取消 / 返回',N],lb:['UITabLeft 切页签',N],rb:['UITabRight 切页签',N],
+ menu:['暂停；暂停菜单内 = 返回',N,'PauseMenuHandler：暂停键在暂停菜单里等同 GetParentPage 返回上一页。不要改它。'],
+ view:['OpenDebugMenu（正式版通常无效）',N],lt:['界面上未使用',I],rt:['界面上未使用',I],y:['界面上未使用',I],l3:['界面上未使用',I],r3:['界面上未使用',I]
+};
+const CURRENT={
+ list:{dpad:['导航；上下保持列（虚拟行）',U],ls:['同十字键',U],rs:['无专门处理 → 游戏导航',N],a:['激活焦点控件；名称上无反应',W,'勾选、齿轮、主页、文件夹、版本都能 A；名称可落焦但 A 什么也不做，双击才有的「模组操作」菜单手柄打不开。'],
+   b:['逐层关闭 → 离开页面',U],x:['—',I],y:['—',I],lb:['—（页签只能 A 点）',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ hotkey:{dpad:['导航',U],ls:['导航',U],rs:['滚动列表（可能同时移动焦点）',W,'OverviewHotkeyView.Tick 直接读右摇杆滚动；游戏导航也吃右摇杆，待实机确认是否双触发。'],
+   a:['录制（按住 0.55 秒写入）/ 编辑说明',U],y:['键位菜单（无屏幕提示）',U],b:['取消录制 → 关菜单 → 返回',U],x:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ dialog:{dpad:['环形导航（到头绕回）',U],ls:['同十字键',U],rs:['—（长正文无法滚动）',X],a:['确认',U],b:['关闭',U],x:['—',I],y:['—',I],lb:['—',I],rb:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]},
+ settings:{dpad:['两级面板导航',U],ls:['同十字键',U],rs:['游戏导航',N],a:['下钻：模组 → 分区 → 右栏；滑条先 A 再调',U],b:['右栏 → 左栏 → 返回',U],lb:['上一个模组（仅左栏）',U],rb:['下一个模组（仅左栏）',U],
+   x:['—',I],y:['—',I],lt:['—',I],rt:['—',I],view:['—',I],menu:['游戏原生',N],l3:['—',I],r3:['—',I]}
+};
+const PROP={
+ list:{none:{
+   dpad:['导航；按住加速；焦点行整行高亮',P,'上下保列已有。新增：整行底色提亮，标出焦点所在行；按住方向 0.4 秒后连跳加速。'],
+   ls:['同十字键',U],
+   rs:['只滚动视图，不动焦点',P,'在 IGMM 页内把右摇杆移出导航（右摇杆有输入且左摇杆/十字键空闲时暂停 EventSystem 导航）。焦点滚出视野后再按方向，焦点先跳回视野内对应行。'],
+   a:['名称：展开详情卡；其他列：原功能',P,'详情卡 = 依赖链 + 本行全部角标的含义 + 完整简介 + 版本信息；角标对应的动作（看变动并标已读 / 看版本 / 看冲突建议）在卡里是可选项。'],
+   x:['快速启停本行（任何列）',P,'等同点勾选框；按现行规则启停不弹确认、进草稿。焦点不必挪到最左边的勾选列。'],
+   y:['更多操作菜单',P,'替代双击和右键：更改模组信息、改译名、查看依赖、查看版本、打开文件夹/主页、标为已读……与快捷键页现有的 Y = 键位菜单统一。'],
+   b:['关卡片/菜单 → 清空多选 → 离开（未保存先问）',P],
+   lb:['上一页签（模组列表 / 介绍 / 快捷键）',P,'沿用游戏 UITabLeft 语义，和设置页 LB 切模组一致。'],rb:['下一页签',P],
+   lt:['不用',X,'peakReconnect 1.0.2：不在 Steam 大厅时按 LT 立即重连上一个房间——主菜单里打开 IGMM 就会误触。除非做「手柄保护」。'],
+   rt:['按住 = 功能层',P,'RT 在 UI 里没有任何绑定，按住时 IGMM 暂停 EventSystem 导航、自己处理方向键，组合键不会顺带移动焦点。'],
+   view:['显示/隐藏按键提示条；长按打开键位总览',P],
+   menu:['保持游戏原生（返回）',N],
+   l3:['折叠 / 展开所在分组',P],r3:['跳到搜索框（大屏幕/Deck 弹屏幕键盘）',P]},
+  rt:{dpad:['↑↓ 上/下一个分组标题 · ←→ 翻页',P],ls:['同十字键',P],a:['加入 / 移出多选（≈ Ctrl+点击）',P],x:['从锚点到此行范围多选（≈ Shift+点击）',P],
+   y:['所在分组的分组菜单（≈ 右键标题）',P,'新建子分组、移到顶层、删除、编辑分组。'],b:['清空多选',P],rs:['快速滚动（×3）',P],lb:['—',I],rb:['—',I],view:['—（View+RT 是物品生成器开窗）',X],menu:['—',I],l3:['全部折叠/展开',P],r3:['—',I],lt:['—',I]},
+  lt:{all:['整层不建议：peakReconnect 主菜单误触',X]},
+  lb:{all:['不建议：LB 单按要切页签，按住当修饰键会让切页签变成「松开才生效」',W]}},
+ hotkey:{none:{dpad:['导航；整行高亮',P],ls:['同十字键',U],rs:['只滚动不动焦点',P],a:['录制 / 编辑说明（不变）',U],x:['清空该键',P],y:['键位菜单（不变，补屏幕提示）',U],b:['不变',U],lb:['上一页签',P],rb:['下一页签',P],lt:['不用',X],rt:['按住 = 功能层',P],view:['提示条 / 键位总览',P],menu:['游戏原生',N],l3:['折叠/展开分组',P],r3:['搜索框',P]},
+  rt:{dpad:['↑↓ 上/下一个分组 · ←→ 翻页',P],a:['只看重复键（切换筛选）',P],x:['恢复该键为模组默认',P],y:['分组菜单',P],b:['—',I],ls:['同十字键',P],rs:['快速滚动',P],lb:['—',I],rb:['—',I],view:['—',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]},
+  lt:{all:['不建议',X]},lb:{all:['不建议',W]}},
+ dialog:{none:{dpad:['导航（到头绕回）',U],ls:['同十字键',U],rs:['滚动长正文 / 列表',P,'弹窗正文区补一个可落焦的「阅读区」，右摇杆随时滚动；问题报告右摇杆左右 = 横向滚动。'],a:['确认',U],b:['关闭（多层先关上层）',P,'日志窗的导出选项面板应先关面板，而不是整个窗口。'],
+   x:['—',I],y:['窗口内的更多操作',P],lb:['多页窗口切页（管理中心、更新队列）',P],rb:['同左',P],lt:['不用',X],rt:['按住 = 功能层',P],view:['提示条',P],menu:['游戏原生',N],l3:['—',I],r3:['跳到窗口内输入框',P]},
+  rt:{dpad:['翻页 / 跳到首尾',P],a:['列表窗口多选（日志按条选择）',P],x:['—',I],y:['—',I],b:['—',I],ls:['同十字键',P],rs:['快速滚动',P],lb:['—',I],rb:['—',I],view:['—',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]},
+  lt:{all:['不建议',X]},lb:{all:['不建议',W]}},
+ settings:{none:{dpad:['两级面板导航（不变）',U],ls:['同十字键',U],rs:['滚动右栏，不动焦点',P],a:['不变',U],b:['不变',U],lb:['上一个模组（不变）',U],rb:['下一个模组（不变）',U],x:['恢复该项默认值',P],y:['该项菜单（复制键名、跳到概览）',P],lt:['不用',X],rt:['按住 = 功能层',P],view:['提示条',P],menu:['游戏原生',N],l3:['—',I],r3:['搜索框',P]},
+  rt:{dpad:['↑↓ 上/下一个分区',P],a:['—',I],x:['恢复整个分区默认（先确认）',P],y:['—',I],b:['—',I],ls:['同十字键',P],rs:['快速滚动',P],lb:['回到概览',P],rb:['—',I],view:['—',X],menu:['—',I],l3:['—',I],r3:['—',I],lt:['—',I]},
+  lt:{all:['不建议',X]},lb:{all:['不建议',W]}}
+};
+const COLOR={native:C.native,cur:C.cur,new:C.new,warn:C.warn,bad:C.bad,idle:C.idle};
+
+function entry(id){
+ if(layer==='native') return NATIVE[id];
+ if(layer==='current') return CURRENT[scene][id]||['—',I];
+ const s=PROP[scene]; const m=s[mod]||s.none;
+ if(m.all) return id===mod?['（修饰键本身）',I]:m.all;
+ if(mod!=='none' && id===mod) return ['（按住中）',P];
+ return m[id]||['—',I];
+}
+function svg(tag,attrs,parent){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||pad).appendChild(e);return e;}
+const pad=document.getElementById('pad');
+function draw(){
+ pad.innerHTML='';
+ svg('path',{d:'M470,110 Q600,92 730,110 Q840,120 865,215 L905,360 Q920,440 850,450 Q800,455 765,395 L725,335 Q600,350 475,335 L435,395 Q400,455 350,450 Q280,440 295,360 L335,215 Q360,120 470,110 Z',fill:'#2f3438',stroke:'#4a5055','stroke-width':2});
+ for(const id of Object.keys(LBL)){
+  const g=B[id], e=entry(id), col=COLOR[e[1]]||C.idle, L=LBL[id];
+  const cx=g.shape==='rect'?g.x+g.w/2:g.x, cy=g.shape==='rect'?g.y+g.h/2:g.y;
+  svg('line',{x1:L[0]+(L[2]==='end'?6:-6),y1:L[1]-4,x2:cx,y2:cy,stroke:col,'stroke-width':1,'stroke-opacity':.55});
+  const t=svg('text',{x:L[0],y:L[1],'text-anchor':L[2],fill:col,class:'lbl btn'});
+  const name=svg('tspan',{x:L[0],dy:0,fill:'#9aa09c','font-size':14},t);name.textContent=g.name;
+  const v=svg('tspan',{x:L[0],dy:19,'font-size':16},t);v.textContent=e[0];
+  t.addEventListener('click',()=>show(id));
+ }
+ for(const id of ['lt','rt','lb','rb','ls','rs','dpad','y','x','b','a','view','menu','l3','r3']){
+  const g=B[id], e=entry(id), col=COLOR[e[1]]||C.idle;
+  let el;
+  if(g.shape==='rect') el=svg('rect',{x:g.x,y:g.y,width:g.w,height:g.h,rx:g.r,fill:'#3a3f44',stroke:col,'stroke-width':3,class:'btn'});
+  else if(g.shape==='circ') el=svg('circle',{cx:g.x,cy:g.y,r:g.r,fill:g.fill?g.fill:(id==='l3'||id==='r3'?'#2a2e31':'#3a3f44'),'fill-opacity':g.fill?.85:1,stroke:col,'stroke-width':3,class:'btn'});
+  else { el=svg('path',{d:`M${g.x-12},${g.y-38}h24v26h26v24h-26v26h-24v-26h-26v-24h26z`,fill:'#3a3f44',stroke:col,'stroke-width':3,class:'btn'}); }
+  el.addEventListener('click',()=>show(id));
+  if(g.t){const t=svg('text',{x:g.x,y:g.y+5,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#151515'});t.textContent=g.t;t.style.pointerEvents='none';}
+ }
+}
+function show(id){
+ const g=B[id]; const n=NATIVE[id], c=(CURRENT[scene]||{})[id]||['—',I];
+ const sp=PROP[scene]; const pn=(sp.none||{})[id]||['—',I]; const pr=(sp.rt||{})[id];
+ const tag=(e)=>`<span class="tag" style="background:${COLOR[e[1]]}">${({native:'原生',cur:'已实现',new:'提案',warn:'有坑',bad:'冲突',idle:'空闲'})[e[1]]}</span>`;
+ const note=(e)=>e[2]?`<p class="sub">${e[2]}</p>`:'';
+ document.getElementById('detail').innerHTML=`<h3>${g.name}</h3><div class="sub">${SCENES.find(s=>s[0]===scene)[1]}</div>
+ <div class="k">游戏原生</div><p>${n[0]}${tag(n)}</p>${note(n)}
+ <div class="k">IGMM 现状</div><p>${c[0]}${tag(c)}</p>${note(c)}
+ <div class="k">提案（单按）</div><p>${pn[0]}${tag(pn)}</p>${note(pn)}
+ ${pr?`<div class="k">提案（按住 RT）</div><p>${pr[0]}${tag(pr)}</p>${note(pr)}`:''}`;
+}
+function seg(id,items,get,set){
+ const el=document.getElementById(id);el.innerHTML='';
+ for(const [k,v] of items){const b=document.createElement('button');b.textContent=v;if(get()===k)b.className='on';b.onclick=()=>{set(k);render();};el.appendChild(b);}
+}
+function render(){
+ seg('scene',SCENES,()=>scene,v=>scene=v);seg('layer',LAYERS,()=>layer,v=>{layer=v;if(v!=='proposal')mod='none';});
+ seg('mod',MODS,()=>mod,v=>{mod=v;layer='proposal';});draw();
+}
+render();
+
+// matrix
+const MX=[
+ ['修饰键','方向键','A','X','Y','B','另一侧肩键/扳机','结论'],
+ ['按住 RT','ok:跳分组 / 翻页','ok:多选','ok:范围多选','ok:分组菜单','ok:清空多选','mid:RT+View = 物品生成器开窗','<b>推荐主修饰键</b>：UI 无绑定，第三方只有 View+RT'],
+ ['按住 LT','no:','no:','no:','no:','no:','no:','不建议：peakReconnect 主菜单按 LT 即重连（单按就触发，组合也躲不开）'],
+ ['按住 LB / RB','mid:可做','mid:可做','mid:可做','mid:可做','mid:可做','no:LB+RB = Piggyback 局内放人','单按要切页签；当修饰键就得改成「松开且期间没按别的键才切页」，切页变慢'],
+ ['按住 View','mid:可做','mid:可做','mid:可做','mid:可做','mid:可做','no:View+RT 冲突','可当第二修饰键（正式版 View 空闲），但 Xbox/PS 上这个键很小，长按不顺手'],
+ ['按住 L3 / R3','na:','na:','na:','na:','na:','na:','不建议：按住摇杆再按别的键几乎不可能'],
+ ['双肩同按','na:—','na:','na:','na:','na:','no:Piggyback 局内','不建议'],
+];
+const mt=document.getElementById('matrix');
+MX.forEach((r,i)=>{const tr=document.createElement('tr');r.forEach((c,j)=>{const cell=document.createElement(i===0||j===0?'th':'td');
+ const m=/^(ok|mid|no|na):(.*)$/.exec(c);if(m&&i>0){cell.className=m[1];cell.innerHTML=m[2]||({ok:'可用',mid:'可用',no:'冲突',na:'—'})[m[1]];}else cell.innerHTML=c;tr.appendChild(cell);});mt.appendChild(tr);});
+
+// ---- mock list ----
+const ROWS=[
+ {group:'核心与基础',color:'#6fa8dc'},
+ {name:'游戏内模组管理器',orig:'In-Game Mod Manager',on:true,ver:'1.0.0',desc:'在游戏里管理模组、分组与更新',chips:[]},
+ {name:'更好的语音修复',orig:'Better Peak Voice Fix',on:true,ver:'1.1.5 → 1.1.6',desc:'修复语音断连与房间码区服',chips:[['unread','#6eaeeb'],['update','#80c47d']]},
+ {name:'随机地形增强',orig:'RandomTerrainEnhance',on:false,ver:'1.0.4',desc:'随机地形的同步与烘焙修正',chips:[['save','#ff8c1f'],['restart','#ad94f2']]},
+ {group:'拓展',color:'#9fd36a'},
+ {name:'K键掉线重连',orig:'peakReconnect',on:true,ver:'1.0.2',desc:'按键或手柄键重连上一个房间',chips:[['nested','#e0a154']]},
+ {name:'资源包示例',orig:'SomeAssets',on:true,ver:'0.3.0',desc:'给其他模组用的贴图',chips:[['shape','#61c7c2']]},
+];
+const CHIP={unread:['蓝','未读变动 2 条','A 查看并标为已读'],update:['绿','有新版本 1.1.5 → 1.1.6','A 打开版本与更新'],save:['橙','待保存：已改为停用','A 查看草稿'],restart:['紫','重启游戏后生效','—'],nested:['琥珀','内嵌在另一个模组文件夹里','A 查看外层模组'],shape:['青','资源包：没有 DLL','—']};
+const SLOT={unread:0,update:1,save:2,restart:3,nested:4,shape:5};
+const COLS=['chk','name','gear','home','folder','ver'];
+let fr=2,fc=1,hintmode='dock',card=null;
+function modRows(){return ROWS.map((r,i)=>i).filter(i=>!ROWS[i].group);}
+function mrender(){
+ const box=document.getElementById('mrows');box.innerHTML='';
+ ROWS.forEach((r,i)=>{
+  if(r.group){const d=document.createElement('div');d.className='mgroup';d.innerHTML=`<span class="rail" style="background:${r.color}"></span><span>▾</span><span style="color:${r.color}">${r.group}</span>`;box.appendChild(d);return;}
+  const d=document.createElement('div');d.className='mrow'+(i===fr?' focusrow':'');
+  const lane=Array.from({length:6},(_,k)=>{const c=r.chips.find(c=>SLOT[c[0]]===k);return `<span class="chip${c?'':' empty'}" style="${c?'background:'+c[1]:''}"></span>`;}).join('');
+  const f=(c)=>i===fr&&COLS[fc]===c?' focus':'';
+  d.innerHTML=`<div class="cell${f('chk')}"><span class="chk${r.on?' on':''}"></span></div><div class="cell desc">${modRows().indexOf(i)+1}</div>
+   <div class="cell${f('name')}">${r.name}<span class="orig">${r.orig}</span><span class="lane">${lane}</span></div>
+   <div class="cell ico${f('gear')}">⚙</div><div class="cell ico${f('home')}">⌂</div><div class="cell ico${f('folder')}">📁</div>
+   <div class="cell${f('ver')}">${r.ver}</div><div class="cell desc">${r.desc}</div>`;
+  box.appendChild(d);
+ });
+ const r=ROWS[fr], col=COLS[fc];
+ const chipText=r.chips.length?r.chips.map(c=>`<span class="dot" style="background:${c[1]}"></span> ${CHIP[c[0]][0]}：${CHIP[c[0]][1]}`).join('　'):'本行没有角标';
+ let title,body;
+ if(col==='name'){title=`${r.name} · ${r.orig} · ${r.ver}`;body=chipText+`<div class="c">依赖：PEAKLib.Core、PEAKLib.UI · 被 0 个模组依赖　|　${r.desc}</div>`;}
+ else if(col==='chk'){title=r.on?'已启用 — 按 A 或 X 停用':'已停用 — 按 A 或 X 启用';body='<div class="c">启停进入草稿，不弹确认；重启游戏后生效。</div>';}
+ else if(col==='gear'){title='打开该模组的设置页';body='';}
+ else if(col==='home'){title='打开模组主页';body='';}
+ else if(col==='folder'){title='打开模组文件夹（会切到资源管理器，需要键鼠）';body='';}
+ else {title='版本：'+r.ver;body='<div class="c">A 打开版本与更新记录</div>';}
+ const dock=document.getElementById('dock'), fl=document.getElementById('float');
+ if(hintmode==='dock'){dock.style.display='block';dock.innerHTML=`<div class="t">${title}</div><div class="c" style="color:var(--ink)">${body}</div>`;fl.style.display='none';}
+ else {dock.style.display='none';fl.style.display='block';fl.innerHTML=`<b>${title}</b><div>${body}</div>`;
+  const rows=[...document.querySelectorAll('#mrows > div')];const rowEl=rows[fr];const top=rowEl.offsetTop+32+40; fl.style.top=top+'px';fl.style.left=(col==='name'?96:300)+'px';}
+ const p=document.getElementById('prompt');
+ const pa=col==='name'?'详情':col==='chk'?'启停':col==='ver'?'版本':'打开';
+ p.innerHTML=`<span><span class="g ga">A</span>${pa}</span><span><span class="g gx">X</span>${r.on?'停用':'启用'}</span><span><span class="g gy">Y</span>更多</span><span><span class="g gs sq">RT</span>功能</span><span><span class="g gb">B</span>返回</span>`;
+ const cp=document.getElementById('cardpop');
+ if(card){cp.style.display='block';const rows=[...document.querySelectorAll('#mrows > div')];cp.style.top=(rows[fr].offsetTop+32+42)+'px';
+  cp.innerHTML=`<div style="font-weight:600;margin-bottom:6px">${card.title}</div>`+card.items.map((it,k)=>`<div class="it${k===card.i?' focus':''}">${it}</div>`).join('')+`<div class="sub" style="margin-top:6px">↑↓ 选择　A 执行　B 关闭</div>`;}
+ else cp.style.display='none';
+}
+function log(t){document.getElementById('log').textContent=t;}
+function key(k){
+ const mr=modRows(); let idx=mr.indexOf(fr);
+ if(card){
+  if(k==='up')card.i=Math.max(0,card.i-1); else if(k==='down')card.i=Math.min(card.items.length-1,card.i+1);
+  else if(k==='b'){card=null;log('B：关闭卡片，焦点回到名称格');} else if(k==='a'){log('A：执行「'+card.items[card.i].replace(/<[^>]+>/g,'')+'」');card=null;}
+  mrender();return;
+ }
+ if(k==='up'&&idx>0)fr=mr[idx-1]; else if(k==='down'&&idx<mr.length-1)fr=mr[idx+1];
+ else if(k==='left')fc=Math.max(0,fc-1); else if(k==='right')fc=Math.min(COLS.length-1,fc+1);
+ else if(k==='x'){ROWS[fr].on=!ROWS[fr].on;log('X：本行'+(ROWS[fr].on?'启用':'停用')+'（进草稿），焦点不动');}
+ else if(k==='rtdown'){const next=ROWS.findIndex((r,i)=>i>fr&&r.group);if(next>0){fr=mr.find(i=>i>next);log('RT+↓：跳到下一个分组的第一行');}else log('RT+↓：已在最后一个分组');}
+ else if(k==='a'){const r=ROWS[fr];if(COLS[fc]==='name'){card={title:r.name+' · 详情',i:0,items:[...r.chips.filter(c=>CHIP[c[0]][2]!=='—').map(c=>`<span class="dot" style="background:${c[1]}"></span> ${CHIP[c[0]][1]} — ${CHIP[c[0]][2]}`),'查看依赖链（被谁依赖 / 依赖谁）','完整简介']};log('A（名称）：展开详情卡，角标动作在卡里可选');}
+  else if(COLS[fc]==='chk'){r.on=!r.on;log('A（勾选）：切换启停');} else log('A：执行该列按钮');}
+ else if(k==='y'){card={title:ROWS[fr].name+' · 更多操作',i:0,items:['更改模组信息','改译名（大屏幕/Deck 弹屏幕键盘）','查看依赖','查看版本','打开文件夹 / 主页','标为已读']};log('Y：更多操作菜单（替代双击/右键）');}
+ else if(k==='b')log('B：没有打开的层 → 清空多选；再按离开页面');
+ mrender();
+}
+document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
+document.addEventListener('keydown',e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',a:'a',b:'b',x:'x',y:'y'}[e.key];if(m){e.preventDefault();key(m);}});
+const HM=[['dock','底部详情栏（推荐）'],['float','跟随焦点浮框']];
+function hm(){const el=document.getElementById('hintmode');el.innerHTML='';for(const [k,v] of HM){const b=document.createElement('button');b.textContent=v;if(hintmode===k)b.className='on';b.onclick=()=>{hintmode=k;hm();mrender();};el.appendChild(b);}}
+hm();mrender();log('焦点在「更好的语音修复」的名称格。用左侧按钮或键盘方向键 / A B X Y 试试。');
+</script>
+</body>
+</html>

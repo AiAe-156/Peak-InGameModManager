@@ -42,7 +42,7 @@ internal static partial class OverviewUi
     /// selected, and A starts typing (or opens the Steam keyboard), matching the settings page.</summary>
     internal static void FocusInput(TMP_InputField field)
     {
-        if (GamepadSupport.IsGamepad) GamepadSupport.MarkSelectable(field.gameObject, null, null); // select-only + A to type / Steam keyboard
+        GamepadSupport.MarkSelectable(field.gameObject, null, null); // select-only + A to type / Steam keyboard（实测修正：不论当时是不是手柄态都挂）
         EventSystem.current?.SetSelectedGameObject(field.gameObject);
         if (!GamepadSupport.IsGamepad) field.ActivateInputField();
     }
@@ -165,6 +165,9 @@ internal static partial class OverviewUi
             caption.text = label; caption.alpha = 1; Loc.BindInline(caption);
         }
         AnimatorRestGate.Attach(button);
+        // 实测修正（2026-11-16，用户：快捷键页「全部 / 更多 / 展开全部」没有焦点框）：概览页所有丝带按钮在出厂处统一挂焦点框，
+        // 不再靠各处自己记得 MarkSelectable。焦点框只在手柄态显示，鼠标行为不变。
+        GamepadSupport.MarkSelectable(button.gameObject, null, null);
         PublicationNavigation.Invalidate(parent);
         return button;
     }
@@ -203,6 +206,7 @@ internal static partial class OverviewUi
         var toggle = root.AddComponent<Toggle>(); toggle.targetGraphic = existing.Border; toggle.graphic = null; toggle.SetIsOnWithoutNotify(value);
         toggle.onValueChanged.AddListener(v => { existing.SetSilently(v); Run(() => changed(v)); });
         root.AddComponent<OverviewToggleVisual>().Sync = existing.SetSilently;
+        GamepadSupport.MarkSelectable(root, null, null); // 实测修正（2026-11-16）：勾选框同样出厂即带焦点框
         Place((RectTransform)root.transform, 0, 0, 28, 28); return toggle;
     }
     internal static void SyncCheck(Toggle toggle, bool value) { toggle.SetIsOnWithoutNotify(value); toggle.GetComponent<OverviewToggleVisual>()?.Sync?.Invoke(value); }
@@ -226,6 +230,8 @@ internal static partial class OverviewUi
         // Only single-line fields use the shared visual caret. Multiline editors retain TMP line placement.
         if (!multiline) root.gameObject.AddComponent<InputCaretLayout>();
         if (placeholder.Length > 0) SetPlaceholder(input, placeholder);
+        // 实测修正（2026-11-16）：输入框出厂即走「选中不打字、A 开始输入、B 退出」那套（原来只有 FocusInput 时且当时是手柄态才挂）。
+        GamepadSupport.MarkSelectable(root.gameObject, null, null);
         input.SetTextWithoutNotify(value); root.gameObject.SetActive(true); return input;
     }
     internal static void SetPlaceholder(TMP_InputField input, string value)
@@ -348,7 +354,8 @@ internal static partial class OverviewUi
     }
     internal static void Choose(string title, IReadOnlyList<(string Label, string Value)> options, string current, Action<string> chosen, Func<string, UiActionRole>? role = null)
     {
-        if (options.Count <= 16 && UnityEngine.EventSystems.EventSystem.current is UnityEngine.EventSystems.EventSystem eventSystem && eventSystem.currentSelectedGameObject != null && eventSystem.currentSelectedGameObject.transform is RectTransform selectedAnchor)
+        // 实测修正（2026-11-16，下拉样式统一）：有焦点控件可贴靠时不论选项多少都用共用紧凑下拉；只有找不到锚点才退回居中的选择窗。
+        if (UnityEngine.EventSystems.EventSystem.current is UnityEngine.EventSystems.EventSystem eventSystem && eventSystem.currentSelectedGameObject != null && eventSystem.currentSelectedGameObject.transform is RectTransform selectedAnchor)
         {
             CompactDropdown(selectedAnchor, title, options.Select(item => new UiMenuEntry {
                 Label = item.Label, Checked = item.Value == current, Role = role?.Invoke(item.Value) ?? UiActionRole.Edit,
@@ -379,89 +386,12 @@ internal static partial class OverviewUi
         if (anchor == null) { Choose(title, options, current, chosen); return; }
         Dropdown(anchor, title, options.Select(item => new UiMenuEntry { Label = item.Label, Checked = item.Value == current, Role = UiActionRole.Edit, Invoke = () => chosen(item.Value) }).ToList());
     }
+    /// <summary>实测修正（2026-11-16，下拉样式统一）：不论选项多少都用共用紧凑下拉（可滚动）；原来超过 16 项时换成另一套外观
+    /// （标题浅灰小字、行色不同）。<paramref name="preferredWidth"/> 已不用（宽度按文字量），保留参数免改调用处。</summary>
     internal static RectTransform? Dropdown(RectTransform anchor, string title, IReadOnlyList<UiMenuEntry> options, float preferredWidth = 0)
     {
         if (ModalParent == null || anchor == null) return null;
-        if (options.Count(item => !item.Header) <= 16)
-            return CompactDropdown(anchor, title, options);
-        var host = (RectTransform)ModalParent;
-        var corners = new Vector3[4]; anchor.GetWorldCorners(corners);
-        Vector3 bottomLeft = host.InverseTransformPoint(corners[0]), topRight = host.InverseTransformPoint(corners[2]);
-        Rect area = host.rect;
-        CloseModal();
-        var shade = Panel("MCE_Dropdown", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .35f))); Fill(shade); _modal = shade.gameObject; shade.SetAsLastSibling();
-        shade.gameObject.AddComponent<OverviewTextClick>().Clicked = _ => CloseModal();
-        var panel = Panel("List", shade, Brown);
-        panel.gameObject.AddComponent<RectMask2D>();
-        panel.gameObject.AddComponent<DropdownFocusReturn>().Anchor = anchor;
-        panel.gameObject.AddComponent<OverviewTextClick>();
-        var heading = Text(panel, title, 16); heading.color = Muted; heading.alignment = TextAlignmentOptions.MidlineLeft;
-        heading.textWrappingMode = TextWrappingModes.NoWrap; heading.enableAutoSizing = true;
-        heading.fontSizeMin = 12; heading.fontSizeMax = 16; heading.overflowMode = TextOverflowModes.Ellipsis;
-        string Caption(UiMenuEntry item) => ((item.Checked ? "✓ " : "") + item.Label
-            + (!item.Enabled && item.DisabledReason.Length > 0 ? " · " + item.DisabledReason : ""))
-            .Replace('\r', ' ').Replace('\n', ' ');
-        float availableWidth = Mathf.Max(1, area.width - 16);
-        float measuredWidth = options.Select(item => heading.GetPreferredValues(Caption(item)).x + 48)
-            .Append(heading.GetPreferredValues(title).x + 32).DefaultIfEmpty(220).Max();
-        // The anchor determines position only: a wide source row must not stretch its menu.
-        float width = Mathf.Clamp(preferredWidth > 0 ? preferredWidth : measuredWidth,
-            Mathf.Min(180, availableWidth), Mathf.Min(480, availableWidth));
-        float caption = title.Length > 0 ? 32 : 0;
-        float contentHeight = options.Sum(item => item.Header ? 30 : 36);
-        float wanted = contentHeight + 16 + caption;
-        var bounds = UiGeometry.Popover(area.width, area.height,
-            new UiGeometry.Box(bottomLeft.x - area.xMin, area.yMax - topRight.y,
-                topRight.x - bottomLeft.x, topRight.y - bottomLeft.y), width, wanted);
-        width = bounds.Width;
-        Place(panel, bounds.X, bounds.Y, width, bounds.Height);
-        heading.gameObject.SetActive(caption > 0);
-        if (caption > 0) PlaceClipped(heading, 16, 4, Mathf.Max(1, width - 32), 28);
-        var scrollRoot = Rect("Choices", panel); Fill(scrollRoot);
-        scrollRoot.offsetMin = new Vector2(12, 8); scrollRoot.offsetMax = new Vector2(-12, -(8 + caption));
-        var scroll = scrollRoot.gameObject.AddComponent<ScrollRect>(); scroll.horizontal = false; scroll.scrollSensitivity = 40;
-        scroll.movementType = ScrollRect.MovementType.Clamped; scroll.inertia = false;
-        var viewport = Rect("Viewport", scrollRoot); Fill(viewport);
-        viewport.gameObject.AddComponent<RectMask2D>(); viewport.gameObject.AddComponent<Image>().color = Color.clear;
-        var content = Rect("Content", viewport); content.anchorMin = new Vector2(0, 1); content.anchorMax = Vector2.one;
-        content.pivot = new Vector2(0, 1); content.sizeDelta = new Vector2(0, Mathf.Max(contentHeight, 1));
-        scroll.viewport = viewport; scroll.content = content;
-        float rowWidth = Mathf.Max(1, width - 24), itemY = 0;
-        GameObject? focus = null;
-        var enabled = new List<Button>();
-        foreach (var item in options)
-        {
-            if (item.Header)
-            {
-                var group = Text(content, item.Label, 15); group.color = Muted; group.alignment = TextAlignmentOptions.MidlineLeft;
-                group.enableAutoSizing = true; group.fontSizeMin = 12; group.fontSizeMax = 15;
-                group.textWrappingMode = TextWrappingModes.NoWrap;
-                PlaceClipped(group, 12, itemY, Mathf.Max(1, rowWidth - 24), 28); itemY += 30; continue;
-            }
-            var button = FlatListRow.Create(content, () => {
-                if (!item.Enabled || item.CanInvoke?.Invoke() == false) return;
-                CloseModal(); item.Execute();
-            }, rowWidth, 34, UiActionStyle.ColorFor(item.Role, ModConfigLook.IsDark));
-            button.interactable = item.Enabled;
-            var rect = (RectTransform)button.transform; Place(rect, 0, itemY, rowWidth, 34); itemY += 36;
-            var label = Text(button.transform, Caption(item), 16);
-            label.alignment = TextAlignmentOptions.MidlineLeft; label.textWrappingMode = TextWrappingModes.NoWrap;
-            label.enableAutoSizing = true; label.fontSizeMin = 12; label.fontSizeMax = 16;
-            label.margin = Vector4.zero; label.overflowMode = TextOverflowModes.Ellipsis;
-            // Keep the caption inside both the flat item and the paper panel's safe edge.
-            PlaceClipped(label, 16, 2, Mathf.Max(1, rowWidth - 32), 30);
-            GamepadSupport.MarkSelectable(button.gameObject, scroll, rect);
-            if (item.Enabled) {
-                enabled.Add(button);
-                if (item.Checked || focus == null) focus = button.gameObject;
-            }
-        }
-        for (int i = 0; i < enabled.Count; i++)
-            enabled[i].navigation = new Navigation { mode = Navigation.Mode.Explicit,
-                selectOnUp = i > 0 ? enabled[i - 1] : null,
-                selectOnDown = i + 1 < enabled.Count ? enabled[i + 1] : null };
-        if (focus != null) EventSystem.current?.SetSelectedGameObject(focus);
-        return panel;
+        return CompactDropdown(anchor, title, options);
     }
 
     internal static void ShowText(string title, string body)

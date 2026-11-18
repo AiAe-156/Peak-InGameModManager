@@ -37,7 +37,10 @@ internal static class DiagnosticUiLanguage
         ("未接入自定义日志", "No custom log source registered", "未接入自訂日誌"), ("已暂停刷新", "Paused", "已暫停重新整理"),
         ("文字选择中，点击空白清除选择", "Selecting text; click to clear", "文字選取中，點擊空白處清除選取"), ("导出失败：", "Export failed: ", "匯出失敗："),
         ("导出完成：", "Export complete: ", "匯出完成："), ("导出完成（固定位置）：", "Export complete (fixed folder; the save dialog could not open): ", "匯出完成（固定位置）："), ("正在后台导出……", "Exporting in background...", "正在背景匯出……"),
-        ("未选择自定义日志来源。", "No custom log source selected.", "未選擇自訂日誌來源。"), ("重新检查并重试切换", "Recheck and retry switch", "重新檢查並重試切換"),
+        ("未选择自定义日志来源。", "No custom log source selected.", "未選擇自訂日誌來源。"), ("没有选择日志来源。", "No log source selected.", "沒有選擇日誌來源。"),
+        // 0.0.2 导出检查：LogExport 抛出的两句原来只有中文，英文 / 繁体界面下状态行会混出简体
+        ("采集期间日志被截断：", "The log was truncated while exporting: ", "匯出期間日誌被截斷："), ("采集期间日志已轮换，请重试：", "The log was rotated while exporting; try again: ", "匯出期間日誌已輪換，請重試："),
+        ("重新检查并重试切换", "Recheck and retry switch", "重新檢查並重試切換"),
         ("重新检查并重试", "Recheck and retry", "重新檢查並重試"), ("重试恢复原环境", "Retry recovery", "重試還原原環境"),
         ("重试切换", "Retry switch", "重試切換"), ("复制详情", "Copy details", "複製詳情"),
         ("打开切换备份文件夹", "Open switch backup folder", "開啟切換備份資料夾"), ("已提交重试请求，正在重新检查……", "Retry submitted; rechecking...", "已提交重試請求，正在重新檢查……"),

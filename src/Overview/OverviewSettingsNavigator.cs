@@ -124,6 +124,8 @@ internal static class OverviewSettingsNavigator
             handler.TransistionToPage(menu.MainPage, new SetActivePageTransistion());
             if (handler.currentPage != menu.MainPage || menu.ModTabs.selectedButton != target || menu.selectedMod != selectedCategory)
                 throw new InvalidOperationException(Loc.T("ModConfig could not remain on this mod's settings page. Check that the mod still provides visible settings.", "ModConfig 未能停留在该模组的设置页，请确认该模组仍有可显示的设置项。", "ModConfig 未能停留在該模組的設置頁，請確認該模組仍有可顯示的設置項。"));
+            // 同步自 MCE 1.1.0：从「模组设置」页签进来（不指定模组）时，焦点停在表头「跳转到快捷键设置页」。
+            if (mod == null && FocusJumpHotkeys(menu.MainPage)) return true;
             var selectable = target.GetComponent<Selectable>();
             if (selectable != null && EventSystem.current != null) EventSystem.current.SetSelectedGameObject(selectable.gameObject);
             return true;
@@ -147,6 +149,30 @@ internal static class OverviewSettingsNavigator
                 else if (pending.Menu != null && pending.Page != null) Restore(pending);
             }
             error = ex.GetBaseException().Message; return false;
+        }
+    }
+    /// <summary>
+    /// 同步自 MCE 1.1.0：把焦点放到模组设置页表头的「跳转到快捷键设置页」（<c>JumpHotkeysHit</c>，ModConfigSidebarWidgets 建的）。
+    /// 设置页进场时可能自己再挑一次焦点，手柄态下接下来两帧再放一次。找不到返回 false。
+    /// </summary>
+    internal static bool FocusJumpHotkeys(UIPage? page)
+    {
+        if (page == null || EventSystem.current == null) return false;
+        var hit = page.GetComponentsInChildren<Button>(true).FirstOrDefault(b => b != null && b.name == "JumpHotkeysHit" && b.gameObject.activeInHierarchy && b.IsInteractable());
+        if (hit == null) return false;
+        EventSystem.current.SetSelectedGameObject(hit.gameObject);
+        if (GamepadSupport.IsGamepad && hit.GetComponent<SelectForFrames>() == null) hit.gameObject.AddComponent<SelectForFrames>();
+        return true;
+    }
+    /// <summary>挂上后的两帧里把焦点留在自己身上，然后自行移除（设置页进场时的自动选焦不会把它盖掉）。</summary>
+    private sealed class SelectForFrames : MonoBehaviour
+    {
+        private int _left = 2;
+        private void LateUpdate()
+        {
+            var system = EventSystem.current;
+            if (system != null && gameObject.activeInHierarchy && system.currentSelectedGameObject != gameObject) system.SetSelectedGameObject(gameObject);
+            if (--_left <= 0) Destroy(this);
         }
     }
     private static UIPageHandler HandlerFor(UIPage page) => page.GetPageHandler<UIPageHandler>() ?? page.GetComponentInParent<UIPageHandler>(true);

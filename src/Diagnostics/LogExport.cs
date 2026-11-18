@@ -72,10 +72,18 @@ internal static class LogExport
             try { if (File.Exists(temp)) File.Delete(temp); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         }
     }
-    internal static string RedactPath(string path)
+    internal static string RedactPath(string path) => RedactPath(path, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+    /// <summary>
+    /// 0.0.2 导出检查（2026-11-18）：原来是区分大小写的 <c>string.Replace</c>，只认反斜杠写法。Unity / 部分模组写的是
+    /// <c>C:/Users/名字/…</c>，配置里也可能是小写盘符，这两类都漏遮。改为不分大小写、正反斜杠都认，且只在用户名到此为止
+    /// （后面是分隔符或结尾）时替换，<c>C:\Users\Al</c> 不会误伤 <c>C:\Users\Alice</c>。
+    /// </summary>
+    internal static string RedactPath(string path, string user)
     {
-        string user = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return user.Length > 0 ? path.Replace(user, "%USERPROFILE%") : path;
+        user = user.TrimEnd('\\', '/');
+        if (user.Length == 0 || path.Length == 0) return path;
+        string pattern = string.Join(@"[\\/]+", user.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries).Select(System.Text.RegularExpressions.Regex.Escape)) + @"(?=$|[\\/])";
+        return System.Text.RegularExpressions.Regex.Replace(path, pattern, "%USERPROFILE%", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
     }
     internal static bool Sensitive(string name) => System.Text.RegularExpressions.Regex.IsMatch(name, @"password|passwd|secret|token|api[ _-]?key|authorization|credential|密码|密钥|令牌", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     internal static JToken Scrub(JToken token, string key = "")

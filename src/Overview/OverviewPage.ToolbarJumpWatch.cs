@@ -18,7 +18,7 @@ internal sealed partial class OverviewPage
     private int _jumpCursor, _jumpLogged;
     private GameObject? _jumpLast;
     private bool IsPageTab(GameObject target) => target == _back.gameObject || target == _listTab.gameObject
-        || target == _introTab.gameObject || target == _hotkeyTab.gameObject;
+        || target == _introTab.gameObject || target == _hotkeyTab.gameObject || target == _settingsTab.gameObject;
     private void WatchToolbarJump()
     {
         var pad = Gamepad.current; var system = EventSystem.current;

@@ -1,0 +1,8 @@
+== alias F:\Games\SteamLibrary\steamapps\common\PEAK\BepInEx\config
+  final>259 (skipped by code): 0
+  staging>259 but final<=259 (copy would throw): 0
+  staging dirs >247 chars: 0 []
+== alias F:\Games\Steam\steamapps\common\PEAK\BepInEx\config
+  final>259 (skipped by code): 0
+  staging>259 but final<=259 (copy would throw): 0
+  staging dirs >247 chars: 0 []

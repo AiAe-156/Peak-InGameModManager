@@ -25,10 +25,18 @@ internal sealed partial class OverviewListView
     }
     // All rows are resident. Scroll movement never evicts or rebinds a row.
     private readonly List<VirtualRow> _virtualRows=new();
+    /// <summary>
+    /// 本代（一次 Render 建出的这组行）已经出过声的行。上线前修正（用户 2026-11-16：逐行载入动效有时没有音效）：
+    /// 原来这个集合从不清空，所以刷新、切语言、隐藏已停用、从快捷键页切回来重画等「整份重建」时，行照样一行一行重新出现，
+    /// 但因为键已在集合里就一声不响；分组标题行（不分层建）也从不出声。现在每次重建（<see cref="ResetVirtualRows"/>）清空，
+    /// 出声与动效登记在同一处（<see cref="PresentBuiltRow"/>）：只要一行在可见的列表里被建出来、加入逐行出现的队列，就一定出一声。
+    /// 同一代里因数据戳记变化而原地重建的行不再重复出声；折叠 / 展开时被搬动复用的行没有重建，也不出声。
+    /// </summary>
     private readonly HashSet<string> _loadedRowSounds = new(StringComparer.Ordinal);
-    private void CompleteRowSound(VirtualRow row)
+    private void PresentBuiltRow(VirtualRow row)
     {
-        if (ListVisible && row.BuildLayers != null && _loadedRowSounds.Add(row.Key)) _cascade.PlayLoadedRowSound();
+        _cascade.RegisterBuiltRow(row.View!);
+        if (ListVisible && _loadedRowSounds.Add(row.Key)) _cascade.PlayLoadedRowSound();
     }
     private bool _residentPending;
     private readonly List<VirtualRow> _buildOrder = new();
@@ -127,6 +135,7 @@ internal sealed partial class OverviewListView
         _dependencyHints.HideNow();
         foreach(var row in _virtualRows)ReleaseRow(row);
         _virtualRows.Clear();_buildOrder.Clear();_buildCursor=0;_buildOrderCaptured=false;_virtualHeight=0;_residentPending=true;
+        _loadedRowSounds.Clear(); // 新的一代：重新建出来的每一行都要出声（见 PresentBuiltRow）
     }
     private void ReleaseRow(VirtualRow row)
     {
@@ -180,7 +189,7 @@ internal sealed partial class OverviewListView
                 row.Bind(view);
                 row.Layers=row.BuildLayers?.Invoke(view);
                 row.DisplayStamp=RowUpdateStamp(row);
-                if(row.Layers==null) { WireRowNavigation(row);_cascade.RegisterBuiltRow(view);CompleteRowSound(row); }
+                if(row.Layers==null) { WireRowNavigation(row);PresentBuiltRow(row); }
             }
             catch { ReleaseRow(row);throw; }
             
@@ -192,7 +201,7 @@ internal sealed partial class OverviewListView
             {
                 if(row.Layers.MoveNext())continue;
                 (row.Layers as IDisposable)?.Dispose();row.Layers=null;
-                WireRowNavigation(row);_cascade.RegisterBuiltRow(row.View!);CompleteRowSound(row);CompleteLayerFocus(row);
+                WireRowNavigation(row);PresentBuiltRow(row);CompleteLayerFocus(row);
             }
             catch(Exception error)
             {

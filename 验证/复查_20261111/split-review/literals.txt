@@ -1,0 +1,174 @@
+Desktop/Program.cs:5:namespace MCE.Desktop;
+Desktop/ProgressProtocol.cs:11:namespace MCE.Desktop;
+Desktop/ProgressWindow.cs:14:namespace MCE.Desktop;
+Desktop/README.md:7:1. Exclude `Desktop/**/*.cs` (and Desktop build resources, if default-globbed) from the main plugin project, just as for Updater. Build `Desktop/MCE.Desktop.csproj -c Release` independently.
+Desktop/README.md:8:2. Copy **only** `Desktop/bin/Release/net48/MCE.Desktop.exe` and `MCE.Desktop.exe.config` into the same final `Tools/Updater/` directory as `MCE.UpdateWorker.exe`. Do this **before** generating the worker protocol manifest. The complete cached tool inventory must include both files so the viewer survives replacement/removal of the original plugin. Do not copy the self-test directories or build residue.
+Desktop/README.md:15:MCE.Desktop.exe --root "<BepInEx directory>" --task <32-hex pack task id> --language en-us|zh-cn|zh-tw
+Desktop/README.md:31:dotnet build Desktop/MCE.Desktop.csproj -c Release
+Desktop/README.md:32:Desktop/bin/Release/net48/MCE.Desktop.exe --self-test
+Desktop/SelfTest.cs:5:namespace MCE.Desktop;
+Updater/Files.cs:6:namespace MCE.UpdateWorker;
+Updater/FrameworkCompat.cs:3:global using Path = MCE.UpdateWorker.FrameworkPath;
+Updater/FrameworkCompat.cs:14:namespace MCE.UpdateWorker
+Updater/GroupLayoutPlanner.cs:3:namespace MCE.UpdateWorker;
+Updater/GroupLayoutPlanner.cs:56:    /// (BepInPlugin ids read with Cecil), links. MMHOOK and MCEPack_* are skipped whole.</summary>
+Updater/InstallArchive.cs:3:namespace MCE.UpdateWorker;
+Updater/InstallDependencies.cs:3:namespace MCE.UpdateWorker;
+Updater/InstallInventory.cs:4:namespace MCE.UpdateWorker;
+Updater/InstallMetadata.cs:4:namespace MCE.UpdateWorker;
+Updater/InstallPlanner.cs:4:namespace MCE.UpdateWorker;
+Updater/InstallStorage.cs:4:namespace MCE.UpdateWorker;
+Updater/Installer.cs:4:namespace MCE.UpdateWorker;
+Updater/LayoutPlan.cs:4:namespace MCE.UpdateWorker;
+Updater/ManagerProfileSync.cs:3:namespace MCE.UpdateWorker;
+Updater/ModImportPreview.cs:11:namespace MCE.UpdateWorker;
+Updater/NetworkProbe.cs:5:namespace MCE.UpdateWorker;
+Updater/PackCompleteEnvironment.cs:5:namespace MCE.UpdateWorker;
+Updater/PackImportEnvironment.cs:4:namespace MCE.UpdateWorker;
+Updater/PackImportEnvironment.cs:10:    /// <summary>1.0.0 拆分：旧版发布的完整环境用 MCEEnvironment.json，同样认（暂存时统一存成新名）。</summary>
+Updater/PackImportEnvironment.cs:22:        var data = MCE.UpdateWorker.Files.Read<PackImportEnvironment>(path);
+Updater/PackImportTarget.cs:4:namespace MCE.UpdateWorker;
+Updater/PackImports.cs:5:namespace MCE.UpdateWorker;
+Updater/PackMaintenance.cs:8:namespace MCE.UpdateWorker;
+Updater/PackPersonalCopy.cs:5:namespace MCE.UpdateWorker;
+Updater/PackQueue.cs:3:namespace MCE.UpdateWorker;
+Updater/PackResolvedImport.cs:4:namespace MCE.UpdateWorker;
+Updater/PackRevisionState.cs:5:namespace MCE.UpdateWorker;
+Updater/PackSignature.cs:7:namespace MCE.UpdateWorker;
+Updater/PackStorage.cs:5:namespace MCE.UpdateWorker;
+Updater/PackTransactions.cs:5:namespace MCE.UpdateWorker;
+Updater/PackTransactions.cs:179:    // Author dictionaries of an installed publication already travel as plugins/**/MCEPack/language inside the revision and are discovered from the file list.
+Updater/PackagePlan.cs:6:namespace MCE.UpdateWorker;
+Updater/Program.cs:1:using MCE.UpdateWorker;
+Updater/QueueWorker.cs:6:namespace MCE.UpdateWorker;
+Updater/RecycleBin.cs:5:namespace MCE.UpdateWorker;
+Updater/ShopComponentProtection.cs:2:namespace MCE.UpdateWorker;
+Updater/ShopCoreBatch.cs:3:namespace MCE.UpdateWorker;
+Updater/ShopCoreBatch.cs:9:    static bool ProtectedHost(ShopPackage p)=>PackageRules.IsLoader(p.Key)||ManagerIdentity.IsManagerPackage(p.Key)||p.Files.Any(f=>Path.GetFileName(f.Path).Equals("BepInEx.dll",StringComparison.OrdinalIgnoreCase)||Path.GetFileName(f.Path).Equals("ModConfigEnhance.dll",StringComparison.OrdinalIgnoreCase))||p.PluginGuids.Contains("com.aiae.modconfigenhance",Files.Compare);
+Updater/ShopDependencyValidation.cs:4:namespace MCE.UpdateWorker;
+Updater/ShopDependencyWarnings.cs:2:namespace MCE.UpdateWorker;
+Updater/ShopLocalImport.cs:3:namespace MCE.UpdateWorker;
+Updater/ShopOwnership.cs:3:namespace MCE.UpdateWorker;
+Updater/ShopQueue.cs:7:namespace MCE.UpdateWorker;
+Updater/StateChangePublication.cs:1:namespace MCE.UpdateWorker;
+Updater/StoreClient.cs:6:namespace MCE.UpdateWorker;
+Updater/Transactions.cs:3:namespace MCE.UpdateWorker;
+Updater/WorkerLanguage.cs:3:namespace MCE.UpdateWorker;
+Updater/WorkerLog.cs:4:namespace MCE.UpdateWorker;
+Updater/WorkerParallelOperations.cs:2:namespace MCE.UpdateWorker;
+Updater/WorkerRecovery.cs:3:namespace MCE.UpdateWorker;
+Updater/WorkerStatus.cs:1:namespace MCE.UpdateWorker;
+Updater/WorkerTargetProtocol.cs:3:namespace MCE.UpdateWorker;
+Updater/WorkerTargetProtocol.cs:19:        var candidates = Files.Inventory(content).Keys.Where(p => p.Replace('\\', '/').StartsWith("plugins/", StringComparison.OrdinalIgnoreCase) && Path.GetFileName(p).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)).ToList();
+Updater/WorkerTargetProtocol.cs:24:        var declaration = module.Assembly.CustomAttributes.SingleOrDefault(a => a.AttributeType.FullName == "System.Reflection.AssemblyMetadataAttribute" && a.ConstructorArguments.Count == 2 && (string?)a.ConstructorArguments[0].Value is "IGMM.WorkerProtocol" or "MCE.WorkerProtocol");
+Updater/WorkerWindow.cs:10:namespace MCE.UpdateWorker;
+src/GamepadSupport.cs:1450:            GameObject go = new GameObject("MCE_FocusFrame", typeof(RectTransform), typeof(Image));
+src/GamepadSupport.cs:1488:                name = "MCE_FocusRing",
+src/GamepadSupport.cs:1510:            _ringSprite.name = "MCE_FocusRing";
+src/Loc.Import.cs:169:                foreach (string mirror in Directory.GetFiles(translationRoot, "ModConfigEnhance_*.txt", SearchOption.AllDirectories))
+src/ManagerSplitMigration.cs:145:        // 恢复入口是旧版写的（指向 BepInEx\MCE、MCE.UpdateWorker.exe），已失效；新版在工具缓存就绪后重写自己的入口
+src/ManagerSplitMigration.cs:146:        foreach (string stale in new[] { "MCE-Recovery.cmd", "MCE-Recovery.ps1" })
+src/ManagerSplitMigration.cs:173:    /// 旧路径后面必须是 <c>"</c>、<c>\</c> 或 <c>/</c>，避免 <c>…\MCE</c> 误改 <c>…\MCEPack</c>。
+src/ModConfigCompactDropdown.cs:85:            _host = OverviewUi.Rect("MCE_SettingsDropdownHost", transform);
+src/ModConfigDescriptionPanel.cs:101:        GameObject root = new GameObject("MCE_DescPanel", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+src/ModConfigSidebarWidgets.Groups.cs:74:        Transform? existing = page.Find("MCE_SidebarModalHost");
+src/ModConfigSidebarWidgets.Groups.cs:75:        RectTransform host = existing as RectTransform ?? OverviewUi.Rect("MCE_SidebarModalHost", page);
+src/ModConfigSidebarWidgets.Groups.cs:158:        Image rail = MakeRail(row, "MCE_GroupRail");
+src/ModConfigSidebarWidgets.Groups.cs:419:                Transform? existing = row.Find("MCE_AncestorRail" + i);
+src/ModConfigSidebarWidgets.Groups.cs:421:                Image rail = existing != null ? existing.GetComponent<Image>() : MakeRail(row, "MCE_AncestorRail" + i);
+src/ModConfigSidebarWidgets.Groups.cs:432:            GameObject row = new GameObject("MCE_Group_" + (id.Length > 0 ? id : "ungrouped"), typeof(RectTransform), typeof(Image), typeof(Button));
+src/ModConfigSidebarWidgets.Groups.cs:445:                Image rail = MakeRail(row.transform, "MCE_GroupRail");
+src/ModConfigSidebarWidgets.cs:96:    private const string PinKey = "MCE_PIN";
+src/ModConfigSidebarWidgets.cs:97:    private const string ExportColumnKey = "MCE_EXPORT_COL";
+src/ModConfigSidebarWidgets.cs:98:    private const string ExportSelectedKey = "MCE_EXPORT_SELECTED";
+src/ModConfigSidebarWidgets.cs:99:    private const string JumpHotkeysKey = "MCE_JUMP_HOTKEYS";
+src/ModConfigSidebarWidgets.cs:203:            name = "MCE_Rounded",
+src/ModConfigSidebarWidgets.cs:227:        sprite.name = "MCE_Rounded";
+src/ModConfigSidebarWidgets.cs:475:        GameObject root = new GameObject("MCE_Scrollbar", typeof(RectTransform), typeof(Scrollbar));
+src/ModConfigSidebarWidgets.cs:484:        Image track = MakeBox("MCE_ScrollTrack", rect, new Color(ModConfigTreeLayoutPatch.TabBackground.r, ModConfigTreeLayoutPatch.TabBackground.g, ModConfigTreeLayoutPatch.TabBackground.b, 0.4f), width / 2f, paper: false);
+src/ModConfigSidebarWidgets.cs:560:        RectTransform collapsible = MakeRowContainer(page, "MCE_ToolbarCollapsible", left, top, width, ToolbarHeight * 2f + ToolbarRowGap);
+src/ModConfigSidebarWidgets.cs:566:        FitCaption(ModConfigTranslationExport.MakeToolbarButton(collapsible, "MCE_ExportTexts", false, x, 0f, third, ToolbarHeight).Text);
+src/ModConfigSidebarWidgets.cs:568:        FitCaption(ModConfigTranslationExport.MakeToolbarButton(collapsible, "MCE_ExportUntranslated", true, x, 0f, third, ToolbarHeight).Text);
+src/ModConfigSidebarWidgets.cs:572:        GameObject row = new GameObject("MCE_ExportSelectedOnly", typeof(RectTransform), typeof(Image), typeof(Button));
+src/ModConfigSidebarWidgets.cs:627:        RectTransform row = MakeRowContainer(page, "MCE_LanguageRow", left, top, width, height);
+src/ModConfigSidebarWidgets.cs:636:        PeakDropdown sort = MakeStyledDropdown(row, "MCE_Sort", 0f, sortWidth, height);
+src/ModConfigSidebarWidgets.cs:642:        PeakDropdown language = MakeStyledDropdown(row, "MCE_Language", sortWidth + rowGap, languageWidth, height);
+src/ModConfigSidebarWidgets.cs:651:        PeakMenuButton refresh = ModConfigTranslationExport.MakeButton(row, "MCE_LanguageRefresh", "BTN_REFRESH", RefreshColor, refreshLeft, 0f, refreshWidth, height, () =>
+src/ModConfigSidebarWidgets.cs:661:            PeakMenuButton groups = ModConfigTranslationExport.MakeButton(row, "MCE_GroupManager", "BTN_GROUPS", RefreshColor, refreshLeft + refreshWidth + rowGap, 0f, refreshWidth, height, openGroups, UiActionRole.Edit);
+src/ModConfigSidebarWidgets.cs:666:        var clear = ModConfigTranslationExport.MakeButton(row, "MCE_ClearUpdates", "BTN_CLEAR_UPDATES", RefreshColor, refreshLeft + (refreshWidth + rowGap) * (openGroups != null ? 2 : 1), 0f, refreshWidth, height, Overview.ChangeLedger.Clear);
+src/ModConfigSidebarWidgets.cs:1019:        RectTransform host = MakeRowContainer(page, "MCE_ThemeToggle", left, top, size, size);
+src/ModConfigSidebarWidgets.cs:1028:        PeakMenuButton button = ModConfigTranslationExport.MakeButton(host, "MCE_ThemeButton", "BTN_THEME", RefreshColor, 0f, 0f, size, size, ToggleTheme);
+src/ModConfigSidebarWidgets.cs:1417:            GameObject row = new GameObject("MCE_Header", typeof(RectTransform), typeof(LayoutElement));
+src/ModConfigSidebarWidgets.cs:1538:            widgets.Export = MakeCheckBox("MCE_Export", row.transform, new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + ColumnInset, 0f),
+src/ModConfigSidebarWidgets.cs:1552:            widgets.Pin = MakeCheckBox("MCE_Pin", row.transform, new Vector2(ModConfigTreeLayoutPatch.ModTextIndent + ColumnWidth + ColumnInset, 0f),
+src/ModConfigSidebarWidgets.cs:1599:            GameObject go = new GameObject("MCE_PinAccent", typeof(RectTransform), typeof(Image));
+src/ModConfigTranslationExport.cs:64:        PeakMenuButton toggle = MakeButton(page, "MCE_OriginalToggle", ToggleKey(), ToolColor, left, top, third, height, null, UiActionRole.Edit);
+src/ModConfigTranslationExport.cs:75:        PeakMenuButton reload = MakeButton(page, "MCE_ReloadTranslations", "BTN_RELOAD", ToolColor, left + third + gap, top, third, height, () =>
+src/ModConfigTranslationExport.cs:83:        PeakMenuButton import = MakeButton(page, "MCE_ImportAdditions", "BTN_IMPORT_ADDITIONS", CheckColor, left + (third + gap) * 2f, top, third, height, ImportAdditions, UiActionRole.Commit);
+src/ModConfigTranslationExport.cs:86:        PeakMenuButton openDir = MakeButton(page, "MCE_OpenFolder", "BTN_OPEN_FOLDER", FolderColor, left + (third + gap) * 3f, top, height, height, OpenRootFolder);
+src/ModConfigTreeLayoutPatch.cs:697:        GameObject hit = new GameObject("MCE_ScrollHitArea", typeof(RectTransform), typeof(Image));
+src/Overview/ComponentDetailsView.cs:25:        var panel = OverviewUi.CreateModalPanel("MCE_ComponentDetails", 940, 680); if (panel == null) return;
+src/Overview/ConfigurationIssueReport.cs:29:        return text.Replace("MCE_EXTERNAL_CONFLICT:", Loc.T("External edit: ", "外部修改：", "外部修改："));
+src/Overview/ConfigurationSaveRequest.cs:16:            if (result.Message.StartsWith("MCE_EXTERNAL_CONFLICT:", StringComparison.Ordinal))
+src/Overview/Help/HelpPage.cs:41:        var root = OverviewUi.Rect("MCE_HelpPage", parent.transform.parent); OverviewUi.Fill(root);
+src/Overview/LogWindow.cs:84:        var panel = OverviewUi.CreateModalPanel("MCE_LogWindow", 1580, 980); if (panel == null) return;
+src/Overview/NativeConfigurationDraft.cs:69:        var previous = host.Find("MCE_SaveSetting");
+src/Overview/NativeConfigurationDraft.cs:78:        save.name = "MCE_SaveSetting";
+src/Overview/OverviewConfigService.cs:194:                    return "MCE_EXTERNAL_CONFLICT: " + target.pluginGuid + " / [" + target.section + "] " + target.key;
+src/Overview/OverviewConfigService.cs:199:                        return "MCE_EXTERNAL_CONFLICT: " + target.pluginGuid + " / [" + target.section + "] " + target.key;
+src/Overview/OverviewConfigService.cs:249:                throw new InvalidDataException("MCE_EXTERNAL_CONFLICT: live value changed during preparation: " + value.Identity);
+src/Overview/OverviewConfigView.cs:58:            var panel = OverviewUi.CreateModalPanel("MCE_ProfileParameters", 1120, 720);
+src/Overview/OverviewConfigView.cs:245:            var panel = OverviewUi.CreateModalPanel("MCE_ParameterEditor", 780, 540); if (panel == null) return;
+src/Overview/OverviewController.cs:57:        if (!_running || page == null || parent.Find("MCE_OverviewSettingsEntry") != null) return;
+src/Overview/OverviewController.cs:61:            var root = OverviewUi.Rect("MCE_OverviewSettingsEntry", parent);
+src/Overview/OverviewController.cs:70:        if (!_running || parent.GetComponent<PauseMenuMainPage>() == null || parent.Find("MCE_OverviewEntry") != null) return;
+src/Overview/OverviewController.cs:74:            var root = OverviewUi.Rect("MCE_OverviewEntry", parent);
+src/Overview/OverviewController.cs:125:        var rect=OverviewUi.Rect("MCE_OverviewPage",_parent.transform.parent);OverviewUi.Fill(rect);
+src/Overview/OverviewDependencyHints.cs:260:    private const string ArrowFontName = "MCE_TreeArrow";
+src/Overview/OverviewEditableFrame.cs:21:            var overlay=new GameObject("MCE_EditableFrame",typeof(RectTransform));overlay.transform.SetParent(target,false);
+src/Overview/OverviewGroupEditor.cs:78:        var shade = OverviewUi.Panel("MCE_GroupEditor", parent, _embeddedHost == null ? ModConfigLook.Surface(new Color(0, 0, 0, .78f)) : OverviewUi.Brown);
+src/Overview/OverviewLanguageBridge.cs:49:    private static string DescriptionKey(string guid) => "ModConfigEnhance.Description." + guid;
+src/Overview/OverviewManagementCenter.cs:41:            var indicator = tab.Value.transform.Find("MCE_UnsavedCorner");
+src/Overview/OverviewManagementCenter.cs:44:                var corner = OverviewUi.Rect("MCE_UnsavedCorner", tab.Value.transform);
+src/Overview/OverviewManagementCenter.cs:57:        _root = OverviewUi.Panel("MCE_ManagementCenter", parent, ModConfigLook.Surface(new Color(0, 0, 0, .88f))); OverviewUi.Fill(_root); _root.SetAsLastSibling();
+src/Overview/OverviewPage.Installation.cs:137:        var panel = OverviewUi.CreateModalPanel("MCE_InstallationReview", drawTree ? 1680 : 860, drawTree ? 1300 : 560); if (panel == null) return;
+src/Overview/OverviewPage.Profiles.cs:136:                if (result.Message.StartsWith("MCE_EXTERNAL_CONFLICT:", StringComparison.Ordinal))
+src/Overview/OverviewPage.Profiles.cs:271:        var panel = OverviewUi.Rect("MCE_ProfileManager", embeddedHost); OverviewUi.Fill(panel);
+src/Overview/OverviewPage.Profiles.cs:544:        var panel = OverviewUi.CreateModalPanel("MCE_ProfileExport", 740, 620); if (panel == null) return;
+src/Overview/OverviewPage.SmartGrouping.cs:73:        var panel = OverviewUi.CreateModalPanel("MCE_SmartGrouping", 760, 620); if (panel == null) return;
+src/Overview/OverviewPage.SourceTools.cs:94:        var panel = OverviewUi.CreateModalPanel("MCE_SourceBatchProgress", 580, 280); if (panel == null) { _sourceRetrying = false; return; }
+src/Overview/OverviewPage.XUnityNotice.cs:30:        var panel = OverviewUi.CreateModalPanel("MCE_XUnityNotice", 820, 520); if (panel == null) return;
+src/Overview/OverviewTagFilter.cs:38:        var panel = OverviewUi.CreateModalPanel("MCE_TagFilter", 760, 670); if (panel == null) return;
+src/Overview/OverviewUi.Issues.cs:15:        var panel = CreateModalPanel("MCE_SaveIssues", 1120, 780); if (panel == null) return;
+src/Overview/OverviewUi.ProfileReview.cs:16:        var panel = CreateModalPanel("MCE_ProfileReview", 1080, 720); if (panel == null) return;
+src/Overview/OverviewUi.SaveDialogs.cs:91:        var panel = CreateModalPanel("MCE_PresetSaveChoice", 740, 370); if (panel == null) return;
+src/Overview/OverviewUi.SourceToolsDropdown.cs:43:        shade = Panel("MCE_SourceToolsDropdown", host, ModConfigLook.Surface(new Color(0, 0, 0, .22f)));
+src/Overview/OverviewUi.cs:99:        var text = MenuAPI.CreateText(content, "MCE_Text").ParentTo(parent).TextMesh;
+src/Overview/OverviewUi.cs:178:        var existing = ModConfigSidebarWidgets.MakeCheckBox("MCE_OverviewCheck", parent, Vector2.zero, value, null);
+src/Overview/OverviewUi.cs:191:        var root = Panel("MCE_Input", parent, ModConfigLook.Surface(new Color(.11f, .10f, .08f, .98f)));
+src/Overview/OverviewUi.cs:227:        var shade = Panel("MCE_Modal", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .77f))); Fill(shade); _modal = shade.gameObject; shade.SetAsLastSibling();
+src/Overview/OverviewUi.cs:302:        var panel = CreateModalPanel("MCE_TextConfirmation", 780, 460); if (panel == null) return;
+src/Overview/OverviewUi.cs:313:        var shade = Panel("MCE_UpdateWarning", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .8f))); Fill(shade); _modal = shade.gameObject; shade.SetAsLastSibling();
+src/Overview/OverviewUi.cs:335:        var shade = Panel("MCE_Choice", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .77f))); Fill(shade); _modal = shade.gameObject; shade.SetAsLastSibling();
+src/Overview/OverviewUi.cs:367:        var shade = Panel("MCE_Dropdown", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .35f))); Fill(shade); _modal = shade.gameObject; shade.SetAsLastSibling();
+src/Overview/OverviewUi.cs:444:        var panel = CreateModalPanel("MCE_ReadDialog", 820, 500); if (panel == null) return;
+src/Overview/OverviewUi.cs:484:        var shade = Panel("MCE_UnsavedConfirmation", ModalParent, ModConfigLook.Surface(new Color(0, 0, 0, .8f)));
+src/Overview/PackConflictEditor.cs:32:        var panel = OverviewUi.CreateModalPanel("MCE_PackConflictEditor", 1080, 780);
+src/Overview/PackConflictUi.cs:71:        var panel = OverviewUi.CreateModalPanel("MCE_ConflictAdvice", 900, 720); if (panel == null) return;
+src/Overview/PackPublisher.Environment.cs:109:        var hosts = OverviewRepository.SafeFiles(content).Where(p => Path.GetFileName(p).Equals("ModConfigEnhance.dll", StringComparison.OrdinalIgnoreCase)).ToList();
+src/Overview/PackPublisher.Environment.cs:113:            && a.ConstructorArguments.Count == 2 && a.ConstructorArguments[0].Value?.ToString() is "IGMM.WorkerProtocol" or "MCE.WorkerProtocol");
+src/Overview/PublishWizard.cs:81:        var panel = OverviewUi.CreateModalPanel("MCE_PublishCatalog", 560, 320); if (panel == null) return;
+src/Overview/PublishWizard.cs:96:        else panel = OverviewUi.CreateModalPanel("MCE_PublishWizard", 850, 650);
+src/Overview/PublishWizard.cs:216:        var panel = OverviewUi.CreateModalPanel("MCE_PublishSelection", 800, 600); if (panel == null) return;
+src/Overview/PublishWizard.cs:230:        var panel = OverviewUi.CreateModalPanel("MCE_PublishDependencies", 850, 600); if (panel == null) return;
+src/Overview/PublishWizard.cs:259:        RectTransform? previewHost = _host ?? OverviewUi.CreateModalPanel("MCE_PublishPreview", 1040, 700);
+src/Overview/PublishWizard.cs:271:        var panel = OverviewUi.CreateModalPanel("MCE_PublishProgress", 660, 340); if (panel == null) { _busy = false; return; }
+src/Overview/PublishWizard.cs:331:        var panel = OverviewUi.CreateModalPanel("MCE_PublishResult", 760, 440); if (panel == null) return;
+src/Overview/ShopWindow.cs:139:        var panel=OverviewUi.CreateModalPanel("MCE_ModStore",1500,940);if(panel==null)return;
+src/Overview/SourceMenuView.cs:20:        var panel = OverviewUi.CreateModalPanel("MCE_SourceMenu", 960, 580); if (panel == null) return;
+src/Overview/SourceUi.AutoIdentify.cs:10:        var panel = OverviewUi.CreateModalPanel("MCE_SourceIdentifyProgress", 580, 260); if (panel == null) return;
+src/Overview/SourceUi.cs:171:        var panel = OverviewUi.CreateModalPanel("MCE_SourceCandidates", 820, 600); if (panel == null) return;
+src/Overview/SourceUi.cs:238:        var panel = OverviewUi.CreateModalPanel("MCE_SourceBatchResults", 980, 680); if (panel == null) return;
+src/Overview/StoredPackDetails.cs:134:    /// Sources: the declared author root, any MCEPack/language folder listed in the revision (older temporary snapshots), and workspace/language (snapshots saved with the player's own dictionaries).
+src/Overview/UninstallDialog.cs:23:        if (parent == null) { panel = OverviewUi.CreateModalPanel("MCE_UninstallConfirm", 760, 420); close = OverviewUi.RequestCloseModal; }
+src/Overview/UpdateQueueView.cs:49:        _root = OverviewUi.Rect("MCE_UpdateQueue", frame); _root.gameObject.SetActive(false);

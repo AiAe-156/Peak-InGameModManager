@@ -57,12 +57,7 @@ internal static class InfrastructurePackages
                     runtime=LooseRuntime(root,item.Key,files);
                     if(runtime.Length==0)continue;
                 }
-                int split=item.Key.IndexOf('-');
-                string[] dependencies=Array.Empty<string>();
-                string author=item.Key.Substring(0,split), description="", homepage=""; JObject? evidence=null;
-                try { var manifest=JObject.Parse(File.ReadAllText(file)); evidence=manifest; homepage=(string?)manifest["website_url"]??""; dependencies=(manifest["dependencies"] as JArray)?.Values<string>().Where(d=>!string.IsNullOrWhiteSpace(d)).Select(d=>d!).ToArray()??Array.Empty<string>(); author=(string?)manifest["author"]??author; description=(string?)manifest["description"]??""; }
-                catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException or ArgumentException or InvalidCastException or FormatException) { }
-                var package=new Package{Team=item.Key.Substring(0,split),Name=item.Key.Substring(split+1),Version=item.Version,Path=item.Path,Area=area,Dependencies=dependencies,Author=author,Description=description,Homepage=homepage,ManifestEvidence=evidence};
+                var package=ManifestPackage(item,file);
                 package.RuntimeFiles=runtime;result.Add(package);payloads[package]=runtime;confirmed.Add(item.Path);
             }
             // Direct loader files are BepInEx's own baseline, not additional package folders.
@@ -81,9 +76,18 @@ internal static class InfrastructurePackages
         }
         // Only missing manifests can be associated by payload. An invalid/contradictory manifest
         // remains unconfirmed. Every runtime file must match the same unique package and version.
+        var external=ExternalManifests(loaderRoot);
         foreach(var item in unidentified)
         {
-            var matches=item.HasManifest ? new List<Package>() : payloads.Keys.Where(package=>item.Files.All(file=>
+            // r2modman splits a package's metadata into plugins/<key> and its known runtime files into
+            // core/<key> or patchers/<key>. A folder name alone is not enough: all DLLs must fit the known payload.
+            string folderKey=System.IO.Path.GetFileName(item.Path);
+            Package? externalSource=null;
+            if(!item.HasManifest&&external.TryGetValue(folderKey,out var candidate)
+                &&LooseAssemblies.TryGetValue(folderKey,out var names)
+                &&item.Files.All(file=>string.Equals(System.IO.Path.GetDirectoryName(file),item.Path,StringComparison.OrdinalIgnoreCase)
+                    &&names.Contains(RuntimeName(file),StringComparer.OrdinalIgnoreCase))) externalSource=candidate;
+            var matches=item.HasManifest ? new List<Package>() : externalSource!=null ? new List<Package>{externalSource} : payloads.Keys.Where(package=>item.Files.All(file=>
                 payloads[package].Any(candidate=>RuntimeName(candidate).Equals(RuntimeName(file),StringComparison.OrdinalIgnoreCase)
                     &&SameFileContent(file,candidate)))).ToList();
             var identities=matches.GroupBy(p=>p.Key+"|"+p.Version,StringComparer.OrdinalIgnoreCase).ToArray();
@@ -91,7 +95,8 @@ internal static class InfrastructurePackages
             {
                 var source=identities[0].First();
                 result.Add(new Package {Team=source.Team,Name=source.Name,Version=source.Version,Path=item.Path,Area=item.Area,
-                    Author=source.Author,Description=source.Description,Dependencies=source.Dependencies.ToArray(),ManifestVerified=false,RuntimeFiles=item.Files});
+                    Author=source.Author,Description=source.Description,Homepage=source.Homepage,ManifestEvidence=source.ManifestEvidence,
+                    Dependencies=source.Dependencies.ToArray(),ManifestVerified=false,RuntimeFiles=item.Files});
             }
             else result.Add(new Package {Name=System.IO.Path.GetFileName(item.Path),Path=item.Path,Area=item.Area,
                 LocalId="file:"+item.Area+"/"+item.Path.Substring(System.IO.Path.Combine(loaderRoot,item.Area).TrimEnd('\\','/').Length+1).Replace('\\','/'),
@@ -99,6 +104,30 @@ internal static class InfrastructurePackages
         }
         ReconcileManifestCopies(loaderRoot,result);
         return result;
+    }
+    private static Package ManifestPackage(ShopInstalled.Evidence item,string file)
+    {
+        int split=item.Key.IndexOf('-');
+        string[] dependencies=Array.Empty<string>();
+        string author=item.Key.Substring(0,split),description="",homepage="";JObject? evidence=null;
+        try { var manifest=JObject.Parse(File.ReadAllText(file));evidence=manifest;homepage=(string?)manifest["website_url"]??"";dependencies=(manifest["dependencies"] as JArray)?.Values<string>().Where(d=>!string.IsNullOrWhiteSpace(d)).Select(d=>d!).ToArray()??Array.Empty<string>();author=(string?)manifest["author"]??author;description=(string?)manifest["description"]??""; }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException or ArgumentException or InvalidCastException or FormatException) { }
+        return new Package {Team=item.Key.Substring(0,split),Name=item.Key.Substring(split+1),Version=item.Version,Path=item.Path,Area=item.Area,
+            Dependencies=dependencies,Author=author,Description=description,Homepage=homepage,ManifestEvidence=evidence};
+    }
+    private static Dictionary<string,Package> ExternalManifests(string loaderRoot)
+    {
+        var candidates=new Dictionary<string,Package>(StringComparer.OrdinalIgnoreCase);
+        var copies=new List<ManifestCopies.Copy>();
+        foreach(string file in ShopInstalled.Files(System.IO.Path.Combine(loaderRoot,"plugins")))
+        {
+            if(!System.IO.Path.GetFileName(file).Equals("manifest.json",StringComparison.OrdinalIgnoreCase))continue;
+            var item=ShopInstalled.Manifest(file,"plugins");
+            if(item==null||!LooseAssemblies.ContainsKey(item.Key))continue;
+            candidates[file]=ManifestPackage(item,file);
+            copies.Add(new ManifestCopies.Copy {Key=item.Key,Version=item.Version,ManifestPath=file});
+        }
+        return ManifestCopies.Resolve(copies).ToDictionary(v=>v.Key,v=>candidates[v.Authoritative],StringComparer.OrdinalIgnoreCase);
     }
     /// <summary>
     /// 2.4.4: one store package can leave manifest.json in several places (MonoDetour: core\MonoDetour-MonoDetour from a manual

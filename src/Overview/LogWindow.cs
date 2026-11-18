@@ -73,7 +73,12 @@ internal sealed class LogWindow : MonoBehaviour
     private string? _exportFallbackNote;
     private bool _pendingRefilter;
     private bool _paused, _follow = true, _selecting, _includeMetadata = true, _loadEarlier;
-    private int _level, _scope = 2, _generation, _readGeneration;
+    private int _scope = 2, _generation, _readGeneration;
+    // 同步自 MCE 1.1.0（实测修正）：等级改多选，下标对应 LevelValues；同「模组」筛选一样只在本窗口内有效、不存档。
+    private readonly bool[] _levelOn = { true, true, true, true, true, true };
+    // 同步自 MCE 1.1.0（实测修正）：0 = 本次（实时），1～3 = 上次／上上次／3 次前（LogHistory 存的副本）；自定义日志页签固定为 0。
+    private int _history;
+    private Button _historyButton = null!;
     private float _nextRead;
     private (int Line, int Char) _selectionStart, _selectionEnd;
     private bool _hasSelection;
@@ -88,23 +93,31 @@ internal sealed class LogWindow : MonoBehaviour
         GamepadSupport.MarkSelectable(view._search.gameObject, null, null);
     }
     private string T(string en, string zh) => Loc.T(en, zh, zh);
+    // 同步自 MCE 1.1.0：新增与改动的界面文字带繁中（台湾用语）。
+    private static string T(string en, string zh, string tw) => Loc.T(en, zh, tw);
     private void Build()
     {
         float w = _panel.rect.width, h = _panel.rect.height;
         try { if(File.Exists(FavoritesPath)) foreach(var id in JArray.Parse(File.ReadAllText(FavoritesPath)).Values<string>()) if(id!=null)_favoriteSources.Add(id); } catch(Exception e) when(e is IOException or Newtonsoft.Json.JsonException){_error=e.Message;}
-        OverviewUi.Place(OverviewUi.Text(_panel, T("Runtime logs", "运行日志"), 24).rectTransform, 22, 12, w - 44, 32);
-        Tab("BepInEx", "bep", 22); Tab(T("Game log", "游戏日志"), "game", 160); Tab(T("Custom logs", "自定义日志"), "custom", 298);
-        _logFolderButton = Btn(T("Log folder", "打开日志文件夹"), OpenLogFolder, 442, 56, 154, UiActionRole.Overview);
-        _exportFolderButton = Btn(T("Export folder", "打开导出文件夹"), () => { if (_exportSucceeded) PackFileShortcuts.Open(_exportDestination, true); }, w - 322, 56, 164, UiActionRole.Overview);
-        Btn(T("Export…", "导出……"), ShowExportOptions, w - 148, 56, 126, UiActionRole.Commit);
-        _search = OverviewUi.Input(_panel, ""); OverviewUi.Place((RectTransform)_search.transform, 22, 100, Math.Max(150, w - 570), 34);
+        OverviewUi.Place(OverviewUi.Text(_panel, T("Runtime logs", "运行日志", "執行日誌"), 24).rectTransform, 22, 12, w - 44, 32);
+        Tab("BepInEx", "bep", 22); Tab(T("Game log", "游戏日志", "遊戲日誌"), "game", 160); Tab(T("Custom logs", "自定义日志", "自訂日誌"), "custom", 298);
+        _logFolderButton = Btn(T("Log folder", "打开日志文件夹", "開啟日誌資料夾"), OpenLogFolder, 442, 56, 154, UiActionRole.Overview);
+        _exportFolderButton = Btn(T("Export folder", "打开导出文件夹", "開啟匯出資料夾"), () => { if (_exportSucceeded) PackFileShortcuts.Open(_exportDestination, true); }, w - 322, 56, 164, UiActionRole.Overview);
+        Btn(T("Export…", "导出……", "匯出……"), ShowExportOptions, w - 148, 56, 126, UiActionRole.Commit);
+        // 同步自 MCE 1.1.0（实测修正，用户要求）：第二行「日志等级」「模组」「历史」三个钮一起右对齐，右缘与第一行「导出……」对齐（w - 22），间距 12；搜索框占剩下的宽度。
+        const float rowGap = 12, historyWidth = 190, modWidth = 180, levelWidth = 200;
+        float historyX = w - 22 - historyWidth, modX = historyX - rowGap - modWidth, levelX = modX - rowGap - levelWidth;
+        _search = OverviewUi.Input(_panel, ""); OverviewUi.Place((RectTransform)_search.transform, 22, 100, Math.Max(150, levelX - rowGap - 22), 34);
         var placeholder = OverviewUi.Text(_search.textViewport, Loc.T("Search messages or mods...", "搜索日志正文、模组名……", "搜尋日誌正文、模組名稱……"), 15); OverviewUi.Fill(placeholder.rectTransform); placeholder.color = OverviewUi.Muted; _search.placeholder = placeholder;
         _search.textComponent.fontSize = 17; _search.onValueChanged.AddListener(_ => Refilter());
-        _levelButton = Btn("日志等级：全部", PickLevel, w - 536, 100, 160, UiActionRole.Edit);
-        _levelButton.gameObject.AddComponent<LogLevelWheel>().Changed=direction=>{_level=LogViewRules.CycleLevel(_level,direction,LevelNames.Length);Refilter();};
-        _modButton = Btn("模组：全部", PickMod, w - 366, 100, 180, UiActionRole.Edit);
-        _pauseButton = Btn(T("Pause", "暂停刷新"), () => { _paused = !_paused; }, 22, h - 48, 104, UiActionRole.Edit);
-        _followButton = Btn(T("Follow", "跟随最新"), () => { _follow = !_follow; if (_follow) ScrollTo(0); }, 144, h - 48, 104, UiActionRole.Commit);
+        // 同步自 MCE 1.1.0（实测修正）：多选后按钮加宽到 200，放得下两个等级名。
+        _levelButton = Btn("日志等级：全部", PickLevel, levelX, 100, levelWidth, UiActionRole.Edit);
+        _levelButton.gameObject.AddComponent<LogLevelWheel>().Changed=direction=>{SetSoloLevel(LogViewRules.CycleLevel(SoloLevel(),direction,LevelValues.Length+1));Refilter();};
+        _modButton = Btn("模组：全部", PickMod, modX, 100, modWidth, UiActionRole.Edit);
+        // 历史下拉用 Guide 色，与两个筛选下拉（Edit）区分：它换的是数据来源，不是筛选。
+        _historyButton = Btn(HistoryCaption(), PickHistory, historyX, 100, historyWidth, UiActionRole.Guide);
+        _pauseButton = Btn(T("Pause", "暂停刷新", "暫停重新整理"), () => { _paused = !_paused; }, 22, h - 48, 104, UiActionRole.Edit);
+        _followButton = Btn(T("Follow", "跟随最新", "跟隨最新"), () => { _follow = !_follow; if (_follow) ScrollTo(0); }, 144, h - 48, 104, UiActionRole.Commit);
         Btn("跳到顶部", () => { _follow = false; ScrollTo(1); }, 266, h - 48, 104, UiActionRole.Overview);
         Btn("跳到底部", () => { _follow = true; _hasSelection = false; ScrollTo(0); }, 388, h - 48, 104, UiActionRole.Overview);
         if (GamepadSupport.IsGamepad) _follow = false; // 1.1.5 (user: "why does it jump to the bottom"): follow only when asked
@@ -143,11 +156,13 @@ internal sealed class LogWindow : MonoBehaviour
         BuildPinnedArea();
         _nameTip = OverviewUi.Text(_panel, "", 15); _nameTip.color = new Color(.68f, .88f, .92f); OverviewUi.Place(_nameTip.rectTransform, 30, 180, w - 60, 28); _nameTip.gameObject.SetActive(false);
         var nameHover = _viewport.gameObject.AddComponent<LogNameHover>(); nameHover.Owner = this;
-        _status = OverviewUi.Text(_panel, "", 13); OverviewUi.Place(_status.rectTransform, 22, h - 98, w - 44, 44); _status.textWrappingMode = TextWrappingModes.Normal; _status.overflowMode = TextOverflowModes.Ellipsis; _status.maxVisibleLines = 2; _status.alignment = TextAlignmentOptions.BottomLeft;
-        Btn(T("Copy selection", "复制选中"), CopySelection, 490, h - 48, 104, UiActionRole.Edit);
-        Btn(T("Copy record", "复制整条"), () => { var lines = _selectionPinned ? _pinLines : _lines; if (_selectionEnd.Line >= 0 && _selectionEnd.Line < lines.Count) GUIUtility.systemCopyBuffer = lines[_selectionEnd.Line].Record; }, 602, h - 48, 104, UiActionRole.Edit);
-        Btn(T("Copy filtered", "复制筛选结果"), () => GUIUtility.systemCopyBuffer = string.Join("\n", _filteredRecords), 714, h - 48, 104, UiActionRole.Edit);
-        Btn(T("Stack", "展开／收起栈"), ToggleStack, 826, h - 48, 104);
+        _status = OverviewUi.Text(_panel, "", 13); OverviewUi.Place(_status.rectTransform, 22, h - 98, w - 44, 44); _status.textWrappingMode = TextWrappingModes.Normal; _status.overflowMode = TextOverflowModes.Ellipsis; _status.maxVisibleLines = 2;
+        // 同步自 MCE 1.1.0（实测修正，用户要求）：原来底对齐，只有一行时上面空出一行；改顶对齐，状态行紧贴日志列表（列表下缘 h-100），有错误信息时第二行往下排，底部按钮列不动。
+        _status.alignment = TextAlignmentOptions.TopLeft;
+        Btn(T("Copy selection", "复制选中", "複製選取"), CopySelection, 490, h - 48, 104, UiActionRole.Edit);
+        Btn(T("Copy record", "复制整条", "複製整條"), () => { var lines = _selectionPinned ? _pinLines : _lines; if (_selectionEnd.Line >= 0 && _selectionEnd.Line < lines.Count) GUIUtility.systemCopyBuffer = lines[_selectionEnd.Line].Record; }, 602, h - 48, 104, UiActionRole.Edit);
+        Btn(T("Copy filtered", "复制筛选结果", "複製篩選結果"), () => GUIUtility.systemCopyBuffer = string.Join("\n", _filteredRecords), 714, h - 48, 104, UiActionRole.Edit);
+        Btn(T("Stack", "展开／收起栈", "展開／收起棧"), ToggleStack, 826, h - 48, 104);
 
         Btn(T("Close", "关闭"), OverviewUi.RequestCloseModal, w - 130, h - 48, 108);
         // 1.1.5 (user screenshot): the "|" divider was placed inside the jump-to-bottom button (472..482 vs 388..492); removed.
@@ -164,14 +179,38 @@ internal sealed class LogWindow : MonoBehaviour
         _generation++; _paused = false; _hasSelection = false; _tab = tab; _records = Array.Empty<MceLogRecord>(); _error = ""; _readError = ""; _pendingRefilter = false; _path = ""; _custom = null; _recordStamp = ""; _repeatIndex.Clear(); _wrapped.Clear(); _lastSequence = 0; _addedTotal = 0; _batchAdded = 0; _rate = 0; _repeat = 0; _repeatText = ""; _liveEpoch = ""; _modFilter = "";
         // A reader belongs to one background job. Dispose after that job completes.
         var old = _reader; _reader = null; if (_read == null) old?.Dispose(); else _ = _read.ContinueWith(_ => old?.Dispose());
-        if (tab == "bep") _path = Path.Combine(BepInEx.Paths.BepInExRootPath, "LogOutput.log");
-        if (tab == "game") _path = GamePaths().FirstOrDefault(File.Exists) ?? GamePaths().First();
+        if (tab == "custom") _history = 0;
+        if (tab != "custom" && _history > 0) _path = HistoryPath(tab == "game");
+        else if (tab == "bep") _path = Path.Combine(BepInEx.Paths.BepInExRootPath, "LogOutput.log");
+        else if (tab == "game") _path = GamePaths().FirstOrDefault(File.Exists) ?? GamePaths().First();
         if (tab == "custom") { _custom = OrderCustomSources(MceLogApi.List()).FirstOrDefault(); _path = _custom?.File ?? ""; }
         if (_path.Length > 0) _reader = new LogFileReader(_path);
         _nextRead = 0; Refilter();
     }
-    private static readonly string[] LevelNames = { "全部", "调试", "信息", "警告", "错误", "严重错误", "未识别" }; // display goes through DiagnosticUiLanguage
-    private static readonly MceLogLevel[] LevelValues = { MceLogLevel.Unknown, MceLogLevel.Debug, MceLogLevel.Info, MceLogLevel.Warning, MceLogLevel.Error, MceLogLevel.Fatal, MceLogLevel.Unknown };
+    // 同步自 MCE 1.1.0（实测修正）：去掉「全部」那一项（改成多选里的「全部」行），下标与 _levelOn 对应。
+    private static readonly MceLogLevel[] LevelValues = { MceLogLevel.Debug, MceLogLevel.Info, MceLogLevel.Warning, MceLogLevel.Error, MceLogLevel.Fatal, MceLogLevel.Unknown };
+    private static string LevelName(int index) => index switch
+    {
+        0 => T("Debug", "调试", "除錯"), 1 => T("Info", "信息", "資訊"), 2 => T("Warning", "警告", "警告"),
+        3 => T("Error", "错误", "錯誤"), 4 => T("Fatal", "严重错误", "嚴重錯誤"), _ => T("Unknown", "未识别", "未識別"),
+    };
+    private bool LevelShown(MceLogLevel level) { int i = Array.IndexOf(LevelValues, level); return i < 0 || _levelOn[i]; }
+    private bool AllLevelsOn => _levelOn.All(on => on);
+    /// <summary>滚轮在等级钮上：全部 → 只看调试 → 只看信息 → …… → 全部。0 = 全部，i = 只看第 i-1 个等级；其他组合当作「全部」起算。</summary>
+    private int SoloLevel()
+    {
+        if (AllLevelsOn) return 0;
+        int count = _levelOn.Count(on => on);
+        return count == 1 ? Array.IndexOf(_levelOn, true) + 1 : 0;
+    }
+    private void SetSoloLevel(int solo) { for (int i = 0; i < _levelOn.Length; i++) _levelOn[i] = solo == 0 || i == solo - 1; }
+    private string LevelCaption()
+    {
+        var on = Enumerable.Range(0, _levelOn.Length).Where(i => _levelOn[i]).ToArray();
+        string value = on.Length == _levelOn.Length ? T("All", "全部", "全部") : on.Length == 0 ? T("None", "无", "無")
+            : on.Length <= 2 ? string.Join(T(", ", "、", "、"), on.Select(LevelName)) : T(on.Length + " levels", on.Length + " 项", on.Length + " 項");
+        return T("Log level: ", "日志等级：", "日誌等級：") + value;
+    }
     private void ScrollTo(float value)
     {
         _scroll.verticalNormalizedPosition = value;
@@ -203,13 +242,53 @@ internal sealed class LogWindow : MonoBehaviour
         if(y+popup.rect.height>_panel.rect.height-12)y=Math.Max(12,y-popup.rect.height-anchor.rect.height-10);
         OverviewUi.Place(popup,Mathf.Clamp(x,12,Math.Max(12,_panel.rect.width-popup.rect.width-12)),y,popup.rect.width,popup.rect.height);
     }
+    /// <summary>同步自 MCE 1.1.0（实测修正）：等级多选。每行一个勾选框 + 按日志正文同色的等级名；点整行（手柄 A）切换勾选，
+    /// 菜单不关、当场重新筛选。「全部」行：已全选时全部取消，否则全部勾上。
+    /// 实测修正（用户 2026-11-16：样式要和模组列表的下拉菜单一样）：改用共用的紧凑下拉（OverviewUi.SourceToolsDropdown，
+    /// 与行菜单、分组菜单、「查看」同一套外观），每行带勾选框；点整行（手柄 A）切换、菜单不关，「全部」一改其余勾选框跟着重画。
+    /// 挂在日志窗口上（WindowPopover），B / ESC / 点空白关闭。</summary>
     private void PickLevel()
     {
-        if(_options!=null)Destroy(_options.gameObject);
-        _options = null;
-        WindowPopover.Menu(_panel, (RectTransform)_levelButton.transform, T("Log level", "日志等级"),
-            LevelNames.Select((name, index) => (DiagnosticUiLanguage.Text(name), index.ToString())).ToArray(), _level.ToString(),
-            value => { _level = int.Parse(value); Refilter(); });
+        if (_options != null) { Destroy(_options.gameObject); _options = null; }
+        var rows = new List<SourceToolOption>
+        {
+            new SourceToolOption { Entry = new UiMenuEntry { Label = T("All", "全部", "全部"), Role = UiActionRole.Edit },
+                ReadValue = () => AllLevelsOn, WriteValue = value => { for (int i = 0; i < _levelOn.Length; i++) _levelOn[i] = value; Refilter(); } }
+        };
+        for (int i = 0; i < LevelValues.Length; i++)
+        {
+            int index = i;
+            rows.Add(new SourceToolOption { Entry = new UiMenuEntry { Label = LevelName(i), Role = UiActionRole.Edit }, LabelColor = LevelLabelColor(i),
+                ReadValue = () => _levelOn[index], WriteValue = value => { _levelOn[index] = value; Refilter(); } });
+        }
+        OverviewUi.SourceToolsDropdown((RectTransform)_levelButton.transform,
+            new[] { new SourceToolGroup(T("Log level", "日志等级", "日誌等級"), OverviewUi.Ivory, rows) }, (target, hint) => { }, _panel);
+    }
+    /// <summary>等级名用和日志正文同一套颜色（警告黄、错误／严重错误红、调试淡紫，信息象牙白，未识别灰）。</summary>
+    private static Color LevelLabelColor(int index) => LevelValues[index] == MceLogLevel.Info ? OverviewUi.Ivory
+        : LevelValues[index] == MceLogLevel.Unknown ? OverviewUi.Muted : LevelColor(LevelValues[index]);
+    private static string HistoryName(int back) => back switch
+    {
+        0 => T("This run", "本次", "本次"), 1 => T("Last run", "上次", "上次"), 2 => T("2 runs ago", "上上次", "上上次"), _ => T("3 runs ago", "3 次前", "3 次前"),
+    };
+    private string HistoryCaption() => T("Run: ", "查看：", "查看：") + HistoryName(_history);
+    private string HistoryPath(bool game) => LogHistory.File(_history, game) ?? "";
+    /// <summary>同步自 MCE 1.1.0（实测修正）：选看哪一次启动的日志。本次 = 实时；上次～3 次前读 LogHistory 存在 runtime 目录的副本，
+    /// 等级、模组筛选和搜索照常；选回本次恢复实时。自定义日志页签不适用（按钮变灰）。</summary>
+    private void PickHistory()
+    {
+        if (_options != null) { Destroy(_options.gameObject); _options = null; }
+        bool game = _tab == "game";
+        var options = Enumerable.Range(0, LogHistory.KeepPrevious + 1).Select(back =>
+        {
+            if (back == 0) return (HistoryName(0) + T(" (live)", "（实时）", "（即時）"), "0");
+            var stamp = LogHistory.SessionTime(back);
+            string note = stamp == null ? T(" (none saved)", "（没有记录）", "（沒有紀錄）") : " · " + stamp.Value.ToString("MM-dd HH:mm");
+            if (stamp == null && back == 1 && game && LogHistory.PreviousUnityLog() != null) note = T(" (Unity Player-prev.log)", "（Unity Player-prev.log）", "（Unity Player-prev.log）");
+            return (HistoryName(back) + note, back.ToString());
+        }).ToArray();
+        WindowPopover.Menu(_panel, (RectTransform)_historyButton.transform, T("Which run", "查看哪一次启动的日志", "查看哪一次啟動的日誌"), options, _history.ToString(),
+            value => { _history = int.Parse(value); Switch(_tab); });
     }
     private string FavoriteKey(MceLogRecord record)
     {
@@ -217,60 +296,63 @@ internal sealed class LogWindow : MonoBehaviour
         return mod?.Guid??record.Category;
     }
     private void SaveFavorites(){Directory.CreateDirectory(Path.GetDirectoryName(FavoritesPath)!);File.WriteAllText(FavoritesPath,new JArray(_favoriteSources.OrderBy(s=>s)).ToString());}
+    /// <summary>
+    /// 实测修正（2026-11-16，用户：「模组：全部」这个窗口风格没跟模组列表的下拉统一）：改用共用下拉
+    /// （<see cref="OverviewUi.SourceToolsDropdown"/>，与日志等级、模组列表菜单同一套外观）。
+    /// 第一段是标题「按模组筛选」：全部模组 + 仅收藏（勾选）；后面每个分组一段（分组色作小节标题）。
+    /// 模组行：点整行 = 只看这个模组并关菜单；行左的勾选框 = 收藏（手柄在行上按左进框、A 切换）。
+    /// 原来的分组折叠去掉了（下拉本身可滚动）。
+    /// </summary>
     private void PickMod()
     {
-        if (_options != null) Destroy(_options.gameObject);
-        float width = Mathf.Min(1000, _panel.rect.width - 60), height = Mathf.Min(650, _panel.rect.height - 190);
-        _options = OverviewUi.Panel("LogModTree", _panel, ModConfigLook.Surface(new Color(.10f, .13f, .14f, 1))); OverviewUi.Place(_options, 30, 150, width, height);Near(_options,(RectTransform)_modButton.transform);
-        var all = OverviewUi.Button(_options, T("All mods", "全部模组"), () => { _modFilter = ""; Refilter(); Destroy(_options.gameObject); _options = null; }, 130, 32); OverviewUi.Place((RectTransform)all.transform, 14, 10, 130, 32);
-        var close = OverviewUi.Button(_options, T("Close", "关闭"), () => { Destroy(_options.gameObject); _options = null; }, 104, 32); OverviewUi.Place((RectTransform)close.transform, width - 118, 10, 104, 32);
-        var favorites=OverviewUi.Button(_options,_favoritesOnly?T("Favorites: on","仅收藏：开"):T("Favorites: off","仅收藏：关"),()=>{_favoritesOnly=!_favoritesOnly;Refilter();PickMod();},150,32,UiActionRole.Commit);OverviewUi.Place((RectTransform)favorites.transform,154,10,150,32);
-        var host = OverviewUi.Rect("TreeViewport", _options); OverviewUi.Place(host, 12, 54, width - 24, height - 68); host.gameObject.AddComponent<RectMask2D>(); host.gameObject.AddComponent<Image>().color = Color.clear;
-        var content = OverviewUi.Rect("TreeContent", host); OverviewUi.Place(content, 0, 0, width - 42, 1);
-        var scroll = host.gameObject.AddComponent<ScrollRect>(); scroll.viewport = host; scroll.content = content; scroll.horizontal = false; scroll.scrollSensitivity = 120; scroll.movementType = ScrollRect.MovementType.Clamped;
+        if (_options != null) { Destroy(_options.gameObject); _options = null; }
+        var groups = new List<SourceToolGroup>
+        {
+            new SourceToolGroup(T("Filter by mod", "按模组筛选", "按模組篩選"), OverviewUi.Ivory, new List<SourceToolOption>
+            {
+                new SourceToolOption { Entry = new UiMenuEntry { Label = T("All mods", "全部模组", "全部模組"), Role = UiActionRole.Edit,
+                    Checked = _modFilter.Length == 0, Invoke = () => { _modFilter = ""; Refilter(); } } },
+                new SourceToolOption { Entry = new UiMenuEntry { Label = T("Favorites only", "仅收藏", "僅收藏"), Role = UiActionRole.Edit },
+                    ReadValue = () => _favoritesOnly, WriteValue = value => { _favoritesOnly = value; Refilter(); } },
+            })
+        };
         var entries = _records.Select(r => r.Category).Distinct().Select(category => {
             var mod = _installedMods.FirstOrDefault(m => m.Guid.Equals(category, StringComparison.OrdinalIgnoreCase) || m.RawName.Equals(category, StringComparison.OrdinalIgnoreCase));
             return (Category: category, Mod: mod, Group: mod?.Rule.groupId ?? "runtime");
         }).ToList();
-        float y = 0;
         var tree = new GroupTree(_repo.State.groups);
         foreach (var group in entries.GroupBy(e => e.Group).OrderBy(g => tree.Position(g.Key)))
         {
             string id = group.Key; var info = tree.Get(id);
             string name = info == null ? T("Runtime / other sources", "运行时／其他来源") : tree.Path(id);
             Color color = OverviewUi.Blue; if (info != null) ColorUtility.TryParseHtmlString(info.color, out color);
-            var header = OverviewUi.Button(content, (_foldedModGroups.Contains(id) ? "+ " : "- ") + name + " (" + group.Count() + ")", () => { if (!_foldedModGroups.Add(id)) _foldedModGroups.Remove(id); PickMod(); }, width - 54, 36, UiActionRole.Overview);
-            OverviewUi.Place((RectTransform)header.transform, 0, y, width - 54, 36); UiActionStyle.Tint(header, color); y += 42;
-            if (_foldedModGroups.Contains(id)) continue;
+            var rows = new List<SourceToolOption>();
             foreach (var entry in group.OrderBy(e => e.Mod?.Rule.order ?? 0))
             {
                 string nameText = entry.Mod == null ? entry.Category.Length > 0 ? entry.Category : T("Unidentified source", "未识别来源") : OverviewLanguageBridge.GetDisplayName(entry.Mod);
                 string metadata = entry.Mod == null ? "" : PackageId(entry.Mod) + ", " + entry.Mod.DisplayVersion;
-                string label = Escape(nameText) + (metadata.Length > 0 ? " <color=#8C918E><size=80%>(" + Escape(metadata) + ")</size></color>" : "");
-                string favoriteId=entry.Mod?.Guid??entry.Category;
-                var favorite=OverviewUi.Button(content,_favoriteSources.Contains(favoriteId)?"[+]":"[ ]",()=>{if(!_favoriteSources.Add(favoriteId))_favoriteSources.Remove(favoriteId);SaveFavorites();Refilter();PickMod();},42,32,UiActionRole.Neutral);OverviewUi.Place((RectTransform)favorite.transform,24,y,42,32);
-                var button = OverviewUi.Button(content, label, () => { _modFilter = favoriteId; Refilter(); Destroy(_options.gameObject); _options = null; }, width - 128, 32, UiActionRole.Edit); OverviewUi.Place((RectTransform)button.transform, 72, y, width - 128, 32);
-                var text = button.GetComponentInChildren<TextMeshProUGUI>(); text.alignment = TextAlignmentOptions.MidlineLeft; text.margin = new Vector4(14, 0, 14, 0); text.richText=true; text.fontStyle = FontStyles.Normal; text.overflowMode = TextOverflowModes.Ellipsis; y += 38;
+                string favoriteId = entry.Mod?.Guid ?? entry.Category;
+                rows.Add(new SourceToolOption
+                {
+                    Entry = new UiMenuEntry { Label = nameText + (metadata.Length > 0 ? "  (" + metadata + ")" : ""), Role = UiActionRole.Edit,
+                        Checked = _modFilter == favoriteId, Invoke = () => { _modFilter = favoriteId; Refilter(); } },
+                    RowInvokes = true,
+                    ReadValue = () => _favoriteSources.Contains(favoriteId),
+                    WriteValue = value => { if (value) _favoriteSources.Add(favoriteId); else _favoriteSources.Remove(favoriteId); SaveFavorites(); Refilter(); },
+                    Hint = () => T("Click the row to show only this mod; the box marks it as a favorite.", "点整行只看这个模组；左边的框是收藏。", "點整列只看這個模組；左邊的框是收藏。"),
+                });
             }
+            groups.Add(new SourceToolGroup(name + " (" + rows.Count + ")", color, rows));
         }
-        content.sizeDelta = new Vector2(width - 42, y + 8);
+        OverviewUi.SourceToolsDropdown((RectTransform)_modButton.transform, groups, (target, hint) => { }, _panel, 640);
     }
+    /// <summary>实测修正（2026-11-16，下拉样式统一）：自定义日志来源的选择改用共用紧凑下拉（与模组列表的菜单同一套外观），
+    /// 挂在「自定义」页签下方；B / ESC / 点空白关闭。</summary>
     private void ShowChoices(string heading, IReadOnlyList<(string Label, Action Action)> choices)
     {
-        if (_options != null) Destroy(_options.gameObject);
-        float width = Mathf.Min(360, _panel.rect.width - 24), height = Mathf.Min(420, choices.Count * 42 + 64);
-        _options = OverviewUi.Panel("LogChoice", _panel, ModConfigLook.Surface(new Color(.12f, .16f, .18f, 1))); OverviewUi.Place(_options, 0, 0, width, height);WindowPopover.Place(_options,_panel,(RectTransform)_tabs["custom"].transform,width,height);
-        width = _options.rect.width; height = _options.rect.height;
-        var title = OverviewUi.Text(_options, DiagnosticUiLanguage.Text(heading), 20); OverviewUi.Place(title.rectTransform, 14, 8, width - 140, 32);
-        var host = OverviewUi.Rect("ChoiceViewport", _options); OverviewUi.Place(host, 10, 48, width - 20, height - 64); host.gameObject.AddComponent<RectMask2D>(); host.gameObject.AddComponent<Image>().color = ModConfigLook.Surface(new Color(0, 0, 0, .1f));
-        var content = OverviewUi.Rect("Choices", host); OverviewUi.Place(content, 0, 0, width - 40, choices.Count * 42);
-        var scroll = host.gameObject.AddComponent<ScrollRect>(); scroll.viewport = host; scroll.content = content; scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 110;
-        int i = 0; foreach (var choice in choices)
-        {
-            var local = choice; var b = OverviewUi.Button(content, DiagnosticUiLanguage.Text(choice.Label), () => { if (_options != null) Destroy(_options.gameObject); _options = null; local.Action(); }, width - 50, 34, UiActionRole.Edit);
-            OverviewUi.Place((RectTransform)b.transform, 4, i++ * 42, width - 50, 34);
-        }
-        var close = OverviewUi.Button(_options, Loc.T("Close", "关闭", "關閉"), () => { Destroy(_options.gameObject); _options = null; }, 100, 30); OverviewUi.Place((RectTransform)close.transform, width - 115, 8, 100, 30);
+        if (_options != null) { Destroy(_options.gameObject); _options = null; }
+        var entries = choices.Select(choice => new UiMenuEntry { Label = DiagnosticUiLanguage.Text(choice.Label), Role = UiActionRole.Edit, Invoke = choice.Action }).ToList();
+        OverviewUi.CompactDropdown((RectTransform)_tabs["custom"].transform, DiagnosticUiLanguage.Text(heading), entries, _panel);
     }
     private static string PackageId(OverviewMod mod) => mod.SourceName.Length > 0 ? mod.SourceNamespace + "-" + mod.SourceName : mod.Guid;
     private string ModName(MceLogRecord record)
@@ -342,9 +424,10 @@ internal sealed class LogWindow : MonoBehaviour
         }
         if (_pendingRefilter && !_selecting && !_hasSelection) { _pendingRefilter = false; Refilter(); }
         if (_export?.IsCompleted == true) { _exportSucceeded = !_export.IsFaulted; _error = _export.IsFaulted ? "导出失败：" + _export.Exception!.GetBaseException().Message : (_exportFallbackNote != null ? "导出完成（固定位置）：" : "导出完成：") + _exportDestination; _export = null; }
-        _consoleButton.GetComponentInChildren<TextMeshProUGUI>().text=BepInExConsoleControl.Active?T("Console: on","控制台：开启"):T("Console: off","控制台：关闭");
-        bool foldersChanged = _exportFolderButton.interactable != _exportSucceeded || _logFolderButton.interactable != (_path.Length > 0);
-        _exportFolderButton.interactable = _exportSucceeded; _logFolderButton.interactable = _path.Length > 0;
+        _consoleButton.GetComponentInChildren<TextMeshProUGUI>().text=BepInExConsoleControl.Active?T("Console: on","控制台：开启","控制台：開啟"):T("Console: off","控制台：关闭","控制台：關閉");
+        bool foldersChanged = _exportFolderButton.interactable != _exportSucceeded || _logFolderButton.interactable != (_path.Length > 0) || _historyButton.interactable != (_tab != "custom");
+        _exportFolderButton.interactable = _exportSucceeded; _logFolderButton.interactable = _path.Length > 0; _historyButton.interactable = _tab != "custom";
+        _historyButton.GetComponentInChildren<TextMeshProUGUI>().text = HistoryCaption();
         if (foldersChanged) PublicationNavigation.Invalidate(_panel);
         foreach (var tab in _tabs) UiActionStyle.Select(tab.Value, tab.Key == _tab);
         UiActionStyle.Set(_pauseButton, _paused ? UiActionRole.Commit : UiActionRole.Edit);
@@ -362,14 +445,16 @@ internal sealed class LogWindow : MonoBehaviour
         _horizontal.gameObject.SetActive(false);
         _vertical.gameObject.SetActive(_content.sizeDelta.y > _viewport.rect.height + 1);
         Render(); RenderPinned();
-        string level = LevelNames[_level];
-        _levelButton.GetComponentInChildren<TextMeshProUGUI>().text = "日志等级：" + level;
-        _levelButton.GetComponentInChildren<TextMeshProUGUI>().color=_level==0?OverviewUi.Ivory:LevelColor(LevelValues[_level]);
+        string level = LevelCaption();
+        int solo = SoloLevel();
+        _levelButton.GetComponentInChildren<TextMeshProUGUI>().text = level;
+        _levelButton.GetComponentInChildren<TextMeshProUGUI>().color=solo==0?OverviewUi.Ivory:LevelColor(LevelValues[solo-1]);
         _modButton.GetComponentInChildren<TextMeshProUGUI>().text = "模组：" + (_modFilter.Length == 0 ? "全部" : _modFilter);
-        _status.text = (_error.Length > 0 ? _error + "\n" : "") + (_readError.Length > 0 ? _readError + "\n" : "") + (_path.Length > 0 ? _path : _custom?.Name ?? "未接入自定义日志") + " · " + level + " · " + _lines.Count + " 行 · 新增 " + _addedTotal + " 条 · " + _rate.ToString("0.0") + " 条/秒" + (_repeat > 1 ? " · 连续重复 ×" + _repeat : "") + "（旧日志无时间显示 —；导出完整来源）" + (_paused ? " · 已暂停刷新" : "") + (_hasSelection ? " · 文字选择中，点击空白清除选择" : "");
+        string source = _path.Length > 0 ? _path : _history > 0 ? T("No log was saved for this run", "这一次启动没有保存日志", "這一次啟動沒有儲存日誌") : _custom?.Name ?? "未接入自定义日志";
+        if (_history > 0) source = HistoryName(_history) + T(" (history) · ", "（历史）· ", "（歷史）· ") + source;
+        _status.text = (_error.Length > 0 ? _error + "\n" : "") + (_readError.Length > 0 ? _readError + "\n" : "") + source + " · " + level + " · " + _lines.Count + " 行 · 新增 " + _addedTotal + " 条 · " + _rate.ToString("0.0") + " 条/秒" + (_repeat > 1 ? " · 连续重复 ×" + _repeat : "") + "（旧日志无时间显示 —；导出完整来源）" + (_paused ? " · 已暂停刷新" : "") + (_hasSelection ? " · 文字选择中，点击空白清除选择" : "");
         _activity.text = DiagnosticUiLanguage.Text(_activity.text);
         _status.text = DiagnosticUiLanguage.Text(_status.text);
-        _levelButton.GetComponentInChildren<TextMeshProUGUI>().text = DiagnosticUiLanguage.Text(_levelButton.GetComponentInChildren<TextMeshProUGUI>().text);
         _modButton.GetComponentInChildren<TextMeshProUGUI>().text = DiagnosticUiLanguage.Text(_modButton.GetComponentInChildren<TextMeshProUGUI>().text);
         _pauseButton.GetComponentInChildren<TextMeshProUGUI>().text = DiagnosticUiLanguage.Text(_pauseButton.GetComponentInChildren<TextMeshProUGUI>().text);
         _followButton.GetComponentInChildren<TextMeshProUGUI>().text = DiagnosticUiLanguage.Text(_followButton.GetComponentInChildren<TextMeshProUGUI>().text);
@@ -385,7 +470,7 @@ internal sealed class LogWindow : MonoBehaviour
         {
             var record = entry.Latest;
             if(_favoritesOnly && !_favoriteSources.Contains(FavoriteKey(record)))continue;
-            if (_level > 0 && record.Level != LevelValues[_level]) continue;
+            if (!LevelShown(record.Level)) continue;
             string mod = ModName(record);
             if (_modFilter.Length > 0 && FavoriteKey(record) != _modFilter) continue;
             string plain = entry.Count > 1 ? entry.CopyText : LogParser.Plain(record); if (query.Length > 0 && plain.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
@@ -407,7 +492,7 @@ internal sealed class LogWindow : MonoBehaviour
         {
             string mod = ModName(group.Latest), plain = group.CopyText;
             if(_favoritesOnly && !_favoriteSources.Contains(FavoriteKey(group.Latest)))continue;
-            if (_level > 0 && group.Latest.Level != LevelValues[_level] || _modFilter.Length > 0 && FavoriteKey(group.Latest) != _modFilter || query.Length > 0 && plain.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            if (!LevelShown(group.Latest.Level) || _modFilter.Length > 0 && FavoriteKey(group.Latest) != _modFilter || query.Length > 0 && plain.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
             if (emitted.Add(group.Key)) _filteredRecords.Add(plain);
             string text = "[x" + group.Count + "] " + group.Latest.Message.Replace("\r", " ").Replace("\n", " ");
             _pinLines.Add((text, group.Latest.Level, plain, group.Latest.Time==default?"-":group.Latest.Time.ToString("HH:mm:ss.fff"), mod, group.Latest.Category == Diagnostics.ManagerLog.CategoryLabel));
@@ -660,8 +745,11 @@ internal sealed class LogWindow : MonoBehaviour
             }
             else
             {
-                if (_scope is 0 or 2) sources.Add(new LogExportSource { Name = "BepInEx_LogOutput.log", Path = Path.Combine(BepInEx.Paths.BepInExRootPath, "LogOutput.log") });
-                if (_scope is 1 or 2) { string path = _tab == "game" ? _path : GamePaths().FirstOrDefault(File.Exists) ?? GamePaths().First(); sources.Add(new LogExportSource { Name = "PEAK_" + Path.GetFileName(path), Path = path }); }
+                // 同步自 MCE 1.1.0（实测修正）：在看历史时导出那一次的副本；那一次没存到的来源跳过（两种都没有时报错）。
+                string bep = _history > 0 ? HistoryPath(false) : Path.Combine(BepInEx.Paths.BepInExRootPath, "LogOutput.log");
+                if (_scope is 0 or 2 && bep.Length > 0) sources.Add(new LogExportSource { Name = "BepInEx_LogOutput.log", Path = bep });
+                if (_scope is 1 or 2) { string path = _history > 0 ? HistoryPath(true) : _tab == "game" ? _path : GamePaths().FirstOrDefault(File.Exists) ?? GamePaths().First(); if (path.Length > 0) sources.Add(new LogExportSource { Name = "PEAK_" + Path.GetFileName(path), Path = path }); }
+                if (sources.Count == 0) throw new IOException(T("No log was saved for this run.", "这一次启动没有保存日志。", "這一次啟動沒有儲存日誌。"));
             }
             _exportDestination = destination; _exportSucceeded = false;
             _export = Task.Run(() => { if (custom != null && custom.File.Length == 0) sources[0].Records = MceLogApi.Read(custom); LogExport.Save(destination, sources, metadata); });

@@ -309,7 +309,7 @@ internal static partial class PackPublisher
                 if (!ValidDependency(dependency)) throw new InvalidOperationException(Loc.F("Resolve pending mods first: {0}", "请先处理待定模组：{0}", "請先處理待定模組：{0}", first.Name));
                 dependencies.Add(dependency);
             }
-            if(!ValidDependency(request.LoaderDependency)||!request.LoaderDependency.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("请确认商店根清单的加载器版本。");
+            if(!ValidDependency(request.LoaderDependency)||!request.LoaderDependency.StartsWith("BepInEx-BepInExPack",StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException(Loc.T("Confirm the loader version in the store root manifest.", "请确认商店根清单的加载器版本。", "請確認商店根清單的載入器版本。"));
             dependencies.Add(request.LoaderDependency);
             var localKeys = new HashSet<string>(mods.Where(m => IsInline(request, m)).Select(m => m.SourceKey), StringComparer.OrdinalIgnoreCase);
             foreach (string dependency in mods.Where(m => IsInline(request, m)).SelectMany(m => m.PackageDependencies))
@@ -330,7 +330,7 @@ internal static partial class PackPublisher
                 foreach (string child in ModSources.Dependencies(dependency)) queue.Enqueue(child);
             }
             var conflicts = dependencies.Where(ValidDependency).GroupBy(d => d.Substring(0, d.LastIndexOf('-')), StringComparer.OrdinalIgnoreCase).Where(g => g.Count() > 1).ToList();
-            if (conflicts.Count > 0) throw new InvalidOperationException("商店依赖版本冲突：" + string.Join("；", conflicts.Select(g => string.Join(", ",g))));
+            if (conflicts.Count > 0) throw new InvalidOperationException(Loc.T("Store dependency version conflict: ", "商店依赖版本冲突：", "商店相依版本衝突：") + string.Join("; ", conflicts.Select(g => string.Join(", ",g))));
             var resolved = dependencies.Where(ValidDependency).ToArray();
             dependencies.Clear(); dependencies.UnionWith(resolved);
         }
@@ -389,7 +389,7 @@ internal static partial class PackPublisher
         }
         if (request.Mode == PublishMode.ThunderstoreComplete)
         {
-            if (!IsIcon(request.Icon)) throw new InvalidOperationException("完整商店包需要 256×256 PNG 图标。");
+            if (!IsIcon(request.Icon)) throw new InvalidOperationException(Loc.T("A complete store package needs a 256×256 PNG icon.", "完整商店包需要 256×256 PNG 图标。", "完整商店包需要 256×256 PNG 圖示。"));
             CopyFile(request.Icon, Path.Combine(output, "icon.png"), true);
             // Everything is bundled and described exactly. No speculative hashes or downloadable dependencies.
             OverviewRepository.AtomicWrite(Path.Combine(output, "manifest.json"), new JObject {
@@ -403,7 +403,7 @@ internal static partial class PackPublisher
         foreach (string relative in request.ExtraConfigFiles)
         {
             if (!ExtraConfigAllowed(relative) || recordedFiles.Contains(relative.Replace('\\', '/')))
-                throw new InvalidOperationException("附加配置与方案配置或私人运行资料重叠。");
+                throw new InvalidOperationException(Loc.T("An additional config file overlaps the profile configuration or private runtime data.", "附加配置与方案配置或私人运行资料重叠。", "附加設定與方案設定或私人執行資料重疊。")); // 0.0.2 导出检查：原来只有中文
             CopyFile(OverviewProfileAssets.CheckedPath(Paths.ConfigPath, relative), OverviewProfileAssets.CheckedPath(configOutput, relative), true);
         }
         ProjectConfig(configOutput, defaults.config);

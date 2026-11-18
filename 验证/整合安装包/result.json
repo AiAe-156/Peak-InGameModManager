@@ -1,0 +1,78 @@
+{
+  "Archive": "F:\\Games\\SteamLibrary\\steamapps\\common\\PEAK\\MODs\\InGameModManager\\发布\\InGameModManager_0.0.1_整合安装包_测试反馈修复.zip",
+  "Bytes": 5893067,
+  "Sha256": "5e9b83e2c8693b415bd6114385eed9ed6af09b95bc483e0e21b8aca602776cdb",
+  "Entries": 112,
+  "Packages": [
+    {
+      "Key": "AiAeT-InGameModManager",
+      "Version": "0.0.1",
+      "Files": 50
+    },
+    {
+      "Key": "BepInEx-BepInExPack_PEAK",
+      "Version": "5.4.75301",
+      "Files": 22
+    },
+    {
+      "Key": "BepInEx-Core",
+      "Version": "5.4.23.5",
+      "Files": 18
+    },
+    {
+      "Key": "PEAKModding-PEAKLib_Core",
+      "Version": "1.7.2",
+      "Files": 6
+    },
+    {
+      "Key": "PEAKModding-PEAKLib_UI",
+      "Version": "1.7.2",
+      "Files": 6
+    },
+    {
+      "Key": "PEAKModding-ModConfig",
+      "Version": "1.8.2",
+      "Files": 6
+    },
+    {
+      "Key": "PEAKModding-SoftDependencyFix",
+      "Version": "1.0.0",
+      "Files": 6
+    },
+    {
+      "Key": "MonoDetour-MonoDetour_BepInEx_5",
+      "Version": "0.7.1701",
+      "Files": 7
+    },
+    {
+      "Key": "MonoDetour-MonoDetour",
+      "Version": "0.7.1701",
+      "Files": 8
+    }
+  ],
+  "DependenciesChecked": 14,
+  "TopLevel": [
+    ".doorstop_version",
+    "BepInEx",
+    "doorstop_config.ini",
+    "winhttp.dll",
+    "安装说明 README.txt"
+  ],
+  "Extensions": {
+    ".dll": 35,
+    ".png": 20,
+    ".md": 18,
+    ".json": 10,
+    "": 7,
+    ".xml": 6,
+    ".txt": 6,
+    ".exe": 2,
+    ".config": 2,
+    ".cfg": 1,
+    ".mp4": 1,
+    ".gif": 1,
+    ".manifest": 1,
+    ".ini": 1
+  },
+  "BuiltAt": "2026-11-14T17:07:27+08:00"
+}

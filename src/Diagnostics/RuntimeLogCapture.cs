@@ -19,6 +19,7 @@ internal sealed class RuntimeLogCapture : ILogListener
         if (_instance != null) return;
         _instance = new RuntimeLogCapture(); BepInEx.Logging.Logger.Listeners.Add(_instance);
         Application.logMessageReceivedThreaded += _instance.UnityLog;
+        LogHistory.Start(); // 同步自 MCE 1.1.0（实测修正）：把本次的 BepInEx／游戏日志持续存进 runtime/log-history，日志窗口看「上次」等用
     }
     internal static void Stop()
     {

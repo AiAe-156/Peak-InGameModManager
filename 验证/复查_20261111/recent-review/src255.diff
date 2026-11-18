@@ -1,0 +1,607 @@
+diff --git a/Updater/Program.cs b/Updater/Program.cs
+index 3e2b915..9d283c0 100644
+--- a/Updater/Program.cs
++++ b/Updater/Program.cs
+@@ -113,7 +113,7 @@ catch (Exception error)
+     {
+         System.Threading.Mutex? dialog = null; bool owned = false;
+         try { dialog = new System.Threading.Mutex(true, @"Local\MCE.UpdateWorker.FatalDialog", out owned); } catch (Exception) { }
+-        try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "MCE operations", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
++        try { if (owned) System.Windows.Forms.MessageBox.Show(error.Message, "In-Game Mod Manager", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error); }
+         finally { if (owned) dialog!.ReleaseMutex(); dialog?.Dispose(); }
+     }
+     try
+diff --git a/Updater/WorkerWindow.cs b/Updater/WorkerWindow.cs
+index 608fd2d..0ee8045 100644
+--- a/Updater/WorkerWindow.cs
++++ b/Updater/WorkerWindow.cs
+@@ -117,7 +117,7 @@ internal sealed class WorkerWindow : IDisposable
+     }
+ 
+     static string T(string english, string simplified, string traditional) => WorkerLanguage.T(english, simplified, traditional);
+-    static string TitleText => T("MCE operations", "MCE 模组操作", "MCE 模組操作");
++    static string TitleText => T("In-Game Mod Manager · operations", "游戏内模组管理器 · 模组操作", "遊戲內模組管理器 · 模組操作");
+ 
+     Window Build()
+     {
+diff --git a/src/Diagnostics/ManagerLog.cs b/src/Diagnostics/ManagerLog.cs
+index 154d63a..911b61f 100644
+--- a/src/Diagnostics/ManagerLog.cs
++++ b/src/Diagnostics/ManagerLog.cs
+@@ -15,8 +15,8 @@ internal static class ManagerLog
+ {
+     internal const string SourceId = "manager";
+     /// <summary>Category shown in the log window's source/name column for our records.</summary>
+-    internal const string CategoryLabel = "ModConfigEnhance";
+-    internal const string SourceName = "Mod manager / 模组管理器 (MCE)";
++    internal const string CategoryLabel = "In-Game Mod Manager";
++    internal const string SourceName = "In-Game Mod Manager / 游戏内模组管理器";
+ 
+     private static readonly object Gate = new();
+     private static ManualLogSource? _sink;
+@@ -69,7 +69,7 @@ internal static class ManagerLog
+         }
+         try
+         {
+-            channel?.Write(new MceLogRecord { Level = level, Category = CategoryLabel, SubjectName = "MCE", Message = message, StackTrace = stack });
++            channel?.Write(new MceLogRecord { Level = level, Category = CategoryLabel, SubjectName = "IGMM", Message = message, StackTrace = stack });
+         }
+         catch (Exception) { }
+     }
+diff --git a/src/Loc.GeneratedTerms.cs b/src/Loc.GeneratedTerms.cs
+index eb996db..d366251 100644
+--- a/src/Loc.GeneratedTerms.cs
++++ b/src/Loc.GeneratedTerms.cs
+@@ -160,7 +160,7 @@ internal static partial class Loc
+         new("Display the pack version on a small second line when filled.", "Display the pack version on a small second line when filled.", "填写后在第二行显示整合包版本。", "填寫后在第二行顯示整合包版本。"),
+         new("Distance from the left edge, in game canvas units.", "Distance from the left edge, in game canvas units.", "左上入口距左边的距离（游戏画布单位）。", "左上入口距左邊的距離（游戲畫布單位）。"),
+         new("Distance from the top edge, in game canvas units.", "Distance from the top edge, in game canvas units.", "左上入口距顶部的距离（游戏画布单位）。", "左上入口距頂部的距離（游戲畫布單位）。"),
+-        new("Document version {0} is newer than this mod. Update ModConfig Enhance.", "Document version {0} is newer than this mod. Update ModConfig Enhance.", "文档版本 {0} 比当前模组新，请更新 ModConfig Enhance。", "文件版本 {0} 比目前模組新，請更新 ModConfig Enhance。"),
++        new("Document version {0} is newer than this mod. Update In-Game Mod Manager.", "Document version {0} is newer than this mod. Update In-Game Mod Manager.", "文档版本 {0} 比当前模组新，请更新游戏内模组管理器。", "文件版本 {0} 比目前模組新，請更新遊戲內模組管理器。"),
+         new("Duplicate ID in author profile index: ", "Duplicate ID in author profile index: ", "作者方案索引包含重复 ID：", "作者方案索引包含重復 ID："),
+         new("Duplicate ID in author profile index: {0}", "Duplicate ID in author profile index: {0}", "作者方案索引包含重复 ID：{0}", "作者方案索引包含重復 ID：{0}"),
+         new("Duplicate export destination: ", "Duplicate export destination: ", "导出目标重复：", "導出目標重復："),
+@@ -285,7 +285,7 @@ internal static partial class Loc
+         new("Loading the demo draft was canceled.", "Loading the demo draft was canceled.", "载入示范草稿已取消。", "載入示范草稿已取消。"),
+         new("Local changes", "Local changes", "本地修改", "本機修改"),
+         new("Local font path (TTF / OTF / TTC)", "Local font path (TTF / OTF / TTC)", "本地字体路径（TTF / OTF / TTC）", "本地字體路徑（TTF / OTF / TTC）"),
+-        new("MCE {0} · {1}", "MCE {0} · {1}", "MCE {0} · {1}", "MCE {0} · {1}"),
++        new("v{0} · {1}", "v{0} · {1}", "v{0} · {1}", "v{0} · {1}"),
+         new("Manager profile directory", "Manager profile directory", "管理器档案目录", "管理器檔案目錄"),
+         new("Markdown copy saved: ", "Markdown copy saved: ", "Markdown 副本已保存：", "Markdown 副本已保存："),
+         new("Markdown copy saved: {0}", "Markdown copy saved: {0}", "Markdown 副本已保存：{0}", "Markdown 副本已保存：{0}"),
+@@ -321,7 +321,7 @@ internal static partial class Loc
+         new("No mod settings row matches this plugin identity.", "No mod settings row matches this plugin identity.", "找不到与插件身份对应的模组设置行。", "找不到與插件身份對應的模組設置行。"),
+         new("No modpack introduction yet", "No modpack introduction yet", "暂无整合包介绍", "暫無整合包介紹"),
+         new("No newer version found", "No newer version found", "未发现更高版本", "未發現更高版本"),
+-        new("Not an MCE document: ", "Not an MCE document: ", "不是 MCE 文档：", "不是 MCE 文檔："),
++        new("Not a manager document: ", "Not a manager document: ", "不是管理器文档：", "不是管理器文檔："),
+         new("Not shown", "Not shown", "未显示", "未顯示"),
+         new("On: show dependencies as an indented tree. Off: show direct dependencies only. Installed dependants always show direct relationships; duplicate and circular nodes are skipped. Long content scrolls in fixed mode and is truncated in follow-mouse mode. The tree is limited to 12 levels and 512 relationships.", "On: show dependencies as an indented tree. Off: show direct dependencies only. Installed dependants always show direct relationships; duplicate and circular nodes are skipped. Long content scrolls in fixed mode and is truncated in follow-mouse mode. The tree is limited to 12 levels and 512 relationships.", "开启：按逐级缩进展示依赖的模组。关闭：只展示直接依赖。依赖它的已安装模组始终只列直接关系；重复和循环节点直接忽略。超长内容在固定模式中可滚动；跟随模式显示省略提示。依赖树最多展开12层、512条关系。", "開啟：按逐級縮進展示依賴的模組。關閉：只展示直接依賴。依賴它的已安裝模組始終只列直接關系；重復和循環節點直接忽略。超長內容在固定模式中可滾動；跟隨模式顯示省略提示。依賴樹最多展開12層、512條關系。"),
+         new("Only TTF, OTF, and TTC fonts are supported.", "Only TTF, OTF, and TTC fonts are supported.", "仅支持 TTF、OTF 和 TTC 字体。", "僅支持 TTF、OTF 和 TTC 字體。"),
+@@ -685,7 +685,7 @@ internal static partial class Loc
+         ["不支持的方案索引版本"] = "Unsupported profile index version",
+         ["不支持的旧预设版本。"] = "Unsupported legacy preset version.",
+         ["不支持的配置快照版本"] = "Unsupported configuration snapshot version",
+-        ["不是 MCE 文档："] = "Not an MCE document:",
++        ["不是管理器文档："] = "Not a manager document:",
+         ["与上一块并排"] = "Place beside previous block",
+         ["个文件需要改名，下次启动游戏生效。"] = "file(s) need renaming and will take effect after restarting the game.",
+         ["仅修改当前游戏安装；管理器下次同步可能覆盖，请配置实际 profile。"] = "Only this game installation was changed. Configure the actual manager profile to preserve these changes on its next synchronization.",
+diff --git a/src/Loc.InlineTerms.cs b/src/Loc.InlineTerms.cs
+index 6862f10..754fb34 100644
+--- a/src/Loc.InlineTerms.cs
++++ b/src/Loc.InlineTerms.cs
+@@ -14,7 +14,7 @@ internal static partial class Loc
+         new("Signing identity import complete", "Signing identity import complete", "签名身份导入完成", "簽名身分匯入完成"),
+         new("Open containing folder", "Open containing folder", "打开所在文件夹", "開啟所在資料夾"),
+         new("The mod list could not finish refreshing. Please refresh to retry: ", "The mod list could not finish refreshing. Please refresh to retry: ", "模组列表刷新未完成，请点击刷新重试：", "模組清單重新整理未完成，請點擊重新整理重試："),
+-        new("  |  MCE dictionary: ", "  |  MCE dictionary: ", "  |  已加载 MCE 词典 ", "  |  已載入 MCE 詞典 "),
++        new("  |  Manager dictionary: ", "  |  Manager dictionary: ", "  |  已加载管理器词典 ", "  |  已載入管理器詞典 "),
+         new(" (restart pending)", " (restart pending)", "（待重启）", "（待重啟）"),
+         new(" (unsaved)", " (unsaved)", "（未保存）", "（未保存）"),
+         new(" - copy", " - copy", " - 副本", " - 副本"),
+@@ -566,7 +566,7 @@ internal static partial class Loc
+         new("Circular dependency", "Circular dependency", "循环依赖", "循環依賴"),
+         new("Shared reference", "Shared reference", "共享引用", "共用參照"),
+         new("Dependency information has not been read", "Dependency information has not been read", "依赖信息尚未读取", "依賴資訊尚未讀取"),
+-        new("Required by MCE; uninstall asks for confirmation", "Required by MCE; uninstall asks for confirmation", "此组件是MCE运行所依赖的组件，卸载前会再次确认", "此組件是MCE執行所依賴的組件，解除安裝前會再次確認"),
++        new("Required by the manager; uninstall asks for confirmation", "Required by the manager; uninstall asks for confirmation", "此组件是管理器运行所依赖的组件，卸载前会再次确认", "此組件是管理器執行所依賴的組件，解除安裝前會再次確認"),
+         new("Dependency information is incomplete; uninstall is not yet available", "Dependency information is incomplete; uninstall is not yet available", "依赖信息不完整，暂不能卸载", "依賴資訊不完整，暫不能解除安裝"),
+         new("Migrate the current pack to a complete environment first", "Migrate the current pack to a complete environment first", "当前整合包尚未迁移为完整环境", "目前整合包尚未遷移為完整環境"),
+         new("File ownership has not been verified", "File ownership has not been verified", "文件归属尚未核实", "檔案歸屬尚未核實"),
+@@ -670,7 +670,7 @@ internal static partial class Loc
+         new("Preparing temporary modpack preview", "Preparing temporary modpack preview", "正在生成临时整合包预览", "正在生成臨時整合包預覽"),
+         new("Preparing to switch", "Preparing to switch", "正在准备切换", "正在準備切換"),
+         new("Wait for completion before launching again. Launching early stops the operation and restores the previous setup.", "Wait for completion before launching again. Launching early stops the operation and restores the previous setup.", "请等待完成后再启动游戏。提前启动会中止操作并恢复原有配置。", "請等待完成後再啟動遊戲。提前啟動會中止操作並恢復原有配置。"),
+-        new("The last switch did not finish. Exit PEAK and wait; MCE will restore the previous setup.", "The last switch did not finish. Exit PEAK and wait; MCE will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，MCE 会恢复原有配置。", "上次切換未完成。請退出 PEAK 並等待，MCE 會恢復原有配置。"),
++        new("The last switch did not finish. Exit PEAK and wait; the manager will restore the previous setup.", "The last switch did not finish. Exit PEAK and wait; the manager will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，管理器会恢复原有配置。", "上次切換未完成。請退出 PEAK 並等待，管理器會恢復原有配置。"),
+         new("Done.", "Done.", "已完成。", "已完成。"),
+         new("Cancelled. Nothing was changed.", "Cancelled. Nothing was changed.", "已取消，未做任何改动。", "已取消，未做任何改動。"),
+         new("Not completed", "Not completed", "操作未完成", "操作未完成"),
+@@ -928,7 +928,7 @@ internal static partial class Loc
+         new("//   Untranslated only. MCE_ keys are checked against the active language group; other texts use XUnity's loaded dictionary (exact, regex and substitutions).", "//   Untranslated only. MCE_ keys are checked against the active language group; other texts use XUnity's loaded dictionary (exact, regex and substitutions).", "//   只含未翻译条目：MCE_ 键查当前语言组，其余文本查 XUnity 当前词典（精确、正则、替换均计入）。", "//   只含未翻譯條目：MCE_ 鍵查目前語言組，其餘文字查 XUnity 目前詞典（精確、正則、替換均計入）。"),
+         new("//   Untranslated only. MCE_ keys are checked against the active language group; other texts fall back to exact matches in Translation .txt files.", "//   Untranslated only. MCE_ keys are checked against the active language group; other texts fall back to exact matches in Translation .txt files.", "//   只含未翻译条目：MCE_ 键查当前语言组；其余文本退回按 Translation 下 .txt 原文精确匹配。", "//   只含未翻譯條目：MCE_ 鍵查目前語言組；其餘文字退回按 Translation 下 .txt 原文精確比對。"),
+         new("//   Originals that already contain CJK characters count as \"no need\" and are not listed.", "//   Originals that already contain CJK characters count as \"no need\" and are not listed.", "//   已含中文的原文按「无需翻译」计，不列出。", "//   已含中文的原文按「無需翻譯」計，不列出。"),
+-        new("// ==== ModConfig Enhance UI (MCE_ keys: translate the right side only, never the key) ====", "// ==== ModConfig Enhance UI (MCE_ keys: translate the right side only, never the key) ====", "// ==== ModConfig Enhance 界面（MCE_ 键：只翻等号右边，键不要动）====", "// ==== ModConfig Enhance 介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="),
++        new("// ==== In-Game Mod Manager UI (MCE_ keys: translate the right side only, never the key) ====", "// ==== In-Game Mod Manager UI (MCE_ keys: translate the right side only, never the key) ====", "// ==== 游戏内模组管理器界面（MCE_ 键：只翻等号右边，键不要动）====", "// ==== 遊戲內模組管理器介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="),
+         new("No preview is available for this task. Preview again.", "No preview is available for this task. Preview again.", "此任务没有可用的预览，请重新预览。", "此任務沒有可用的預覽，請重新預覽。"),
+         new("Modpack", "Modpack", "整合包", "整合包"),
+         new("Mods: ", "Mods: ", "模组：", "模組："),
+@@ -949,7 +949,7 @@ internal static partial class Loc
+         new("Saving only adds the pack to the library; current game files are not changed until it is enabled.", "Saving only adds the pack to the library; current game files are not changed until it is enabled.", "存入只会把整合包加入整合包库，启用之前不会改动当前的游戏文件。", "存入只會把整合包加入整合包庫，啟用之前不會改動當前的游戲文件。"),
+         new("Copies the current snapshot immediately. Game files are not replaced.", "Copies the current snapshot immediately. Game files are not replaced.", "立即复制当前文件快照，不会替换游戏文件。", "立即復制當前文件快照，不會替換游戲文件。"),
+         new("Viewing stored contents only. Use Preview switch to review installation changes.", "Viewing stored contents only. Use Preview switch to review installation changes.", "当前仅查看库内内容。需要切换时，使用“预览切换影响”。", "當前僅查看庫內內容。需要切換時，使用“預覽切換影響”。"),
+-        new("Nothing changes until PEAK exits. MCE then finishes the switch; wait for it before launching again.", "Nothing changes until PEAK exits. MCE then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由 MCE 完成切换，请等待完成后再启动游戏。", "退出 PEAK 之前不會有任何改動。退出后由 MCE 完成切換，請等待完成后再啟動游戲。"),
++        new("Nothing changes until PEAK exits. The manager then finishes the switch; wait for it before launching again.", "Nothing changes until PEAK exits. The manager then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由管理器完成切换，请等待完成后再启动游戏。", "退出 PEAK 之前不會有任何改動。退出后由管理器完成切換，請等待完成后再啟動游戲。"),
+         new("Hidden notes: ", "Hidden notes: ", "已隐藏的提示：", "已隱藏的提示："),
+         new("Show hidden", "Show hidden", "显示已隐藏项", "顯示已隱藏項"),
+         new("What this pack depends on and its current status.", "What this pack depends on and its current status.", "此整合包依赖的内容及当前状态。", "此整合包依賴的內容及當前狀態。"),
+diff --git a/src/Loc.Release23Terms.cs b/src/Loc.Release23Terms.cs
+index 5ac3944..19d0a7f 100644
+--- a/src/Loc.Release23Terms.cs
++++ b/src/Loc.Release23Terms.cs
+@@ -26,7 +26,7 @@ internal static partial class Loc
+         new("Uninstall a base component", "Uninstall a base component", "卸载基础组件", "解除安裝基礎組件"),
+         new("Component identity is unconfirmed.", "Component identity is unconfirmed.", "组件身份未确认。", "組件身分未確認。"),
+         new("This component has no assembly to rename.", "This component has no assembly to rename.", "此组件没有可改名的程序集。", "此組件沒有可改名的程式集。"),
+-        new("MCE runs on this component; it cannot be disabled or uninstalled.", "MCE runs on this component; it cannot be disabled or uninstalled.", "MCE 运行依赖此组件，不能停用或卸载。", "MCE 執行依賴此組件，不能停用或解除安裝。"),
++        new("The manager runs on this component; it cannot be disabled or uninstalled.", "The manager runs on this component; it cannot be disabled or uninstalled.", "管理器运行依赖此组件，不能停用或卸载。", "管理器執行依賴此組件，不能停用或解除安裝。"),
+         new("File does not exist: {0}", "File does not exist: {0}", "文件不存在：{0}", "檔案不存在：{0}"),
+         new("Keep one of the conflicting features enabled, or save anyway if this combination is intentional.", "Keep one of the conflicting features enabled, or save anyway if this combination is intentional.", "建议只启用其中一项冲突功能；确认需要共存时仍可保存。", "建議只啟用其中一項衝突功能；確定需要共存時仍可儲存。"),
+         new("with", "with", "与", "與"),
+@@ -65,7 +65,7 @@ internal static partial class Loc
+         new("Configuration changed externally", "Configuration changed externally", "配置被外部修改", "設定被外部修改"),
+         new("Keep mine and save", "Keep mine and save", "保留我的并保存", "保留我的並儲存"),
+         new("New configuration", "New configuration", "新配置名称", "新設定名稱"),
+-        new("MCE runs on this component; it cannot be disabled or uninstalled", "MCE runs on this component; it cannot be disabled or uninstalled", "MCE 运行依赖此组件，不能停用或卸载", "MCE 執行依賴此組件，不能停用或解除安裝"),
++        new("The manager runs on this component; it cannot be disabled or uninstalled", "The manager runs on this component; it cannot be disabled or uninstalled", "管理器运行依赖此组件，不能停用或卸载", "管理器執行依賴此組件，不能停用或解除安裝"),
+         new("en", "en", "zh-cn", "zh-tw"),
+         new("Introduction saved to the shared modpack workspace: {0}", "Introduction saved to the shared modpack workspace: {0}", "介绍已保存到整合包共用工作区：{0}", "介紹已儲存到整合包共用工作區：{0}"),
+         new("Exported modpacks", "Exported modpacks", "导出的整合包", "匯出的整合包"),
+@@ -134,10 +134,10 @@ internal static partial class Loc
+         new("Original package is deprecated; review publisher and source manually", "Original package is deprecated; review publisher and source manually", "原包存在但已弃用，请手动核对发布者与来源", "原包存在但已棄用，請手動核對發佈者與來源"),
+         new("Multiple publishers use this name; select manually", "Multiple publishers use this name; select manually", "同名有多个发布者，请手动选择", "同名多個發佈者，請手動選擇"),
+         new("Name found; author, repository or saved identity needs review", "Name found; author, repository or saved identity needs review", "已找到同名项，作者、仓库或旧来源线索需核对", "已找到同名項，作者、倉庫或舊來源線索待核對"),
+-        new("MCE and the libraries it runs on cannot be disabled or uninstalled: {0}", "MCE and the libraries it runs on cannot be disabled or uninstalled: {0}", "MCE 及其运行所需的基础库不能停用或卸载：{0}", "MCE 及其執行所需的基礎庫不能停用或解除安裝：{0}"),
++        new("The manager and the libraries it runs on cannot be disabled or uninstalled: {0}", "The manager and the libraries it runs on cannot be disabled or uninstalled: {0}", "管理器及其运行所需的基础库不能停用或卸载：{0}", "管理器及其執行所需的基礎庫不能停用或解除安裝：{0}"),
+         new("Save settings", "Save settings", "保存设置", "儲存設定"),
+-        new("MCE runs on this library; it cannot be disabled or uninstalled.", "MCE runs on this library; it cannot be disabled or uninstalled.", "MCE 运行依赖此基础库，不能停用或卸载。", "MCE 執行依賴此基礎庫，不能停用或解除安裝。"),
+-        new("Files in BepInEx/core are part of the loader; MCE does not change them.", "Files in BepInEx/core are part of the loader; MCE does not change them.", "BepInEx/core 中的文件属于加载器本身，MCE 不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，MCE 不變更它們。"),
++        new("The manager runs on this library; it cannot be disabled or uninstalled.", "The manager runs on this library; it cannot be disabled or uninstalled.", "管理器运行依赖此基础库，不能停用或卸载。", "管理器執行依賴此基礎庫，不能停用或解除安裝。"),
++        new("Files in BepInEx/core are part of the loader; the manager does not change them.", "Files in BepInEx/core are part of the loader; the manager does not change them.", "BepInEx/core 中的文件属于加载器本身，管理器不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，管理器不變更它們。"),
+         new("Select a supported configuration file within the config directory.", "Select a supported configuration file within the config directory.", "请选择配置目录内受支持的配置文件。", "請選擇設定目錄內受支援的設定檔。"),
+         new("The setting is missing from a loaded or shared config file; its target is retained for review.", "The setting is missing from a loaded or shared config file; its target is retained for review.", "已加载或共享配置文件中缺少此项；保留目标供检查。", "已載入或共用設定檔中缺少此項；保留目標供檢查。"),
+         new("Invalid value; this item was skipped: ", "Invalid value; this item was skipped: ", "值无效，已跳过此项：", "值無效，已略過此項："),
+@@ -268,7 +268,7 @@ internal static partial class Loc
+         new("Expand an item to see its files. Deleting removes the whole item and rechecks the scope first. Protected items cannot be deleted.", "Expand an item to see its files. Deleting removes the whole item and rechecks the scope first. Protected items cannot be deleted.", "展开项目查看文件；删除按项目整体处理，执行前重新核对范围。受保护项目不提供删除操作。", "展開項目檢視檔案；刪除以項目整體處理，執行前重新核對範圍。受保護項目不提供刪除操作。"),
+         new("A modpack task is running; deleting is unavailable for now.", "A modpack task is running; deleting is unavailable for now.", "整合包任务进行中，删除操作暂不可用。", "整合包任務進行中，刪除操作暫不可用。"),
+         new("Reading the file tree in the background…", "Reading the file tree in the background…", "正在后台读取文件树……", "正在背景讀取檔案樹……"),
+-        new("Open MCE data folder", "Open MCE data folder", "打开管理目录", "開啟管理目錄"),
++        new("Open manager data folder", "Open manager data folder", "打开管理目录", "開啟管理目錄"),
+         new("Save configuration and mod operations", "Save configuration and mod operations", "保存配置与模组变更", "儲存設定與模組變更"),
+         new("Showing mods involved in the check. Open tag filters to clear this view.", "Showing mods involved in the check. Open tag filters to clear this view.", "仅显示检查涉及的模组；修改标签筛选可清除此临时视图。", "僅顯示檢查涉及的模組；修改標籤篩選可清除此暫時檢視。"),
+         new("Keep your edited value and save? Cancel keeps the external value and your draft for review.", "Keep your edited value and save? Cancel keeps the external value and your draft for review.", "是否保留我的修改并保存？取消将保留外部值和当前草稿，供继续核对。", "是否保留我的修改並儲存？取消將保留外部值和目前草稿，供繼續核對。"),
+@@ -322,7 +322,7 @@ internal static partial class Loc
+         new("Retain current state", "Retain current state", "保留当前状态", "保留目前狀態"),
+         new("Fix: ", "Fix: ", "处理办法：", "處理方法："),
+         new("Keep the required provider enabled, enable it with this mod, or install the requested version. Skip enablement to leave this installation as it is.", "Keep the required provider enabled, enable it with this mod, or install the requested version. Skip enablement to leave this installation as it is.", "保留所需依赖启用，或与此模组一起启用；版本不足时更新到提示版本。也可跳过启停，维持现有安装。", "保留所需依賴啟用，或與此模組一起啟用；版本不足時更新至提示版本。也可略過啟停，維持現有安裝。"),
+-        new("Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; MCE will not delete them.", "Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; MCE will not delete them.", "核对列出的路径，保留一个预期启用/停用候选后刷新；备份另行保留，管理器不会删除。", "核對列出的路徑，保留一個預期啟用/停用候選後重新整理；備份另行保留，管理器不會刪除。"),
++        new("Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; the manager will not delete them.", "Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; the manager will not delete them.", "核对列出的路径，保留一个预期启用/停用候选后刷新；备份另行保留，管理器不会删除。", "核對列出的路徑，保留一個預期啟用/停用候選後重新整理；備份另行保留，管理器不會刪除。"),
+         new("Resolve the reported file, permission or manager-profile issue and refresh before retrying; skip enablement to apply other settings first.", "Resolve the reported file, permission or manager-profile issue and refresh before retrying; skip enablement to apply other settings first.", "按原因处理文件、权限或管理器档案后刷新重试；可跳过启停先应用其他设置。", "依原因處理檔案、權限或管理器檔案後重新整理重試；可略過啟停先套用其他設定。"),
+         new("This application", "This application", "本次应用", "本次套用"),
+         new("Single-item check; batch companion changes are not included.", "Single-item check; batch companion changes are not included.", "此为单项检查，未计入本批配套改动。", "此為單項檢查，未計入本批配套變更。"),
+diff --git a/src/Loc.UpdaterTerms.cs b/src/Loc.UpdaterTerms.cs
+index 8b9066e..21a4703 100644
+--- a/src/Loc.UpdaterTerms.cs
++++ b/src/Loc.UpdaterTerms.cs
+@@ -119,7 +119,7 @@ internal static partial class Loc
+         new("Roll back after exit", "Roll back after exit", "退出游戏后回退", "離開遊戲後還原"),
+         new("Rolled back", "Rolled back", "已回退", "已還原"),
+         new("Could not read the update queue; the previous view was kept: ", "Could not read the update queue; the previous view was kept: ", "更新队列读取失败，保留上次显示：", "更新佇列讀取失敗，保留上次顯示："),
+-        new("The update worker is missing. Reinstall the complete MCE package.", "The update worker is missing. Reinstall the complete MCE package.", "缺少更新助手，请重新安装完整 MCE 包。", "缺少更新助手，請重新安裝完整 MCE 套件。"),
++        new("The update worker is missing. Reinstall the complete In-Game Mod Manager package.", "The update worker is missing. Reinstall the complete In-Game Mod Manager package.", "缺少更新助手，请重新安装完整的游戏内模组管理器包。", "缺少更新助手，請重新安裝完整的遊戲內模組管理器套件。"),
+         new("Use an HTTP(S) proxy address without credentials.", "Use an HTTP(S) proxy address without credentials.", "请使用不带账户密码的 HTTP(S) 代理地址。", "請使用不含帳號密碼的 HTTP(S) 代理位址。"),
+         new("Finish or undo this package's pending update and restart before publishing: {0}", "Finish or undo this package's pending update and restart before publishing: {0}", "此资料包有未完成或待重启的更新，请完成或撤销并重启后再发布：{0}", "此資料包有未完成或待重新啟動的更新，請完成或撤銷並重新啟動後再發布：{0}"),
+         new("Confirm the store source first.", "Confirm the store source first.", "请先确认商店来源。", "請先確認商店來源。"),
+diff --git a/src/Loc.cs b/src/Loc.cs
+index 108983d..c9b6cac 100644
+--- a/src/Loc.cs
++++ b/src/Loc.cs
+@@ -139,9 +139,9 @@ internal static partial class Loc
+         new("NOTICE_REFRESHED", "Language folder rescanned: {0} language group(s).", "已重新扫描语言目录：{0} 个语言组。", "已重新掃描語言目錄：{0} 個語言組。"),
+         // 悬停注释（说明面板显示；首行是标题，`…` 包住的部分用标题色强调）
+         new("TIP_EXPORT_V2",
+-            "Export texts\nExports the untranslated source dictionary of every mod, including MCE (`ModConfigEnhance`) itself;\nmods unticked while `Selected only` is on are excluded.\n\nDefault output: `*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\nUsage: `*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`",
+-            "导出翻译\n导出包括 MCE（`ModConfigEnhance`）模组本身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n默认导出路径：`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\n如何使用请查阅`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`",
+-            "導出翻譯\n導出包括 MCE（`ModConfigEnhance`）模組本身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n默認導出路徑：`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\output\\translation\\*`\n如何使用請查閱`*\\PEAK\\BepInEx\\config\\ModConfigEnhance\\readme.md`"),
++            "Export texts\nExports the untranslated source dictionary of every mod, including this manager itself;\nmods unticked while `Selected only` is on are excluded.\n\nOutput: `output\\translation\\` (the folder button opens it)\nFull path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\`; usage in `readme.md` one level up from `output\\`.",
++            "导出翻译\n导出包括本管理器自身在内的所有模组的待翻译原文词典;\n但不包括`仅导出已选`启用后取消选中的模组。\n\n导出位置：`output\\translation\\`（点旁边的文件夹按钮直接打开）\n完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法见 `output\\` 上一级的 `readme.md`。",
++            "導出翻譯\n導出包括本管理器自身在內的所有模組的待翻譯原文詞典;\n但不包括`僅導出已選`啟用後取消選中的模組。\n\n匯出位置：`output\\translation\\`（點旁邊的資料夾按鈕直接打開）\n完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`；用法見 `output\\` 上一級的 `readme.md`。"),
+         new("TIP_UNTRANSLATED_V2",
+             "Untranslated\nExports only the entries the current language group doesn't cover yet: exact lines and `r:` regex rules both count as translated.\n\nOutput lands in `output\\translation\\`; fill it in, then use `Import additions` in the language row.",
+             "补漏翻\n只导出当前语言组还没覆盖的原文条目：整句译文和 `r:` 正则规则命中的都算已翻。\n\n产物落在 `output\\translation\\`，填好后用语言行的`导入补翻`合进语言文件。",
+@@ -158,10 +158,12 @@ internal static partial class Loc
+             "Reload texts\nRe-reads the files in `language\\` — after editing a language file this applies it without re-picking the language.",
+             "重载翻译\n重新读取 `language\\` 的语言文件：改完语言文件点它即生效，无需重选语言。",
+             "重載翻譯\n重新讀取 `language\\` 的語言檔案：改完語言檔案點它即生效，無需重選語言。"),
+-        new("TIP_OPEN_DIR_V2",
+-            "Open folder\nOpens `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\` (language files), `output\\translation\\` (exports) and `readme.md` (docs) all live there.",
+-            "打开目录\n打开 `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\`（语言文件）、`output\\translation\\`（导出产物）、`readme.md`（使用说明）都在里面。",
+-            "打開目錄\n打開 `BepInEx\\config\\ModConfigEnhance\\`\n\n`language\\`（語言檔案）、`output\\translation\\`（導出產物）、`readme.md`（使用說明）都在裡面。"),
++        // 2.5.5：按钮改为直接打开翻译导出目录，含义变了，换 _V3 键（旧 _V2 进 RetiredTerms）。
++        // 个人数据文件夹仍叫 config\ModConfigEnhance（内部目录名，拆分时再定），提示里如实写出。
++        new("TIP_OPEN_DIR_V3",
++            "Open export folder\nOpens the translation export folder `output\\translation\\`: exported texts and untranslated lists are written here, and `Import additions` picks files from here.\n\nLanguage files are in the sibling `language\\` folder. Full path: `BepInEx\\config\\ModConfigEnhance\\output\\translation\\` (the folder keeps its internal name).",
++            "打开导出目录\n直接打开翻译导出目录 `output\\translation\\`：`导出翻译`、`补漏翻`生成的文件都在这里，`导入补翻`也从这里选文件。\n\n语言文件在同级的 `language\\`。完整路径：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（文件夹沿用内部名称）。",
++            "打開匯出目錄\n直接打開翻譯匯出目錄 `output\\translation\\`：`導出翻譯`、`補漏翻`產生的檔案都在這裡，`匯入補翻`也從這裡選檔案。\n\n語言檔案在同級的 `language\\`。完整路徑：`BepInEx\\config\\ModConfigEnhance\\output\\translation\\`（資料夾沿用內部名稱）。"),
+         new("TIP_SORT",
+             "Sort\nSidebar mod order:\n\n`Default` (load order) / `Load reversed` / `Name` / `Name reversed`.",
+             "排序\n侧栏模组行的排序方式：\n\n`默认`（加载顺序）/ `加载倒序` / `名称` / `名称倒序`。",
+@@ -207,6 +209,24 @@ internal static partial class Loc
+     /// <summary>本模组 cfg 选项名 / 说明的内置译文：键是 cfg 里的英文原文，设置页与说明面板按它显示。</summary>
+     internal static readonly Term[] ConfigTerms =
+     {
++        // 2.5.5：自身设置项此前缺内置译文（补漏翻导出里一直列出）
++        new("Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
++            "Manage mods in-game: PEAK mods, settings, dependencies, updates and modpacks in one place, with isolated environments, profiles, localization and package export.",
++            "在游戏内管理模组：PEAK 的模组、设置、依赖、更新和整合包集中在一处，支持独立环境、配置方案、本地化与打包导出。",
++            "在遊戲內管理模組：PEAK 的模組、設定、依賴、更新和整合包集中在一處，支援獨立環境、配置方案、本地化與打包匯出。"),
++        new("Check update metadata every 30 minutes in the main menu or Airport only. Downloads and installation require confirmation.",
++            "Check update metadata every 30 minutes in the main menu or Airport only. Downloads and installation require confirmation.",
++            "只在主菜单或机场每 30 分钟检查一次更新信息；下载和安装都要你确认。",
++            "只在主選單或機場每 30 分鐘檢查一次更新資訊；下載和安裝都要你確認。"),
++        new("Rest idle button animations", "Rest idle button animations", "闲置按钮动画休眠", "閒置按鈕動畫休眠"),
++        new("Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.",
++            "Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.",
++            "管理器按钮的非循环常态动画播完后暂停，省下每帧开销；悬停、点击、选中效果和音效照旧。",
++            "管理器按鈕的非循環常態動畫播完後暫停，省下每幀開銷；懸停、點擊、選中效果和音效照舊。"),
++        new("On: show up to two dependency levels in name hints; deeper levels are omitted. Off: show all direct dependencies only. Dependants use a compact two-level summary. Omitted branches show an ellipsis. Long hints can be scrolled in either placement mode. Duplicate references are merged and circular branches stop expanding.",
++            "On: show up to two dependency levels in name hints; deeper levels are omitted. Off: show all direct dependencies only. Dependants use a compact two-level summary. Omitted branches show an ellipsis. Long hints can be scrolled in either placement mode. Duplicate references are merged and circular branches stop expanding.",
++            "开：名称提示里最多显示两层依赖，更深的省略。关：只显示全部直接依赖。被依赖方向用精简的两层摘要。省略的分支显示省略号。两种显示位置下长提示都能滚动。重复引用合并显示，循环分支不再展开。",
++            "開：名稱提示裡最多顯示兩層依賴，更深的省略。關：只顯示全部直接依賴。被依賴方向用精簡的兩層摘要。省略的分支顯示省略號。兩種顯示位置下長提示都能捲動。重複引用合併顯示，循環分支不再展開。"),
+         new("Appearance speed", "Appearance speed", "概览动效速度", "概覽動效速度"),
+         new("Tree sidebar", "Tree sidebar", "树形侧栏", "樹形側欄"),
+         new("Description panel", "Description panel", "选项说明面板", "選項說明面板"),
+@@ -233,8 +253,8 @@ internal static partial class Loc
+             "模组列表改为左侧竖排侧栏，选中的模组在其下方展开分区，右侧显示选项。重启生效。",
+             "模組列表改為左側直排側欄，選中的模組在其下方展開分區，右側顯示選項。重啟生效。"),
+         new(Plugin.DescColourTheme, Plugin.DescColourTheme,
+-            "MCE 全部界面的配色主题。蓝色跟随游戏的设置菜单；紫色是夜间风格；夜里自动紫色在装了 TimeTheme 时夜里切到紫色（只读它的昼夜状态）。模组设置页即时切换；已打开过的概览在下次打开时切换。",
+-            "MCE 全部介面的配色主題。藍色跟隨遊戲的設定選單；紫色是夜間風格；夜裡自動紫色在裝了 TimeTheme 時夜裡切到紫色（只讀它的晝夜狀態）。模組設定頁即時切換；已開啟過的概覽在下次開啟時切換。"),
++            "管理器全部界面的配色主题。蓝色跟随游戏的设置菜单；紫色是夜间风格；夜里自动紫色在装了 TimeTheme 时夜里切到紫色（只读它的昼夜状态）。模组设置页即时切换；已打开过的概览在下次打开时切换。",
++            "管理器全部介面的配色主題。藍色跟隨遊戲的設定選單；紫色是夜間風格；夜裡自動紫色在裝了 TimeTheme 時夜裡切到紫色（只讀它的晝夜狀態）。模組設定頁即時切換；已開啟過的概覽在下次開啟時切換。"),
+         new(Plugin.DescDescriptionPanel, Plugin.DescDescriptionPanel,
+             "右上方面板显示悬停选项的说明、默认值与取值范围 / 可选项。需要树形侧栏。重启生效。",
+             "右上方板面顯示懸停選項的說明、預設值與取值範圍 / 可選項。需要樹形側欄。重啟生效。"),
+@@ -677,6 +697,8 @@ internal static partial class Loc
+         "NOTICE_NO_XUNITY_CHECK", "NOTICE_NO_XUNITY", "NOTICE_XUNITY_SWITCHED", "NOTICE_XUNITY_SYNCED", "NOTICE_XUNITY_NO_SWITCH",
+         // 2.5.4：这 7 个旧键名已换成 _V2，代码不再使用，旧文件里的译文（说的是 XUnity 联动）一并清掉
+         "NOTICE_SHOWING_ORIGINAL", "NOTICE_RELOADED", "TIP_UNTRANSLATED", "TIP_TOGGLE_ORIG", "TIP_RELOAD", "TIP_OPEN_DIR", "TIP_EXPORT", "NOTICE_IMPORTED",
++        // 2.5.5：文件夹按钮改为直接打开翻译导出目录
++        "TIP_OPEN_DIR_V2",
+         "Switch XUnity language with the language file", "Disable XUnity machine translation",
+     };
+ 
+@@ -822,7 +844,7 @@ internal static partial class Loc
+                 int applied = ApplyFile(file);
+                 int missing = Terms.Length - applied;
+                 parts.Add((file.DisplayOrStem + " ×" + file.FileCount
+-                    + T("  |  MCE dictionary: ", "  |  已加载 MCE 词典 ", "  |  已載入 MCE 詞典 ") + applied
++                    + T("  |  Manager dictionary: ", "  |  已加载管理器词典 ", "  |  已載入管理器詞典 ") + applied
+                     + T(" entries", " 条", " 條"), ModConfigDescriptionPanel.NoticeRole.Body));
+                 if (missing > 0)
+                 {
+diff --git a/src/ModConfigLook.cs b/src/ModConfigLook.cs
+index 0b7cf83..4116e20 100644
+--- a/src/ModConfigLook.cs
++++ b/src/ModConfigLook.cs
+@@ -6,7 +6,7 @@ using UnityEngine;
+ namespace ModConfigEnhance;
+ 
+ /// <summary>
+-/// 2.4.0：MCE 全部界面的配色主题，唯一来源。
++/// 2.4.0：管理器全部界面的配色主题，唯一来源。
+ ///
+ /// 两套主题：
+ ///   · 蓝色：跟随游戏 3.1 的设置菜单（<c>Peak.UI.SettingsMenu.SettingsColors</c>，运行时反射读取，读不到用同值常量）；
+diff --git a/src/ModConfigTranslationExport.cs b/src/ModConfigTranslationExport.cs
+index 52a70ba..cd8261f 100644
+--- a/src/ModConfigTranslationExport.cs
++++ b/src/ModConfigTranslationExport.cs
+@@ -85,7 +85,7 @@ internal static class ModConfigTranslationExport
+ 
+         PeakMenuButton openDir = MakeButton(page, "MCE_OpenFolder", "BTN_OPEN_FOLDER", FolderColor, left + (third + gap) * 3f, top, height, height, OpenRootFolder);
+         ModConfigSidebarWidgets.StyleFolderButton(openDir, height);
+-        openDir.gameObject.AddComponent<ModConfigSidebarWidgets.TipTarget>().Key = "TIP_OPEN_DIR_V2";
++        openDir.gameObject.AddComponent<ModConfigSidebarWidgets.TipTarget>().Key = "TIP_OPEN_DIR_V3";
+     }
+ 
+     /// <summary>2.5.0：选一个填好的导出文件，有译文的行合进当前语言文件，然后重读。</summary>
+@@ -120,9 +120,9 @@ internal static class ModConfigTranslationExport
+     {
+         try
+         {
+-            Directory.CreateDirectory(Loc.LanguageDirectory);
++            // 2.5.5（用户要求）：直接打开翻译导出目录（导出翻译、补漏翻写在这里，导入补翻也从这里选）
+             Directory.CreateDirectory(Loc.ExportDirectory);
+-            Application.OpenURL("file:///" + Loc.RootDirectory.Replace('\\', '/'));
++            Application.OpenURL("file:///" + Loc.ExportDirectory.Replace('\\', '/'));
+         }
+         catch (Exception ex)
+         {
+@@ -429,7 +429,7 @@ internal static class ModConfigTranslationExport
+         void Line(string text) => sb.Append(text).Append('\n');
+ 
+         Line("// ==============================================================");
+-        Line("//   ModConfig Enhance " + Plugin.PluginVersion + " · " + (untranslatedOnly
++        Line("//   " + L("In-Game Mod Manager", "游戏内模组管理器", "遊戲內模組管理器") + " " + Plugin.PluginVersion + " · " + (untranslatedOnly
+             ? L("untranslated texts", "未翻译文本", "未翻譯文字")
+             : L("texts to translate", "待翻译文本", "待翻譯文字")) + " · " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+         Line("// ==============================================================");
+@@ -494,9 +494,9 @@ internal static class ModConfigTranslationExport
+         sb.Append('\n');
+ 
+         // 本模组界面词条：键是稳定 ID，等号右边预填英文，翻完这段就是本模组的语言文件
+-        Line(L("// ==== ModConfig Enhance UI (MCE_ keys: translate the right side only, never the key) ====",
+-               "// ==== ModConfig Enhance 界面（MCE_ 键：只翻等号右边，键不要动）====",
+-               "// ==== ModConfig Enhance 介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="));
++        Line(L("// ==== In-Game Mod Manager UI (MCE_ keys: translate the right side only, never the key) ====",
++               "// ==== 游戏内模组管理器界面（MCE_ 键：只翻等号右边，键不要动）====",
++               "// ==== 遊戲內模組管理器介面（MCE_ 鍵：只翻等號右邊，鍵不要動）===="));
+         HashSet<string>? translatedMceTerms = untranslatedOnly ? Loc.CurrentTranslatedTermKeys() : null;
+         written = 0;
+         skipped = 0;
+diff --git a/src/Overview/AnimatorRestGate.cs b/src/Overview/AnimatorRestGate.cs
+index 830b341..ab18ed9 100644
+--- a/src/Overview/AnimatorRestGate.cs
++++ b/src/Overview/AnimatorRestGate.cs
+@@ -23,7 +23,7 @@ internal sealed class AnimatorRestGate : MonoBehaviour
+     internal static void Install(Harmony harmony,ConfigFile config)
+     {
+         _option=config.Bind("4. Mod overview","Rest idle button animations",true,
+-            "Pause completed non-looping MCE button Normal animations. Original hover, click, selection and sounds are retained.");
++            "Pause the manager's button animations once a non-looping Normal clip has finished. Original hover, click, selection and sounds are retained.");
+         try
+         {
+             harmony.Patch(AccessTools.Method(typeof(Selectable),"DoStateTransition"),
+diff --git a/src/Overview/ComponentToggle.cs b/src/Overview/ComponentToggle.cs
+index 118ba96..b39537a 100644
+--- a/src/Overview/ComponentToggle.cs
++++ b/src/Overview/ComponentToggle.cs
+@@ -22,7 +22,7 @@ internal static class ComponentToggle
+         if (!package.IdentityConfirmed) return Loc.T("Component identity is unconfirmed.", "组件身份未确认。", "組件身分未確認。");
+         if (package.RuntimeFiles.Count == 0) return Loc.T("This component has no assembly to rename.", "此组件没有可改名的程序集。", "此組件沒有可改名的程式集。");
+         if (!enabled && RequiredByMce(package))
+-            return Loc.T("MCE runs on this component; it cannot be disabled or uninstalled.", "MCE 运行依赖此组件，不能停用或卸载。", "MCE 執行依賴此組件，不能停用或解除安裝。");
++            return Loc.T("The manager runs on this component; it cannot be disabled or uninstalled.", "管理器运行依赖此组件，不能停用或卸载。", "管理器執行依賴此組件，不能停用或解除安裝。");
+         if (enabled && package.RuntimeFiles.Any(PluginFileNames.IsForeignDisabled))
+             return Loc.T("Disabled by another tool. Restore it using that tool.", "由其他工具停用，请使用原工具恢复。", "由其他工具停用，請使用原工具恢復。");
+         return "";
+diff --git a/src/Overview/DiagnosticSummary.cs b/src/Overview/DiagnosticSummary.cs
+index 2f839d9..4876a8b 100644
+--- a/src/Overview/DiagnosticSummary.cs
++++ b/src/Overview/DiagnosticSummary.cs
+@@ -18,7 +18,7 @@ internal sealed class DiagnosticSummary
+     { State = state; CanUninstall = canUninstall; CanUpdate = canUpdate; _details = details; }
+     internal string Summary => State switch {
+         Status.NotRead => Loc.T("Dependency information has not been read", "依赖信息尚未读取", "依賴資訊尚未讀取"),
+-        Status.RequiredByMce => Loc.T("MCE runs on this component; it cannot be disabled or uninstalled", "MCE 运行依赖此组件，不能停用或卸载", "MCE 執行依賴此組件，不能停用或解除安裝"),
++        Status.RequiredByMce => Loc.T("The manager runs on this component; it cannot be disabled or uninstalled", "管理器运行依赖此组件，不能停用或卸载", "管理器執行依賴此組件，不能停用或解除安裝"),
+         Status.Incomplete => Loc.T("Dependency information is incomplete; uninstall is not yet available", "依赖信息不完整，暂不能卸载", "依賴資訊不完整，暫不能解除安裝"),
+         Status.VerificationRequired => Loc.T("Uninstall preview is available; file ownership and dependencies still need verification", "可进入卸载预览，仍需核实文件归属和依赖", "可進入解除安裝預覽，仍需核實檔案歸屬與依賴"),
+         Status.CompleteEnvironmentRequired => Loc.T("Migrate the current pack to a complete environment first", "当前整合包尚未迁移为完整环境", "目前整合包尚未遷移為完整環境"),
+diff --git a/src/Overview/DiagnosticUiLanguage.cs b/src/Overview/DiagnosticUiLanguage.cs
+index 9bd61db..b1056e2 100644
+--- a/src/Overview/DiagnosticUiLanguage.cs
++++ b/src/Overview/DiagnosticUiLanguage.cs
+@@ -11,7 +11,7 @@ internal static class DiagnosticUiLanguage
+ {
+     private static readonly (string Simplified, string English, string Traditional)[] Phrases =
+     {
+-        ("MCE 整合包切换", "MCE Modpack Switch", "MCE 整合包切換"), ("运行日志", "Runtime logs", "執行日誌"),
++        ("游戏内模组管理器 · 整合包切换", "In-Game Mod Manager · Modpack switch", "遊戲內模組管理器 · 整合包切換"), ("运行日志", "Runtime logs", "執行日誌"),
+         ("日志等级", "Log level", "日誌等級"), ("模组／来源", "Mod / source", "模組／來源"),
+         ("日志正文", "Log message", "日誌內文"), ("时间（* 接收时间）", "Time (* received)", "時間（* 接收時間）"),
+         ("搜索日志正文、模组名……", "Search messages or mods...", "搜尋日誌內文、模組名稱……"), ("暂停刷新", "Pause", "暫停重新整理"),
+@@ -41,7 +41,7 @@ internal static class DiagnosticUiLanguage
+         ("重新检查并重试", "Recheck and retry", "重新檢查並重試"), ("重试恢复原环境", "Retry recovery", "重試還原原環境"),
+         ("重试切换", "Retry switch", "重試切換"), ("复制详情", "Copy details", "複製詳情"),
+         ("打开切换备份文件夹", "Open switch backup folder", "開啟切換備份資料夾"), ("已提交重试请求，正在重新检查……", "Retry submitted; rechecking...", "已提交重試請求，正在重新檢查……"),
+-        ("当前任务记录已变化，请返回 MCE 查看。", "The task changed. Return to MCE for details.", "目前任務記錄已變更，請返回 MCE 查看。"), ("等待 PEAK 退出", "Waiting for PEAK to exit", "等待 PEAK 結束"),
++        ("当前任务记录已变化，请返回管理器查看。", "The task changed. Return to the manager for details.", "目前任務記錄已變更，請返回管理器查看。"), ("等待 PEAK 退出", "Waiting for PEAK to exit", "等待 PEAK 結束"),
+         ("正在保存并切换", "Saving and switching", "正在儲存並切換"), ("切换完成，可以启动游戏", "Switch complete. You can start PEAK.", "切換完成，可以啟動遊戲"),
+         ("切换失败", "Switch failed", "切換失敗"), ("恢复未完成，请勿启动游戏", "Recovery incomplete. Do not start PEAK.", "還原未完成，請勿啟動遊戲"),
+         ("正在处理请求", "Processing request", "正在處理請求"), ("准备阶段，尚未替换文件", "Preparation stage; files have not been replaced", "準備階段，尚未取代檔案"),
+diff --git a/src/Overview/Editor/DocJson.cs b/src/Overview/Editor/DocJson.cs
+index 9420e2b..6cc7ac4 100644
+--- a/src/Overview/Editor/DocJson.cs
++++ b/src/Overview/Editor/DocJson.cs
+@@ -26,9 +26,9 @@ internal static class DocJson
+     public static Document Read(string json)
+     {
+         var root = JObject.Parse(json);
+-        if (root.Value<string>("format") is string format && format != Format) throw new InvalidDataException(Loc.T("Not an MCE document: ", "不是 MCE 文档：", "不是 MCE 文檔：") + format);
++        if (root.Value<string>("format") is string format && format != Format) throw new InvalidDataException(Loc.T("Not a manager document: ", "不是管理器文档：", "不是管理器文檔：") + format);
+         int version = root.Value<int?>("version") ?? 1;
+-        if (version > Version) throw new InvalidDataException(Loc.F("Document version {0} is newer than this mod. Update ModConfig Enhance.", "文档版本 {0} 比当前模组新，请更新 ModConfig Enhance。", "文件版本 {0} 比目前模組新，請更新 ModConfig Enhance。", version));
++        if (version > Version) throw new InvalidDataException(Loc.F("Document version {0} is newer than this mod. Update In-Game Mod Manager.", "文档版本 {0} 比当前模组新，请更新游戏内模组管理器。", "文件版本 {0} 比目前模組新，請更新遊戲內模組管理器。", version));
+         var document = new Document();
+         if (root["blocks"] is JArray blocks)
+             foreach (var token in blocks.OfType<JObject>())
+diff --git a/src/Overview/Help/HelpPage.cs b/src/Overview/Help/HelpPage.cs
+index 42dccd1..dd22776 100644
+--- a/src/Overview/Help/HelpPage.cs
++++ b/src/Overview/Help/HelpPage.cs
+@@ -197,8 +197,8 @@ internal sealed partial class HelpPage : UIPage, IHaveParentPage
+     {
+         _back.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Back", "返回", "返回");
+         _historyButton.GetComponentInChildren<TextMeshProUGUI>(true).text = Loc.T("Previous location", "返回上一处", "返回上一處");
+-        _title.text = "ModConfigEnhance · " + HelpDocuments.Find(_page)!.Title;
+-        _version.text = Loc.F("MCE {0} · {1}", "MCE {0} · {1}", "MCE {0} · {1}", Plugin.PluginVersion, GuideSourceLabel());
++        _title.text = Loc.T("In-Game Mod Manager", "游戏内模组管理器", "遊戲內模組管理器") + " · " + HelpDocuments.Find(_page)!.Title;
++        _version.text = Loc.F("v{0} · {1}", "v{0} · {1}", "v{0} · {1}", Plugin.PluginVersion, GuideSourceLabel());
+         _chapterTitle.text = Loc.T("User guide", "使用说明", "使用說明");
+         _status.text = Loc.T("Click blue text to navigate · Previous location restores your place · Scroll with the right stick", "点击蓝色文字跳转 · 返回上一处恢复阅读位置 · 手柄右摇杆滚动", "點擊藍色文字跳轉 · 返回上一處恢復閱讀位置 · 手把右搖桿捲動");
+         if (_editing) _status.text = Loc.T("Click the document to type · Use the toolbar to format and save · Changes stay on this device", "点击正文即可输入 · 工具栏可排版和保存 · 修改保存在本机", "點擊正文即可輸入 · 工具列可排版和儲存 · 修改儲存在本機");
+diff --git a/src/Overview/ModToggleService.cs b/src/Overview/ModToggleService.cs
+index 2224903..eef4a9c 100644
+--- a/src/Overview/ModToggleService.cs
++++ b/src/Overview/ModToggleService.cs
+@@ -589,7 +589,7 @@ internal sealed class ModToggleService
+         if (!File.Exists(file)) throw new IOException(Loc.F("The confirmed assembly does not exist: {0}", "确认的程序集不存在：{0}", "確認的程序集不存在：{0}", file));
+         foreach (var record in ReadPlugins(file))
+             if (ModConfigEnhance.Updating.ComponentDependencyGraph.IsProtected(record.Guid))
+-                throw new InvalidOperationException(Loc.F("MCE and the libraries it runs on cannot be disabled or uninstalled: {0}", "MCE 及其运行所需的基础库不能停用或卸载：{0}", "MCE 及其執行所需的基礎庫不能停用或解除安裝：{0}", record.Guid));
++                throw new InvalidOperationException(Loc.F("The manager and the libraries it runs on cannot be disabled or uninstalled: {0}", "管理器及其运行所需的基础库不能停用或卸载：{0}", "管理器及其執行所需的基礎庫不能停用或解除安裝：{0}", record.Guid));
+     }
+     private static void CheckDependencies(Plan plan)
+     {
+diff --git a/src/Overview/OverviewCatalogue.cs b/src/Overview/OverviewCatalogue.cs
+index dd64396..b0c2efd 100644
+--- a/src/Overview/OverviewCatalogue.cs
++++ b/src/Overview/OverviewCatalogue.cs
+@@ -392,8 +392,8 @@ internal sealed partial class OverviewCatalogue
+         // 2.3.9: the one protected whitelist (MCE + ModConfig + PEAKLib.Core + PEAKLib.UI), matched exactly.
+         bool infrastructure = ModConfigEnhance.Updating.ComponentDependencyGraph.IsProtected(guid);
+         string core = Path.GetFullPath(Paths.BepInExRootPath + Path.DirectorySeparatorChar + "core").TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+-        if (infrastructure) { row.CanToggle = false; row.ToggleReason = Loc.T("MCE runs on this library; it cannot be disabled or uninstalled.", "MCE 运行依赖此基础库，不能停用或卸载。", "MCE 執行依賴此基礎庫，不能停用或解除安裝。"); }
+-        else if (path.StartsWith(core, StringComparison.OrdinalIgnoreCase)) { row.CanToggle = false; row.ToggleReason = Loc.T("Files in BepInEx/core are part of the loader; MCE does not change them.", "BepInEx/core 中的文件属于加载器本身，MCE 不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，MCE 不變更它們。"); }
++        if (infrastructure) { row.CanToggle = false; row.ToggleReason = Loc.T("The manager runs on this library; it cannot be disabled or uninstalled.", "管理器运行依赖此基础库，不能停用或卸载。", "管理器執行依賴此基礎庫，不能停用或解除安裝。"); }
++        else if (path.StartsWith(core, StringComparison.OrdinalIgnoreCase)) { row.CanToggle = false; row.ToggleReason = Loc.T("Files in BepInEx/core are part of the loader; the manager does not change them.", "BepInEx/core 中的文件属于加载器本身，管理器不改动它们。", "BepInEx/core 中的檔案屬於載入器本身，管理器不變更它們。"); }
+         if (PluginFileNames.IsForeignDisabled(path))
+         { row.CanToggle = false; row.ToggleReason = Loc.T("Disabled by another tool. Restore it using that tool.", "由其他工具停用，请使用原工具恢复", "由其他工具停用，請使用原工具恢復"); }
+         ModSources.Apply(row);
+diff --git a/src/Overview/OverviewController.cs b/src/Overview/OverviewController.cs
+index 91bf361..288f4ab 100644
+--- a/src/Overview/OverviewController.cs
++++ b/src/Overview/OverviewController.cs
+@@ -264,17 +264,20 @@ internal sealed class OverviewEntry : MonoBehaviour
+     private void FinishOpen()
+     {
+         if(_parent==null || _page==null) { CancelOpen();return; }
++        // 2.5.5（用户实机：跳快捷键只到概览）：切页会隐藏当前的设置页，触发 OpenDriver.OnDisable；
++        // 若此时仍算「打开中」，它会取消打开并清掉跳快捷键的意图。所以先把状态收尾、记下意图，再切页。
++        bool hotkeys = _openHotkeys;
++        _openHotkeys = false; _opening = false; _driven = false;
+         try
+         {
+             var handler = _parent.GetComponentInParent<UIPageHandler>(true);
+             if (handler != null) handler.TransistionToPage(_page, new SetActivePageTransistion());
+-            if (_openHotkeys) { _openHotkeys = false; _page.ShowHotkeysTab(); }
++            if (hotkeys) _page.ShowHotkeysTab();
+         }
+         catch(Exception error)
+         {
+             FailOpen(error);
+         }
+-        finally { _opening=false; _driven=false; }
+     }
+     internal void Refresh() => Refresh(true);
+     internal void Refresh(bool reload)
+diff --git a/src/Overview/OverviewPage.Packs.cs b/src/Overview/OverviewPage.Packs.cs
+index 57d8a9b..c5dcc27 100644
+--- a/src/Overview/OverviewPage.Packs.cs
++++ b/src/Overview/OverviewPage.Packs.cs
+@@ -92,7 +92,7 @@ internal sealed partial class OverviewPage
+                 form.Block((content, y) => tree.Draw(content, _storageLoading.Result, y, form.Width));
+             }
+             form.Action(Loc.T("Refresh", "刷新", "重新整理"), () => { _storageLoading = null; _storageRendered = false; _management?.Rebuild(ManagementTab.Packs); }, UiActionRole.Neutral);
+-            form.Action(Loc.T("Open MCE data folder", "打开管理目录", "開啟管理目錄"), () => ManagementUi.OpenFolder(OverviewUpdateQueue.Root), UiActionRole.Neutral);
++            form.Action(Loc.T("Open manager data folder", "打开管理目录", "開啟管理目錄"), () => ManagementUi.OpenFolder(OverviewUpdateQueue.Root), UiActionRole.Neutral);
+ 
+         }
+         else if (_packPane == "import")
+@@ -184,7 +184,7 @@ internal sealed partial class OverviewPage
+                 form.Button(T("Cancel", "取消"), () => OverviewUpdateQueue.SendPack(new PackRequest { Operation = "cancel", PreviewId = task.Id }), UiActionRole.Neutral); return;
+             case "saving": case "switching": form.Text(PackStatusText(task), true); return;
+             case "recovery-required":
+-                form.Text(T("The last switch did not finish. Exit PEAK and wait; MCE will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，MCE 会恢复原有配置。"), true);
++                form.Text(T("The last switch did not finish. Exit PEAK and wait; the manager will restore the previous setup.", "上次切换未完成。请退出 PEAK 并等待，管理器会恢复原有配置。"), true);
+                 if (task.Error.Length > 0) form.Text(task.Error);
+                 form.Button(Loc.T("Retry restoring the original environment", "重试恢复原环境", "重試還原原環境"), () => { OverviewUpdateQueue.SendPack(new PackRequest { Operation = "retry-recovery", PreviewId = task.Id }); PackSwitchProgressWindow.Show(task.Id); });
+                 return;
+diff --git a/src/Overview/OverviewPage.SmartGrouping.cs b/src/Overview/OverviewPage.SmartGrouping.cs
+index 95b3bd2..bf25da6 100644
+--- a/src/Overview/OverviewPage.SmartGrouping.cs
++++ b/src/Overview/OverviewPage.SmartGrouping.cs
+@@ -72,7 +72,7 @@ internal sealed partial class OverviewPage
+         int grouped = proposal.PackageGroup.Count;
+         var panel = OverviewUi.CreateModalPanel("MCE_SmartGrouping", 760, 620); if (panel == null) return;
+         OverviewUi.SaveDialogHeader(panel, Loc.T("Group mods like your folders?", "按现有文件夹分组？", "按現有資料夾分組？"),
+-            Loc.T("Your plugins folder is already sorted into folders. MCE can turn that layout into groups. No folder is moved or renamed.",
++            Loc.T("Your plugins folder is already sorted into folders. The manager can turn that layout into groups. No folder is moved or renamed.",
+                   "plugins 里已经按文件夹分好类了，可以直接按这个结构生成分组。不会移动或改名任何文件夹。",
+                   "plugins 裡已經按資料夾分好類了，可以直接按這個結構產生分組。不會移動或改名任何資料夾。"));
+         var host = OverviewUi.Panel("SmartGroupingTree", panel, ModConfigLook.Surface(new Color(.065f, .08f, .095f, 1))); OverviewUi.Fill(host);
+diff --git a/src/Overview/OverviewRepository.ApplyReview.cs b/src/Overview/OverviewRepository.ApplyReview.cs
+index 782159b..b90bcc0 100644
+--- a/src/Overview/OverviewRepository.ApplyReview.cs
++++ b/src/Overview/OverviewRepository.ApplyReview.cs
+@@ -17,7 +17,7 @@ internal sealed partial class OverviewRepository
+             if (reason.IndexOf("依赖", StringComparison.OrdinalIgnoreCase) >= 0 || reason.IndexOf("depend", StringComparison.OrdinalIgnoreCase) >= 0 || reason.IndexOf("requires", StringComparison.OrdinalIgnoreCase) >= 0)
+                 return Loc.T("Keep the required provider enabled, enable it with this mod, or install the requested version. Skip enablement to leave this installation as it is.", "保留所需依赖启用，或与此模组一起启用；版本不足时更新到提示版本。也可跳过启停，维持现有安装。", "保留所需依賴啟用，或與此模組一起啟用；版本不足時更新至提示版本。也可略過啟停，維持現有安裝。");
+             if (reason.IndexOf("副本", StringComparison.OrdinalIgnoreCase) >= 0 || reason.IndexOf("copies", StringComparison.OrdinalIgnoreCase) >= 0)
+-                return Loc.T("Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; MCE will not delete them.", "核对列出的路径，保留一个预期启用/停用候选后刷新；备份另行保留，管理器不会删除。", "核對列出的路徑，保留一個預期啟用/停用候選後重新整理；備份另行保留，管理器不會刪除。");
++                return Loc.T("Compare the listed paths and retain one intended active/disabled candidate, then refresh. Keep backups separately; the manager will not delete them.", "核对列出的路径，保留一个预期启用/停用候选后刷新；备份另行保留，管理器不会删除。", "核對列出的路徑，保留一個預期啟用/停用候選後重新整理；備份另行保留，管理器不會刪除。");
+             return Loc.T("Resolve the reported file, permission or manager-profile issue and refresh before retrying; skip enablement to apply other settings first.", "按原因处理文件、权限或管理器档案后刷新重试；可跳过启停先应用其他设置。", "依原因處理檔案、權限或管理器檔案後重新整理重試；可略過啟停先套用其他設定。");
+         }
+         Add(Loc.T("This application", "本次应用", "本次套用"), failure, Fix(failure));
+diff --git a/src/Overview/PackPreviewView.cs b/src/Overview/PackPreviewView.cs
+index 90f95a2..180b3d3 100644
+--- a/src/Overview/PackPreviewView.cs
++++ b/src/Overview/PackPreviewView.cs
+@@ -155,7 +155,7 @@ internal sealed class PackPreviewView
+                 : _report.Kind == "snapshot"
+                     ? L("Copies the current snapshot immediately. Game files are not replaced.", "立即复制当前文件快照，不会替换游戏文件。")
+                     : _task.Request.Operation == "view-stored" ? L("Viewing stored contents only. Use Preview switch to review installation changes.", "当前仅查看库内内容。需要切换时，使用“预览切换影响”。")
+-                    : L("Nothing changes until PEAK exits. MCE then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由 MCE 完成切换，请等待完成后再启动游戏。"), OverviewUi.Muted, 16);
++                    : L("Nothing changes until PEAK exits. The manager then finishes the switch; wait for it before launching again.", "退出 PEAK 之前不会有任何改动。退出后由管理器完成切换，请等待完成后再启动游戏。"), OverviewUi.Muted, 16);
+         }
+         else foreach (var line in errors) Card(line);
+         foreach (var note in _report.Lines.Where(l => l.Section == "note" && !OverviewPage._ignoredPackLines.Contains(l.Title))) Card(note);
+diff --git a/src/Plugin.cs b/src/Plugin.cs
+index 774244f..28908df 100644
+--- a/src/Plugin.cs
++++ b/src/Plugin.cs
+@@ -21,7 +21,7 @@ public class Plugin : BaseUnityPlugin
+ {
+     public const string PluginGuid = "com.aiae.modconfigenhance";
+     public const string PluginName = "In-Game Mod Manager";
+-    public const string PluginVersion = "2.5.4";
++    public const string PluginVersion = "2.5.5";
+ 
+     internal static ManualLogSource Log { get; private set; } = null!;
+ 
+@@ -35,7 +35,7 @@ public class Plugin : BaseUnityPlugin
+     internal static ConfigEntry<bool> EnableTreeLayout = null!;
+     internal static ConfigEntry<bool> EnableDescriptionPanel = null!;
+     internal static ConfigEntry<ModConfigLook.ThemeMode> ColourTheme = null!;
+-    internal const string DescColourTheme = "Colour theme of every MCE screen. Blue follows the game's settings menu; Purple is the night style; PurpleAtNight switches to purple at night when TimeTheme is installed (only its day/night state is read). The mod settings page switches at once; an open overview switches the next time it is opened.";
++    internal const string DescColourTheme = "Colour theme of every manager screen. Blue follows the game's settings menu; Purple is the night style; PurpleAtNight switches to purple at night when TimeTheme is installed (only its day/night state is read). The mod settings page switches at once; an open overview switches the next time it is opened.";
+     internal static ConfigEntry<bool> EnableLocalization = null!;
+     internal static ConfigEntry<bool> HideLocalizationButtons = null!;
+     internal static ConfigEntry<bool> WarnXUnity = null!;
+diff --git a/src/Updating/PackReportText.cs b/src/Updating/PackReportText.cs
+index 757be9f..00e1d55 100644
+--- a/src/Updating/PackReportText.cs
++++ b/src/Updating/PackReportText.cs
+@@ -44,15 +44,15 @@ public static class PackReportText
+         else if (Starts("预装核心辅助包版本不满足：", out rest)) Set("本机已安装的组件版本不符合要求", rest, "安装或升级 BepInEx/core 中的该组件后重新预览。");
+         else if (Starts("商店依赖存在循环：", out rest)) Set("依赖关系循环，无法解析：" + Pretty(rest), "", "需由整合包或依赖的作者修正。");
+         else if (Starts("重复插件身份：", out rest)) Set("重复的模组（同一标识出现多次）：" + rest, "包内有多个文件使用同一个模组标识。", "只保留其中一份后重新打包。");
+-        else if (Starts("核心兼容检查未通过（不会写入）：", out rest)) Set("核心文件与整合包不一致：" + rest, "MCE 不会修改核心文件。", "将本机 BepInEx 调整为整合包所用的版本后重新预览。");
+-        else if (Starts("宿主版本不足：", out rest)) Set("MCE 或其依赖的版本过低", rest, "先更新 MCE（导入整合包不会升级它），再重新预览。");
++        else if (Starts("核心兼容检查未通过（不会写入）：", out rest)) Set("核心文件与整合包不一致：" + rest, "管理器不会修改核心文件。", "将本机 BepInEx 调整为整合包所用的版本后重新预览。");
++        else if (Starts("宿主版本不足：", out rest)) Set("管理器或其依赖的版本过低", rest, "先更新管理器（导入整合包不会升级它），再重新预览。");
+         else if (Starts("随包本地版本与依赖要求冲突：", out rest)) Set("随包依赖的版本不符合要求", rest, "需由整合包作者核对打包的版本。");
+         else if (Starts("文件目标冲突：", out rest)) Set("多个来源写入同一位置且内容不同：" + rest, "", "去掉其中一份后重新打包。");
+         else if (Starts("复用本地文件存在冲突：", out rest)) Set("本机文件与整合包内容不一致：" + rest, "", "需由整合包作者核对打包内容。");
+         else if (Starts("缺少必需插件依赖：", out rest)) Set("缺少前置模组：" + rest, "整合包内的某个模组依赖它。", "补充该模组，或先在本机安装。");
+         else if (Starts("插件依赖版本不足：", out rest)) Set("前置模组版本过低", rest.Replace(" 要求 ", "，至少需要 "), "需由整合包作者升级打包的版本。");
+         else if (Starts("需人工安装的不支持内容：", out rest)) Set("包含不会自动处理的内容：" + rest, "monomod 和脚本类文件不会被自动放入游戏。", "如确有需要，请手动安装；整合包仍可存入。");
+-        else if (Starts("含本机运行数据：", out rest)) Set("包内含有 MCE 运行数据：" + rest, "", "重新打包时排除 MCE 运行目录。");
++        else if (Starts("含本机运行数据：", out rest)) Set("包内含有管理器运行数据：" + rest, "", "重新打包时排除管理器运行目录（BepInEx/MCE）。");
+         else if (Starts("BepInEx 下的额外内容需要人工归类：", out rest)) Set("无法判断存放位置的文件：" + rest, "", "将其放入 plugins、patchers 或 config 后重新打包。");
+         else if (Starts("作者根清单版本锁冲突：", out rest)) Set("同一依赖被固定为多个版本：" + Pretty(rest), "", "需由整合包作者统一版本后重新发布。");
+         else if (Starts("同一 DLL 中的模组启停目标冲突：", out rest)) Set("同一文件内的模组启停目标冲突：" + rest, "", "需由整合包作者修正默认方案。");

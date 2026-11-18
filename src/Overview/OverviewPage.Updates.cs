@@ -123,7 +123,7 @@ internal sealed partial class OverviewPage
         OverviewUi.PlaceClipped(_updatesStage, inset, 24, contentWidth, 12);
         OverviewUi.Place(_updatesTrack, inset, 36, contentWidth, 2);
         _updatesView?.Layout();
-        var tabs = new[] { _back, _listTab.GetComponent<Button>(), _introTab.GetComponent<Button>(), _hotkeyTab.GetComponent<Button>(), _updatesButton }
+        var tabs = new[] { _back, _listTab.GetComponent<Button>(), _introTab.GetComponent<Button>(), _hotkeyTab.GetComponent<Button>(), _settingsTab.GetComponent<Button>(), _updatesButton }
             .Where(button => button != null && button.gameObject.activeSelf).ToList();
         for (int i = 0; i < tabs.Count; i++)
         {

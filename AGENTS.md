@@ -114,3 +114,16 @@
 - 列表上下导航按稳定列标记定位，不按“可交互按钮中的下标”或就近横坐标换列；缺列或禁用格跳过。名称经过分组仍保留名称列。异步建行完成后延续原列与方向，走到尽头恢复原滚动位置。
 - 自建下拉有独立导航边界并停用公共重连，窗口级浮层由 `WindowPopover` 统一暂停/恢复宿主交互。跨滚动区在按下方向时取当前坐标，不在滚动时全窗强制重排。
 - 专项 `GridChecks` 204 项，`ReaderChecks` 直接链接生产浏览锁定代码，仅 Unity 边界使用桩；两者均在完整回归中。
+
+## 0.0.2：MCE 1.1.0 改进同步回 IGMM（2026-11-17，已部署、保持停用）
+- 把 MCE 1.1.0 各轮实测修正里对「从 IGMM 搬过去的功能」的改进带回：日志窗口（等级多选 + 着色、最近 3 次历史日志、模组筛选共用下拉）、模组列表（底部提示、逐行音效、入口虚线）、分组（子分组在直属模组前、拖动按落点前 / 后 / 子分组、新分组预填名）、手柄、下拉样式统一。报告与实机清单：`验证/MCE1.1.0同步_20261117/同步报告.md`；改动前备份 `备份/MCE1.1.0同步前_20261117_000638/`。
+- **手柄新规则**：LB / RB = 第二行工具行按钮间跳（管理中心、更新队列开着时仍切它们自己的页）；RT + LB / RB = 焦点在页签按钮间移动、A 才切换；LT + LB / RB 全部展开 / 收起保留；方向键按住由外壳连发（`OverviewPage.Gamepad.cs`，纯逻辑在 `Overview/OverviewPadSteps.cs`，夹具 `验证/MCE1.1.0同步_20261117/pad-steps/`）。焦点框每帧跟最后输入设备（`FocusHighlight.Sync` + 常驻 `InputTicker`），`OverviewUi.Button / Check / Input` 出厂即挂焦点框。快捷键页列表格子用 `LinkGrid` 显式导航，不要改回 Unity 自动导航。
+- **分组顺序**：成员排序一律 `GroupTree.RowKey`（子树先、直属成员后）；同层插入用 `GroupTree.PlaceBeside`。
+- **历史日志**存 `Loc.RuntimeDirectory/log-history/`（`Diagnostics/LogHistory.cs`，最多 4 份 × 2 文件 × 10 MB）；它依赖 Unity，`LogDiagnosticsChecks` 已排除它。
+- 新增带英文片段的提示时用整句 `Loc.F`：词条表以英文为键，`T("\".", …)` 这类片段会让不同句子的中文串味。
+- **0.0.2（用户 2026-11-17 定）**：加「模组设置」第三页签（齿轮式打开设置页，焦点落在表头「跳转到快捷键设置页」，排进 RT + LB / RB 页签顺序；页签设计宽度和改了要同步 `RefreshHeader` 的 390 / 525）；主页图标三色不同步（IGMM 主页钮 = 来源菜单，蓝 = 来源已确认）。程序版本、manifest、csproj、CHANGELOG、内置三语更新日志都是 0.0.2；`Updater/`、`Desktop/` 助手 csproj 仍 0.0.1，下次重编助手时一起改。
+- 部署：只换插件 DLL，写成 `InGameModManager.dll.d`（保持停用，SHA256 `CD1CDF9F…394085B6`），部署前备份 `备份/部署前_0.0.2_20261117_002825/`。
+- MCE 正在做的「键鼠态焦点框跟随鼠标」「焦点移动音效」未同步，等 MCE 实测通过后另行处理。（2026-11-18 已由下一条取代）
+- **0.0.2 定版收尾（2026-11-18）**：MCE 1.1.0 发布后同步其最后几轮实测修正。焦点框：全场只有一个框，手柄态跟 EventSystem 选中、键鼠态跟鼠标悬停（`FocusHighlight.Sync` 每帧决定，不要改回靠 OnSelect）；换到新控件响一声（`GamepadSupport.FocusMoveSound` → `SidebarCascade.PlayFocusSound`，资源副本、调大音量、无间隔，同控件 / 拖动 / 打字 / 录组合键不响，控件自带游戏 `NicksButtonSFX` 时不响）；大页签挂 `RibbonHoverSound` 补游戏自己的悬停音效。语言下拉重影 IGMM 早已修过（`MakeStyledDropdown` 位置只在 SetSize 后设）。侧栏只去掉每帧 HashSet 分配，真正分帧未做（MCE 也没做）。
+- **导出检查（2026-11-18）**：6 个导出入口（日志 ZIP、翻译 txt、方案导出、发布向导、编辑器导出资料、另存 Markdown）逐项查过，清单与实机确认项见 `验证/MCE1.1.0同步_20261117/同步报告.md` 第三轮。修了：`LogExport.RedactPath` 改为不分大小写、正反斜杠都认、只按完整用户目录替换（夹具 `LogDiagnosticsChecks` 68 项含路径遮盖、中文 / 特殊字符目录、目标被占用）；日志导出两句中文报错进 `DiagnosticUiLanguage` 三语表；`PackPublisher.cs` 四句用户可见校验改 `Loc.T`。新增导出相关报错一律三语；`PackPublisher.Environment.cs` 约 30 句内部校验仍只有中文（待用户定）。改前备份 `备份/MCE定版同步与导出检查前_20261118_103203/`。
+- 部署（2026-11-18）：新 DLL 复制成 `.dll.d`（SHA256 `AD199550…2630D5CA9B`），现装目录里另有用户启用的旧 0.0.2 `InGameModManager.dll`（已备份到 `备份/部署前_0.0.2定版_20261118_104045/`），两者并存，换不换由用户定。
