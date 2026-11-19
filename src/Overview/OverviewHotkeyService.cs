@@ -137,7 +137,7 @@ internal sealed class OverviewHotkeyService : IDisposable
             var combo = GamepadCombos.For(entry.Id); if (combo == null) continue;
             string token = "gamepad:" + OverviewHotkeyAdapter.Canonical(combo.button) + ":";
             string label = GamepadCombos.Label(combo);
-            if (combo.Mod.Length == 0)
+            if (combo.Held.Count == 0)
                 foreach (var game in GameBindings.Actions)
                     if (game.Signature == token) entry.Conflicts.Add(new() { Mod = entry.Mod, GameAction = game.Action, Label = game.Label, Key = game.Display, Combo = true });
             foreach (var other in _entries)

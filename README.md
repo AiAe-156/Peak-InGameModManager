@@ -50,7 +50,7 @@ Manage keybinds from different mods on one page, with separate keyboard and game
 - **Keyboard and gamepad columns**: Use a keyboard and mouse to record keyboard bindings, or a controller to record gamepad bindings. Unbound entries show "Not set".
 - **Save as you record**: Changes to current bindings are saved immediately. You can also view mod defaults and profile presets.
 - **Gamepad combinations**: Assign gamepad buttons or combinations to mods that only support keyboard shortcuts.
-- **Configurable modifier**: Choose None, LT, RT, LB, RB, Back, Start, RS or LS. The default is Back. All combinations share one modifier; changing it updates the combinations already recorded.
+- **Free combinations**: Hold any buttons, then press the last one (up to 4 buttons). Only the last button is masked from the game. Steam Input action sets or chords are an alternative if you need zero interference.
 - **Duplicate-binding indicators**: Check for conflicts between mods and with the game's own controls, with separate indicators in the keyboard and gamepad columns.
 - **Button icons**: Bindings use the game's button icons for easy comparison with your controller.
 - **Recording lock**: While recording, gamepad input is captured for the binding. Hold B for one second to finish recording.
@@ -248,7 +248,7 @@ ModConfig Enhance 主要让模组设置更好找、更好懂；游戏内模组�
 - **键盘与手柄两列**：用键鼠录键盘列，用手柄录手柄列；未绑定的位置显示「未设置」。
 - **录完立即写入**：直接修改当前按键后立即保存，也可以查看模组默认按键和方案预设。
 - **手柄组合键**：可以给只支持键盘快捷键的模组分配手柄按键或组合键。
-- **自选修饰键**：支持无、LT、RT、LB、RB、Back、Start、RS、LS，默认 Back。所有组合共用一个修饰键，修改后已录制的组合一起调整。
+- **自由组合**：先按住任意几个键、最后按一个键触发，最多 4 个键；只屏蔽最后那个键。需要完全不干扰游戏时，可以改用 Steam 输入的动作集或组合键。
 - **重复键提示**：检查模组之间以及与游戏操作的按键冲突，分别在键盘列和手柄列标出。
 - **按键图标**：使用游戏按键图标显示绑定，方便对照实际手柄。
 - **录制锁定**：录制期间集中接收手柄按键，按住 B 一秒结束录制。

@@ -15,62 +15,46 @@ using UnityEngine.InputSystem.LowLevel;
 namespace ModConfigEnhance;
 
 /// <summary>
-/// 1.1.2 手柄组合键映射。1.1.3（用户 2026-11-12）：修饰键改为快捷键页顶部下拉选择（无 / LT / RT / LB / RB /
-/// Back / Start / RS / LS，默认「无」），全局只有一个；不强制使用：录制时按住修饰键就记成「修饰键 + 键」，
-/// 不按就记成单键。每条组合记下录制时的修饰键，之后改下拉不影响已录好的。
-/// 大多数模组的快捷键只认键盘（KeyCode / Key 类型），手柄按不出来。玩家在快捷键页给某个快捷键录一个
-/// 手柄键（可带修饰键），局内按下时，管理器替模组「按下」它的键盘键：
+/// 手柄组合键映射。0.0.2（2026-11-18，同步 MCE 1.1.0，用户要求）：取消「全局唯一修饰键」下拉，改成自由组合——
+/// 先按住任意几个键（<see cref="Item.held"/>，可为空），最后按一个键（<see cref="Item.button"/>）触发，一组最多 4 个键。
+/// 大多数模组的快捷键只认键盘（KeyCode / Key 类型），手柄按不出来。玩家在快捷键页给某个快捷键录一组手柄键，
+/// 局内按下时，管理器替模组「按下」它的键盘键：
 ///   · 注入点就是打字保护已经挂上的读键钩子（Input.GetKey/GetKeyDown/GetKeyUp 与 ButtonControl 的三个属性），
 ///     被映射的键在这一帧读起来就是「按下」，模组完全不用改。
-///   · 按住 LT 期间的组合按下那一帧，游戏自己的 LT（副使用/投掷）照常；但组合里的第二个键（如 A=跳跃）
-///     在这一帧对游戏不生效——游戏读的是 InputAction，我们在 InputSystem 更新前把它从动作里屏蔽一帧。
-///     做不到完全零干扰：按住 LT 本身仍会触发游戏的副使用，这是选 LT 的代价（已告知用户）。
-///   · 保存在 config/InGameModManager/data/runtime/gamepad-combos.json（个人设置，不随整合包发出）。
+///   · 只屏蔽组合的最后一个键（游戏读的是 InputAction，在读值处屏蔽）；先按住的那些键游戏照常读到——做不到零干扰，
+///     说明里写明，并提示 Steam 输入的动作集 / 组合键可以替代。
+///   · 只在局内（有本地角色、不在暂停菜单）生效，所以与概览页自己的手柄操作（LT + LB / RB 全部展开 / 收起等）互不干扰。
+///   · 保存在 config/InGameModManager/data/runtime/gamepad-combos.json（个人设置，不随整合包发出）。旧文件（单一 modifier）
+///     读进来时按 <see cref="GamepadComboRules.LegacyModifier"/> 并入 held 最前面，下次保存写成新格式（version = 2）。
+/// 判定规则在 GamepadComboRules.cs（纯逻辑，夹具 验证/MCE1.1.0同步_20261117/combo-checks/ 链接它）。
 /// </summary>
 internal static class GamepadCombos
 {
-    internal static readonly string[] Buttons = { "buttonSouth", "buttonEast", "buttonWest", "buttonNorth", "leftShoulder", "rightShoulder",
-        "leftTrigger", "rightTrigger", "dpad/up", "dpad/down", "dpad/left", "dpad/right", "leftStickPress", "rightStickPress", "start", "select" };
-    /// <summary>Modifier choices for the dropdown ("" = none).</summary>
-    internal static readonly string[] Modifiers = { "", "leftTrigger", "rightTrigger", "leftShoulder", "rightShoulder", "select", "start", "rightStickPress", "leftStickPress" };
-    /// <summary>The modifier used when recording (dropdown at the top of the keybindings tab). Stored with the combos.</summary>
-    /// <summary>1.1.4 (user): changing the modifier changes every combo that uses one (they all share it); a combo whose
-    /// button becomes the new modifier is dropped. Default is Back (user: "back works well as the default").</summary>
-    internal static string Modifier
-    {
-        get { Load(); return _modifier; }
-        set
-        {
-            Load(); string next = Modifiers.Contains(value) ? value : "";
-            if (next == _modifier) return;
-            if (next.Length > 0)
-            {
-                _items.RemoveAll(i => i.Mod.Length > 0 && i.button == next);
-                foreach (var item in _items) if (item.Mod.Length > 0) item.modifier = next;
-            }
-            else foreach (var item in _items) if (item.Mod.Length > 0) item.modifier = ""; // "none": the combos become single buttons
-            Dedupe();
-            _modifier = next; Save();
-        }
-    }
-    private static string _modifier = "select";
-    private static bool _storedNone;
+    internal static readonly string[] Buttons = GamepadComboRules.Buttons;
+    /// <summary>一组最多几个键（含最后一个）。</summary>
+    internal const int MaxButtons = GamepadComboRules.MaxButtons;
+    private const int StoreVersion = 2;
 
-    private sealed class Store { public string? modifier; public List<Item>? items; }
-    /// <summary>One combo: LT + <see cref="button"/> presses whatever keyboard key the mod's setting currently holds
-    /// (resolved live, so re-recording the keyboard key keeps the combo working).</summary>
+    /// <summary><see cref="modifier"/> 只在读旧文件时有值（0.0.2 以前的全局修饰键）；新文件写 <see cref="version"/>。</summary>
+    private sealed class Store { public int? version; public string? modifier = null; public List<Item>? items; }
+    private static readonly JsonSerializerSettings WriteSettings = new() { NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.Indented };
+
+    /// <summary>One combo: <see cref="held"/> held + <see cref="button"/> pressed presses whatever key the mod's setting
+    /// currently holds (resolved live, so re-recording the keyboard key keeps the combo working).</summary>
     [Serializable] internal sealed class Item
     {
         public string id = "", guid = "", section = "", key = "", button = "";
-        /// <summary>The modifier held when this combo was recorded ("" = single button; null = written by 1.1.2, where
-        /// the modifier was always LT).</summary>
+        public List<string> held = new();
+        /// <summary>0.0.2 以前的单个修饰键（null = 1.1.2 写的，当时总是 LT）；读到时并入 <see cref="held"/>，之后不再写。</summary>
         public string? modifier;
+        [JsonIgnore] internal IReadOnlyList<string> Held => held;
+        [JsonIgnore] internal string SetKey => GamepadComboRules.SetKey(held, button);
         [JsonIgnore] internal ConfigEntryBase? Entry; [JsonIgnore] internal bool Resolved;
-        [JsonIgnore] internal string Mod => modifier ?? "";
         [JsonIgnore] internal List<KeyCode>? Keys; [JsonIgnore] internal object? KeysFor;
     }
 
     private static List<Item> _items = new();
+    private static HashSet<string> _heldButtons = new(StringComparer.Ordinal);
     private static bool _loaded;
     private static string FilePath => Path.Combine(Loc.RuntimeDirectory, "gamepad-combos.json");
 
@@ -80,6 +64,7 @@ internal static class GamepadCombos
     private static void Load()
     {
         if (_loaded) return; _loaded = true;
+        bool migrated = false;
         try
         {
             if (File.Exists(FilePath))
@@ -87,71 +72,118 @@ internal static class GamepadCombos
                 // 1.1.3 review: 1.1.2 wrote this with JsonUtility, which drops List<Item> (files are "{}"); Newtonsoft now.
                 var store = JsonConvert.DeserializeObject<Store>(File.ReadAllText(FilePath));
                 _items = store?.items ?? new();
-                _modifier = store?.modifier != null && Modifiers.Contains(store.modifier) ? store.modifier : "select";
-                _storedNone = store?.modifier == ""; // the user chose "none"; Load must not re-derive a modifier
-                foreach (var item in _items) if (item.modifier == null) item.modifier = "leftTrigger"; // 1.1.2: always LT
+                bool legacy = store != null && store.version == null;
+                foreach (var item in _items)
+                {
+                    if (item == null) continue;
+                    item.held ??= new();
+                    string? modifier = item.modifier;
+                    if (legacy)
+                    {
+                        modifier = GamepadComboRules.LegacyModifier(item.modifier, store!.modifier, item.button ?? "");
+                        if (modifier == null) { item.id = ""; continue; } // 旧版也会丢掉这条
+                        migrated = true;
+                    }
+                    item.held = GamepadComboRules.NormalizeHeld(item.held, modifier, item.button ?? "");
+                    item.modifier = null;
+                }
             }
-            _items.RemoveAll(i => i == null || string.IsNullOrEmpty(i.id) || !Buttons.Contains(i.button) || i.Mod == i.button || (i.Mod.Length > 0 && !Modifiers.Contains(i.Mod)));
-            // 1.1.4 (user: "modifier is Back, the list still shows LT + X"): all combos share the one modifier. Files from
-            // 1.1.2/1.1.3 hold combos recorded with LT while the stored modifier is something else; bring them in line.
-            if (_modifier.Length == 0 && !_storedNone) { var first = _items.FirstOrDefault(i => i.Mod.Length > 0); if (first != null) _modifier = first.Mod; }
-            if (_items.Any(i => i.Mod.Length > 0 && i.Mod != _modifier))
-            {
-                if (_modifier.Length > 0) _items.RemoveAll(i => i.Mod.Length > 0 && i.button == _modifier);
-                foreach (var item in _items) if (item.Mod.Length > 0) item.modifier = _modifier;
-                Dedupe(); Save();
-            }
+            _items.RemoveAll(i => i == null || string.IsNullOrEmpty(i.guid) || i.section == null || i.key == null
+                || !GamepadComboRules.IsUsable(i.id, i.button, i.held.Count));
+            Dedupe();
         }
-        catch (Exception error) { Plugin.Log.LogWarning("[手柄组合] 读取失败：" + error.Message); _items = new(); }
+        catch (Exception error)
+        {
+            Plugin.Log.LogWarning("[手柄组合] 读取失败，按空清单处理：" + error.Message);
+            _items = new();
+            // 读坏的文件先留一份 .bad，免得下次保存把玩家的原文件覆盖掉。
+            try { if (File.Exists(FilePath)) File.Copy(FilePath, FilePath + ".bad", true); } catch { }
+        }
+        Reindex();
+        if (migrated)
+        {
+            // 0.0.2：旧格式先留一份原样副本，再写成新格式。
+            try { string old = FilePath + ".before-free-combos"; if (!File.Exists(old)) File.Copy(FilePath, old); } catch { }
+            Save();
+            Plugin.Log.LogInfo("[手柄组合] 旧格式（全局修饰键）已迁移为自由组合：" + _items.Count + " 组。");
+        }
     }
-    /// <summary>After unifying the modifier two combos can end up on the same buttons; keep the first.</summary>
+
     private static void Dedupe()
     {
-        var seen = new HashSet<string>();
-        _items.RemoveAll(i => !seen.Add(i.Mod + "+" + i.button));
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        _items.RemoveAll(i => !seen.Add(i.SetKey));
     }
+
+    private static void Reindex() => _heldButtons = new HashSet<string>(_items.SelectMany(i => i.held), StringComparer.Ordinal);
+
+    /// <summary>最近一次写 gamepad-combos.json 是否失败（本局已生效、下次启动会丢）。快捷键页据此在状态行补一句。</summary>
+    internal static bool LastSaveFailed { get; private set; }
     private static void Save()
     {
+        Reindex();
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             string temp = FilePath + ".tmp";
-            File.WriteAllText(temp, JsonConvert.SerializeObject(new Store { modifier = _modifier, items = _items }, Formatting.Indented));
+            File.WriteAllText(temp, JsonConvert.SerializeObject(new Store { version = StoreVersion, items = _items }, WriteSettings));
             if (File.Exists(FilePath)) File.Replace(temp, FilePath, null); else File.Move(temp, FilePath);
+            LastSaveFailed = false;
         }
-        catch (Exception error) { Plugin.Log.LogWarning("[手柄组合] 保存失败：" + error.Message); }
+        catch (Exception error) { LastSaveFailed = true; Plugin.Log.LogWarning("[手柄组合] 保存失败：" + error.Message); }
     }
 
-    /// <summary>Assigns LT + <paramref name="button"/> to the hotkey <paramref name="id"/>, which presses keyboard key
-    /// <paramref name="key"/> (a KeyCode name). One combo per button: assigning it elsewhere moves it. Returns the id
-    /// that lost the combo, if any.</summary>
-    internal static string? Set(string id, string guid, string section, string key, string modifier, string button)
+    private static Item NewItem(string id, string guid, string section, string key, IEnumerable<string> held, string button) =>
+        new() { id = id, guid = guid, section = section, key = key, button = button, held = held.Where(h => h != button).Distinct().ToList() };
+
+    /// <summary>Assigns <paramref name="held"/> + <paramref name="button"/> to the hotkey <paramref name="id"/>. One combo
+    /// per exact button set: assigning it elsewhere moves it. Returns the id that lost the combo, if any.</summary>
+    internal static string? Set(string id, string guid, string section, string key, IEnumerable<string> held, string button)
     {
         Load();
-        string? moved = _items.FirstOrDefault(i => i.button == button && i.Mod == modifier && i.id != id)?.id;
-        _items.RemoveAll(i => i.id == id || (i.button == button && i.Mod == modifier));
-        _items.Add(new Item { id = id, guid = guid, section = section, key = key, modifier = modifier, button = button });
+        var item = NewItem(id, guid, section, key, held, button);
+        string? moved = _items.FirstOrDefault(i => i.SetKey == item.SetKey && i.id != id)?.id;
+        _items.RemoveAll(i => i.id == id || i.SetKey == item.SetKey);
+        _items.Add(item);
         Save(); return moved;
     }
     internal static void Clear(string id) { Load(); if (_items.RemoveAll(i => i.id == id) > 0) Save(); }
-    internal static Item? PresetFor(Overview.OverviewState state, string id) => state.gamepadComboPresets?.FirstOrDefault(i => i.id == id);
-    internal static void SetPreset(Overview.OverviewState state, string id, string guid, string section, string key, string modifier, string button)
+
+    /// <summary>方案里的手柄预设（作者在「方案预设」栏录的，随整合包发出）。旧方案的单个 modifier 读到时并入 held。</summary>
+    internal static Item? PresetFor(Overview.OverviewState state, string id)
+    {
+        var preset = state.gamepadComboPresets?.FirstOrDefault(i => i.id == id);
+        if (preset != null) NormalizePreset(preset);
+        return preset;
+    }
+    private static void NormalizePreset(Item preset)
+    {
+        if (preset.modifier == null && preset.held != null) return;
+        preset.held = GamepadComboRules.NormalizeHeld(preset.held, preset.modifier, preset.button ?? "");
+        preset.modifier = null;
+    }
+    internal static void SetPreset(Overview.OverviewState state, string id, string guid, string section, string key, IEnumerable<string> held, string button)
     {
         state.gamepadComboPresets ??= new();
-        state.gamepadComboPresets.RemoveAll(i => i.id == id || (i.button == button && i.Mod == modifier));
-        state.gamepadComboPresets.Add(new Item { id = id, guid = guid, section = section, key = key, modifier = modifier, button = button });
+        foreach (var preset in state.gamepadComboPresets) NormalizePreset(preset);
+        var item = NewItem(id, guid, section, key, held, button);
+        state.gamepadComboPresets.RemoveAll(i => i.id == id || i.SetKey == item.SetKey);
+        state.gamepadComboPresets.Add(item);
     }
-    /// <summary>Profile applied: its controller presets replace this PC's combos for the same hotkeys.</summary>
+    /// <summary>Profile applied: its controller presets replace this PC's combos for the same hotkeys.
+    /// 0.0.2：预设按它自己录下的键生效（不再换成本机的共用修饰键）。</summary>
     internal static void ApplyPresets(Overview.OverviewState state)
     {
         if (state.gamepadComboPresets == null || state.gamepadComboPresets.Count == 0) return;
         Load();
         foreach (var preset in state.gamepadComboPresets)
         {
-            string mod = preset.Mod.Length > 0 && _modifier.Length > 0 ? _modifier : preset.Mod; // shared modifier
-            if (mod.Length > 0 && preset.button == mod) continue;
-            _items.RemoveAll(i => i.id == preset.id || (i.button == preset.button && i.Mod == mod));
-            _items.Add(new Item { id = preset.id, guid = preset.guid, section = preset.section, key = preset.key, modifier = mod, button = preset.button });
+            if (preset == null) continue;
+            NormalizePreset(preset);
+            if (!GamepadComboRules.IsUsable(preset.id, preset.button, preset.held.Count)) continue;
+            var item = NewItem(preset.id, preset.guid, preset.section, preset.key, preset.held, preset.button);
+            _items.RemoveAll(i => i.id == item.id || i.SetKey == item.SetKey);
+            _items.Add(item);
         }
         Save();
     }
@@ -173,6 +205,7 @@ internal static class GamepadCombos
         catch { }
         return keys;
     }
+
     /// <summary>The setting holds a controller binding of its own (GamepadButton or a gamepad path): no combo needed.</summary>
     internal static bool NativeGamepad(ConfigEntryBase entry)
     {
@@ -183,8 +216,8 @@ internal static class GamepadCombos
         if (signature.Length == 0) signature = adapter.Signature(entry.DefaultValue);
         return signature.StartsWith("gamepad", StringComparison.Ordinal);
     }
-    /// <summary>The value to store in a controller-native setting for <paramref name="button"/> (GamepadButton enum or a
-    /// &lt;Gamepad&gt; path, matching the setting's type); null when the setting cannot hold it.</summary>
+
+    /// <summary>The value to store in a controller-native setting for <paramref name="button"/>; null when it cannot hold it.</summary>
     internal static object? NativeValue(ConfigEntryBase entry, string button)
     {
         try
@@ -201,25 +234,29 @@ internal static class GamepadCombos
         catch { }
         return null;
     }
-    /// <summary>The controller button a controller-native setting currently holds (for injection: a combo for such a
-    /// setting presses that button for the mod).</summary>
+
+    /// <summary>The controller button a controller-native setting currently holds (a combo for such a setting presses
+    /// that button for the mod).</summary>
     internal static ButtonControl? NativeControl(ConfigEntryBase entry, Gamepad pad)
     {
         string raw = Convert.ToString(entry.BoxedValue) ?? "";
         if (raw.Length == 0 || raw.Equals("None", StringComparison.OrdinalIgnoreCase)) return null;
         string token = raw.StartsWith("<", StringComparison.Ordinal) ? raw.Substring(raw.IndexOf('/') + 1) : raw;
+        if (token.Length == 0) return null; // "<Gamepad>/" 之类：下面 other[0] 会越界
         token = token switch { "South" or "A" or "Cross" => "buttonSouth", "East" or "B" or "Circle" => "buttonEast", "West" or "X" or "Square" => "buttonWest",
             "North" or "Y" or "Triangle" => "buttonNorth", "LeftStick" => "leftStickPress", "RightStick" => "rightStickPress", "DpadUp" => "dpad/up",
             "DpadDown" => "dpad/down", "DpadLeft" => "dpad/left", "DpadRight" => "dpad/right", "Start" => "start", "Select" => "select",
             var other => char.ToLowerInvariant(other[0]) + other.Substring(1) };
         return Control(pad, token);
     }
+
     private static KeyCode FromCanonical(string canonical)
     {
         if (canonical.StartsWith("mouse", StringComparison.Ordinal) && int.TryParse(canonical.Substring(5), out int button)) return KeyCode.Mouse0 + button;
         if (Enum.TryParse(canonical, true, out Key key) && key != Key.None) return ToKeyCode(key);
         return Enum.TryParse(canonical, true, out KeyCode code) ? code : KeyCode.None;
     }
+
     private static ConfigEntryBase? Resolve(Item item)
     {
         if (item.Resolved) return item.Entry;
@@ -231,7 +268,8 @@ internal static class GamepadCombos
     }
 
     internal static string ButtonName(string button) => button.Length == 0 ? Loc.T("None", "无", "無") : KeyChips.GamepadName(button);
-    internal static string Label(Item item) => (item.Mod.Length > 0 ? ButtonName(item.Mod) + " + " : "") + ButtonName(item.button);
+    internal static IEnumerable<string> ButtonsOf(Item item) => item.held.Append(item.button);
+    internal static string Label(Item item) => string.Join(" + ", ButtonsOf(item).Select(ButtonName));
     internal static ButtonControl? Control(Gamepad pad, string button) => button switch
     {
         "buttonSouth" => pad.buttonSouth, "buttonEast" => pad.buttonEast, "buttonWest" => pad.buttonWest, "buttonNorth" => pad.buttonNorth,
@@ -245,15 +283,15 @@ internal static class GamepadCombos
 
     private static readonly Dictionary<KeyCode, int> _downFrame = new(), _upFrame = new();
     private static readonly HashSet<KeyCode> _held = new(), _nowHeld = new();
-    /// <summary>1.1.4: controller buttons pressed virtually for controller-native settings (a combo for such a setting
-    /// makes the mod see its own button go down). Edge frames tracked like the keyboard keys.</summary>
+    /// <summary>Controller buttons pressed virtually for controller-native settings.</summary>
     private static readonly HashSet<ButtonControl> _pads = new(), _nowPads = new();
     private static readonly Dictionary<ButtonControl, int> _padDown = new(), _padUp = new();
     private static readonly Dictionary<Item, int> _pressedAt = new();
     private static readonly Dictionary<Key, KeyCode> _keyMap = new();
+    private static readonly Dictionary<string, int> _heldSince = new(StringComparer.Ordinal);
     private static int _frame = -1;
 
-    /// <summary>Updates the injected key states once per frame (called from the key-read hooks and a driver).</summary>
+    /// <summary>Updates the injected key states once per frame (called from the key-read hooks).</summary>
     internal static void Tick()
     {
         if (_frame == Time.frameCount) return; _frame = Time.frameCount;
@@ -263,19 +301,22 @@ internal static class GamepadCombos
         {
             var pad = Gamepad.current;
             _nowHeld.Clear(); _nowPads.Clear();
-            if (pad != null) TrackModifiers(pad);
-            if (pad != null && !TypingGuard.Active && _items.Count > 0 && InGame())
+            if (pad != null) TrackHeld(pad);
+            if (pad != null && !Typing() && _items.Count > 0 && InGame())
                 foreach (var item in _items)
                 {
-                    var control = Control(pad, item.button);
-                    if (control == null || !Pressed(control)) { _pressedAt.Remove(item); continue; }
-                    if (!_pressedAt.ContainsKey(item)) _pressedAt[item] = Time.frameCount;
-                    // A single-button combo only fires while no recorded modifier is held, so "LT + A" never also fires "A".
-                    if (item.Mod.Length > 0) { var mod = Control(pad, item.Mod); if (mod == null || !Pressed(mod)) continue; }
-                    else if (AnyModifierHeld(pad)) continue;
-                    var entry = Resolve(item); if (entry == null) continue;
-                    if (NativeGamepad(entry)) { var native = NativeControl(entry, pad); if (native != null) _nowPads.Add(native); }
-                    else foreach (var code in CachedKeys(item, entry)) _nowHeld.Add(code);
+                    // 第 5 章（二次审查）：逐条保护，一条设置读坏只跳过它，不让整批组合失效。
+                    try
+                    {
+                        var control = Control(pad, item.button);
+                        if (control == null || !Pressed(control)) { _pressedAt.Remove(item); continue; }
+                        if (!_pressedAt.ContainsKey(item)) _pressedAt[item] = Time.frameCount;
+                        if (!Satisfied(pad, item)) continue;
+                        var entry = Resolve(item); if (entry == null) continue;
+                        if (NativeGamepad(entry)) { var native = NativeControl(entry, pad); if (native != null) _nowPads.Add(native); }
+                        else foreach (var code in CachedKeys(item, entry)) _nowHeld.Add(code);
+                    }
+                    catch (Exception error) { WarnOnce("[手柄组合] 「" + item.guid + " / " + item.key + "」更新失败：" + error.Message); }
                 }
             foreach (var code in _nowHeld) if (!_held.Contains(code)) _downFrame[code] = Time.frameCount;
             foreach (var code in _held) if (!_nowHeld.Contains(code)) _upFrame[code] = Time.frameCount;
@@ -286,6 +327,14 @@ internal static class GamepadCombos
         }
         catch (Exception error) { WarnOnce("[手柄组合] 更新失败：" + error.Message); _held.Clear(); }
     }
+
+    /// <summary>
+    /// 这一组的「先按住」键全部按着，并且没有别的「先按住」键多按着（多按了说明玩家想要的是另一组，比如
+    /// 「LT + A」不该同时触发单键「A」）。
+    /// </summary>
+    private static bool Satisfied(Gamepad pad, Item item) =>
+        GamepadComboRules.Satisfied(item.held, item.button, _heldButtons, name => Control(pad, name) is { } control && Pressed(control));
+
     private static bool Pressed(ButtonControl control) { _reentry++; try { return control.isPressed; } finally { _reentry--; } }
     private static bool _warned;
     private static void WarnOnce(string message) { if (_warned) return; _warned = true; Plugin.Log.LogWarning(message); }
@@ -296,32 +345,33 @@ internal static class GamepadCombos
         if (item.Keys == null || !Equals(item.KeysFor, value)) { item.Keys = KeysOf(entry); item.KeysFor = value; }
         return item.Keys;
     }
-    private static bool AnyModifierHeld(Gamepad pad)
-    {
-        foreach (var item in _items) if (item.Mod.Length > 0) { var mod = Control(pad, item.Mod); if (mod != null && Pressed(mod)) return true; }
-        return false;
-    }
-    /// <summary>Combos act only while playing, not in the pause menu (where the manager itself is used).</summary>
+
+    /// <summary>输入框聚焦时（打字保护）不注入、不屏蔽。MCE 另加了「局内别的模组的输入框聚焦」判断（TypingGuard.FieldFocusedNow），
+    /// IGMM 的打字保护没有这个成员，0.0.2 未搬，见同步报告。</summary>
+    private static bool Typing() => TypingGuard.Active;
+
+    /// <summary>Combos act only while playing, not in the pause menu (where this mod's pages are used).</summary>
     private static bool InGame()
     {
         try { return Character.localCharacter != null && !GUIManager.InPauseMenu; } catch { return false; }
     }
+
     internal static bool Held(KeyCode code) { Tick(); return _held.Contains(code); }
     internal static bool Down(KeyCode code) { Tick(); return _downFrame.TryGetValue(code, out int f) && f == Time.frameCount; }
     internal static bool Up(KeyCode code) { Tick(); return _upFrame.TryGetValue(code, out int f) && f == Time.frameCount; }
-    /// <summary>The control is the second button of a modifier combo whose modifier is held: the game should not
+
+    /// <summary>The control is the last button of a multi-button combo whose held buttons are down: the game should not
     /// also act on it (LT + A must not jump). Single-button combos are not masked: the game keeps that button too.</summary>
     internal static bool ComboButtonHeld(ButtonControl control)
     {
         var pad = Gamepad.current; if (pad == null || control.device != pad || _items.Count == 0 || !InGame()) return false;
         foreach (var item in _items)
         {
-            if (item.Mod.Length == 0 || Control(pad, item.button) != control) continue;
-            var mod = Control(pad, item.Mod); if (mod == null || !Pressed(mod)) continue;
-            // Only a press that began while the modifier was down: holding RT to climb and then pressing LT must not
-            // make the game drop RT (review #7).
-            if (_pressedAt.TryGetValue(item, out int since) && _modifierSince.TryGetValue(item.Mod, out int modSince) && since < modSince) continue;
-            return true;
+            if (item.held.Count == 0 || Control(pad, item.button) != control || !Satisfied(pad, item)) continue;
+            // Only a press that began after every held button was down: holding RT to climb and then pressing LT must
+            // not make the game drop RT.
+            int? since = _pressedAt.TryGetValue(item, out int at) ? at : null;
+            if (GamepadComboRules.MaskLastButton(item.held, since, h => _heldSince.TryGetValue(h, out int down) ? down : null)) return true;
         }
         return false;
     }
@@ -341,8 +391,8 @@ internal static class GamepadCombos
     // ── 钩子 ──────────────────────────────────────────────────
 
     private static bool _installed;
-    /// <summary>Postfixes on the same key reads the typing guard prefixes (Input.GetKey* and ButtonControl's three
-    /// properties). Postfix so the typing guard still wins while a text box has focus.</summary>
+    /// <summary>Postfixes on the key reads (Input.GetKey* and ButtonControl's three properties) and on InputAction's
+    /// reads. Postfix so the typing guard still wins while a text box has focus.</summary>
     internal static void Install(Harmony harmony)
     {
         if (_installed) return; _installed = true;
@@ -360,7 +410,7 @@ internal static class GamepadCombos
             if (getter == null || getter.GetMethodBody() == null) continue;
             try { harmony.Patch(getter, postfix: new HarmonyMethod(typeof(GamepadCombos), post)); count++; } catch (Exception e) { Plugin.Log.LogWarning("[手柄组合] ButtonControl." + name + " 挂不上：" + e.Message); }
         }
-        // The game reads its own actions (Jump, Interact…) through InputAction; mask the combo button there.
+        // The game reads its own actions (Jump, Interact…) through InputAction; mask the combo's last button there.
         foreach (var name in new[] { "WasPressedThisFrame", "IsPressed", "WasPerformedThisFrame" })
         {
             var method = AccessTools.Method(typeof(InputAction), name, Type.EmptyTypes);
@@ -371,18 +421,17 @@ internal static class GamepadCombos
     }
 
     private static int _reentry;
-    private static readonly Dictionary<string, int> _modifierSince = new();
-    /// <summary>Frame each modifier went down (for review #7).</summary>
-    private static void TrackModifiers(Gamepad pad)
+    /// <summary>Frame each "held" button went down.</summary>
+    private static void TrackHeld(Gamepad pad)
     {
-        foreach (var name in Modifiers)
+        foreach (var name in _heldButtons)
         {
-            if (name.Length == 0) continue;
             var control = Control(pad, name); bool down = control != null && Pressed(control);
-            if (down && !_modifierSince.ContainsKey(name)) _modifierSince[name] = Time.frameCount;
-            else if (!down) _modifierSince.Remove(name);
+            if (down && !_heldSince.ContainsKey(name)) _heldSince[name] = Time.frameCount;
+            else if (!down) _heldSince.Remove(name);
         }
     }
+
     private static void LegacyHeld(KeyCode key, ref bool __result)
     {
         if (_reentry != 0 || _items.Count == 0) return;
@@ -390,7 +439,7 @@ internal static class GamepadCombos
         {
             if (!__result && Held(key)) __result = true;
             // BepInEx KeyboardShortcut.IsDown() also requires "no other key held", and the legacy input reports the
-            // controller's face/shoulder buttons as JoystickButton*: hide those while an injected key is down (review #3).
+            // controller's face/shoulder buttons as JoystickButton*: hide those while an injected key is down.
             else if (__result && key >= KeyCode.JoystickButton0 && key <= KeyCode.Joystick8Button19 && _held.Count > 0) __result = false;
         }
         catch { }
@@ -423,10 +472,11 @@ internal static class GamepadCombos
         catch { }
         finally { _reentry--; }
     }
-    /// <summary>While LT is held, the combo's second button does not also fire the game's own action.</summary>
+
+    /// <summary>While a combo's held buttons are down, its last button does not also fire the game's own action.</summary>
     private static void ActionMask(InputAction __instance, ref bool __result)
     {
-        if (!__result || _reentry > 0 || _items.Count == 0 || TypingGuard.Active) return;
+        if (!__result || _reentry > 0 || _items.Count == 0 || Typing()) return;
         _reentry++;
         try
         {

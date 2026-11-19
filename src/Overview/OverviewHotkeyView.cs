@@ -152,10 +152,7 @@ internal sealed class OverviewHotkeyView : IDisposable
             float toolX=searchWidth+108;
             if(_authorMode){Button adjust=null!;adjust=OverviewUi.Button(_tools,T("Preset options","预设调整"),()=>PresetMenu((RectTransform)adjust.transform),102,30, role: UiActionRole.Edit);OverviewUi.Place((RectTransform)adjust.transform,toolX,1,102,30);toolX+=108;}
             var save=OverviewUi.Button(_tools,T("Save hotkeys","保存快捷键"),Save,114,30, role: UiActionRole.Commit);OverviewUi.Place((RectTransform)save.transform,toolX,1,114,30);toolX+=120;
-            Button modifierButton=null!;
-            modifierButton=OverviewUi.Button(_tools,Loc.T("Modifier: ","修饰键：","修飾鍵：")+GamepadCombos.ButtonName(GamepadCombos.Modifier),()=>ModifierMenu((RectTransform)modifierButton.transform),150,30,role:UiActionRole.Edit);
-            StylePad(modifierButton);
-            Hint(modifierButton.gameObject,Loc.T("When recording a controller key, hold this button to record \"modifier + key\"; without it, a single button is recorded. There is one modifier for all combos: changing it here changes every recorded combo. Default: Back.","录制手柄键时按住它，就记成「修饰键 + 键」；不按就记成单键。所有组合共用一个修饰键：在这里改，已录好的组合会一起改。默认 Back。","錄製手把鍵時按住它，就記成「修飾鍵 + 鍵」；不按就記成單鍵。所有組合共用一個修飾鍵：在這裡改，已錄好的組合會一起改。預設 Back。"));
+            // 0.0.2（同步 MCE 1.1.0）：去掉「全局唯一修饰键」下拉，手柄组合键改为自由组合（录制时先按住几个键、再按最后一个）。
             bool anyFolded=_repo.State.groups.Any(g=>_repo.State.collapsedGroups.Contains(g.id))||Service.Entries.Select(e=>e.Mod.Id).Distinct().Any(m=>_repo.State.collapsedHotkeyMods.Contains(m));
             bool anyOpen=!anyFolded; // the click expands when anything is folded, otherwise collapses
             var foldAll=OverviewUi.IconButton(_tools,anyFolded?"triangle-right":"triangle-down",()=>ToggleAllFolds(),30,30);
@@ -175,9 +172,8 @@ internal sealed class OverviewHotkeyView : IDisposable
             Label(_header,T("Description","短说明"),xDesc,1,xCurrent-xDesc-6,30);
             var currentTitle=Label(_header,Loc.T("Keyboard","键盘按键","鍵盤按鍵"),xCurrent,1,keyWidth-4,30);currentTitle.alignment=TextAlignmentOptions.Midline;
             var padTitle=Label(_header,Loc.T("Controller","手柄按键","手把按鍵"),xPad,1,keyWidth-4,30,PadAccent);padTitle.alignment=TextAlignmentOptions.Midline;
-            // 1.1.4 (user): the modifier picker and expand/collapse-all sit right above the controller column, in its colour.
-            OverviewUi.Place((RectTransform)modifierButton.transform,Mathf.Max(toolX,xPad-rowIndentTop()),1,Mathf.Max(110,keyWidth-38),30);
-            OverviewUi.Place((RectTransform)foldAll.transform,Mathf.Max(toolX,xPad-rowIndentTop())+Mathf.Max(110,keyWidth-38)+4,1,30,30);
+            // 1.1.4 (user): expand/collapse-all sits right above the controller column, in its colour.
+            OverviewUi.Place((RectTransform)foldAll.transform,Mathf.Max(toolX,xPad-rowIndentTop()),1,30,30);
             Label(_header,"!",xConflict,1,xModDefault-xConflict-2,30);
             var defaultTitle=Label(_header,T("Mod default","模组默认"),xModDefault,1,keyWidth-4,30,OverviewUi.Green);defaultTitle.alignment=TextAlignmentOptions.Midline;
             var packTitle=Label(_header,T("Profile preset","方案预设"),xPack,1,keyWidth-4,30,OverviewUi.Blue);packTitle.alignment=TextAlignmentOptions.Midline;
@@ -454,12 +450,9 @@ internal sealed class OverviewHotkeyView : IDisposable
     {
         var text=button.GetComponentInChildren<TMP_Text>(true); if(text==null)return;
         var host=(RectTransform)text.transform.parent; text.text="";
-        var keys=new List<(string,bool)>();
-        string mod=combo.Mod.Length>0&&GamepadCombos.Modifier.Length>0?GamepadCombos.Modifier:combo.Mod; // one shared modifier
-        if(mod.Length>0)keys.Add((GamepadCombos.ButtonName(mod),true));
-        keys.Add((GamepadCombos.ButtonName(combo.button),true));
+        var keys=GamepadCombos.ButtonsOf(combo).Select(b=>(GamepadCombos.ButtonName(b),true)).ToList();
         var chipHost=OverviewUi.Rect("KeyChips",host);OverviewUi.Fill(chipHost);
-        KeyChips.Build(chipHost,keys,text.font,24,dimFirst:mod.Length>0,centre:true,fontSize:15);
+        KeyChips.Build(chipHost,keys,text.font,24,dimFirst:combo.held.Count>0,centre:true,fontSize:15);
         Frameless(button);
     }
     /// <summary>The stored value as text ("&lt;Gamepad&gt;/buttonSouth", "LeftControl + F5", "South"), for key chips.</summary>
@@ -481,11 +474,6 @@ internal sealed class OverviewHotkeyView : IDisposable
         foreach(var text in button.GetComponentsInChildren<TMP_Text>(true))text.color=PadAccent;
         foreach(var icon in button.GetComponentsInChildren<OverviewIconGraphic>(true))icon.color=PadAccent;
         var style=button.GetComponent<UiActionStyle>(); if(style!=null)UnityEngine.Object.Destroy(style); // keep our colour, not the role colour
-    }
-    private void ModifierMenu(RectTransform anchor)
-    {
-        Popup(anchor,GamepadCombos.Modifiers.Select(m=>((m.Length==0?Loc.T("None (single buttons)","无（只用单键）","無（只用單鍵）"):GamepadCombos.ButtonName(m))+(m==GamepadCombos.Modifier?"  ✓":""),
-            (Action)(()=>{GamepadCombos.Modifier=m;Service.RefreshConflicts();_status(Loc.F("Controller modifier: {0}","手柄修饰键：{0}","手把修飾鍵：{0}",GamepadCombos.ButtonName(m)));Render();}),true)).ToList());
     }
     /// <summary>Expand everything if anything is folded, otherwise fold everything (groups and mod rows).</summary>
     private void ToggleAllFolds(bool? expand=null)
@@ -583,26 +571,27 @@ internal sealed class OverviewHotkeyView : IDisposable
     }
     private string ComboHint(OverviewHotkeyEntry entry)
     {
-        // 1.1.4 (user, exact wording): formal and short; the modifier shown is the one actually set.
+        // 0.0.2（同步 MCE 1.1.0）：自由组合，没有共用修饰键；提示 Steam 输入可替代。
         var combo=GamepadCombos.For(entry.Id);
-        string modifier=GamepadCombos.Modifier.Length>0?GamepadCombos.ButtonName(GamepadCombos.Modifier):Loc.T("not set","未分配","未分配");
         string head=combo!=null
             ? Loc.F("Controller hotkey: {0}","已分配的手柄快捷键：{0}","已分配的手把快捷鍵：{0}",GamepadCombos.Label(combo))
-            : Loc.T("This mod has no preset controller hotkey.","该模组未分配预设的手柄快捷键。","該模組未分配預設的手把快捷鍵。");
+            : GamepadCombos.NativeGamepad(entry.Config)
+                ? Loc.T("This setting is the mod's own controller key.","这是模组自己的手柄按键设置。","這是模組自己的手把按鍵設定。")
+                : Loc.T("No controller hotkey yet.","尚未分配手柄快捷键。","尚未分配手把快捷鍵。");
         return head+"\n\n"
-            +Loc.T("Press the controller's A button to assign a hotkey.","按下手柄的 A 键分配快捷键。","按下手把的 A 鍵分配快捷鍵。")+"\n"
-            +Loc.F("* Use \"{0}\" + another button as a combo to avoid clashing with the game's default buttons.","*建议使用「{0}」+其他按键组合为组合键，以避免和游戏默认按键冲突。","*建議使用「{0}」+其他按鍵組合為組合鍵，以避免和遊戲預設按鍵衝突。",modifier);
+            +Loc.T("Press A to record. Hold any buttons first, then press the last one, to record a combo (up to 4 buttons).","按 A 开始录制。先按住任意几个键、再按最后一个键，就录成组合键（最多 4 个键）。","按 A 開始錄製。先按住任意幾個鍵、再按最後一個鍵，就錄成組合鍵（最多 4 個鍵）。")+"\n"
+            +Loc.T("* The buttons held first still reach the game; only the last button is hidden from it. Steam Input's action sets or chords can do this without the mod.","* 先按住的键游戏仍会读到，只有最后一个键对游戏屏蔽。也可以改用 Steam 输入自带的动作集或组合键。","* 先按住的鍵遊戲仍會讀到，只有最後一個鍵對遊戲屏蔽。也可以改用 Steam 輸入內建的動作集或組合鍵。");
     }
-    /// <summary>A on the controller cell: wait for LT + one button (B / Menu cancels).</summary>
+    /// <summary>A on the controller cell: record a button or a free combo (up to 4 buttons; hold B alone for 1 s to finish).</summary>
     private void RecordCombo(OverviewHotkeyEntry entry)
     {
         if(!GamepadSupport.IsGamepad){_comboToPreset=false;_status(Loc.T("Controller keys are set with a controller.","手柄快捷键需使用手柄设置。","手把快捷鍵需使用手把設定。"));return;}
         ClosePopup(); _comboRecording=true; _comboEntry=entry; _comboStarted=Time.unscaledTime; _bDownAt=-1; _take.Clear();
         GamepadIntent.ReleaseAll(); var system=EventSystem.current; _navigationBefore=system==null||system.sendNavigationEvents; if(system!=null)system.sendNavigationEvents=false;
         GamepadLock.Begin(_root.gameObject); ComboRecordingActive=true; // the A that started recording is already down: it never joins the take
-        _status(GamepadCombos.Modifier.Length>0
-            ? Loc.F("Recording (controller locked): press a button, or hold \"{0}\" first for a combo. Hold B for 1 second to exit.","录制中（手柄已锁定）：按下按键，或先按住「{0}」录制组合键。长按 B 1 秒退出。","錄製中（手把已鎖定）：按下按鍵，或先按住「{0}」錄製組合鍵。長按 B 1 秒退出。",GamepadCombos.ButtonName(GamepadCombos.Modifier))
-            : Loc.T("Recording (controller locked): press a button. Hold B for 1 second to exit.","录制中（手柄已锁定）：按下按键。长按 B 1 秒退出。","錄製中（手把已鎖定）：按下按鍵。長按 B 1 秒退出。"));
+        _status(Loc.T("Recording (controller locked): press a button, or hold buttons first and then press the last one for a combo. Hold B for 1 second to exit.",
+            "录制中（手柄已锁定）：按下一个键；或先按住若干键再按最后一个键，录成组合键。长按 B 1 秒退出。",
+            "錄製中（手把已鎖定）：按下一個鍵；或先按住若干鍵再按最後一個鍵，錄成組合鍵。長按 B 1 秒退出。"));
         HoldRing.Show(_root,0f);
     }
     private void TickComboRecording()
@@ -613,7 +602,6 @@ internal sealed class OverviewHotkeyView : IDisposable
         if(Keyboard.current!=null&&Keyboard.current.escapeKey.wasPressedThisFrame){OverviewHotkeyCapture.MarkConsumed();EndComboRecording();_status(Loc.T("Recording cancelled.","已取消录制。","已取消錄製。"));return;}
         if(pad==null||!GamepadSupport.IsGamepad){EndComboRecording();_status(Loc.T("Recording stopped: the controller is no longer the input device.","录制已停止：当前输入设备已不是手柄。","錄製已停止：目前輸入裝置已不是手把。"));return;}
         if(OverviewUi.HasModal){EndComboRecording();_status(Loc.T("Recording stopped: a dialog opened.","录制已停止：有对话框弹出。","錄製已停止：有對話框彈出。"));return;}
-        string modifier=GamepadCombos.Modifier;
         bool native=GamepadCombos.NativeGamepad(entry.Config);
         // 1.1.5 (user: "the lock is unreliable"): while recording, GamepadLock rewrites every controller event to
         // "nothing pressed" before the input system sees it, so the game, other mods and this mod's own pages read no
@@ -629,23 +617,18 @@ internal sealed class OverviewHotkeyView : IDisposable
         HoldRing.Show(_root,bAlone?Mathf.Clamp01((Time.unscaledTime-_bDownAt)/1f):-1f);
         if(bAlone&&Time.unscaledTime-_bDownAt>=1f){_take.Clear();_bDownAt=-1;EndComboRecording();_status(Loc.T("Recording finished.","录制已结束。","錄製已結束。"));return;}
         if(_take.Count==0||anyHeld)return;
-        var take=_take.ToList(); _take.Clear(); _bDownAt=-1;
-        string used, button;
-        if(take.Count==1&&take[0]!=modifier){used="";button=take[0];}
-        else if(take.Count==2&&modifier.Length>0&&take.Contains(modifier)){used=modifier;button=take.First(b=>b!=modifier);}
-        else
+        var take=_take.Where(GamepadCombos.Buttons.Contains).ToList(); _take.Clear(); _bDownAt=-1;
+        if(take.Count==0)return;
+        if(take.Count>GamepadCombos.MaxButtons)
         {
-            // Not a key this page can hold: say why and stay locked.
-            string name=modifier.Length>0?GamepadCombos.ButtonName(modifier):"";
-            _status(take.Count==1
-                ? Loc.F("\"{0}\" is the modifier; press it together with another button. Hold B for 1 second to exit.","「{0}」是修饰键，需与其他按键组合。长按 B 1 秒退出。","「{0}」是修飾鍵，需與其他按鍵組合。長按 B 1 秒退出。",name)
-                : modifier.Length>0
-                    ? Loc.F("A combo is \"{0}\" + one button. Not recorded; recording continues. Hold B for 1 second to exit.","组合键为「{0}」+ 一个按键，本次未录入，录制继续。长按 B 1 秒退出。","組合鍵為「{0}」+ 一個按鍵，本次未錄入，錄製繼續。長按 B 1 秒退出。",name)
-                    : Loc.T("No modifier is set; press one button. Not recorded; recording continues. Hold B for 1 second to exit.","未设置修饰键，请只按一个按键。本次未录入，录制继续。长按 B 1 秒退出。","未設定修飾鍵，請只按一個按鍵。本次未錄入，錄製繼續。長按 B 1 秒退出。"));
+            _status(Loc.F("A combo has at most {0} buttons. Not recorded; recording continues. Hold B for 1 second to exit.","组合键最多 {0} 个键，本次未录入，录制继续。长按 B 1 秒退出。","組合鍵最多 {0} 個鍵，本次未錄入，錄製繼續。長按 B 1 秒退出。",GamepadCombos.MaxButtons));
             return;
         }
+        // 0.0.2（同步 MCE 1.1.0）：按下顺序——最后一个键之前按下的都是「先按住」的键。
+        string button=take[take.Count-1];
+        var used=take.Take(take.Count-1).ToList();
         {
-            if(native&&used.Length==0&&!_comboToPreset)
+            if(native&&used.Count==0&&!_comboToPreset)
             {
                 // A single button for a controller-native setting goes into the mod's own setting (written at once).
                 object? value=GamepadCombos.NativeValue(entry.Config,button);
@@ -656,14 +639,15 @@ internal sealed class OverviewHotkeyView : IDisposable
             if(_comboToPreset)
             {
                 GamepadCombos.SetPreset(_repo.State,entry.Id,entry.Guid,entry.Section,entry.Key,used,button); _repo.Save();
-                _status(Loc.F("Recorded in this profile: {0}.","已记入此方案：{0}。","已記入此方案：{0}。",(used.Length>0?GamepadCombos.ButtonName(used)+" + ":"")+GamepadCombos.ButtonName(button))+StillRecording); Render(); return;
+                _status(Loc.F("Recorded in this profile: {0}.","已记入此方案：{0}。","已記入此方案：{0}。",string.Join(" + ",used.Append(button).Select(GamepadCombos.ButtonName)))+StillRecording); Render(); return;
             }
             string? moved=GamepadCombos.Set(entry.Id,entry.Guid,entry.Section,entry.Key,used,button);
             Service.RefreshConflicts();
             var other=moved==null?null:Service.Entries.FirstOrDefault(e=>e.Id==moved);
             var item=GamepadCombos.For(entry.Id);
             _status(Loc.F("{0} now presses this hotkey.","{0} 现在会按下这个快捷键。","{0} 現在會按下這個快捷鍵。",item!=null?GamepadCombos.Label(item):GamepadCombos.ButtonName(button))
-                +(other!=null?" "+Loc.F("(moved from {0})","（原来分给了 {0}）","（原來分給了 {0}）",OverviewLanguageBridge.GetDisplayName(other.Mod)+" / "+other.Name):"")+StillRecording);
+                +(other!=null?" "+Loc.F("(moved from {0})","（原来分给了 {0}）","（原來分給了 {0}）",OverviewLanguageBridge.GetDisplayName(other.Mod)+" / "+other.Name):"")
+                +(GamepadCombos.LastSaveFailed?" "+Loc.T("(Could not save gamepad-combos.json; this change is lost after a restart.)","（未能保存到 gamepad-combos.json，重启后会丢失。）","（未能儲存到 gamepad-combos.json，重新啟動後會遺失。）"):"")+StillRecording);
             Render();return;
         }
     }
