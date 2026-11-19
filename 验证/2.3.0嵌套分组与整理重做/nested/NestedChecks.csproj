@@ -9,6 +9,10 @@
   <ItemGroup>
     <Compile Include="../../../src/Overview/NestedMods.cs" Link="NestedMods.cs" />
     <Compile Include="../../../src/Overview/OverviewEnablementDraft.cs" Link="OverviewEnablementDraft.cs" />
+    <!-- 0.0.2：OverviewEnablementDraft 用 SupersededMce 判断 MCE -->
+    <Compile Include="../../../src/Overview/SupersededMce.cs" Link="SupersededMce.cs" />
+    <Compile Include="../../../src/Updating/ManagerIdentity.cs" Link="ManagerIdentity.cs" />
+    <Compile Include="../../../src/Updating/PluginFileNames.cs" Link="PluginFileNames.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

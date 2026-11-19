@@ -100,7 +100,9 @@ internal sealed class ModToggleService
             {
                 PackLibrary.EnsureAvailable();
                 if (targets == null || targets.Count == 0) return Fail(Loc.T("Select a mod first.", "请先选择模组。", "請先選擇模組。"));
-                var copy = targets.ToArray();
+                // 0.0.2：本管理器在场时 MCE 不能被重新启用；任何调用方传来的「启用 MCE」都改成停用（兜底）。
+                var copy = SupersededMce.Coerce(targets, out int coerced);
+                if (coerced > 0) Diagnostics.ManagerLog.Info("ModConfig Enhance 的启用目标已改为停用：本管理器已包含其全部功能，在场时不重新启用它。");
                 transaction = new ModToggleTransaction(this, copy);
                 return new OverviewToggleResult(true, Loc.F("Enablement check passed; {0} file(s) need renaming and will take effect after restarting the game.", "启停预检通过；{0} 个文件需要改名，下次启动游戏生效。", "啟停預檢通過；{0} 個文件需要改名，下次啟動游戲生效。", transaction.PlannedMoveCount));
             }
@@ -406,8 +408,12 @@ internal sealed class ModToggleService
     }
 
     private InstallationWriteLease.Rewrite? PrepareShopLedger(Plan plan)
+        => ShopLedgerRewrite(bepinexRoot, plan.Moves.Select(m => (m.From, m.To)).ToList());
+
+    /// <summary>商店账本里登记的文件改名后跟着改路径（0.0.2 抽出来给 <see cref="LegacyMceGuard"/> 共用）。没有账本或没有登记的文件时返回 null。</summary>
+    internal static InstallationWriteLease.Rewrite? ShopLedgerRewrite(string bepinexRoot, IReadOnlyList<(string From, string To)> moves)
     {
-        if (plan.Moves.Count == 0) return null;
+        if (moves.Count == 0) return null;
         string ledgerPath = PackLibrary.Active != null ? Path.Combine(PackLibrary.Workspace, "shop-installed.json")
             : ModConfigEnhance.Updating.ManagerIdentity.Runtime(bepinexRoot, "shop", "installed-unmanaged.json");
         SafePath(bepinexRoot, ledgerPath);
@@ -417,7 +423,7 @@ internal sealed class ModToggleService
             ?? throw new IOException("Shop ownership ledger is empty.");
         if (ledger.SchemaVersion != 1 || ledger.Packages == null) throw new IOException("Shop ownership ledger is unsupported.");
         bool changed = false;
-        foreach (var move in plan.Moves.Where(m => IsUnder(bepinexRoot, m.From)))
+        foreach (var move in moves.Where(m => IsUnder(bepinexRoot, m.From)))
         {
             string from = Path.GetRelativePath(bepinexRoot, move.From).Replace('\\', '/');
             string to = Path.GetRelativePath(bepinexRoot, move.To).Replace('\\', '/');

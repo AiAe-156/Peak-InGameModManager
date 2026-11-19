@@ -159,7 +159,7 @@ Install with r2modman or Thunderstore Mod Manager to install the required depend
 
 Open **Settings → Mod overview** from the main menu or pause menu. **Mod settings** opens the settings tree. The overview toolbar's **Management center** provides profiles, modpacks, publishing and other tools.
 
-IGMM and ModConfig Enhance provide overlapping settings interfaces; choose one for your setup. TimeTheme is optional, and the translation tools do not require XUnity AutoTranslator.
+IGMM already includes everything ModConfig Enhance does; while IGMM is installed it keeps ModConfig Enhance disabled (and disables it at startup if it was loaded). TimeTheme is optional, and the translation tools do not require XUnity AutoTranslator.
 
 ## Gamepad controls
 
@@ -357,7 +357,7 @@ ModConfig Enhance 主要让模组设置更好找、更好懂；游戏内模组�
 
 进入主菜单或暂停菜单的「设置 → 模组概览」；「模组设置」打开设置树。概览工具条的「管理中心」提供方案、整合包、发布等工具。
 
-IGMM 与 ModConfig Enhance 的设置界面功能重叠，按需要选装其中一个即可。TimeTheme 为可选项；翻译工具无需安装 XUnity AutoTranslator。
+IGMM 已包含 ModConfig Enhance 的全部功能；装了 IGMM 时它会让 ModConfig Enhance 保持停用（启动时发现它被加载也会把它停用）。TimeTheme 为可选项；翻译工具无需安装 XUnity AutoTranslator。
 
 ## 手柄操作
 

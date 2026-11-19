@@ -33,6 +33,7 @@ internal static class OverviewEnablementDraft
     /// <summary>The mod's own planned state, ignoring the mod it is nested in.</summary>
     private static bool Own(IReadOnlyList<OverviewProfileMod> draft, OverviewMod mod)
     {
+        if (SupersededMce.Is(mod)) return false; // 0.0.2：本管理器在场时 MCE 的目标永远是停用
         var entry = draft.FirstOrDefault(m => m.guid == mod.Guid);
         if (entry == null) return mod.TargetEnabled;
         if (!mod.DuplicateCopy) return entry.enabled;
@@ -48,6 +49,7 @@ internal static class OverviewEnablementDraft
     /// outer is off.</summary>
     internal static void SetWithNested(List<OverviewProfileMod> draft, OverviewMod mod, bool enabled)
     {
+        if (SupersededMce.Is(mod)) enabled = false;
         if (enabled && BlockedByOuter(draft, mod)) throw new InvalidOperationException(Loc.F("{0} is inside {1}, which is disabled. Enable {1} first.", "{0} 位于已停用的「{1}」里，请先启用「{1}」。", "{0} 位於已停用的「{1}」裡，請先啟用「{1}」。", mod.Name, mod.Outer!.Name));
         bool was = Planned(draft, mod);
         // Read before the outer changes: once it is off every inner reads as off.
@@ -70,10 +72,14 @@ internal static class OverviewEnablementDraft
 
     internal static void Set(List<OverviewProfileMod> draft, OverviewMod mod, bool enabled)
     {
+        // 0.0.2：勾选 / 批量启用 / 收录现状都不会把 MCE 记成启用；有多份副本时也不「保留另一份启用中的」。
+        bool superseded = SupersededMce.Is(mod);
+        if (superseded) enabled = false;
         foreach (string guid in mod.PluginGuids.Count > 0 ? mod.PluginGuids : new List<string> { mod.Guid })
         {
             var value = draft.FirstOrDefault(p => p.guid == guid);
             if (value == null) { value = new OverviewProfileMod { id = guid, guid = guid, name = mod.Name, version = mod.DisplayVersion }; draft.Add(value); }
+            if (superseded) { value.enabled = false; value.copy = ""; continue; }
             if (!mod.DuplicateCopy) { value.enabled = enabled; value.copy = ""; continue; }
             if (enabled) { value.enabled = true; value.copy = mod.CopyKey; continue; }
             string copy = Resolve(value.copy, mod);

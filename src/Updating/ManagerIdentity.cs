@@ -41,6 +41,11 @@ internal static class ManagerIdentity
     /// </summary>
     internal static bool IsManagerSuccession(string? guid) => Same(guid, Guid) || Same(guid, LegacyGuid);
     /// <summary>
+    /// 0.0.2（2026-11-19，用户决定，取代 2026-11-12「两者可以同时装、只提示」）：本管理器在场时简化版 MCE 一律停用，
+    /// 任何启停路径都不能把它重新启用（见 Overview/SupersededMce.cs、LegacyMceGuard.cs）。它仍是普通模组：可以停用、卸载。
+    /// </summary>
+    internal static bool IsSupersededMce(string? guid) => Same(guid, LegacyGuid);
+    /// <summary>
     /// 商店里的「本管理器自身」：只认新包键。复查 #14：旧包键 <c>AiAeT-ModConfigEnhance</c> 现在是简化版 MCE 的商店包，
     /// 是一个普通模组，可以在 IGMM 的商店里装、更新、卸载（同装时概览会提醒）。
     /// 依赖展开时仍跳过旧包键（<see cref="IsManagerDependency"/>）：旧整合包把它列为依赖，本管理器已经接替它，不该再拉一份 MCE 进来。

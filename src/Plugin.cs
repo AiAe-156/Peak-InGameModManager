@@ -122,6 +122,8 @@ public class Plugin : BaseUnityPlugin
             $" / 语言: {(string.IsNullOrEmpty(LanguageFile.Value) ? "跟随游戏" : LanguageFile.Value)}");
     }
 
+    /// <summary>0.0.2：开机检查放在 Start——此时 BepInEx 已加载完全部插件，能看到 ModConfig Enhance 这次有没有被加载。</summary>
+    private void Start() => Overview.LegacyMceGuard.Run();
     private void Update() { Overview.OverviewRepository.TickRecovery(); CursorWatch.Tick(); }
     private void OnApplicationQuit() => Overview.OverviewRepository.FlushAllRecovery();
     private void OnDestroy() { GamepadLock.Shutdown(); Overview.OverviewRepository.FlushAllRecovery(); Overview.AnimatorRestGate.Shutdown(); Diagnostics.RuntimeLogCapture.Stop(); Overview.OverviewController.Dispose(); Overview.OverviewPageCache.Dispose(); }

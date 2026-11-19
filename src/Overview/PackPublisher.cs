@@ -513,13 +513,16 @@ internal static partial class PackPublisher
             if (PublicationFilePolicy.IsManifestFile(file))
             {
                 string directory = Path.GetDirectoryName(Path.GetFullPath(file))!.TrimEnd(Path.DirectorySeparatorChar);
-                var owners = mods.Where(m => m.CanToggle && m.PackageRoot.Length > 0 && targets.ContainsKey(m.Guid) && Directory.Exists(m.PackageRoot)
+                // 0.0.2：MCE 不论方案有没有记录，一律投影成停用（本管理器在场时不重新启用它）。
+                var owners = mods.Where(m => m.CanToggle && m.PackageRoot.Length > 0 && (targets.ContainsKey(m.Guid) || SupersededMce.Is(m)) && Directory.Exists(m.PackageRoot)
                     && Path.GetFullPath(m.PackageRoot).TrimEnd(Path.DirectorySeparatorChar).Equals(directory, StringComparison.OrdinalIgnoreCase)).ToList();
-                return owners.Count == 0 ? relative : PublicationFilePolicy.ProjectManifest(relative, owners.Any(m => targets[m.Guid]));
+                return owners.Count == 0 ? relative : PublicationFilePolicy.ProjectManifest(relative, owners.Any(m => !SupersededMce.Is(m) && targets[m.Guid]));
             }
             var mod = mods.FirstOrDefault(m => m.AssemblyPaths.Any(p => p.Equals(file, StringComparison.OrdinalIgnoreCase)));
-            if (mod != null && targets.TryGetValue(mod.Guid, out bool enabled) && mod.CanToggle)
+            bool enabled = false;
+            if (mod != null && (SupersededMce.Is(mod) || targets.TryGetValue(mod.Guid, out enabled)) && mod.CanToggle)
             {
+                if (SupersededMce.Is(mod)) enabled = false;
                 relative = PluginFileNames.OriginalPath(relative);
                 if (!enabled && relative.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) relative += PluginFileNames.DisabledSuffix;
             }

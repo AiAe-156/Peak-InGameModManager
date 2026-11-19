@@ -23,6 +23,9 @@ internal static class ModEnablementPresentation
         if(!mod.ResourcePack&&!mod.Loaded&&mod.TargetEnabled&&pending?.NeedsRestart!=true)result+="\n"+Loc.T("Enabled file did not load; see the game log.","文件已启用但本次未加载，原因见游戏日志。","檔案已啟用但本次未載入，原因見遊戲日誌。");
         if(mod.DuplicateCopy)result+="\n"+Loc.T("This plugin is installed in several folders; enabling this copy disables the others.","该模组装了多份副本；启用这份会停用其它副本，只保留一份。","該模組安裝了多份副本；啟用這份會停用其它副本，只保留一份。");
         if(!mod.CanToggle)result+="\n"+Loc.LocalizeMessage(mod.ToggleReason);
+        if(SupersededMce.Is(mod))result+="\n"+SupersededReason;
         return result;
     }
+    /// <summary>0.0.2：MCE 的勾选框为什么勾不上。</summary>
+    internal static string SupersededReason=>Loc.T("ModConfig Enhance stays disabled: this manager already includes everything it does.","ModConfig Enhance 保持停用：本管理器已包含其全部功能。","ModConfig Enhance 保持停用：本管理器已包含其全部功能。");
 }

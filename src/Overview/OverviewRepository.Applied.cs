@@ -101,6 +101,8 @@ internal sealed partial class OverviewRepository
             parameters = Configs.PrepareApply(parameterTargets ?? _draftConfig);
             // 2.3.1: a mod nested in one planned off is applied off; record that in the draft so the saved entry agrees.
             if (!skipEnablement) OverviewEnablementDraft.CarryOuterState(_draftMods, mods);
+            // 0.0.2：草稿（含恢复草稿、整合包 / 方案切换带来的）里的「MCE 启用」改成停用，存档与 restartMods 记录都跟着是停用。
+            SupersededMce.ForceOff(_draftMods);
             var targets = mods.Where(m => PlannedEnabled(m) != m.TargetEnabled).Select(m => (m, PlannedEnabled(m))).ToList();
             var skippedTargets = skipEnablement ? targets.ToList() : targets.Take(0).ToList();
             var skipReasons = new List<string>();

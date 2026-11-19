@@ -110,6 +110,41 @@ Check(OverviewEnablementDraft.Planned(draft,newer)&&OverviewEnablementDraft.Plan
 var solo=new OverviewMod{Name="Solo",Guid="solo",PluginGuids=new(){"solo"},TargetEnabled=true,CopyKey="plugins/Solo"};
 OverviewEnablementDraft.Set(draft,solo,false);OverviewEnablementDraft.Set(draft,solo,true);
 Check(OverviewEnablementDraft.Planned(draft,solo)&&draft.Single(m=>m.guid=="solo").copy=="","a single copy keeps the plain per-GUID state without a copy choice");
+// 0.0.2（2026-11-19）：本管理器在场时 ModConfig Enhance 一律停用，任何启停路径都不能重新启用它。
+const string Mce="com.aiae.modconfigenhance";
+Check(ModConfigEnhance.Updating.ManagerIdentity.IsSupersededMce(Mce)&&ModConfigEnhance.Updating.ManagerIdentity.IsSupersededMce("COM.AIAE.MODCONFIGENHANCE")&&!ModConfigEnhance.Updating.ManagerIdentity.IsSupersededMce("com.aiae.ingamemodmanager"),"MCE GUID recognised case-insensitively, IGMM itself is not superseded");
+var mce=new OverviewMod{Name="ModConfig Enhance",Guid=Mce,PluginGuids=new(){Mce},TargetEnabled=true,CopyKey="plugins/AiAeT-ModConfigEnhance"};
+var mceDraft=new List<OverviewProfileMod>();
+Check(!OverviewEnablementDraft.Planned(mceDraft,mce),"MCE enabled on disk with no profile entry is planned off");
+mceDraft.Add(new OverviewProfileMod{id=Mce,guid=Mce,enabled=true});
+Check(!OverviewEnablementDraft.Planned(mceDraft,mce),"profile entry saying MCE enabled is still planned off");
+OverviewEnablementDraft.Set(mceDraft,mce,true);
+Check(!mceDraft.Single(m=>m.guid==Mce).enabled,"checking MCE records it disabled");
+OverviewEnablementDraft.SetWithNested(mceDraft,mce,true);
+Check(!mceDraft.Single(m=>m.guid==Mce).enabled&&!OverviewEnablementDraft.Planned(mceDraft,mce),"batch enable (SetWithNested) keeps MCE disabled");
+var mceCopy=new OverviewMod{Name="ModConfig Enhance",Guid=Mce,PluginGuids=new(){Mce},TargetEnabled=true,CopyKey="plugins/old/MCE"};
+mce.CopyRows=mceCopy.CopyRows=new List<OverviewMod>{mce,mceCopy};
+OverviewEnablementDraft.Set(mceDraft,mce,false);
+Check(!mceDraft.Single(m=>m.guid==Mce).enabled&&mceDraft.Single(m=>m.guid==Mce).copy==""&&!OverviewEnablementDraft.Planned(mceDraft,mceCopy),"duplicate MCE copies: disabling one does not keep the other enabled");
+var records=new List<OverviewProfileMod>{new(){guid=Mce.ToUpperInvariant(),enabled=true,copy="plugins/x"},new(){guid="other",enabled=true}};
+Check(SupersededMce.ForceOff(records)==1&&!records[0].enabled&&records[0].copy==""&&records[1].enabled,"ForceOff disables only MCE records (profile load/save/import/recovery)");
+Check(SupersededMce.ForceOff(records)==0&&SupersededMce.ForceOff(null)==0,"ForceOff is idempotent and null-safe");
+var other=new OverviewMod{Name="Other",Guid="other",PluginGuids=new(){"other"}};
+var coerced=SupersededMce.Coerce(new[]{(mce,true),(other,true),(mceCopy,false)},out int changedTargets);
+Check(changedTargets==1&&!coerced[0].Enabled&&coerced[1].Enabled&&!coerced[2].Enabled,"toggle service coerces 'enable MCE' to disable, leaves others alone");
+string guardRoot=Path.Combine(Path.GetTempPath(),"igmm-mce-guard-"+System.Guid.NewGuid().ToString("N")),guardPlugins=Path.Combine(guardRoot,"plugins"),mcePack=Path.Combine(guardPlugins,"AiAeT-ModConfigEnhance");
+Directory.CreateDirectory(mcePack);File.WriteAllText(Path.Combine(mcePack,"ModConfigEnhance.dll"),"x");File.WriteAllText(Path.Combine(mcePack,"manifest.json"),"{}");
+var plan=SupersededMce.DisablePlan(Path.Combine(mcePack,"ModConfigEnhance.dll"),guardPlugins);
+Check(plan.Count==2&&plan[0].To.EndsWith("ModConfigEnhance.dll.d")&&plan[1].To.EndsWith("manifest.json.old"),"startup guard renames MCE dll to .d and its own package manifest to .old");
+File.WriteAllText(Path.Combine(mcePack,"Other.dll"),"x");
+plan=SupersededMce.DisablePlan(Path.Combine(mcePack,"ModConfigEnhance.dll"),guardPlugins);
+Check(plan.Count==1,"startup guard leaves the manifest alone when the package holds other DLLs");
+File.WriteAllText(Path.Combine(mcePack,"ModConfigEnhance.dll.d"),"x");
+bool refused=false;try{SupersededMce.DisablePlan(Path.Combine(mcePack,"ModConfigEnhance.dll"),guardPlugins);}catch(IOException){refused=true;}
+Check(refused,"startup guard refuses to overwrite an existing .d file");
+refused=false;try{SupersededMce.DisablePlan(Path.Combine(guardRoot,"ModConfigEnhance.dll"),guardPlugins);}catch(IOException){refused=true;}
+Check(refused,"startup guard refuses a DLL outside plugins");
+Directory.Delete(guardRoot,true);
 Console.WriteLine($"PASS {n} production issue-report/selection checks");
 namespace ModConfigEnhance{internal static class Loc{internal static string T(string a,string b,string c)=>b;internal static string F(string a,string b,string c,params object[] args)=>string.Format(b,args);internal static string LocalizeMessage(string s)=>s;}}
 namespace ModConfigEnhance.Overview{

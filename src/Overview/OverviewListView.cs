@@ -578,7 +578,7 @@ internal sealed partial class OverviewListView : IDisposable
                 OverviewEditableFrame.Set(description.rectTransform, _authorMode);
                 enablement.Capture();enablement.Refresh(MarkerState()?.Mod(mod.Guid));
                 yield return null;
-                var enabled = OverviewUi.Check(row, _repo.PlannedEnabled(mod), value => Toggle(mod, value)); enabled.interactable = mod.CanToggle && !_repo.BlockedByOuter(mod);
+                var enabled = OverviewUi.Check(row, _repo.PlannedEnabled(mod), value => Toggle(mod, value)); enabled.interactable = mod.CanToggle && !_repo.BlockedByOuter(mod) && !SupersededMce.Is(mod); // 0.0.2：MCE 勾不上，原因见悬停说明
                 if (mod.Outer != null && _repo.BlockedByOuter(mod)) AddHint(enabled.gameObject, T("The outer mod is disabled: ", "外层模组已停用：") + OverviewLanguageBridge.GetDisplayName(mod.Outer));
                 enablement.Checkbox=enabled;
                 OverviewUi.Place((RectTransform)enabled.transform, xEnable + (goalWidth - 24) / 2, (row.rect.height - 24) / 2, 24, 24);
@@ -885,7 +885,8 @@ internal sealed partial class OverviewListView : IDisposable
             // 勾选框直接作用于所在行；只有该行本身处于多选中时才批量作用于整个选区。
             var selected = _selected.Contains(mod.Id) ? Selected(mod) : new List<OverviewMod> { mod };
             _repo.SetPlannedEnabled(selected, enabled);
-            _status(Loc.T("Enablement draft changed. Save configuration to commit; restart when indicated.", "启停草稿已修改；点击“保存配置”提交，按提示重启生效。", "啟停草稿已修改；點擊「儲存設定」提交，依提示重新啟動生效。"));
+            _status(Loc.T("Enablement draft changed. Save configuration to commit; restart when indicated.", "启停草稿已修改；点击“保存配置”提交，按提示重启生效。", "啟停草稿已修改；點擊「儲存設定」提交，依提示重新啟動生效。")
+                + (enabled && selected.Any(SupersededMce.Is) ? " " + ModEnablementPresentation.SupersededReason : ""));
             RefreshEnablementRows();
         }
         catch (Exception ex) { _status(T("Could not change state: ", "启停失败：") + Loc.LocalizeMessage(ex.Message)); RefreshEnablementRows(); }

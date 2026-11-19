@@ -104,6 +104,8 @@ internal sealed partial class OverviewRepository
         _pendingConfiguration = File.Exists(path) ? OverviewProfileStore.DeserializeJson<PendingConfiguration>(File.ReadAllText(path, Encoding.UTF8)) : new();
         if (_pendingConfiguration.schemaVersion != 1) throw new InvalidDataException(Loc.T("Unsupported pending-profile record.", "待应用方案记录格式不受支持。", "待套用方案記錄格式不受支援。"));
         _pendingConfiguration.restartParameters ??= new(); _pendingConfiguration.restartMods ??= new();
+        // 0.0.2：旧记录里「重启后启用 MCE」作废（本管理器在场时不重新启用它）。
+        _pendingConfiguration.restartMods.RemoveAll(m => m.enabled && SupersededMce.Is(m.guid));
         _pendingConfiguration.config ??= new();
         var applied = _appliedSnapshot ?? Profiles.Applied;
         _appliedIntroductionHash = _pendingConfiguration.profileId == Profiles.AppliedId && !string.IsNullOrEmpty(_pendingConfiguration.appliedIntroductionHash)

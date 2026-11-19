@@ -92,6 +92,7 @@ internal sealed partial class OverviewRepository
             ? SharedInformationRecovery.Merge(draft.savedBaseline.state, draft.state, latestShared, out sharedConflict)
             : draft.state;
         _draftConfig = draft.config; _draftMods = draft.mods;
+        SupersededMce.ForceOff(_draftMods); // 0.0.2：旧恢复草稿里的「MCE 启用」
         if (sharedConflict)
             ReadWarning = Loc.T("Shared modpack information changed since this draft. Your edits were retained; review before saving.", "整合包共用资料在草稿之后有更新，已保留你的编辑，请核对后保存。", "整合包共用資料在草稿之後有更新，已保留你的編輯，請核對後儲存。");
         if (draft.runtimeBaseline?.values != null) _editingRuntimeBaseline = draft.runtimeBaseline;

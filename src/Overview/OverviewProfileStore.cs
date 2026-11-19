@@ -448,7 +448,7 @@ internal sealed partial class OverviewProfileStore
         {
             if (reference.legacyFile.Length > 0)
             {
-                var legacy = ReadLegacyProfile(reference); OverviewProfileNames.Normalize(legacy, true); reference.name = legacy.name;
+                var legacy = ReadLegacyProfile(reference); SupersededMce.ForceOff(legacy.mods); OverviewProfileNames.Normalize(legacy, true); reference.name = legacy.name;
                 return _loaded[reference.id] = legacy;
             }
             string profilePath = Path.Combine(reference.directory, "profile.json");
@@ -462,6 +462,7 @@ internal sealed partial class OverviewProfileStore
             profile.config = DeserializeJson<OverviewConfigSnapshot>(pair.Config.ToString(Formatting.None));
             if (profile.config.schemaVersion != SchemaVersion) throw new InvalidDataException(Loc.F("Unsupported configuration snapshot version {0}", "不支持的配置快照版本 {0}", "不支持的配置快照版本 {0}", profile.config.schemaVersion));
             profile.state ??= new(); profile.mods ??= new(); profile.config.values ??= new(); profile.config.files ??= new();
+            SupersededMce.ForceOff(profile.mods); // 0.0.2：任何方案（个人、作者、导入）里的「MCE 启用」读进来就是停用
             OverviewProfileNames.Normalize(profile, true); reference.name = profile.name;
             _loaded[reference.id] = profile;
             return profile;
@@ -479,7 +480,7 @@ internal sealed partial class OverviewProfileStore
                     recovered.config = DeserializeJson<OverviewConfigSnapshot>(pair.Config.ToString(Formatting.None));
                     recovered.id = reference.id; recovered.name = reference.name; recovered.kind = reference.kind; recovered.directory = reference.directory;
                     recovered.source = reference.source; recovered.readOnly = reference.readOnly; recovered.loadError = Loc.T("The current file is damaged. The last valid version was loaded: ", "当前文件损坏，已载入最后有效版本：", "當前文件損壞，已載入最后有效版本：") + ex.Message;
-                    OverviewProfileNames.Normalize(recovered, true); reference.name = recovered.name;
+                    SupersededMce.ForceOff(recovered.mods); OverviewProfileNames.Normalize(recovered, true); reference.name = recovered.name;
                     return _loaded[reference.id] = recovered;
                 }
                 catch { }
@@ -493,6 +494,7 @@ internal sealed partial class OverviewProfileStore
     {
         if (profile.readOnly || profile.kind == OverviewProfileKind.Author) throw new InvalidOperationException(Loc.T("Published author data is read-only. Create a personal copy first.", "作者发布资料只读，请先创建个人副本。", "作者發布資料只讀，請先創建個人副本。"));
         OverviewProfileNames.Normalize(profile);
+        SupersededMce.ForceOff(profile.mods); // 0.0.2：方案存档永远把 MCE 记为停用
         string configPath = Path.Combine(profile.directory, "config-values.json");
         if (profile.config == null || profile.config.schemaVersion != SchemaVersion || profile.config.values == null || profile.config.files == null)
             throw new InvalidOperationException(Loc.T("Invalid configuration snapshot format. The existing profile cannot be overwritten.", "配置快照格式无效，不能覆盖已有方案。", "配置快照格式無效，不能覆蓋已有方案。"));
@@ -578,6 +580,7 @@ internal sealed partial class OverviewProfileStore
     {
         DateTime now = DateTime.UtcNow;
         List<OverviewProfileMod> profileMods = Clone(mods);
+        SupersededMce.ForceOff(profileMods); // 新建 / 复制 / 导入的方案
         foreach (OverviewModRule rule in state.mods ?? new())
             if (!profileMods.Any(mod => mod.id.Equals(rule.id, StringComparison.OrdinalIgnoreCase) || mod.guid.Equals(rule.id, StringComparison.OrdinalIgnoreCase)))
                 profileMods.Add(new OverviewProfileMod { id = rule.id, guid = rule.id, name = rule.id, enabled = false, installed = false });
