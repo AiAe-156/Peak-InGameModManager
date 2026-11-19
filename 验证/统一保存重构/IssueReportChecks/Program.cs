@@ -49,6 +49,10 @@ consumer.PackageDependencies=new(){"Team-Disabled-1.0.0"};Package(Path.Combine(f
 Check(ConfigurationIssueReport.Build(repo,new[]{consumer}).Contains("未启用"),"disabled payload not active dependency");
 consumer.PackageDependencies=new(){"Team-Cached-1.0.0"};Package(Path.Combine(fixture,"Team-Cached"),"Cached","1.0.0","Team");
 Check(ConfigurationIssueReport.Build(repo,new[]{consumer}).Contains("缓存区"),"cached payload not active dependency");
+// 0.0.2（2026-11-19）：BepInEx 根下停放文件夹里的无作者包不进「来源未识别」（不加载、不在列表）。
+Package(Path.Combine(fixture,"停放","PeakWorkshop"),"PeakWorkshop","1.0.0");
+Check(ConfigurationPackageInventory.Get(new[]{consumer}).Unresolved.Any(e=>e.Name=="PeakWorkshop"&&e.Cached),"parked authorless package is scanned as cached unresolved evidence");
+Check(!ConfigurationIssueReport.Build(repo,new[]{consumer}).Contains("PeakWorkshop"),"parked authorless package outside plugins not reported as unidentified source");
 consumer.PackageDependencies=new(){"Team-ManifestOnly-1.0.0"};string empty=Path.Combine(fixture,"plugins","Team-ManifestOnly");Directory.CreateDirectory(empty);File.WriteAllText(Path.Combine(empty,"manifest.json"),"{\"namespace\":\"Team\",\"name\":\"ManifestOnly\",\"version_number\":\"1.0.0\"}");OverviewPageCache.Inventory++;
 Check(ConfigurationIssueReport.Build(repo,new[]{consumer}).Contains("缺失"),"manifest without real runtime payload is not installed");
 Directory.Delete(fixture,true);

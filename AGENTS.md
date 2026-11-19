@@ -1,5 +1,8 @@
 # 游戏内模组管理器（In-Game Mod Manager，IGMM）项目规则
 
+> **先读 [PEAK 分区规则](../AGENTS.md)，再按本项目规则执行。**
+> 续做或追溯时，按需读 [IGMM 开发记录](../项目记录/InGameModManager.md)。相对工程路径从本目录解析。
+
 ## 对外首个测试版（用户 2026-11-13 指定）
 - 对外版本从 **0.0.1** 起，视为首个公开测试版；此前 1.x/2.x 是开发历史，不延续为 1.1.8。
 - README 以用户修订的中文版为准同步英文，保留中文措辞，英文在前、中文在后，以显式锚点提供中英文双向页内跳转，清除逐版更新历史。CHANGELOG 与三语内置更新日志只有 0.0.1 一版，合并说明相对 MCE 1.0.4 的最终功能，后续正式发布继续按用户指定版本处理。
@@ -20,7 +23,7 @@
 - C# 命名空间 `ModConfigEnhance.*` 与三个 csproj 文件名**有意保留**（纯内部、改动面数百文件），不对外显示。GitHub 仓库 `https://github.com/AiAe-156/Peak-InGameModManager`（公开，`main`，2026-11-11 建）；旧仓库 `Peak-ModConfigEnhance` 归简化版 MCE。推送需 `git -c credential.helper=manager push`（本机未配置 credential.helper，登录在 Git Credential Manager 里），推送前跑 `验证/拆分/secret_scan.py`。
 - 版本 1.0.0 起重新计；开发期 CHANGELOG / README 版本说明 / 内置更新日志归档在 `备份/*_开发期_*_20261111.md`。
 
-先读上级 `../AGENTS.md`。保留现有用户改动，不用 git reset 回退整工程。版本流水在 `CHANGELOG.md`；各专项验证记录在 `验证/<专项>/`，部署真源在对应 `deployment_*/result.json`。
+保留现有用户改动，不用 git reset 回退整工程。版本流水在 `CHANGELOG.md`；各专项验证记录在 `验证/<专项>/`，部署真源在对应 `deployment_*/result.json`。
 
 ## 用户硬规则
 - 不做过度防御：不用无关状态拦操作，校验一律降级为提示；真正必要的保护只有备份、回滚、保护名单（BepInEx/doorstop/游戏本体）和路径安全。
@@ -130,3 +133,4 @@
 - 部署（2026-11-18，用户决定）：**改为启用**。现装目录只有一个 `InGameModManager.dll`（SHA256 `B011509A…F4414FE6`），旧 `.dll` 与 `.dll.d` 备份在 `备份/部署前_0.0.2启用_20261118_111039/`。IGMM 启用时 MCE 不加载。`验证/宣传视频试做/` 已加进 `.gitignore`。
 - **导出前提醒未记录模组（2026-11-18）**：方案只记录草稿里已有的模组，默认方案建好之后才装的不会自动进方案；发布清单按方案 GUID 选，原来会悄悄漏掉。`PublishWizard.Preview` 在生成文件清单前用 `UnrecordedPublication.Find` 找出来弹提醒：「存入方案并导出」（默认方案照磁盘现状、其他勾选方案记停用；先整份备份到运行目录 `profile-backups/`；查看中的方案走草稿 + `Save()`，其余用 `OverviewProfileStore.AppendMods` 只追加）/「只导出、不存入方案」（二次确认）/ 返回。纯逻辑在 `UnrecordedPublication.cs`，publish-sim 链接它（70 项）。部署 SHA256 `4D5AC974…4C0EACBE`，改前备份 `备份/部署前_0.0.2未收录提醒_20261118_114246/`。结论与实机清单 19–23 见 `验证/MCE1.1.0同步_20261117/同步报告.md` 开头。
 - **手柄组合键自由组合（2026-11-18，同步 MCE）**：取消全局唯一修饰键；先按住任意几个键、最后按一个键触发，最多 4 个键，只屏蔽最后那个键。规则在 `src/GamepadComboRules.cs`（搬自 MCE，另加 `LegacyModifier`），夹具 `验证/MCE1.1.0同步_20261117/combo-checks/`（91 项，指向 IGMM 的 src）。旧 `gamepad-combos.json`（无 `version`）按旧版实际效果把共用修饰键并入 `held` 最前面，留 `.before-free-combos` 后写成 `version = 2`；方案预设按自己录的键生效。组合只在局内生效，与 LT + LB / RB 等页面手势不冲突，LT + LB / RB 保留。未搬 MCE 的 `TypingGuard.FieldFocusedNow`。部署 SHA256 `708829CD…2FCB4E5F`，改前备份 `备份/部署前_0.0.2自由组合键_20261118_192530/`。详情与实机清单 24–28 见同步报告开头。
+- **「来源未识别」不报停放文件夹（2026-11-19）**：`ShopInstalled` 把 BepInEx 根下非载入目录按 `area = "cache"` 扫进 `Unresolved`；`ConfigurationIssueReport.Build` 遍历时加 `!e.Cached`。今后直接读 `Unresolved` 做提醒的地方都要排除 `Cached`。IssueReportChecks 74 项。部署 SHA256 `646695A7…3D57EDF8`。

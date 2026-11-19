@@ -134,7 +134,8 @@ internal static class ConfigurationIssueReport
         }
         foreach (var mod in Unidentified(mods))
             issues.Add(new Issue { Category = 5, Name = Caption(mod), Reason = "" });
-        foreach (var item in inventory.Unresolved.Where(e => !mods.Any(m => m.PackageName.Equals(e.Name, StringComparison.OrdinalIgnoreCase))))
+        // 只报告实际安装区的未识别包；BepInEx 根下停放文件夹（area = cache）里的不会被加载，也不在列表里。
+        foreach (var item in inventory.Unresolved.Where(e => !e.Cached && !mods.Any(m => m.PackageName.Equals(e.Name, StringComparison.OrdinalIgnoreCase))))
             issues.Add(new Issue { Category = 5, Name = Safe(item.Name) + " " + Dim(item.Version), Reason = "" });
         foreach (var mod in mods.Where(m => repo.PlannedEnabled(m) != m.TargetEnabled && (!m.CanToggle || m.IdentityConflict.Length > 0)))
             issues.Add(new Issue { Category = 4, Name = mod.Name,
